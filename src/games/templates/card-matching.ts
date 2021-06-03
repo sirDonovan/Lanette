@@ -29,7 +29,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	deckPool: IPokemonCard[] = [];
 	eggGroupsLimit: number = 0;
 	playerInactiveRoundLimit: number = 3;
-	lastPlayer: Player | null = null;
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
 	minimumPlayedCards: number = 1;
@@ -160,72 +159,26 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	getPlayerTurnHtml(player: Player): string {
 		const playerCards = this.playerCards.get(player)!;
 		const turnCards = this.getTurnCards(player);
-		let html = '';
-		let playableAction: string[] = [];
-		if (turnCards.action.length) {
-			playableAction = this.getCardsPrivateHtml(turnCards.action, player, true);
+		let html = '<b>Your cards</b>:' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '<br />';
+		html += this.getCardsPrivateHtml(playerCards);
+
+		const playButtons: string[] = [];
+		for (const card of turnCards.action) {
+			playButtons.push(this.getCardPlayButton(card, player));
 		}
 
-		let playableGroup: string[] = [];
-		let playableSingle: string[] = [];
-		if (turnCards.group.length || turnCards.single.length) {
-			playableGroup = this.getCardGroupsPrivateHtml(turnCards.group);
-			playableSingle = this.getCardsPrivateHtml(turnCards.single, player, true);
+		for (const card of turnCards.group) {
+			playButtons.push(this.getCardGroupPlayButton(card, player));
 		}
 
-		const playableRegular = playableGroup.concat(playableSingle);
+		for (const card of turnCards.single) {
+			playButtons.push(this.getCardPlayButton(card, player));
+		}
 
-		const hasPlayableActionCards = playableAction.length > 0;
-		const hasPlayableRegularCards = playableRegular.length > 0;
-		const showAllCards = !this.maximumPlayedCards || !this.maxShownPlayableGroupSize ||
-			this.maximumPlayedCards > this.maxShownPlayableGroupSize;
-		if (playerCards.length) {
-			if (hasPlayableActionCards || hasPlayableRegularCards) {
-				html += "<div class='infobox-limited' style='max-height: 175px'>";
-
-				const hasPlayableGroupCards = playableGroup.length > 0;
-				const hasPlayableSingleCards = playableSingle.length > 0;
-				html += '<b>Playable cards</b>' + (hasPlayableGroupCards && this.maxShownPlayableGroupSize && (!this.maximumPlayedCards ||
-					this.maxShownPlayableGroupSize < this.maximumPlayedCards) ? ' (there may be longer chains to play manually)' : '') +
-					':<br />';
-
-				if (hasPlayableActionCards) {
-					html += playableAction.join("<br />");
-				}
-
-				if (hasPlayableRegularCards) {
-					if (hasPlayableActionCards) html += "<br />";
-
-					if (hasPlayableGroupCards && hasPlayableSingleCards) {
-						html += playableGroup.join("<br />") + "<br />" + playableSingle.join("<br />");
-					} else if (hasPlayableGroupCards) {
-						html += playableGroup.join("<br />");
-					} else if (hasPlayableSingleCards) {
-						html += playableSingle.join("<br />");
-					}
-				}
-
-				html += "</div>";
-
-				if (showAllCards) {
-					html += '<br /><b>All cards</b>:' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '<br />';
-				} else {
-					if (turnCards.unplayable.length) html += '<br /><b>Unplayable cards</b>:<br />';
-				}
-			} else {
-				html += '<b>Your cards</b>:' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '<br />';
-			}
-
-			let otherCardsHtml = '';
-			if (showAllCards) {
-				otherCardsHtml += this.getCardsPrivateHtml(playerCards, player).join("<br />");
-			} else {
-				if (turnCards.unplayable.length) otherCardsHtml += this.getCardsPrivateHtml(turnCards.unplayable, player).join("<br />");
-			}
-
-			if (otherCardsHtml) {
-				html += "<div class='infobox-limited' style='max-height: 265px'>" + otherCardsHtml + "</div>";
-			}
+		if (playButtons.length) {
+			html += '<br /><b>Playable cards</b>' + (turnCards.group.length && this.maxShownPlayableGroupSize &&
+				(!this.maximumPlayedCards || this.maxShownPlayableGroupSize < this.maximumPlayedCards) ? ' (there may be longer chains ' +
+				'to play manually)' : '') + ':<br />' + playButtons.join("&nbsp;|&nbsp;");
 		}
 
 		return html;
@@ -235,28 +188,32 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return "<b>Typing</b>:&nbsp;" + this.getChatTypeLabel(card) + "&nbsp;|&nbsp;<b>Color</b>:&nbsp;" + this.getChatColorLabel(card);
 	}
 
-	getCardPrivateHtml(card: ICard, player?: Player, showPlayable?: boolean): string {
-		let html = '<div class="infobox">';
-
-		if (player && showPlayable) {
-			if (card.action && card.action.getRandomTarget) {
-				html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " +
-					card.action.getRandomTarget(this, this.playerCards.get(player)!), "Play randomized", player.eliminated) +
-					" or play manually!";
-			} else {
-				if (card.action && card.action.requiredTarget) {
-					html += '<b>Play manually!</b>';
-				} else {
-					html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + card.name, "Play!", player.eliminated);
-				}
-			}
-			html += '&nbsp;&nbsp;|&nbsp;';
+	getCardPlayButton(card: ICard, player: Player): string {
+		let html = '';
+		if (card.action && card.action.getRandomTarget) {
+			html += this.getMsgRoomButton("play " + card.action.getRandomTarget(this, this.playerCards.get(player)!),
+				"Play <b>randomized " + card.name + "</b>", player.eliminated) + " (or manually)";
 		} else {
-			if (card.action) html += '&nbsp;';
+			if (card.action && card.action.requiredTarget) {
+				html += '<b>Play ' + card.name + ' manually!</b>';
+			} else {
+				html += this.getMsgRoomButton("play " + card.name, "Play <b>" + card.name + "</b>", player.eliminated);
+			}
 		}
 
+		return html;
+	}
+
+	getCardGroupPlayButton(cards: ICard[], player: Player): string {
+		const names = cards.map(x => x.name);
+		return this.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"), player.eliminated);
+	}
+
+	getCardPrivateHtml(card: ICard): string {
+		let html = '<div class="infobox">';
+
 		if (card.action) {
-			html += '&nbsp;' + Dex.getItemIcon(Dex.getExistingItem("Poke Ball")) + '&nbsp;';
+			html += '&nbsp;&nbsp;' + Dex.getItemIcon(Dex.getExistingItem("Poke Ball")) + '&nbsp;';
 		} else {
 			if (this.getDex().getData().pokemonKeys.includes(card.id)) {
 				html += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
@@ -279,41 +236,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return html;
 	}
 
-	getCardsPrivateHtml(cards: ICard[], player?: Player, playableCards?: boolean): string[] {
+	getCardsPrivateHtml(cards: ICard[]): string {
 		const html: string[] = [];
 		for (const card of cards) {
-			html.push('<div style="height:auto">' + this.getCardPrivateHtml(card, player, playableCards) + '</div>');
+			html.push('<div style="height:auto">' + this.getCardPrivateHtml(card) + '</div>');
 		}
-		return html;
-	}
-
-	getCardGroupHtml(group: ICard[]): string {
-		let html = '<div class="infobox">';
-		const icons: string[] = [];
-		const names: string[] = [];
-		const pokemonKeys = this.getDex().getData().pokemonKeys;
-		for (const card of group) {
-			names.push(card.name);
-
-			if (pokemonKeys.includes(card.id)) {
-				icons.push(Dex.getPokemonIcon(Dex.getExistingPokemon(card.name)));
-			}
-		}
-		html += Client.getMsgRoomButton(this.room, Config.commandCharacter + "play " + names.join(", "), "Play " +
-			(names.length === 2 ? "pair" : "group") + "!") + "&nbsp;&nbsp;|&nbsp;";
-		html += icons.join("") + "<b>" + Tools.joinList(names) + "</b>";
-		html += '</div>';
-
-		return html;
-	}
-
-	getCardGroupsPrivateHtml(groups: ICard[][]): string[] {
-		const html: string[] = [];
-		for (const group of groups) {
-			if (this.maxShownPlayableGroupSize && group.length > this.maxShownPlayableGroupSize) continue;
-			html.push('<div style="height:auto">' + this.getCardGroupHtml(group) + '</div>');
-		}
-		return html;
+		return html.join("");
 	}
 
 	setTopCard(card: IPokemonCard, player: Player): void {

@@ -58,7 +58,7 @@ export abstract class CardHighLow extends Card {
 			this.categoryAbbreviations[this.currentCategory], this.detailLabelWidth);
 	}
 
-	getCardsPrivateHtml(cards: ICard[], player?: Player): string[] {
+	getCardsPrivateHtml(cards: ICard[], player?: Player): string {
 		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
 			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
@@ -128,7 +128,7 @@ export abstract class CardHighLow extends Card {
 			cardsHtml.push(cardHtml);
 		}
 
-		return cardsHtml;
+		return cardsHtml.join("<br />");
 	}
 
 	scoreRound(): void {

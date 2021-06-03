@@ -72,8 +72,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 	shinyCardAchievement = StakatakasCardTower.achievements.luckofthedraw;
 	showPlayerCards: boolean = true;
 	turnTimeLimit: number = 50 * 1000;
-	turnChatWarningTime: number = 30 * 1000;
-	turnPmWarningTime: number = 10 * 1000;
+	turnChatWarningTime: number = 10 * 1000;
+	turnPmWarningTime: number = 30 * 1000;
 	typesLimit: number = 20;
 	usesColors: boolean = true;
 

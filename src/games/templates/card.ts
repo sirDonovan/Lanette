@@ -66,6 +66,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	finitePlayerCards: boolean = false;
 	hackmonsTypes: boolean = false;
 	inverseTypes: boolean = false;
+	lastPlayer: Player | null = null;
 	maxCardRounds: number = 0;
 	maxLateJoinRound: number = 0;
 	maxPlayers: number = 20;
@@ -84,7 +85,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	abstract createDeck(): void;
 	abstract getCardChatDetails(card: ICard): string;
-	abstract getCardsPrivateHtml(cards: ICard[], player?: Player, playableCards?: boolean): string[];
+	abstract getCardsPrivateHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -358,13 +359,13 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			return 0;
 		});
 
-		let html = '<div class="infobox">';
+		let html = '';
 		const playerTurn = this.currentPlayer === player && this.awaitingCurrentPlayerCard;
 		if (playerTurn && this.getPlayerTurnHtml) {
 			html += this.getPlayerTurnHtml(player);
 		} else {
 			html += '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br />';
-			html += this.getCardsPrivateHtml(playerCards, player, playerTurn).join("<br />");
+			html += this.getCardsPrivateHtml(playerCards, player, playerTurn);
 		}
 
 		if (playedCards && drawnCards) {
@@ -375,8 +376,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		} else if (drawnCards) {
 			html += "<br />You drew <b>" + Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
 		}
-
-		html += "</div>";
 
 		player.sayPrivateUhtml(html, this.uhtmlBaseName + '-cards');
 	}
@@ -410,11 +409,15 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	}
 
 	getNextPlayer(): Player | null {
+		let newCardRound = false;
+
 		let player = this.playerList.shift();
 		while (!player || player.eliminated) {
 			if (!this.playerList.length) {
 				this.playerList = this.playerOrder.slice();
 				this.cardRound++;
+				newCardRound = this.cardRound > 1;
+
 				if (this.canLateJoin && this.maxLateJoinRound && this.cardRound > this.maxLateJoinRound) this.canLateJoin = false;
 				if (this.parentGame && this.maxCardRounds && this.cardRound > this.maxCardRounds) {
 					this.timeEnded = true;
@@ -422,13 +425,24 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 					this.onTimeLimit();
 					return null;
 				}
+
 				const html = this.getRoundHtml(players => this.showPlayerCards ? this.getPlayerCards(players) : this.lives &&
 					this.startingLives && this.startingLives > 1 ? this.getPlayerLives(players) : this.getPlayerNames(players),
 					this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
+
 			player = this.playerList.shift();
 		}
+
+		if (newCardRound) {
+			for (const i in this.players) {
+				if (!this.players[i].eliminated && this.players[i] !== player && this.players[i] !== this.lastPlayer) {
+					this.sendPlayerCards(this.players[i]);
+				}
+			}
+		}
+
 		return player;
 	}
 
