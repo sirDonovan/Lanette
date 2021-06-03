@@ -84,6 +84,12 @@ export class Player {
 		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
+	clearPrivateUhtml(name: string): void {
+		if (this.id === Users.self.id) return;
+
+		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>");
+	}
+
 	sendHtmlPage(html: string, pageId?: string): void {
 		if (this.id === Users.self.id) return;
 

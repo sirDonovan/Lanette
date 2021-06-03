@@ -52,8 +52,19 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	giveEgg(player: Player): void {
+		if (this.currentHolder) this.currentHolder.clearPrivateUhtml(this.actionButtonsUhtmlName);
+
 		this.holdTime = Date.now();
 		this.currentHolder = player;
+
+		const buttons: string[] = [];
+		for (const i in this.players) {
+			if (!this.players[i].eliminated && this.players[i] !== player) {
+				buttons.push(this.getMsgRoomButton("toss " + this.players[i].name, "Toss to <b>" + this.players[i].name + "</b>"));
+			}
+		}
+
+		player.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
 	}
 
 	explodeEgg(reason?: string): void {

@@ -4,6 +4,7 @@ import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
 const MIN_BLOCKS = 1;
 const MAX_BLOCKS = 5;
+const REMOVE_COMMAND = "remove";
 
 class CrustlesCrumblingBlocks extends ScriptedGame {
 	blocks: number = 0;
@@ -92,6 +93,14 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.say(text);
+
+		const buttons: string[] = [];
+		for (let i = MIN_BLOCKS; i <= MAX_BLOCKS; i++) {
+			if (i > this.blocks) break;
+			buttons.push(this.getMsgRoomButton(REMOVE_COMMAND + " " + i, "Remove <b>" + i + "</b> block" + (i > 1 ? "s" : "")));
+		}
+
+		currentPlayer.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
 	}
 
 	removeLastBlock(player: Player): void {
@@ -115,7 +124,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
-	remove: {
+	[REMOVE_COMMAND]: {
 		command(target, room, user) {
 			if (this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
@@ -124,7 +133,11 @@ const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 				this.say("You can only remove between " + MIN_BLOCKS + " and " + MAX_BLOCKS + " blocks at a time.");
 				return false;
 			}
+
 			if (this.timeout) clearTimeout(this.timeout);
+
+			player.clearPrivateUhtml(this.actionButtonsUhtmlName);
+
 			this.blocks -= targetNumber;
 			if (this.blocks <= 0) {
 				this.removeLastBlock(player);
@@ -140,7 +153,7 @@ export const game: IGameFile<CrustlesCrumblingBlocks> = {
 	aliases: ['crustles', 'ccb'],
 	category: 'luck',
 	class: CrustlesCrumblingBlocks,
-	commandDescriptions: [Config.commandCharacter + "remove [number of blocks]"],
+	commandDescriptions: [Config.commandCharacter + REMOVE_COMMAND + " [number of blocks]"],
 	commands,
 	description: "Players remove blocks from Crustle's pyramid until only one remains. The player forced to remove the final block is " +
 		"eliminated!",

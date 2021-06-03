@@ -41,6 +41,7 @@ class ChandeluresCandles extends ScriptedGame {
 
 	exposeCandle(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
+
 		const players = this.shufflePlayers();
 		let target = players.pop()!;
 		while (target === this.lastTarget && players.length) {
@@ -49,11 +50,23 @@ class ChandeluresCandles extends ScriptedGame {
 		this.roundTarget = target;
 		this.lastTarget = target;
 		this.roundActions.clear();
+
 		const text = this.roundTarget.name + "'s candle was exposed!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		});
 		this.say(text);
+
+		const html = this.getMsgRoomButton("hide", "Hide") + "&nbsp;|&nbsp;" +
+			this.getMsgRoomButton("puff " + this.roundTarget.name, "Puff <b>" + this.roundTarget.name + "</b>'s candle");
+
+		for (const i in this.players) {
+			if (!this.players[i].eliminated && this.players[i] !== this.roundTarget) {
+				this.players[i].sayPrivateUhtml(html, this.actionButtonsUhtmlName);
+			}
+		}
+
+		this.roundTarget.sayPrivateUhtml(html, this.actionButtonsUhtmlName);
 	}
 
 	onNextRound(): void {

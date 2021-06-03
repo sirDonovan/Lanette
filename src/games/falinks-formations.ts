@@ -2,9 +2,10 @@ import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 
-const minGuess = 1;
-const maxGuess = 6;
-const basePoints = 12;
+const MIN_GUESS = 1;
+const MAX_GUESS = 6;
+const BASE_POINTS = 12;
+const GUESS_COMMAND = "guess";
 
 class FalinksFormations extends ScriptedGame {
 	points = new Map<Player, number>();
@@ -53,6 +54,13 @@ class FalinksFormations extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.say(text);
+
+		const buttons: string[] = [];
+		for (let i = MIN_GUESS; i <= MAX_GUESS; i++) {
+			buttons.push(this.getMsgRoomButton(GUESS_COMMAND + " " + i, "Guess <b>" + i + "</b> Falinks"));
+		}
+
+		currentPlayer.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
 	}
 
 	onEnd(): void {
@@ -67,19 +75,22 @@ class FalinksFormations extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<FalinksFormations> = {
-	guess: {
+	[GUESS_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canGuess || this.players[user.id] !== this.currentPlayer) return false;
 			const player = this.players[user.id];
 			const guess = parseInt(target);
-			if (isNaN(guess) || guess < minGuess || guess > maxGuess) {
-				this.say("You must guess a number between " + minGuess + " and " + maxGuess + ".");
+			if (isNaN(guess) || guess < MIN_GUESS || guess > MAX_GUESS) {
+				this.say("You must guess a number between " + MIN_GUESS + " and " + MAX_GUESS + ".");
 				return false;
 			}
 
 			if (this.timeout) clearTimeout(this.timeout);
+
+			player.clearPrivateUhtml(this.actionButtonsUhtmlName);
+
 			this.canGuess = false;
-			const falinks = this.random(maxGuess + 1) + 1;
+			const falinks = this.random(MAX_GUESS + 1) + 1;
 			const falinksText = "**" + falinks + " Falinks** appeared for the formation!";
 			if (falinks <= guess) {
 				this.say("Only " + falinksText + " " + this.currentPlayer.name + " has been eliminated from the game.");
@@ -112,14 +123,14 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 export const game: IGameFile<FalinksFormations> = {
 	aliases: ["falinks", "formations"],
 	category: 'luck',
-	commandDescriptions: [Config.commandCharacter + "guess [number]"],
+	commandDescriptions: [Config.commandCharacter + GUESS_COMMAND + " [number]"],
 	commands,
 	class: FalinksFormations,
 	customizableOptions: {
-		points: {min: basePoints, base: basePoints, max: basePoints},
+		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},
 	},
-	description: "Players guess how many Falinks will make up the formations each round (between " + minGuess + " and " + maxGuess + ") " +
-		"without going over!",
+	description: "Players guess how many Falinks will make up the formations each round (between " + MIN_GUESS + " and " + MAX_GUESS +
+		") without going over!",
 	name: "Falinks' Formations",
 	mascot: "Falinks",
 };

@@ -43,6 +43,7 @@ export class ScriptedGame extends Game {
 
 	// set in onInitialize()
 	declare format: IGameFormat;
+	actionButtonsUhtmlName!: string;
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;
@@ -195,6 +196,7 @@ export class ScriptedGame extends Game {
 		this.format = format;
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
+		this.actionButtonsUhtmlName = this.uhtmlBaseName + "-action-buttons";
 
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
