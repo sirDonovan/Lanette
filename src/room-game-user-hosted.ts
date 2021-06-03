@@ -378,6 +378,8 @@ export class UserHostedGame extends Game {
 
 		this.started = true;
 		this.startTime = Date.now();
+		this.joinNotices.clear();
+		this.leaveNotices.clear();
 		this.room.notifyOffRank("all");
 		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, this.getSignupsEndMessage());
 		this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());

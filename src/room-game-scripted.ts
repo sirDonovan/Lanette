@@ -390,6 +390,8 @@ export class ScriptedGame extends Game {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
+		this.joinNotices.clear();
+		this.leaveNotices.clear();
 		if (this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
