@@ -208,6 +208,7 @@ export class ScriptedGame extends Game {
 		if (format.variant) {
 			// @ts-expect-error
 			delete format.variant.name;
+			if (format.variant.description) format.description = format.variant.description;
 			Object.assign(this, format.variant);
 		}
 		if (format.mode) {
