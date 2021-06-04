@@ -37,11 +37,14 @@ class SpindasExcludedPokemon extends ScriptedGame {
 	excludedHint: string = '';
 	excludedRound: number = 0;
 	guessedPokemon: string[] = [];
+	lastParameter: string = '';
 	parameter: string = '';
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
 	roundPlayerOrder: Player[] = [];
+
+	moveOnly?: boolean;
 
 	// set before the first round
 	category!: IPokemonCategory;
@@ -123,17 +126,27 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		const species = this.shuffle(data.keys)[0];
 		this.excludedHint = species;
 
-		this.category = this.sampleOne(categories);
-		if (this.category !== 'moves' && !this.random(categories.length)) this.category = 'moves';
-
-		this.parameter = this.sampleOne(data.pokemon[species][this.category]);
-		if (this.category === 'generation') {
-			if (!this.parameter.startsWith(generationPrefix)) this.parameter = generationPrefix + this.parameter;
-		} else if (this.category === 'eggGroup') {
-			if (!this.parameter.endsWith(eggGroupSuffix)) this.parameter += eggGroupSuffix;
-		} else if (this.category === 'type') {
-			if (!this.parameter.endsWith(typeSuffix)) this.parameter += typeSuffix;
+		if (this.moveOnly) {
+			this.category = 'moves';
+		} else {
+			this.category = this.sampleOne(categories);
+			if (this.category !== 'moves' && !this.random(categories.length)) this.category = 'moves';
 		}
+
+		let parameter = this.sampleOne(data.pokemon[species][this.category]);
+		while (parameter === this.lastParameter) {
+			parameter = this.sampleOne(data.pokemon[species][this.category]);
+		}
+
+		if (this.category === 'generation') {
+			if (!parameter.startsWith(generationPrefix)) parameter = generationPrefix + parameter;
+		} else if (this.category === 'eggGroup') {
+			if (!parameter.endsWith(eggGroupSuffix)) parameter += eggGroupSuffix;
+		} else if (this.category === 'type') {
+			if (!parameter.endsWith(typeSuffix)) parameter += typeSuffix;
+		}
+
+		this.parameter = parameter;
 	}
 
 	onNextRound(): void {
@@ -247,11 +260,16 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			const id = Tools.toId(target);
 
 			let validCategory = 0;
-			for (const category of categories) {
-				if (data.allParameters[category].includes(id)) {
-					validCategory++;
+			if (this.moveOnly) {
+				if (data.allParameters.moves.includes(id)) validCategory++;
+			} else {
+				for (const category of categories) {
+					if (data.allParameters[category].includes(id)) {
+						validCategory++;
+					}
 				}
 			}
+
 			if (!validCategory) {
 				player.say("'" + target.trim() + "' is not a valid parameter.");
 				return false;
@@ -316,4 +334,12 @@ export const game: IGameFile<SpindasExcludedPokemon> = {
 	name: "Spinda's Excluded Pokemon",
 	mascot: "Spinda",
 	nonTrivialLoadData: true,
+	variants: [
+		{
+			name: "Spinda's Move-Only Excluded Pokemon",
+			description: "Players try to guess the randomly chosen moves by excluding Pokemon each round!",
+			moveOnly: true,
+			variantAliases: ['move', 'moves'],
+		},
+	],
 };
