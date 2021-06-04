@@ -206,6 +206,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen6uu': {
 		info: 'https://www.smogon.com/dex/xy/formats/uu',
+		teams: 'https://www.smogon.com/roa/?format=gen6uu',
 		viability: 'https://www.smogon.com/forums/threads/3598164/',
 	},
 	'gen6ru': {
