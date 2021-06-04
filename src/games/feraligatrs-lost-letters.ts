@@ -109,7 +109,7 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 	mascot: "Feraligatr",
 	minigameCommand: 'lostletter',
 	minigameCommandAliases: ['lletter'],
-	modes: ["collectiveteam", "spotlightteam", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "timeattack"],
 	variants: [
 		{
 			name: "Feraligatr's Ability Lost Letters",

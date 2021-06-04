@@ -283,12 +283,15 @@ export const game: IGameFile<DeoxysDifferences> = {
 	name: "Deoxys' Differences",
 	mascots: ['Deoxys', 'Deoxys-Attack', 'Deoxys-Defense', 'Deoxys-Speed'],
 	mascotPrefix: "Deoxys'",
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
 		'survival': {
 			roundTime: 15 * 1000,
 		},
 		'timeattack': {
+			roundTime: 15 * 1000,
+		},
+		'pmtimeattack': {
 			roundTime: 15 * 1000,
 		},
 	},

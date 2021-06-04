@@ -66,5 +66,5 @@ export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(
 	minigameCommand: 'kirliatrace',
 	minigameCommandAliases: ['ktrace'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an ability that the given Pokemon has!",
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

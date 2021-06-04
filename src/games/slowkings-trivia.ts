@@ -78,8 +78,11 @@ export const game: IGameFile<SlowkingsTrivia> = Games.copyTemplateProperties(que
 		'timeattack': {
 			roundTime: 10 * 1000,
 		},
+		'pmtimeattack': {
+			roundTime: 10 * 1000,
+		},
 	},
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Slowking's Ability Trivia",

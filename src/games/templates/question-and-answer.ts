@@ -39,6 +39,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	answerCommands?: string[];
 	oneGuessPerHint?: boolean;
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
+	pmGuessing?: boolean;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
 	updateHintTime?: number;
@@ -371,6 +372,11 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
+			if (this.pmGuessing) {
+				if (!this.isPm(room, user)) return false;
+			} else {
+				if (this.isPm(room, user) && !this.isMiniGame) return false;
+			}
 
 			const player = this.createPlayer(user) || this.players[user.id];
 			if (!this.canGuessAnswer(player)) return false;
@@ -447,6 +453,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 			return true;
 		},
 		aliases: ['g'],
+		pmGameCommand: true,
 	},
 };
 

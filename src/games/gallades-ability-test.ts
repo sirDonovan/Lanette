@@ -75,7 +75,10 @@ export const game: IGameFile<GalladesAbilityTest> = Games.copyTemplateProperties
 		'timeattack': {
 			roundTime: 10 * 1000,
 		},
+		'pmtimeattack': {
+			roundTime: 10 * 1000,
+		},
 	},
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

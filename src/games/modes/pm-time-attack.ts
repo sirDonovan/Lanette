@@ -4,21 +4,18 @@ import type {
 	DefaultGameOption, GameFileTests, IGameFormat, IGameModeFile
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
+import { TimeAttack, initialize as baseInitialize } from "./time-attack";
 
 const BASE_POINTS = 100;
 
-const name = 'Time Attack';
-const description = 'Earn points based on how fast you answer correctly!';
+const name = 'PM Time Attack';
+const description = 'Earn points based on how fast you answer correctly in PMs!';
 const removedOptions: string[] = ['points'];
 
-type TimeAttackThis = QuestionAndAnswer & TimeAttack;
+type PMTimeAttackThis = QuestionAndAnswer & PMTimeAttack;
 
-export class TimeAttack {
-	allowRepeatCorrectAnswers: boolean = true;
-	readonly loserPointsToBits: number = 1;
-	maxCorrectPlayersPerRound: number = 0;
-	timeLimit: number = 20 * 60 * 1000;
-	readonly winnerPointsToBits: number = 5;
+class PMTimeAttack extends TimeAttack {
+	pmGuessing: boolean = true;
 
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
@@ -37,30 +34,17 @@ export class TimeAttack {
 			max: BASE_POINTS,
 		};
 	}
-
-	beforeNextRound(this: TimeAttackThis): boolean | string {
-		if (!this.answers.length) {
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
-		}
-		return true;
-	}
-
-	getPointsForAnswer(this: TimeAttackThis, answer: string, timestamp: number): number {
-		if (!this.hintTimestamp) return 0;
-
-		const elapsedTime = timestamp - this.hintTimestamp;
-		const points = (this.roundTime - elapsedTime) / 1000;
-		if (points < 0) return 0;
-		return points;
-	}
 }
 
-export const initialize = (game: QuestionAndAnswer): void => {
+const initialize = (game: QuestionAndAnswer): void => {
 	if (game.getPointsForAnswer) throw new Error("Time Attack does not support games that require getPointsForAnswer()");
 
-	const mode = new TimeAttack();
+	baseInitialize(game);
+
+	const mode = new PMTimeAttack();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
-		.concat(Object.getOwnPropertyNames(TimeAttack.prototype)) as (keyof TimeAttack)[];
+		.concat(Object.getOwnPropertyNames(PMTimeAttack.prototype)) as (keyof PMTimeAttack)[];
+
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -68,7 +52,7 @@ export const initialize = (game: QuestionAndAnswer): void => {
 
 };
 
-const tests: GameFileTests<TimeAttackThis> = {
+const tests: GameFileTests<PMTimeAttackThis> = {
 	'it should have the necessary methods': {
 		config: {
 			async: true,
@@ -105,9 +89,9 @@ const tests: GameFileTests<TimeAttackThis> = {
 	},
 };
 
-export const mode: IGameModeFile<TimeAttack, QuestionAndAnswer, TimeAttackThis> = {
-	aliases: ['ta'],
-	class: TimeAttack,
+export const mode: IGameModeFile<PMTimeAttack, QuestionAndAnswer, PMTimeAttackThis> = {
+	aliases: ['pta', 'pmta', 'pmsta', 'tapm', 'tapms'],
+	class: PMTimeAttack,
 	description,
 	initialize,
 	name,

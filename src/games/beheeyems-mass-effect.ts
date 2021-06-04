@@ -106,6 +106,9 @@ export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties
 		'timeattack': {
 			roundTime: 10 * 1000,
 		},
+		'pmtimeattack': {
+			roundTime: 10 * 1000,
+		},
 	},
-	modes: ["collectiveteam", "multianswer", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

@@ -42,5 +42,5 @@ export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties
 	freejoin: true,
 	name: "Chimecho's Stat School",
 	mascot: "Chimecho",
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

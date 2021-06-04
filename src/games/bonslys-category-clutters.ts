@@ -48,5 +48,5 @@ export const game: IGameFile<BonslysCategoryClutters> = Games.copyTemplateProper
 	minigameCommand: 'bonslyclutter',
 	minigameCommandAliases: ['bclutter'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the category of the given Pokemon!",
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

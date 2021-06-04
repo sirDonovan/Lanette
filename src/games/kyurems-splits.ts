@@ -87,7 +87,7 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(quest
 	minigameCommand: 'split',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer with all of the given letters in that " +
 		"order!",
-	modes: ["collectiveteam", "spotlightteam", "survival", "timeattack"],
+	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Kyurem's Ability Splits",
