@@ -154,7 +154,9 @@ class PanchamPairs extends ScriptedGame {
 
 	getAnswers(givenAnswer: string): string {
 		if (!givenAnswer) {
-			const randomPair = this.getRandomPair()!;
+			const randomPair = this.getRandomPair();
+			if (!randomPair) return "";
+
 			givenAnswer = randomPair[0] + " & " + randomPair[1] + " (" + randomPair[2] + ")";
 		}
 
