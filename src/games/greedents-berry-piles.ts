@@ -317,9 +317,11 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			if (total > this.maxBerryTotal) {
 				this.players[user.id].frozen = true;
 			}
+
 			this.playerTotals.set(player, total);
-			this.showBerryPiles(player);
 			this.roundActions.add(player);
+
+			this.showBerryPiles(player);
 			return true;
 		},
 		pmGameCommand: true,
@@ -330,8 +332,8 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			const player = this.players[user.id];
 			if (this.roundActions.has(player)) return false;
 			player.frozen = true;
-			this.showBerryPiles(player);
 			this.roundActions.add(player);
+			this.showBerryPiles(player);
 			return true;
 		},
 		pmGameCommand: true,
