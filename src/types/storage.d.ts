@@ -63,6 +63,10 @@ export interface IGameCustomBox {
 	signupsBackgroundBorder?: IGameCustomBorder;
 	signupsButtons?: HexCode;
 	signupsButtonsBorder?: IGameCustomBorder;
+	gameBackground?: HexCode;
+	gameBackgroundBorder?: IGameCustomBorder;
+	gameButtons?: HexCode;
+	gameButtonsBorder?: IGameCustomBorder;
 }
 
 export interface IGameHostBox extends IGameCustomBox {

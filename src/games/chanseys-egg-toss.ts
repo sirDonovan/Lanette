@@ -64,7 +64,7 @@ class ChanseysEggToss extends ScriptedGame {
 			}
 		}
 
-		player.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
+		player.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
 	}
 
 	explodeEgg(reason?: string): void {

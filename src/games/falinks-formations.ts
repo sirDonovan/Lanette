@@ -60,7 +60,7 @@ class FalinksFormations extends ScriptedGame {
 			buttons.push(this.getMsgRoomButton(GUESS_COMMAND + " " + i, "Guess <b>" + i + "</b> Falinks"));
 		}
 
-		currentPlayer.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
+		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
 	}
 
 	onEnd(): void {

@@ -100,7 +100,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 			buttons.push(this.getMsgRoomButton(REMOVE_COMMAND + " " + i, "Remove <b>" + i + "</b> block" + (i > 1 ? "s" : "")));
 		}
 
-		currentPlayer.sayPrivateUhtml(buttons.join("&nbsp;|&nbsp;"), this.actionButtonsUhtmlName);
+		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
 	}
 
 	removeLastBlock(player: Player): void {

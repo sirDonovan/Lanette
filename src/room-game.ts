@@ -195,14 +195,22 @@ export abstract class Game extends Activity {
 		if (this.isPmActivity(this.room)) return "";
 
 		return Client.getMsgRoomButton(this.room, Config.commandCharacter + command, label, disabled,
-			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox) : '');
+			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox, 'game', disabled) : '');
 	}
 
 	getQuietPmButton(command: string, label: string, disabled?: boolean): string {
 		if (this.isPmActivity(this.room)) return "";
 
 		return Client.getQuietPmButton(this.room, Config.commandCharacter + command, label, disabled,
-			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox) : '');
+			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox, 'game', disabled) : '');
+	}
+
+	getCustomBoxDiv(content: string): string {
+		return Games.getGameCustomBoxDiv(content, this.customBox);
+	}
+
+	getCustomButtonsDiv(buttons: string[]): string {
+		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"));
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay): void {

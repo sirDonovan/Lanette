@@ -57,8 +57,8 @@ class ChandeluresCandles extends ScriptedGame {
 		});
 		this.say(text);
 
-		const html = this.getMsgRoomButton("hide", "Hide") + "&nbsp;|&nbsp;" +
-			this.getMsgRoomButton("puff " + this.roundTarget.name, "Puff <b>" + this.roundTarget.name + "</b>'s candle");
+		const html = this.getCustomButtonsDiv([this.getMsgRoomButton("hide", "Hide"),
+			this.getMsgRoomButton("puff " + this.roundTarget.name, "Puff <b>" + this.roundTarget.name + "</b>'s candle")]);
 
 		for (const i in this.players) {
 			if (!this.players[i].eliminated && this.players[i] !== this.roundTarget) {

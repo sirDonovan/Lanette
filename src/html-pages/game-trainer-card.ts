@@ -149,9 +149,9 @@ class GameTrainerCard extends HtmlPageBase {
 			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
 		html += "<br /><br />";
 
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Choose background",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
 			this.currentPicker === 'background');
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Choose trainer",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
 			this.currentPicker === 'trainer');
 		html += "<br /><br />";
 
