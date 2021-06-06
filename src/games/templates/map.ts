@@ -15,9 +15,14 @@ interface ISpaceAttributes {
 type MapKeys = 'currency' | 'empty' | 'exit' | 'player' | 'trap' | 'unknown';
 
 export interface ISpaceDisplayData {
-	description: string;
 	symbol: string;
+	title: string;
 }
+
+const UP_COMMAND = "up";
+const DOWN_COMMAND = "down";
+const LEFT_COMMAND = "left";
+const RIGHT_COMMAND = "right";
 
 const mapKeys: KeyedDict<MapKeys, string> = {
 	currency: 'o',
@@ -98,28 +103,34 @@ export abstract class MapGame extends ScriptedGame {
 	currentFloor: number = 1;
 	dimensions: number = 0;
 	lives = new Map<Player, number>();
+	mapHeight: number = 0;
+	mapWidth: number = 0;
 	maxMovement: number = 3;
 	maxRound: number = 20;
 	minMovement: number = 1;
-	moveCommands: string[] = ['up', 'down', 'left', 'right'];
+	moveCommands: string[] = [UP_COMMAND, DOWN_COMMAND, LEFT_COMMAND, RIGHT_COMMAND];
 	playerCoordinates = new Map<Player, number[]>();
 	playerRoundInfo = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
+	startingFloor: number = 1;
 	usesHtmlPage = true;
 
 	declare readonly room: Room;
 
+	additionalMapSymbols?: Dict<string>;
 	escapedPlayers?: Map<Player, boolean> | null = null;
+	floors?: Map<Player, number>;
+	map?: GameMap;
 	noCurrencyAchievement?: IGameAchievement;
 	noCurrencyRound?: number;
 	recklessAdventurerAchievement?: IGameAchievement;
 	recklessAdventurerRound?: number;
 	roundActions?: Map<Player, boolean> | null = null;
+	sharedMap?: boolean;
 	trappedPlayers?: Map<Player, string> | null = null;
+	individualMaps?: Map<Player, GameMap>;
 
-	abstract getMap(player?: Player): GameMap;
-	abstract getFloorIndex(player?: Player): number;
 	abstract onEnd(): void;
 	abstract onMaxRound(): void;
 	abstract onNextRound(): void;
@@ -132,23 +143,59 @@ export abstract class MapGame extends ScriptedGame {
 		return coordinates.split(",").map(x => x.trim());
 	}
 
-	generateMap(x: number, y?: number): GameMap {
-		if (x < this.minDimensions) {
-			x = this.minDimensions;
-		} else if (x > this.maxDimensions) {
-			x = this.maxDimensions;
+	getMap(player?: Player): GameMap {
+		if (this.sharedMap) {
+			if (!this.map) this.map = this.generateMap(this.mapWidth || this.playerCount);
+			return this.map;
+		} else {
+			if (!player) throw new Error("getMap() called without a player");
+
+			if (!this.floors) this.floors = new Map();
+			if (!this.individualMaps) this.individualMaps = new Map();
+
+			if (!this.individualMaps.has(player)) {
+				this.individualMaps.set(player, this.generateMap(this.mapWidth || this.playerCount));
+				this.floors.set(player, this.startingFloor);
+			}
+
+			return this.individualMaps.get(player)!;
 		}
-		if (y) {
-			if (y < this.minDimensions) {
-				y = this.minDimensions;
-			} else if (y > this.maxDimensions) {
-				y = this.maxDimensions;
+	}
+
+	getFloorIndex(player?: Player): number {
+		if (this.sharedMap) {
+			return this.currentFloor - 1;
+		} else {
+			if (!player) throw new Error("getFloorIndex() called without a player");
+
+			if (!this.floors) return this.startingFloor - 1;
+			return this.floors.get(player)! - 1;
+		}
+	}
+
+	generateMap(width?: number, height?: number): GameMap {
+		if (width) {
+			if (width < this.minDimensions) {
+				width = this.minDimensions;
+			} else if (width > this.maxDimensions) {
+				width = this.maxDimensions;
 			}
 		} else {
-			y = x;
+			width = this.mapWidth;
 		}
-		this.baseX = x;
-		this.baseY = y;
+
+		if (height) {
+			if (height < this.minDimensions) {
+				height = this.minDimensions;
+			} else if (height > this.maxDimensions) {
+				height = this.maxDimensions;
+			}
+		} else {
+			height = this.mapHeight || width;
+		}
+
+		this.baseX = width;
+		this.baseY = height;
 		const map = new GameMap();
 		for (let i = 0; i < this.currentFloor; i++) {
 			this.generateMapFloor(map);
@@ -181,6 +228,39 @@ export abstract class MapGame extends ScriptedGame {
 		}
 
 		return exitCoordinates;
+	}
+
+	displayMapLegend(): void {
+		const legend: Dict<string> = {
+			[mapKeys.player]: (this.sharedMap ? "a player's" : "your") + ' current location',
+			[mapKeys.unknown]: 'an unknown space',
+			[mapKeys.currency]: this.currency + ' that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
+			[mapKeys.empty]: 'an empty space',
+			[mapKeys.exit]: 'an exit that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
+			[mapKeys.trap]: 'a trap that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
+		};
+
+		if (this.additionalMapSymbols) {
+			for (const i in this.additionalMapSymbols) {
+				legend[i] = this.additionalMapSymbols[i];
+			}
+		}
+
+		let content = '<h3>Map legend</h3>';
+		for (const mapSymbol in legend) {
+			content += '<b>' + mapSymbol + '</b>: ' + legend[mapSymbol] + '<br />';
+		}
+
+		this.sayUhtml(this.uhtmlBaseName + "-map-legend", this.getCustomBoxDiv(content));
+	}
+
+	displaySharedMap(): void {
+		if (!this.sharedMap) throw new Error("displaySharedMap() called with individual maps");
+
+		const map = this.getMap();
+		const floorIndex = this.getFloorIndex();
+		const floor = map.floors[floorIndex];
+		this.sayUhtml(this.uhtmlBaseName + "-map", this.getCustomBoxDiv(this.getMapHtml(map, floor)));
 	}
 
 	positionPlayer(player: Player): void {
@@ -216,53 +296,64 @@ export abstract class MapGame extends ScriptedGame {
 		}
 	}
 
-	updatePlayerHtmlPage(player: Player): void {
-		player.sendHtmlPage(this.getPlayerHtmlPage(player));
-	}
-
-	updatePlayerHtmlPages(): void {
-		for (const i in this.players) {
-			const player = this.players[i];
-			if (player.eliminated && !(this.escapedPlayers && this.escapedPlayers.has(player))) continue;
-			this.updatePlayerHtmlPage(player);
-		}
-	}
-
-	getPlayerHtmlPage(player: Player): string {
+	sendPlayerControls(player: Player): void {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
-		let html = this.getMapHtml(map, floor, player);
+		let content = "";
 
-		html += "<br /><center><b>Round " + this.round + "</b>:<br />";
+		if (!this.sharedMap) {
+			content += this.getMapHtml(map, floor, player);
+			content += "<br />";
+		}
+
 		const movementDetails = this.playerRoundInfo.get(player);
 		if (movementDetails && movementDetails.length) {
 			for (const detail of movementDetails) {
-				html += detail + "<br />";
+				content += detail + "<br />";
 			}
 		}
 
-		html += "<br />";
+		content += "<br />";
+		content += this.getPlayerControlsHtml(map, floor, player);
 
-		html += this.getPlayerControlsHtml(map, floor, player);
-
-		html += "</center>";
-
-		return html;
+		player.sayPrivateUhtml(this.getCustomBoxDiv(content), this.actionButtonsUhtmlName);
 	}
 
-	getMapHtml(map: GameMap, floor: MapFloor, player: Player): string {
-		const playerCoordindates = this.playerCoordinates.get(player)!;
-		const playerStringCoordinates = this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]);
+	updatePlayerControls(): void {
+		for (const i in this.players) {
+			const player = this.players[i];
+			if (player.eliminated && !(this.escapedPlayers && this.escapedPlayers.has(player))) continue;
+
+			this.sendPlayerControls(player);
+		}
+	}
+
+	getMapHtml(map: GameMap, floor: MapFloor, player?: Player): string {
+		if (!this.sharedMap && !player) throw new Error("getMapHtml() called without player in individual map");
+
+		let playerStringCoordinates = "";
+		if (player) {
+			const playerCoordindates = this.playerCoordinates.get(player)!;
+			playerStringCoordinates = this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]);
+		}
+
+		const playerLocations: Dict<Player[]> = {};
+		if (this.sharedMap) {
+			for (const id in this.players) {
+				const otherPlayer = this.players[id];
+				if (otherPlayer.eliminated) continue;
+				const playerCoordindates = this.playerCoordinates.get(this.players[id])!;
+				const coordinates = this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]);
+				if (!(coordinates in playerLocations)) playerLocations[coordinates] = [];
+				playerLocations[coordinates].push(otherPlayer);
+			}
+		}
 
 		let currency = false;
 		let empty = false;
 		let exit = false;
 		let trap = false;
-		const legend: Dict<string> = {
-			[mapKeys.player]: 'your current location',
-			[mapKeys.unknown]: 'an unknown space',
-		};
 
 		const whiteHex = Tools.getNamedHexCode('White');
 		let mapHtml = '<table align="center" border="2" ' +
@@ -274,55 +365,57 @@ export abstract class MapGame extends ScriptedGame {
 				mapHtml += "<td style='background: " + whiteHex.gradient + "'>";
 				const coordinates = this.coordinatesToString(x, y);
 				const space = floor.spaces[coordinates];
-				mapHtml += '<span title="' + coordinates + '">';
-				if (coordinates === playerStringCoordinates) {
-					mapHtml += '<blink>*</blink></span></td>';
-					continue;
-				}
-
-				if (this.getSpaceDisplay) {
-					const spaceDisplay = this.getSpaceDisplay(player, floor, space);
-					if (spaceDisplay) {
-						mapHtml += spaceDisplay.symbol + '</span></td>';
-						if (!(spaceDisplay.symbol in legend)) legend[spaceDisplay.symbol] = spaceDisplay.description;
+				mapHtml += '<span title="' + coordinates;
+				if (this.sharedMap) {
+					if (coordinates in playerLocations) {
+						mapHtml += ': ' + playerLocations[coordinates].map(p => p.name).join(", ") + '">*</span></td>';
+						continue;
+					}
+				} else {
+					if (coordinates === playerStringCoordinates) {
+						mapHtml += ': your position"><blink>*</blink></span></td>';
 						continue;
 					}
 				}
 
-				if (space.traversedAttributes.currency && space.traversedAttributes.currency.has(player)) {
-					mapHtml += mapKeys.currency;
+				if (player && this.getSpaceDisplay) {
+					const spaceDisplay = this.getSpaceDisplay(player, floor, space);
+					if (spaceDisplay) {
+						if (spaceDisplay.title) mapHtml += ": " + spaceDisplay.title;
+						mapHtml += '">' + spaceDisplay.symbol + '</span></td>';
+						continue;
+					}
+				}
+
+				if (space.traversedAttributes.currency && ((this.sharedMap && space.traversedAttributes.currency.size) ||
+					(!this.sharedMap && space.traversedAttributes.currency.has(player!)))) {
+					mapHtml += ': ' + this.currency + '">' + mapKeys.currency;
 					if (!currency) currency = true;
-				} else if (space.traversedAttributes.exit && space.traversedAttributes.exit.has(player)) {
-					mapHtml += mapKeys.exit;
+				} else if (space.traversedAttributes.exit && ((this.sharedMap && space.traversedAttributes.exit.size) ||
+					(!this.sharedMap && space.traversedAttributes.exit.has(player!)))) {
+					mapHtml += ': exit">' + mapKeys.exit;
 					if (!exit) exit = true;
-				} else if (space.traversedAttributes.trap && space.traversedAttributes.trap.has(player)) {
-					mapHtml += mapKeys.trap;
+				} else if (space.traversedAttributes.trap && ((this.sharedMap && space.traversedAttributes.trap.size) ||
+					(!this.sharedMap && space.traversedAttributes.trap.has(player!)))) {
+					mapHtml += ': trap">' + mapKeys.trap;
 					if (!trap) trap = true;
-				} else if (coordinates in floor.traversedCoordinates && floor.traversedCoordinates[coordinates].has(player)) {
-					mapHtml += mapKeys.empty;
+				} else if (coordinates in floor.traversedCoordinates && ((this.sharedMap && floor.traversedCoordinates[coordinates].size) ||
+					(!this.sharedMap && floor.traversedCoordinates[coordinates].has(player!)))) {
+					mapHtml += ': empty space">' + mapKeys.empty;
 					if (!empty) empty = true;
 				} else {
-					mapHtml += mapKeys.unknown;
+					mapHtml += ': unknown">' + mapKeys.unknown;
 				}
+
 				mapHtml += "</span></td>";
 			}
+
 			mapHtml += "</tr>";
 		}
+
 		mapHtml += "</table>";
 
-		if (currency) legend[mapKeys.currency] = this.currency + ' that you have discovered';
-		if (empty) legend[mapKeys.empty] = 'an empty space';
-		if (exit) legend[mapKeys.exit] = 'an exit that you have discovered';
-		if (trap) legend[mapKeys.trap] = 'a trap that you have discovered';
-
-		let html = '<b>Map legend</b>:<br />';
-		for (const mapSymbol in legend) {
-			html += '<b>' + mapSymbol + '</b>: ' + legend[mapSymbol] + '<br />';
-		}
-
-		html += "<br />" + mapHtml;
-
-		return html;
+		return '<h3>' + (this.sharedMap ? "Shared" : "Private") + ' map</h3>' + mapHtml;
 	}
 
 	getPlayerMovementControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
@@ -337,41 +430,30 @@ export abstract class MapGame extends ScriptedGame {
 			const cannotMove = this.roundActions && this.roundActions.has(player) ? true : false;
 			html += "<b>Controls</b>:<br /><table>";
 			html += "<tr><td>&nbsp;</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 3", "Up 3",
-				cannotMove || playerUpMovement < 3) + "</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 2", "Up 2",
-				cannotMove || playerUpMovement < 2) + "</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "up 1", "Up 1",
-				cannotMove || playerUpMovement < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 3", "Up 3", cannotMove || playerUpMovement < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 2", "Up 2", cannotMove || playerUpMovement < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 1", "Up 1", cannotMove || playerUpMovement < 1) + "</td>";
 			html += "<td>&nbsp;</td></tr><tr>";
 
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 3", "Left 3",
-				cannotMove || playerCoordindates[0] < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 3", "Left 3", cannotMove || playerCoordindates[0] < 3) + "</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 3", "Right 3",
-				cannotMove || playerRightMovement < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 3", "Right 3", cannotMove || playerRightMovement < 3) + "</td>";
 			html += "</tr><tr>";
 
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 2", "Left 2",
-				cannotMove || playerCoordindates[0] < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 2", "Left 2", cannotMove || playerCoordindates[0] < 2) + "</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 2", "Right 2",
-				cannotMove || playerRightMovement < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 2", "Right 2", cannotMove || playerRightMovement < 2) + "</td>";
 			html += "</tr><tr>";
 
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "left 1", "Left 1",
-				cannotMove || playerCoordindates[0] < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 1", "Left 1", cannotMove || playerCoordindates[0] < 1) + "</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "right 1", "Right 1",
-				cannotMove || playerRightMovement < 1) + "</td>";
-			html += "</tr><tr><td>&nbsp;</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 1", "Right 1", cannotMove || playerRightMovement < 1) + "</td>";
+			html += "</tr><tr>";
 
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 3", "Down 3",
-				cannotMove || playerCoordindates[1] < 3) + "</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 2", "Down 2",
-				cannotMove || playerCoordindates[1] < 2) + "</td>";
-			html += "<td>" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "down 1", "Down 1",
-				cannotMove || playerCoordindates[1] < 1) + "</td>";
+			html += "<td>&nbsp;</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 3", "Down 3", cannotMove || playerCoordindates[1] < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 2", "Down 2", cannotMove || playerCoordindates[1] < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 1", "Down 1", cannotMove || playerCoordindates[1] < 1) + "</td>";
 			html += "<td>&nbsp;</td></tr>";
 			html += '</table>';
 		}
@@ -381,6 +463,12 @@ export abstract class MapGame extends ScriptedGame {
 
 	getPlayerControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
 		return this.getPlayerMovementControlsHtml(map, floor, player);
+	}
+
+	updateRoundHtml(): void {
+		if (this.sharedMap) this.displaySharedMap();
+		this.updatePlayerControls();
+		this.resetPlayerMovementDetails();
 	}
 
 	onRegularSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
@@ -605,11 +693,13 @@ export abstract class MapGame extends ScriptedGame {
 			player.say("You are trapped and cannot move!");
 			return false;
 		}
+
 		const spacesToMove = target ? parseInt(target.trim().split(" ")[0]) : 1;
 		if (isNaN(spacesToMove)) {
 			player.say("Please input a valid number.");
 			return false;
 		}
+
 		if (spacesToMove < this.minMovement || spacesToMove > this.maxMovement) {
 			player.say("You may only move between " + this.minMovement + " and " + this.maxMovement + " spaces.");
 			return false;
@@ -619,6 +709,7 @@ export abstract class MapGame extends ScriptedGame {
 		const map = this.getMap(player);
 		const floorIndex = this.getFloorIndex(player);
 		const floor = map.floors[floorIndex];
+
 		if (cmd === 'left') {
 			const newPlayerCoordinate = playerCoordinates[0] - spacesToMove;
 			if (newPlayerCoordinate < 0) {
@@ -655,7 +746,7 @@ export abstract class MapGame extends ScriptedGame {
 
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
-		this.updatePlayerHtmlPage(player);
+		this.sendPlayerControls(player);
 
 		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
 
@@ -670,25 +761,25 @@ export abstract class MapGame extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<MapGame> = {
-	up: {
+	[UP_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'up');
 		},
 		eliminatedGameCommand: true,
 	},
-	down: {
+	[DOWN_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'down');
 		},
 		eliminatedGameCommand: true,
 	},
-	left: {
+	[LEFT_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'left');
 		},
 		eliminatedGameCommand: true,
 	},
-	right: {
+	[RIGHT_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'right');
 		},

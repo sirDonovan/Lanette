@@ -1,6 +1,6 @@
 import type { Player } from "../../room-activity";
 import type { IGameTemplateFile } from "../../types/games";
-import type { GameMap, MapFloor } from "./map";
+import type { MapFloor } from "./map";
 import { game as mapGame, MapGame } from "./map";
 
 export abstract class MapShuffleGame extends MapGame {
@@ -9,12 +9,11 @@ export abstract class MapShuffleGame extends MapGame {
 	canLateJoin: boolean = true;
 	currency: string = 'gears';
 	escapedPlayers = new Map<Player, boolean>();
-	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 5;
 	roundActions = new Map<Player, boolean>();
 
-	abstract shuffleMap(): void;
+	abstract sendShuffleMapText(): void;
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
@@ -42,7 +41,17 @@ export abstract class MapShuffleGame extends MapGame {
 		if (!len) return this.end();
 
 		if (this.round > 1 && (this.round - 1) % 5 === 0) {
-			this.shuffleMap();
+			this.currentFloor++;
+			this.sendShuffleMapText();
+
+			if (this.sharedMap) {
+				this.generateMapFloor(this.getMap());
+			} else {
+				for (const i in this.players) {
+					this.generateMapFloor(this.getMap(this.players[i]));
+				}
+			}
+
 			this.escapedPlayers.forEach((value, player) => {
 				this.playerRoundInfo.set(player, []);
 			});
@@ -53,9 +62,11 @@ export abstract class MapShuffleGame extends MapGame {
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
-			if (this.round === 1) this.canMove = true;
-			this.updatePlayerHtmlPages();
-			this.resetPlayerMovementDetails();
+			if (this.round === 1) {
+				this.canMove = true;
+				this.displayMapLegend();
+			}
+			this.updateRoundHtml();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);

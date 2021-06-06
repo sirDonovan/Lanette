@@ -17,6 +17,12 @@ interface IPlacedShadowTrap {
 	type: ShadowTrap;
 }
 
+type MapKeys = 'teamtrap';
+
+const mapKeys: KeyedDict<MapKeys, string> = {
+	teamtrap: 'T',
+};
+
 const shadowTraps: KeyedDict<ShadowTrap, IShadowTrapData> = {
 	shadowcolumn: {
 		damage: 1,
@@ -48,9 +54,11 @@ const shadowTraps: KeyedDict<ShadowTrap, IShadowTrapData> = {
 };
 
 class DarkraisLair extends MapGame {
+	additionalMapSymbols: Dict<string> = {
+		[mapKeys.teamtrap]: "a trap that your team has placed",
+	};
 	currency = 'dreams';
 	inPlaceShadowTraps: ShadowTrap[] = ['dreamvision'];
-	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 8;
 	maxRound = 20;
@@ -60,19 +68,11 @@ class DarkraisLair extends MapGame {
 	roundActions = new Map<Player, boolean>();
 	roundShadowTraps = new Set<Player>();
 	shadowPits: Dict<Player> = {};
+	sharedMap: boolean = true;
 	startingLives: number = 3;
 	teamCount: number = 2;
 	teams: Dict<PlayerTeam> = {};
 	trappedPlayers = new Map<Player, string>();
-
-	getMap(): GameMap {
-		if (!this.map) this.map = this.generateMap(this.playerCount);
-		return this.map;
-	}
-
-	getFloorIndex(): number {
-		return this.currentFloor - 1;
-	}
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setCurrencyCoordinates(floor);
@@ -96,7 +96,7 @@ class DarkraisLair extends MapGame {
 				this.eliminatePlayer(player, "You were caught in the " + shadowTraps[shadowTrap.type].name + " and " +
 					" lost your last life!");
 			}
-			this.updatePlayerHtmlPage(player);
+			this.sendPlayerControls(player);
 		}
 
 		return affected;
@@ -207,7 +207,10 @@ class DarkraisLair extends MapGame {
 		if (!(space.coordinates in floor.traversedCoordinates) || !floor.traversedCoordinates[space.coordinates].has(player)) return;
 		if (space.coordinates in this.placedShadowTraps &&
 			player.team!.players.includes(this.placedShadowTraps[space.coordinates].player)) {
-			return {description: "a trap that your team has placed", symbol: 'T'};
+			return {
+				symbol: mapKeys.teamtrap,
+				title: shadowTraps[this.placedShadowTraps[space.coordinates].type].name,
+			};
 		}
 	}
 
@@ -269,7 +272,7 @@ class DarkraisLair extends MapGame {
 						this.playerRoundInfo.get(player)!.push("You did not move in the previous round and lost 1 life! You have " +
 							lives + " remaining.");
 					}
-					this.updatePlayerHtmlPage(player);
+					this.sendPlayerControls(player);
 				}
 			}
 		}
@@ -314,9 +317,9 @@ class DarkraisLair extends MapGame {
 		const html = this.getRoundHtml(() => this.getTeamLives());
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
+			if (this.round === 1) this.displayMapLegend();
 			if (!this.canMove) this.canMove = true;
-			this.updatePlayerHtmlPages();
-			this.resetPlayerMovementDetails();
+			this.updateRoundHtml();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -441,7 +444,7 @@ class DarkraisLair extends MapGame {
 		if (!(shadowTrap in usedShadowTraps)) usedShadowTraps[shadowTrap] = 0;
 		usedShadowTraps[shadowTrap]!++;
 		this.roundShadowTraps.add(player);
-		this.updatePlayerHtmlPage(player);
+		this.sendPlayerControls(player);
 
 		return true;
 	}

@@ -22,6 +22,8 @@ class PersiansGarden extends MapCurrencyGame {
 	currency: string = currencyName;
 	initialCurrencySpaces: number = 40;
 	floors = new Map<Player, number>();
+	mapHeight: number = 8;
+	mapWidth: number = 8;
 	maxDimensions: number = 8;
 	minDimensions: number = 8;
 	noCurrencyAchievement = PersiansGarden.achievements.bankrupt;
@@ -29,18 +31,6 @@ class PersiansGarden extends MapCurrencyGame {
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
 	userMaps = new Map<Player, GameMap>();
-
-	getMap(player: Player): GameMap {
-		if (!this.userMaps.has(player)) {
-			this.userMaps.set(player, this.generateMap(8, 8));
-			this.floors.set(player, 1);
-		}
-		return this.userMaps.get(player)!;
-	}
-
-	getFloorIndex(player: Player): number {
-		return this.floors.get(player)! - 1;
-	}
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;
@@ -79,7 +69,7 @@ class PersiansGarden extends MapCurrencyGame {
 			const player = eliminated[i].player;
 			this.playerRoundInfo.get(player)!.push("Persian used Fury Swipes and knocked you out of the garden!");
 			this.eliminatePlayer(player);
-			this.updatePlayerHtmlPage(player);
+			this.sendPlayerControls(player);
 			names.push(player.name);
 		}
 		this.say("The player" + (playersToEliminate > 1 ? "s" : "") + " with the least amount of " + this.currency + " " +

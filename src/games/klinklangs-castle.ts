@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import type {MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapShuffleGame } from "./templates/map-shuffle";
 
@@ -19,20 +19,11 @@ class KlinklangsCastle extends MapShuffleGame {
 	canLateJoin: boolean = true;
 	currency: string = currencyName;
 	escapedPlayers = new Map<Player, boolean>();
-	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 5;
 	roundActions = new Map<Player, boolean>();
+	sharedMap: boolean = true;
 	startingLives: number = 3;
-
-	getMap(): GameMap {
-		if (!this.map) this.map = this.generateMap(this.playerCount);
-		return this.map;
-	}
-
-	getFloorIndex(): number {
-		return this.currentFloor - 1;
-	}
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
@@ -55,9 +46,7 @@ class KlinklangsCastle extends MapShuffleGame {
 			"! Your total is now " + this.points.get(player) + "." : "!"));
 	}
 
-	shuffleMap(): void {
-		this.currentFloor++;
-		this.generateMapFloor(this.getMap());
+	sendShuffleMapText(): void {
 		this.say("**The Klinklang used Shift Gear and shuffled the map!**");
 	}
 
@@ -100,4 +89,11 @@ export const game: IGameFile<KlinklangsCastle> = Games.copyTemplateProperties(ma
 	name: "Klinklang's Castle",
 	mascot: "Klinklang",
 	scriptedOnly: true,
+	variants: [
+		{
+			name: "Klinklang's Solo Castle",
+			sharedMap: false,
+			variantAliases: ['solo'],
+		},
+	],
 });

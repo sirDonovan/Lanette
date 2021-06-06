@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import type { MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame, MapGame } from "./templates/map";
 
 type AchievementNames = "mazerunner" | "litwicksflame" | "recklessadventurer";
@@ -21,25 +21,11 @@ class LampentsLabyrinth extends MapGame  {
 	canLateJoin: boolean = true;
 	currency: string = currencyName;
 	escapedPlayers = new Map<Player, boolean>();
-	floors = new Map<Player, number>();
 	maxDimensions: number = 10;
 	minDimensions: number = 5;
 	recklessAdventurerAchievement = LampentsLabyrinth.achievements.recklessadventurer;
 	recklessAdventurerRound = recklessAdventurerRound;
 	roundActions = new Map<Player, boolean>();
-	userMaps = new Map<Player, GameMap>();
-
-	getMap(player: Player): GameMap {
-		if (!this.userMaps.has(player)) {
-			this.userMaps.set(player, this.generateMap(this.playerCount));
-			this.floors.set(player, 1);
-		}
-		return this.userMaps.get(player)!;
-	}
-
-	getFloorIndex(player: Player): number {
-		return this.floors.get(player)! - 1;
-	}
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
@@ -93,9 +79,11 @@ class LampentsLabyrinth extends MapGame  {
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
-			if (this.round === 1) this.canMove = true;
-			this.updatePlayerHtmlPages();
-			this.resetPlayerMovementDetails();
+			if (this.round === 1) {
+				this.canMove = true;
+				this.displayMapLegend();
+			}
+			this.updateRoundHtml();
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -137,4 +125,11 @@ export const game: IGameFile<LampentsLabyrinth> = Games.copyTemplateProperties(m
 	name: "Lampent's Labyrinth",
 	mascot: "Lampent",
 	scriptedOnly: true,
+	variants: [
+		{
+			name: "Lampent's Group Labyrinth",
+			sharedMap: true,
+			variantAliases: ['group'],
+		},
+	],
 });

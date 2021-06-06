@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import type { MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapDamageGame } from "./templates/map-damage";
 
@@ -17,10 +17,10 @@ class ElectrodesMinefield extends MapDamageGame {
 	};
 
 	currency: string = currencyName;
-	map: GameMap | null = null;
 	maxDimensions: number = 10;
 	minDimensions: number = 8;
 	roundActions = new Map<Player, boolean>();
+	sharedMap: boolean = true;
 	startingLives: number = 5;
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
@@ -36,15 +36,6 @@ class ElectrodesMinefield extends MapDamageGame {
 		for (const i in this.players) {
 			this.lives.set(this.players[i], this.startingLives);
 		}
-	}
-
-	getMap(): GameMap {
-		if (!this.map) this.map = this.generateMap(this.playerCount);
-		return this.map;
-	}
-
-	getFloorIndex(): number {
-		return this.currentFloor - 1;
 	}
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
@@ -66,7 +57,8 @@ class ElectrodesMinefield extends MapDamageGame {
 		const floor = map.floors[this.getFloorIndex()];
 		const x = this.random(floor.x);
 		const y = this.random(floor.y);
-		this.say("An Electrode exploded on **(" + x + ", " + y + ")**!");
+		this.say("An Electrode exploded on **(" + this.coordinatesToString(x, y) + ")**!");
+
 		const blastCoordinates = this.radiateFromCoordinates(['' + x, '' + y], floor.y >= 7 ? 2 : 1);
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -80,9 +72,10 @@ class ElectrodesMinefield extends MapDamageGame {
 			if (eliminated) {
 				this.eliminatePlayer(player, "You ran out of lives!");
 			}
-			this.updatePlayerHtmlPage(player);
+			this.sendPlayerControls(player);
 		}
-		this.timeout = setTimeout(() => this.nextRound(), 5000);
+
+		this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
 	}
 
 	onMaxRound(): void {
