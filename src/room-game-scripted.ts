@@ -833,7 +833,7 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	getCommandsAndAliases(commands: string[]): string[] {
+	getCommandsAndAliases(commands: readonly string[]): string[] {
 		const commandsAndAliases: string[] = [];
 		for (const command of commands) {
 			if (!(command in this.commands)) continue;
@@ -847,7 +847,7 @@ export class ScriptedGame extends Game {
 		return commandsAndAliases.sort();
 	}
 
-	findCommandsListener(commands: string[]): IGameCommandCountListener | null {
+	findCommandsListener(commands: readonly string[]): IGameCommandCountListener | null {
 		const commandsAndAliases = this.getCommandsAndAliases(commands);
 		let commandListener: IGameCommandCountListener | null = null;
 		for (const listener of this.commandsListeners) {
@@ -864,26 +864,29 @@ export class ScriptedGame extends Game {
 				break;
 			}
 		}
+
 		return commandListener;
 	}
 
-	increaseOnCommandsMax(commands: string[] | IGameCommandCountListener, increment: number): void {
+	increaseOnCommandsMax(commands: readonly string[] | IGameCommandCountListener, increment: number): void {
 		let commandListener: IGameCommandCountListener | null = null;
 		if (Array.isArray(commands)) {
-			commandListener = this.findCommandsListener(commands);
+			commandListener = this.findCommandsListener(this.getCommandsAndAliases(commands));
 		} else {
-			commandListener = commands;
+			commandListener = commands as IGameCommandCountListener;
 		}
+
 		if (commandListener) commandListener.max += increment;
 	}
 
 	decreaseOnCommandsMax(commands: string[] | IGameCommandCountListener, decrement: number): void {
 		let commandListener: IGameCommandCountListener | null = null;
 		if (Array.isArray(commands)) {
-			commandListener = this.findCommandsListener(commands);
+			commandListener = this.findCommandsListener(this.getCommandsAndAliases(commands));
 		} else {
 			commandListener = commands;
 		}
+
 		if (commandListener) {
 			commandListener.max -= decrement;
 			if (commandListener.count >= commandListener.max) {
@@ -893,7 +896,7 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	onCommands(commands: string[], options: IGameCommandCountOptions, listener: GameCommandListener): void {
+	onCommands(commands: readonly string[], options: IGameCommandCountOptions, listener: GameCommandListener): void {
 		const commandsAndAliases = this.getCommandsAndAliases(commands);
 		this.offCommands(commandsAndAliases);
 		this.commandsListeners.push(Object.assign(options, {commands: commandsAndAliases, count: 0, lastUserId: '', listener}));
@@ -901,7 +904,9 @@ export class ScriptedGame extends Game {
 
 	offCommands(commands: string[]): void {
 		const commandListener = this.findCommandsListener(commands);
-		if (commandListener) this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
+		if (commandListener) {
+			this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
+		}
 	}
 
 	tryCommand(target: string, room: Room | User, user: User, command: string, timestamp: number): boolean {
@@ -968,7 +973,9 @@ export class ScriptedGame extends Game {
 		}
 
 		for (const listener of triggeredListeners) {
-			this.commandsListeners.splice(this.commandsListeners.indexOf(listener), 1);
+			// could be removed already in listener()
+			const index = this.commandsListeners.indexOf(listener);
+			if (index !== -1) this.commandsListeners.splice(index, 1);
 		}
 
 		return result;
