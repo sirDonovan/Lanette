@@ -8,6 +8,9 @@ interface IBerryPile {
 	amount: number;
 }
 
+const GRAB_COMMAND = "grab";
+const RUN_COMMAND = "run";
+
 const mysteryBerryAmount = 11;
 
 class GreedentsBerryPiles extends ScriptedGame {
@@ -63,14 +66,6 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return berryPiles;
 	}
 
-	getBerryPileHtml(berryPile: IBerryPile): string {
-		let html = '<div class="infobox">';
-		html += Dex.getItemIcon(Dex.getExistingItem(berryPile.name + " Berry")) + berryPile.amount + ' ' + berryPile.name + ' ' +
-			(berryPile.amount === 1 ? 'Berry' : 'Berries');
-		html += '</div>';
-		return html;
-	}
-
 	onStart(): void {
 		this.say("If you grab more than " + this.maxBerryTotal + " berries, the Greedent will notice!");
 		this.nextSubGame();
@@ -109,13 +104,12 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		this.canLateJoin = false;
-		this.say("Giving " + (this.subGameNumber > 1 ? "new " : "") + " starting berries in PMs!");
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.giveStartingBerries(this.players[i]);
 			this.showBerryPiles(this.players[i]);
 		}
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
 	}
 
 	giveStartingBerries(player: Player): void {
@@ -138,29 +132,35 @@ class GreedentsBerryPiles extends ScriptedGame {
 	}
 
 	showBerryPiles(player: Player): void {
-		let html = '<div class="infobox"><center><b>You have grabbed</b>:<br />';
+		let html = '<center><b>You have grabbed</b>:<br /><br />';
 
 		const berryPilesHtml: string[] = [];
 		const berryPiles = this.playerBerryPiles.get(player)!;
 		for (const berryPile of berryPiles) {
-			berryPilesHtml.push(this.getBerryPileHtml(berryPile));
+			berryPilesHtml.push(Dex.getItemIcon(Dex.getExistingItem(berryPile.name + " Berry")) + berryPile.amount + ' ' + berryPile.name +
+				' ' + (berryPile.amount === 1 ? 'Berry' : 'Berries'));
 		}
 
-		html += berryPilesHtml.join("<br />");
+		html += Tools.joinList(berryPilesHtml);
 
 		html += '<br />';
 		const total = this.playerTotals.get(player)!;
 		if (total > this.maxBerryTotal) {
-			html += "<b>You grabbed too many berries and alerted Greedent!</b>";
+			html += "<br /><b>You grabbed too many berries and alerted Greedent!</b>";
 		} else if (player.frozen) {
-			html += "<b>Final total</b>: " + total + " berries<br />Stay tuned to see how many berries Greedent foraged!";
+			html += "<br /><b>Final total</b>: " + total + " berries<br />Stay tuned to see how many berries Greedent foraged!";
 		} else {
-			html += "<b>Total</b>: " + total + " berries <br />Greedent's first forage yielded <b>" + this.greedentFirstForage.amount +
-				" " + this.greedentFirstForage.name + " " + (this.greedentFirstForage.amount === 1 ? "Berry" : "Berries") + "</b>.";
+			html += "<b>Total</b>: " + total + " berries <br /><br />Greedent's first forage yielded <b>" +
+				this.greedentFirstForage.amount + " " + this.greedentFirstForage.name + " " + (this.greedentFirstForage.amount === 1 ?
+				"Berry" : "Berries") + "</b>.";
+			if (!this.roundActions.has(player) && this.subGameRound > 0) {
+				html += "<br /><br />" + this.getMsgRoomButton(GRAB_COMMAND, "Grab more berries") + "&nbsp;|&nbsp;" +
+					this.getMsgRoomButton(RUN_COMMAND, "Run away");
+			}
 		}
 
-		html += '</center></div>';
-		player.sayUhtml(html, this.uhtmlBaseName + "-hand");
+		html += '</center>';
+		player.sayPrivateUhtml(this.getCustomBoxDiv(html), this.uhtmlBaseName + "-hand");
 	}
 
 	getPlayerSummary(player: Player): void {
@@ -212,10 +212,10 @@ class GreedentsBerryPiles extends ScriptedGame {
 					}
 
 					this.on(greedentText, () => {
-						this.timeout = setTimeout(() => this.endSubGame(), 5 * 1000);
+						this.timeout = setTimeout(() => this.endSubGame(), 3 * 1000);
 					});
 					this.say(greedentText);
-				}, 5000);
+				}, 3 * 1000);
 			});
 			this.say(finishedText);
 			return;
@@ -230,6 +230,10 @@ class GreedentsBerryPiles extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
+
+		for (const i in this.players) {
+			if (!this.players[i].eliminated && !this.players[i].frozen) this.showBerryPiles(this.players[i]);
+		}
 	}
 
 	endSubGame(): void {
@@ -271,7 +275,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextSubGame(), 10 * 1000);
+			this.timeout = setTimeout(() => this.nextSubGame(), 3 * 1000);
 		});
 		this.say(text);
 	}
@@ -289,7 +293,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
-	grab: {
+	[GRAB_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canGrab || this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
@@ -320,7 +324,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 		},
 		pmGameCommand: true,
 	},
-	run: {
+	[RUN_COMMAND]: {
 		command(target, room, user) {
 			if (this.players[user.id].frozen) return false;
 			const player = this.players[user.id];
