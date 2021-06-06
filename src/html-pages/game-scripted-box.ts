@@ -834,7 +834,7 @@ class GameScriptedBox extends HtmlPageBase {
 				buttonStyle + "'>Choice 1</button>&nbsp;|&nbsp;<button class='button' style='" + buttonStyle + "'>Choice 2</button>" +
 				"&nbsp;|&nbsp;<button class='button' style='" + buttonStyle + "'>Choice 3</button></center>", scriptedBox);
 			html += "<br /><br />";
-			html += Games.getGameCustomBoxDiv("You were teleported to (2, 0).<h3>Round Actions</h3>" +
+			html += Games.getGameCustomBoxDiv("<h3>Round Actions</h3>" +
 				"<button class='button' style='" + buttonStyle + "'>Action</button>&nbsp;|&nbsp;" +
 				"<button class='button' style='" + buttonStyle + "'>Other action</button>", scriptedBox);
 
