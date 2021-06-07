@@ -17,6 +17,7 @@ const mapSymbols: {player: string; empty: string} = {
 };
 
 const MAX_REMATCHES = 2;
+const HIDE_COMMAND = "hide";
 
 class DragapultsDangerZone extends ScriptedGame {
 	canFire: boolean = false;
@@ -110,6 +111,8 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		if (player === this.currentPlayer) {
 			this.nextRound();
+		} else if (this.matchupPlayers.includes(player)) {
+			this.cancelMatchup(player);
 		} else {
 			const location = this.playerLocations.get(player);
 			if (location) this.addRevealedLocation(location);
@@ -145,7 +148,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				Config.commandCharacter + "hide [location]`` (letter-number)!";
 			this.on(text, () => {
 				this.canHide = true;
-				this.onCommands(['hide'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+				this.onCommands([HIDE_COMMAND], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
 					() => this.checkPlayerLocations());
 				this.timeout = setTimeout(() => this.checkPlayerLocations(), 60 * 1000);
 			});
@@ -174,6 +177,8 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	checkPlayerLocations(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands([HIDE_COMMAND]);
+
 		this.canHide = false;
 
 		for (const i in this.players) {
@@ -326,6 +331,18 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.say(text);
 	}
 
+	cancelMatchup(loser: Player): void {
+		if (this.timeout) clearTimeout(this.timeout);
+		this.canSelect = false;
+
+		const text = loser.name + " did not select a Pokemon and was eliminated from the game!";
+		this.on(text, () => {
+			this.currentPlayer = null;
+			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+		});
+		this.say(text);
+	}
+
 	calculateMatchup(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		this.canSelect = false;
@@ -409,9 +426,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		if (loserEliminated) {
 			this.eliminatePlayer(loser);
 			this.addRevealedLocation(this.playerLocations.get(loser)!);
+			this.removePlayerFromOrder(loser);
 		}
-
-		this.removePlayerFromOrder(loser);
 
 		const matchupsWon = this.matchupsWon.get(winner) || 0;
 		this.matchupsWon.set(winner, matchupsWon + 1);
@@ -488,7 +504,7 @@ class DragapultsDangerZone extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<DragapultsDangerZone> = {
-	hide: {
+	[HIDE_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canHide) return false;
 
