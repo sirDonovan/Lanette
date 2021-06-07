@@ -60,8 +60,10 @@ class KlinklangsCastle extends MapShuffleGame {
 			if (this.escapedPlayers.has(this.players[i])) this.winners.set(this.players[i], 1);
 		}
 
-		const exitCoordinates = this.getExitCoordinates(this.getFloorIndex());
-		if (exitCoordinates.length) this.say("The possible exits were: " + exitCoordinates.join(" | "));
+		if (this.sharedMap) {
+			const exitCoordinates = this.getExitCoordinates(this.getFloorIndex());
+			if (exitCoordinates.length) this.say("The possible exits were: " + exitCoordinates.join(" | "));
+		}
 
 		const unlockedKingOfTheCastle: Player[] = [];
 		this.winners.forEach((value, player) => {

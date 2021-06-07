@@ -100,8 +100,10 @@ export abstract class MapGame extends ScriptedGame {
 	baseX: number = 0;
 	baseY: number = 0;
 	canMove: boolean = false;
-	currentFloor: number = 1;
+	currentFloor: number = 0;
 	dimensions: number = 0;
+	floors = new Map<Player, number>();
+	individualMaps = new Map<Player, GameMap>();
 	lives = new Map<Player, number>();
 	mapHeight: number = 0;
 	mapWidth: number = 0;
@@ -120,7 +122,6 @@ export abstract class MapGame extends ScriptedGame {
 
 	additionalMapSymbols?: Dict<string>;
 	escapedPlayers?: Map<Player, boolean> | null = null;
-	floors?: Map<Player, number>;
 	map?: GameMap;
 	noCurrencyAchievement?: IGameAchievement;
 	noCurrencyRound?: number;
@@ -129,7 +130,6 @@ export abstract class MapGame extends ScriptedGame {
 	roundActions?: Map<Player, boolean> | null = null;
 	sharedMap?: boolean;
 	trappedPlayers?: Map<Player, string> | null = null;
-	individualMaps?: Map<Player, GameMap>;
 
 	abstract onEnd(): void;
 	abstract onMaxRound(): void;
@@ -145,13 +145,13 @@ export abstract class MapGame extends ScriptedGame {
 
 	getMap(player?: Player): GameMap {
 		if (this.sharedMap) {
-			if (!this.map) this.map = this.generateMap(this.mapWidth || this.playerCount);
+			if (!this.map) {
+				this.map = this.generateMap(this.mapWidth || this.playerCount);
+				this.currentFloor = this.startingFloor;
+			}
 			return this.map;
 		} else {
 			if (!player) throw new Error("getMap() called without a player");
-
-			if (!this.floors) this.floors = new Map();
-			if (!this.individualMaps) this.individualMaps = new Map();
 
 			if (!this.individualMaps.has(player)) {
 				this.individualMaps.set(player, this.generateMap(this.mapWidth || this.playerCount));
@@ -168,8 +168,7 @@ export abstract class MapGame extends ScriptedGame {
 		} else {
 			if (!player) throw new Error("getFloorIndex() called without a player");
 
-			if (!this.floors) return this.startingFloor - 1;
-			return this.floors.get(player)! - 1;
+			return (this.floors.get(player) || this.startingFloor) - 1;
 		}
 	}
 
@@ -197,12 +196,25 @@ export abstract class MapGame extends ScriptedGame {
 		this.baseX = width;
 		this.baseY = height;
 		const map = new GameMap();
-		for (let i = 0; i < this.currentFloor; i++) {
+		for (let i = 0; i < this.startingFloor; i++) {
 			this.generateMapFloor(map);
 		}
 
 		if (this.onGenerateMap) this.onGenerateMap(map);
 		return map;
+	}
+
+	advanceToNextFloor(): void {
+		if (this.sharedMap) {
+			this.generateMapFloor(this.getMap());
+			this.currentFloor++;
+		} else {
+			for (const i in this.players) {
+				const player = this.players[i];
+				this.generateMapFloor(this.getMap(player));
+				this.floors.set(player, this.floors.get(player)! + 1);
+			}
+		}
 	}
 
 	generateMapFloor(map: GameMap, x?: number, y?: number): void {

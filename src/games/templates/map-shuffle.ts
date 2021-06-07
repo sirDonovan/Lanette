@@ -41,16 +41,8 @@ export abstract class MapShuffleGame extends MapGame {
 		if (!len) return this.end();
 
 		if (this.round > 1 && (this.round - 1) % 5 === 0) {
-			this.currentFloor++;
 			this.sendShuffleMapText();
-
-			if (this.sharedMap) {
-				this.generateMapFloor(this.getMap());
-			} else {
-				for (const i in this.players) {
-					this.generateMapFloor(this.getMap(this.players[i]));
-				}
-			}
+			this.advanceToNextFloor();
 
 			this.escapedPlayers.forEach((value, player) => {
 				this.playerRoundInfo.set(player, []);
