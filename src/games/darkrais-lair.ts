@@ -222,7 +222,6 @@ class DarkraisLair extends MapGame {
 
 	onStart(): void {
 		this.teams = this.generateTeams(this.teamCount);
-		this.map = this.generateMap(this.playerCount);
 		this.positionPlayers();
 		this.nextRound();
 	}
