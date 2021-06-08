@@ -211,37 +211,49 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
 	}
 
-	sayPrivateHtml(user: User | Player, html: string): void {
+	sayPrivateHtml(userOrPlayer: User | Player, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
 		this.say("/sendprivatehtmlbox " + user.id + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
-	sayPrivateUhtml(user: User | Player, uhtmlName: string, html: string): void {
+	sayPrivateUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
 		this.say("/sendprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
-	sayPrivateUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
+	sayPrivateUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
 		this.say("/changeprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
-	pmHtml(user: User | Player, html: string): void {
-		if (!Users.get(user.name)) return;
+	pmHtml(userOrPlayer: User | Player, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/pminfobox " + user.id + "," + html, {html: Client.getListenerHtml(html, true), dontCheckFilter: true, dontPrepare: true,
 			type: 'pm-html', user: user.id});
 	}
 
-	pmUhtml(user: User | Player, uhtmlName: string, html: string): void {
-		if (!Users.get(user.name)) return;
+	pmUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
-	pmUhtmlChange(user: User | Player, uhtmlName: string, html: string): void {
-		if (!Users.get(user.name)) return;
+	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
@@ -252,6 +264,8 @@ export class Room {
 	}
 
 	warn(user: User, reason: string): void {
+		if (!Users.get(user.name) || !user.rooms.has(this)) return;
+
 		this.say("/warn " + user.name + ", " + reason, {type: 'warn', warnReason: reason});
 	}
 
@@ -272,28 +286,34 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, type: 'notifyoffrank', notifyId: this.id + "-rank-" + rank});
 	}
 
-	sendHtmlPage(user: User | Player, pageId: string, html: string): void {
-		if (!Users.get(user.name)) return;
+	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html,
 			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
-	changeHtmlPageSelector(user: User | Player, pageId: string, selector: string, html: string): void {
-		if (!Users.get(user.name)) return;
+	changeHtmlPageSelector(userOrPlayer: User | Player, pageId: string, selector: string, html: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/changehtmlpageselector " + user.id + "," + pageId + "," + selector + "," + html,
 			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpageselector', user: user.id, pageId: Users.self.id + "-" + pageId,
 			selector});
 	}
 
-	closeHtmlPage(user: User | Player, pageId: string): void {
+	closeHtmlPage(userOrPlayer: User | Player, pageId: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
 		this.say("/closehtmlpage " + user.id + "," + pageId,
 			{dontCheckFilter: true, dontPrepare: true, type: 'closehtmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
-	sendHighlightPage(user: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
-		if (!Users.get(user.name)) return;
+	sendHighlightPage(userOrPlayer: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
 
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
 			{dontCheckFilter: true, dontPrepare: true, type: 'highlight-htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
