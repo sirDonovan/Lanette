@@ -1492,7 +1492,7 @@ export class Games {
 				border = customBox.backgroundBorder;
 			}
 
-			span = Tools.getHexSpan(background, border.color, border.radius, border.size, border.type);
+			span = Tools.getHexSpan(background, border.color, game ? undefined : border.radius, border.size, border.type);
 
 			hasBorder = Object.keys(border).length > 0;
 		}
