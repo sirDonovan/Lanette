@@ -38,7 +38,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsFormes: boolean = true;
 	allowsScouting: boolean = false;
-	autoCloseHtmlPage = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
 	battleFormatId: string = 'ou';

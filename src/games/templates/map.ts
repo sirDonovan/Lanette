@@ -116,7 +116,6 @@ export abstract class MapGame extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
 	startingFloor: number = 1;
-	usesHtmlPage = true;
 
 	declare readonly room: Room;
 

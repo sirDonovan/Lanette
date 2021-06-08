@@ -75,7 +75,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
 	usesActionCards: boolean = true;
-	usesHtmlPage = true;
 
 	declare readonly room: Room;
 

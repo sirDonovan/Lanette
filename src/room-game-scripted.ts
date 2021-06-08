@@ -22,7 +22,6 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
 };
 
 export class ScriptedGame extends Game {
-	autoCloseHtmlPage: boolean = true;
 	awardedBits: boolean = false;
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
@@ -514,12 +513,6 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		if (this.usesHtmlPage && this.autoCloseHtmlPage) {
-			for (const i in this.players) {
-				this.players[i].closeHtmlPage();
-			}
-		}
-
 		if (this.onEnd) {
 			try {
 				this.onEnd();
@@ -579,12 +572,6 @@ export class ScriptedGame extends Game {
 			const forceEndMessage = this.getForceEndMessage ? this.getForceEndMessage() : "";
 			this.say("The " + this.name + " " + this.activityType + " was forcibly ended!" + (forceEndMessage ? " " +
 				forceEndMessage : ""));
-		}
-
-		if (this.usesHtmlPage && this.autoCloseHtmlPage) {
-			for (const i in this.players) {
-				this.players[i].closeHtmlPage();
-			}
 		}
 
 		if (this.onForceEnd) {
