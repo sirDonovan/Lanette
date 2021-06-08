@@ -269,7 +269,7 @@ class GameScriptedBox extends HtmlPageBase {
 		this.gameButtonsBorderStyle = new BorderStyle(room, this.commandPrefix, setGameButtonBorderStyleCommand, {
 			currentBorder: currentGameButtonsBorder,
 			minRadius: 2,
-			maxRadius: 10,
+			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
 			onClearColor: (dontRender) => this.clearBorderColor('game-buttons', dontRender),
