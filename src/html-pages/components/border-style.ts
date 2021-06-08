@@ -165,30 +165,38 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	}
 
 	render(): string {
-		let html = "Radius:&nbsp;";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + defaultValue, "Default", !this.radius);
-		for (let i = 2; i <= 10; i++) {
-			if (i < this.props.minRadius) continue;
-			if (i > this.props.maxRadius) break;
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + i, i + "px", this.radius === i);
-		}
-
-		if (this.props.maxRadius >= 15) {
-			for (let i = 15; i <= this.props.maxRadius; i += 5) {
+		let html = "";
+		if (this.props.minRadius && this.props.maxRadius) {
+			html += "Radius:&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + defaultValue, "Default", !this.radius);
+			for (let i = 2; i <= 10; i++) {
+				if (i < this.props.minRadius) continue;
+				if (i > this.props.maxRadius) break;
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + i, i + "px",
 					this.radius === i);
 			}
+
+			if (this.props.maxRadius >= 15) {
+				for (let i = 15; i <= this.props.maxRadius; i += 5) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + i, i + "px",
+						this.radius === i);
+				}
+			}
+
+			html += "<br /><br />";
 		}
 
-		html += "<br /><br />";
-		html += "Size:&nbsp;";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + defaultValue, "Default", !this.size);
-		for (let i = 1; i <= this.props.maxSize; i++) {
-			if (i < this.props.minSize) continue;
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + i, i + "px", this.size === i);
+		if (this.props.minSize && this.props.maxSize) {
+			html += "Size:&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + defaultValue, "Default", !this.size);
+			for (let i = 1; i <= this.props.maxSize; i++) {
+				if (i < this.props.minSize) continue;
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + i, i + "px", this.size === i);
+			}
+
+			html += "<br /><br />";
 		}
 
-		html += "<br /><br />";
 		html += "Type:&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + defaultValue, "Default", !this.type);
 		for (const borderType of borderTypes) {

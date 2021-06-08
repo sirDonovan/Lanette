@@ -251,10 +251,10 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.gameBackgroundBorderStyle = new BorderStyle(room, this.commandPrefix, setGameBackgroudBorderStyleCommand, {
 			currentBorder: currentGameBackgroundBorder,
-			minRadius: 2,
-			maxRadius: 10,
+			minRadius: 0,
+			maxRadius: 0,
 			minSize: 2,
-			maxSize: 3,
+			maxSize: 5,
 			onClearColor: (dontRender) => this.clearBorderColor('game-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('game-background', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('game-background'),
@@ -271,7 +271,7 @@ class GameScriptedBox extends HtmlPageBase {
 			minRadius: 2,
 			maxRadius: 10,
 			minSize: 2,
-			maxSize: 3,
+			maxSize: 5,
 			onClearColor: (dontRender) => this.clearBorderColor('game-buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('game-buttons', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('game-buttons'),
