@@ -39,6 +39,12 @@ class ChandeluresCandles extends ScriptedGame {
 		this.say(text);
 	}
 
+	getActionsHtml(player: Player): string {
+		return this.getCustomButtonsDiv([this.getMsgRoomButton("hide", "Hide", false, player),
+			this.getMsgRoomButton("puff " + this.roundTarget!.name, "Puff <b>" + this.roundTarget!.name + "</b>'s candle", false, player)],
+			player);
+	}
+
 	exposeCandle(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 
@@ -57,16 +63,13 @@ class ChandeluresCandles extends ScriptedGame {
 		});
 		this.say(text);
 
-		const html = this.getCustomButtonsDiv([this.getMsgRoomButton("hide", "Hide"),
-			this.getMsgRoomButton("puff " + this.roundTarget.name, "Puff <b>" + this.roundTarget.name + "</b>'s candle")]);
-
 		for (const i in this.players) {
 			if (!this.players[i].eliminated && this.players[i] !== this.roundTarget) {
-				this.players[i].sayPrivateUhtml(html, this.actionsUhtmlName);
+				this.players[i].sayPrivateUhtml(this.getActionsHtml(this.players[i]), this.actionsUhtmlName);
 			}
 		}
 
-		this.roundTarget.sayPrivateUhtml(html, this.actionsUhtmlName);
+		this.roundTarget.sayPrivateUhtml(this.getActionsHtml(this.roundTarget), this.actionsUhtmlName);
 	}
 
 	onNextRound(): void {

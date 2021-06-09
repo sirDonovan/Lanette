@@ -161,14 +161,14 @@ class GreedentsBerryPiles extends ScriptedGame {
 				this.greedentFirstForage.amount + " " + this.greedentFirstForage.name + " " + (this.greedentFirstForage.amount === 1 ?
 				"Berry" : "Berries") + "</b>.";
 			if (!this.roundActions.has(player) && this.subGameRound > 0) {
-				html += "<br /><br />" + this.getMsgRoomButton(GRAB_COMMAND, "Grab more berries") + "&nbsp;|&nbsp;" +
-					this.getMsgRoomButton(RUN_COMMAND, "Run away");
+				html += "<br /><br />" + this.getMsgRoomButton(GRAB_COMMAND, "Grab more berries", false, player) + "&nbsp;|&nbsp;" +
+					this.getMsgRoomButton(RUN_COMMAND, "Run away", false, player);
 			}
 		}
 
 		html += '</center>';
 
-		this.sendPlayerActions(player, this.getCustomBoxDiv(html));
+		this.sendPlayerActions(player, this.getCustomBoxDiv(html, player));
 	}
 
 	getPlayerSummary(player: Player): void {

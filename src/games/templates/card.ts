@@ -381,7 +381,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			html += "<br />You drew <b>" + Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
 		}
 
-		this.sendPlayerActions(player, html);
+		this.sendPlayerActions(player, this.getCustomBoxDiv(html, player));
 	}
 
 	onTimeLimit(): boolean {

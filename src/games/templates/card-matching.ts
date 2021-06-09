@@ -192,12 +192,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		let html = '';
 		if (card.action && card.action.getRandomTarget) {
 			html += this.getMsgRoomButton("play " + card.action.getRandomTarget(this, this.playerCards.get(player)!),
-				"Play <b>randomized " + card.name + "</b>", player.eliminated) + " (or manually)";
+				"Play <b>randomized " + card.name + "</b>", player.eliminated, player) + " (or manually)";
 		} else {
 			if (card.action && card.action.requiredTarget) {
 				html += '<b>Play ' + card.name + ' manually!</b>';
 			} else {
-				html += this.getMsgRoomButton("play " + card.name, "Play <b>" + card.name + "</b>", player.eliminated);
+				html += this.getMsgRoomButton("play " + card.name, "Play <b>" + card.name + "</b>", player.eliminated, player);
 			}
 		}
 
@@ -206,7 +206,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 	getCardGroupPlayButton(cards: ICard[], player: Player): string {
 		const names = cards.map(x => x.name);
-		return this.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"), player.eliminated);
+		return this.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"), player.eliminated, player);
 	}
 
 	getCardPrivateHtml(card: ICard): string {

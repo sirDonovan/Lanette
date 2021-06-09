@@ -48,6 +48,7 @@ export abstract class Game extends Activity {
 	maxPlayers?: number;
 	parentGame?: Game;
 	playerCap?: number;
+	playerCustomBoxes = new Map<Player, IGameCustomBox | undefined>();
 	readonly points?: Map<Player, number>;
 	startingPoints?: number;
 
@@ -213,26 +214,43 @@ export abstract class Game extends Activity {
 			"will not receive any further signups messages." : ""), this.privateJoinLeaveUhtmlName);
 	}
 
-	getMsgRoomButton(command: string, label: string, disabled?: boolean): string {
+	getPlayerOrPickedCustomBox(player?: Player): IGameCustomBox | undefined {
+		if (!player) return this.customBox;
+
+		if (!this.playerCustomBoxes.has(player)) {
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
+				this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
+			} else {
+				this.playerCustomBoxes.set(player, undefined);
+			}
+		}
+
+		return this.playerCustomBoxes.get(player);
+	}
+
+	getMsgRoomButton(command: string, label: string, disabled?: boolean, player?: Player): string {
 		if (this.isPmActivity(this.room)) return "";
 
+		const customBox = this.getPlayerOrPickedCustomBox(player);
 		return Client.getMsgRoomButton(this.room, Config.commandCharacter + command, label, disabled,
-			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox, 'game', disabled) : '');
+			customBox ? Games.getCustomBoxButtonStyle(customBox, 'game', disabled) : '');
 	}
 
-	getQuietPmButton(command: string, label: string, disabled?: boolean): string {
+	getQuietPmButton(command: string, label: string, disabled?: boolean, player?: Player): string {
 		if (this.isPmActivity(this.room)) return "";
 
+		const customBox = this.getPlayerOrPickedCustomBox(player);
 		return Client.getQuietPmButton(this.room, Config.commandCharacter + command, label, disabled,
-			this.customBox ? Games.getCustomBoxButtonStyle(this.customBox, 'game', disabled) : '');
+			customBox ? Games.getCustomBoxButtonStyle(customBox, 'game', disabled) : '');
 	}
 
-	getCustomBoxDiv(content: string): string {
-		return Games.getGameCustomBoxDiv(content, this.customBox);
+	getCustomBoxDiv(content: string, player?: Player): string {
+		return Games.getGameCustomBoxDiv(content, this.getPlayerOrPickedCustomBox(player));
 	}
 
-	getCustomButtonsDiv(buttons: string[]): string {
-		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"));
+	getCustomButtonsDiv(buttons: string[], player?: Player): string {
+		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"), player);
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay): void {

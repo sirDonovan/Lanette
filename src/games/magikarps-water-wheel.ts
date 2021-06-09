@@ -121,7 +121,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		if (!magikarp) html += "<br /><br />" + this.getActionButtonsHtml(player);
 		html += '</center>';
 
-		this.sendPlayerActions(player, this.getCustomBoxDiv(html));
+		this.sendPlayerActions(player, this.getCustomBoxDiv(html, player));
 
 		if (magikarp) {
 			this.eliminatePlayer(player);
@@ -144,31 +144,32 @@ class MagikarpsWaterWheel extends ScriptedGame {
 
 		const buttons: string[] = [];
 		if (index > 0) {
-			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down to " + this.wheelKeys[index - 1], disabled));
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down to " + this.wheelKeys[index - 1], disabled,
+				player));
 		} else {
-			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down", true));
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down", true, player));
 		}
 
-		buttons.push(this.getMsgRoomButton(TREAD_COMMAND, "Tread on " + this.wheelKeys[index], disabled));
+		buttons.push(this.getMsgRoomButton(TREAD_COMMAND, "Tread on " + this.wheelKeys[index], disabled, player));
 
 		if (index !== this.wheelKeys.length - 1) {
-			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up to " + this.wheelKeys[index + 1], disabled));
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up to " + this.wheelKeys[index + 1], disabled, player));
 		} else {
-			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up", true));
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up", true, player));
 		}
 
 		const points = this.points.get(player);
 		if (points) {
-			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop at " + points, disabled));
+			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop at " + points, disabled, player));
 		} else {
-			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop", true));
+			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop", true, player));
 		}
 
 		return buttons.join("&nbsp;|&nbsp;");
 	}
 
 	sendActionButtons(player: Player): void {
-		this.sendPlayerActions(player, this.getCustomBoxDiv("<center>" + this.getActionButtonsHtml(player) + "</center>"));
+		this.sendPlayerActions(player, this.getCustomBoxDiv("<center>" + this.getActionButtonsHtml(player) + "</center>", player));
 	}
 
 	onNextRound(): void {
@@ -271,7 +272,8 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 
 			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You are now on the " + newWheel.charAt(0).toUpperCase() +
 				newWheel.substr(1) + " wheel</h3>The chances of Magikarp have " + (direction === "up" ? "increased" : "decreased") +
-				" to <b>" + this.wheels[newWheel].magikarpChance + "%</b>!<br /><br />" + this.getActionButtonsHtml(player) + "</center>"));
+				" to <b>" + this.wheels[newWheel].magikarpChance + "%</b>!<br /><br />" + this.getActionButtonsHtml(player) + "</center>",
+				player));
 			return true;
 		},
 	},
@@ -284,7 +286,7 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 
 			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You tread on the " + wheel.charAt(0).toUpperCase() +
 				wheel.substr(1) + " wheel</h3>The chances of Magikarp are <b>" + this.wheels[wheel].magikarpChance + "%</b>!<br /><br />" +
-				this.getActionButtonsHtml(player) + "</center>"));
+				this.getActionButtonsHtml(player) + "</center>", player));
 			return true;
 		},
 	},
@@ -300,7 +302,8 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 
 			player.frozen = true;
 			this.roundActions.add(player);
-			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You have stopped with " + points + "!</h3></center>"));
+			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You have stopped with " + points + "!</h3></center>",
+				player));
 			return true;
 		},
 	},

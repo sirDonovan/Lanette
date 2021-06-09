@@ -332,7 +332,7 @@ export abstract class MapGame extends ScriptedGame {
 		content += "<br />";
 		content += this.getPlayerControlsHtml(map, floor, player);
 
-		this.sendPlayerActions(player, this.getCustomBoxDiv(content));
+		this.sendPlayerActions(player, this.getCustomBoxDiv(content, player));
 	}
 
 	updatePlayerControls(): void {
@@ -445,30 +445,39 @@ export abstract class MapGame extends ScriptedGame {
 			const cannotMove = this.roundActions && this.roundActions.has(player) ? true : false;
 			html += "<b>Controls</b>:<br /><table>";
 			html += "<tr><td>&nbsp;</td>";
-			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 3", "Up 3", cannotMove || playerUpMovement < 3) + "</td>";
-			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 2", "Up 2", cannotMove || playerUpMovement < 2) + "</td>";
-			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 1", "Up 1", cannotMove || playerUpMovement < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 3", "Up 3", cannotMove || playerUpMovement < 3, player) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 2", "Up 2", cannotMove || playerUpMovement < 2, player) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(UP_COMMAND + " 1", "Up 1", cannotMove || playerUpMovement < 1, player) + "</td>";
 			html += "<td>&nbsp;</td></tr><tr>";
 
-			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 3", "Left 3", cannotMove || playerCoordindates[0] < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 3", "Left 3", cannotMove || playerCoordindates[0] < 3, player) +
+				"</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 3", "Right 3", cannotMove || playerRightMovement < 3) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 3", "Right 3", cannotMove || playerRightMovement < 3, player) +
+				"</td>";
 			html += "</tr><tr>";
 
-			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 2", "Left 2", cannotMove || playerCoordindates[0] < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 2", "Left 2", cannotMove || playerCoordindates[0] < 2, player) +
+				"</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 2", "Right 2", cannotMove || playerRightMovement < 2) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 2", "Right 2", cannotMove || playerRightMovement < 2, player) +
+				"</td>";
 			html += "</tr><tr>";
 
-			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 1", "Left 1", cannotMove || playerCoordindates[0] < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(LEFT_COMMAND + " 1", "Left 1", cannotMove || playerCoordindates[0] < 1, player) +
+				"</td>";
 			html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>";
-			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 1", "Right 1", cannotMove || playerRightMovement < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(RIGHT_COMMAND + " 1", "Right 1", cannotMove || playerRightMovement < 1, player) +
+				"</td>";
 			html += "</tr><tr>";
 
 			html += "<td>&nbsp;</td>";
-			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 3", "Down 3", cannotMove || playerCoordindates[1] < 3) + "</td>";
-			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 2", "Down 2", cannotMove || playerCoordindates[1] < 2) + "</td>";
-			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 1", "Down 1", cannotMove || playerCoordindates[1] < 1) + "</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 3", "Down 3", cannotMove || playerCoordindates[1] < 3, player) +
+				"</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 2", "Down 2", cannotMove || playerCoordindates[1] < 2, player) +
+				"</td>";
+			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 1", "Down 1", cannotMove || playerCoordindates[1] < 1, player) +
+				"</td>";
 			html += "<td>&nbsp;</td></tr>";
 			html += '</table>';
 		}
