@@ -5,6 +5,7 @@ import { assert, assertStrictEqual } from '../../test/test-tools';
 import type { ModelGeneration } from '../../types/dex';
 import type { GameCommandDefinitions, GameFileTests, IGameTemplateFile, PlayerList } from '../../types/games';
 import type { IItem, IMove, IPokemon, StatsTable } from '../../types/pokemon-showdown';
+import type { GameActionGames } from '../../types/storage';
 
 export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extends ICard = ICard> {
 	getCard: (game: T) => ICard;
@@ -50,6 +51,8 @@ export interface IItemCard extends ICard {
 	effectType: 'item';
 }
 
+const GAME_ACTION_TYPE: GameActionGames = 'card';
+
 export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
 	abstract actionCards: ActionCardsType;
 
@@ -64,6 +67,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	detailLabelWidth: number = 75;
 	drawAmount: number = 1;
 	finitePlayerCards: boolean = false;
+	gameActionType = GAME_ACTION_TYPE;
 	hackmonsTypes: boolean = false;
 	inverseTypes: boolean = false;
 	lastPlayer: Player | null = null;
@@ -75,6 +79,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
 	usesActionCards: boolean = true;
+	usesHtmlPage = true;
 
 	declare readonly room: Room;
 
@@ -376,7 +381,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			html += "<br />You drew <b>" + Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
 		}
 
-		player.sayPrivateUhtml(this.getCustomBoxDiv(html), this.uhtmlBaseName + '-cards');
+		this.sendPlayerActions(player, html);
 	}
 
 	onTimeLimit(): boolean {

@@ -2,6 +2,7 @@ import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import type { GameCommandDefinitions, IGameAchievement, IGameTemplateFile } from "../../types/games";
+import type { GameActionGames } from "../../types/storage";
 import type { User } from "../../users";
 
 interface ISpaceAttributes {
@@ -19,6 +20,7 @@ export interface ISpaceDisplayData {
 	title: string;
 }
 
+const GAME_ACTION_TYPE: GameActionGames = 'map';
 const UP_COMMAND = "up";
 const DOWN_COMMAND = "down";
 const LEFT_COMMAND = "left";
@@ -103,6 +105,7 @@ export abstract class MapGame extends ScriptedGame {
 	currentFloor: number = 0;
 	dimensions: number = 0;
 	floors = new Map<Player, number>();
+	gameActionType = GAME_ACTION_TYPE;
 	individualMaps = new Map<Player, GameMap>();
 	lives = new Map<Player, number>();
 	mapHeight: number = 0;
@@ -116,6 +119,7 @@ export abstract class MapGame extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
 	startingFloor: number = 1;
+	usesHtmlPage = true;
 
 	declare readonly room: Room;
 
@@ -328,7 +332,7 @@ export abstract class MapGame extends ScriptedGame {
 		content += "<br />";
 		content += this.getPlayerControlsHtml(map, floor, player);
 
-		player.sayPrivateUhtml(this.getCustomBoxDiv(content), this.actionButtonsUhtmlName);
+		this.sendPlayerActions(player, this.getCustomBoxDiv(content));
 	}
 
 	updatePlayerControls(): void {

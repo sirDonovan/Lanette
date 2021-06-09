@@ -1,6 +1,7 @@
 import type { Player } from '../room-activity';
 import { ScriptedGame } from '../room-game-scripted';
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import type { GameActionGames } from '../types/storage';
 
 type BerryType = 'Cheri' | 'Chesto' | 'Pecha' | 'Rawst' | 'Mystery';
 interface IBerryPile {
@@ -8,6 +9,7 @@ interface IBerryPile {
 	amount: number;
 }
 
+const GAME_ACTION_TYPE: GameActionGames = 'greedentsberrypiles';
 const GRAB_COMMAND = "grab";
 const RUN_COMMAND = "run";
 
@@ -17,6 +19,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 	berryPiles: IBerryPile[] = [];
 	canGrab: boolean = false;
 	canLateJoin: boolean = true;
+	gameActionType = GAME_ACTION_TYPE;
 	greedentTotalForaged: number = 0;
 	readonly maxSubGames: number = 5;
 	readonly maxBerryTotal: number = 21;
@@ -29,6 +32,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 	readonly startingPiles: number = 2;
 	subGameNumber: number = 0;
 	subGameRound: number = 0;
+	usesHtmlPage = true;
 
 	greedentFirstForage!: IBerryPile;
 
@@ -73,9 +77,12 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 	startSubGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+
 		this.subGameRound = 0;
 		this.subGameNumber++;
 		if (this.subGameNumber > 1) {
+			this.say("Starting the next game!");
+
 			this.playerBerryPiles.clear();
 			this.playerTotals.clear();
 		}
@@ -148,7 +155,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		if (total > this.maxBerryTotal) {
 			html += "<br /><b>You grabbed too many berries and alerted Greedent!</b>";
 		} else if (player.frozen) {
-			html += "<br /><b>Final total</b>: " + total + " berries<br />Stay tuned to see how many berries Greedent foraged!";
+			html += "<br /><b>Final total</b>: " + total + " berries<br /><br />Stay tuned to see how many berries Greedent foraged!";
 		} else {
 			html += "<b>Total</b>: " + total + " berries <br /><br />Greedent's first forage yielded <b>" +
 				this.greedentFirstForage.amount + " " + this.greedentFirstForage.name + " " + (this.greedentFirstForage.amount === 1 ?
@@ -160,7 +167,8 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		html += '</center>';
-		player.sayPrivateUhtml(this.getCustomBoxDiv(html), this.uhtmlBaseName + "-hand");
+
+		this.sendPlayerActions(player, this.getCustomBoxDiv(html));
 	}
 
 	getPlayerSummary(player: Player): void {
@@ -176,6 +184,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			this.players[i].frozen = false;
 		}
 		if (!this.getRemainingPlayerCount() || this.subGameNumber >= this.maxSubGames) return this.end();
+
 		this.startSubGame();
 	}
 

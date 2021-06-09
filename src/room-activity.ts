@@ -14,6 +14,8 @@ export class Player {
 	/** The player has met the activity's win condition */
 	metWinCondition: boolean | undefined;
 	round: number | undefined;
+	sentHtmlPage: boolean | undefined;
+	sentPrivateHtml: boolean | undefined;
 	team: PlayerTeam | undefined;
 
 	readonly name: string;
@@ -69,23 +71,26 @@ export class Player {
 	sayPrivateHtml(html: string): void {
 		if (this.id === Users.self.id) return;
 
+		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateHtml(this, html);
 	}
 
 	sayPrivateUhtml(html: string, name?: string): void {
 		if (this.id === Users.self.id) return;
 
+		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
 	sayPrivateUhtmlChange(html: string, name?: string): void {
 		if (this.id === Users.self.id) return;
 
+		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
 	clearPrivateUhtml(name: string): void {
-		if (this.id === Users.self.id) return;
+		if (this.id === Users.self.id || !this.sentPrivateHtml) return;
 
 		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>");
 	}
@@ -93,17 +98,18 @@ export class Player {
 	sendHtmlPage(html: string, pageId?: string): void {
 		if (this.id === Users.self.id) return;
 
+		if (!this.sentHtmlPage) this.sentHtmlPage = true;
 		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
 	closeHtmlPage(pageId?: string): void {
-		if (this.id === Users.self.id) return;
+		if (this.id === Users.self.id || !this.sentHtmlPage) return;
 
 		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId);
 	}
 
 	sendHighlightPage(notificationTitle: string, pageId?: string, highlightPhrase?: string): void {
-		if (this.id === Users.self.id) return;
+		if (this.id === Users.self.id || !this.sentHtmlPage) return;
 
 		this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
 	}

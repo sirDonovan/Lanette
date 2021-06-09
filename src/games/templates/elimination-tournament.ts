@@ -51,6 +51,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
 	disqualifiedPlayers = new Set<Player>();
+	dontAutoCloseHtmlPages: boolean = true;
 	dropsPerRound: number = 0;
 	evolutionsPerRound: number = 0;
 	firstRoundByes = new Set<Player>();

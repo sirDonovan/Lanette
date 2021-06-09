@@ -62,11 +62,11 @@ class ChandeluresCandles extends ScriptedGame {
 
 		for (const i in this.players) {
 			if (!this.players[i].eliminated && this.players[i] !== this.roundTarget) {
-				this.players[i].sayPrivateUhtml(html, this.actionButtonsUhtmlName);
+				this.players[i].sayPrivateUhtml(html, this.actionsUhtmlName);
 			}
 		}
 
-		this.roundTarget.sayPrivateUhtml(html, this.actionButtonsUhtmlName);
+		this.roundTarget.sayPrivateUhtml(html, this.actionsUhtmlName);
 	}
 
 	onNextRound(): void {

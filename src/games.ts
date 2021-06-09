@@ -1675,11 +1675,6 @@ export class Games {
 		return html;
 	}
 
-	getJoinNoticeHtml(room: Room, joinNotice: string, customBox: IGameCustomBox | undefined): string {
-		return joinNotice + "&nbsp;" + Client.getQuietPmButton(room, Config.commandCharacter + "leavegame " + room.id, "Leave", false,
-			this.getCustomBoxButtonStyle(customBox, 'signups'));
-	}
-
 	getHostCustomDisplay(host: string, hostDisplay: IGameHostDisplay): string {
 		let content = "";
 		let trainerHtml = "";

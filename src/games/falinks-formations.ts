@@ -60,7 +60,7 @@ class FalinksFormations extends ScriptedGame {
 			buttons.push(this.getMsgRoomButton(GUESS_COMMAND + " " + i, "Guess <b>" + i + "</b> Falinks"));
 		}
 
-		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
+		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionsUhtmlName);
 	}
 
 	onEnd(): void {
@@ -87,7 +87,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 
 			if (this.timeout) clearTimeout(this.timeout);
 
-			player.clearPrivateUhtml(this.actionButtonsUhtmlName);
+			player.clearPrivateUhtml(this.actionsUhtmlName);
 
 			this.canGuess = false;
 			const falinks = this.random(MAX_GUESS + 1) + 1;

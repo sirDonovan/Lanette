@@ -52,7 +52,7 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	giveEgg(player: Player): void {
-		if (this.currentHolder) this.currentHolder.clearPrivateUhtml(this.actionButtonsUhtmlName);
+		const previousHolder = this.currentHolder;
 
 		this.holdTime = Date.now();
 		this.currentHolder = player;
@@ -64,7 +64,8 @@ class ChanseysEggToss extends ScriptedGame {
 			}
 		}
 
-		player.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
+		player.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionsUhtmlName);
+		if (previousHolder) previousHolder.clearPrivateUhtml(this.actionsUhtmlName);
 	}
 
 	explodeEgg(reason?: string): void {

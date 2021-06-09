@@ -4,7 +4,7 @@ import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
 import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
-import type { IGameCustomBox, IGameHostDisplay } from "./types/storage";
+import type { GameActionGames, GameActionLocations, IGameCustomBox, IGameHostDisplay } from "./types/storage";
 import type { User } from "./users";
 
 const teamNameLists: Dict<string[][]> = {
@@ -39,6 +39,7 @@ export abstract class Game extends Activity {
 
 	customBox?: IGameCustomBox;
 	format?: IGameFormat | IUserHostedFormat;
+	gameActionType?: GameActionGames;
 	isUserHosted?: boolean;
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
@@ -177,8 +178,29 @@ export abstract class Game extends Activity {
 	}
 
 	sendJoinNotice(player: Player): void {
-		player.sayPrivateUhtml(Games.getJoinNoticeHtml(this.room as Room, "You have joined the <b>" + this.name + "</b> " +
-			this.activityType + "!", this.customBox), this.privateJoinLeaveUhtmlName);
+		const buttonStyle = Games.getCustomBoxButtonStyle(this.customBox, 'signups');
+		let html = "You have joined the <b>" + this.name + "</b> " + this.activityType + "!&nbsp;" +
+			Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "leavegame " + this.room.id, "Leave", false, buttonStyle);
+
+		if (this.gameActionType) {
+			let gameActionLocation: GameActionLocations;
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
+				database.gameScriptedOptions[player.id].actionsLocations &&
+				database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
+				gameActionLocation = database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!;
+			} else {
+				gameActionLocation = 'chat';
+			}
+
+			const chat = gameActionLocation === 'chat';
+			html += "<br /><br />Your actions will be sent to " + (chat ? "the chat" : "an HTML page") + "!&nbsp;" +
+				Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "setscriptedgameoption " + this.room.id +
+				", actions," + this.gameActionType + "," + (chat ? "htmlpage" : "chat"), "Send to " + (chat ? "an HTML page" :
+				"the chat"), false, buttonStyle);
+		}
+
+		player.sayPrivateUhtml(html, this.privateJoinLeaveUhtmlName);
 	}
 
 	sendFreeJoinNotice(user: User): void {

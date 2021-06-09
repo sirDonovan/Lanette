@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
+import type { GameActionGames } from "../types/storage";
 
 type AchievementNames = "fishoutofwater" | "goldenmagikarp" | "hightidesurvivor";
 
@@ -24,6 +25,7 @@ const goldenMagikarpPoints = 1000;
 const highTideSurvivorWheel: WheelsKey = 'Red';
 const highTideSurvivorSpins = 5;
 
+const GAME_ACTION_TYPE: GameActionGames = 'magikarpswaterwheel';
 const SWIM_COMMAND = 'swim';
 const TREAD_COMMAND = 'tread';
 const STAY_COMMAND = 'stay';
@@ -41,11 +43,14 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;
 	consecutiveWheelSpins = new Map<Player, number>();
+	dontAutoCloseHtmlPages = true;
+	gameActionType = GAME_ACTION_TYPE;
 	maxRound: number = 20;
 	playerWheels = new Map<Player, WheelsKey>();
 	points = new Map<Player, number>();
 	roundActions = new Set<Player>();
 	roundCarp: boolean = false;
+	usesHtmlPage = true;
 	wheelKeys: WheelsKey[] = ['Purple', 'Blue', 'Green', 'Orange', 'Red'];
 	wheels: IWheels = {
 		'Purple': {
@@ -88,15 +93,17 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	spinWheel(player: Player): void {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
-		let html = '<center><h3>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + ' wheel</h3>';
+		let html = '<center><h3>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + ' wheel</h3>The chances of Magikarp are ' +
+			'<b>' + this.wheels[wheel].magikarpChance + '%</b><br />';
 		let magikarp = false;
 		let goldenMagikarp = false;
 		if (this.random(100) <= wheelStats.magikarpChance) {
 			magikarp = true;
 			const gif = Dex.getPokemonModel(this.mascot!);
 			if (gif) html += gif + "<br />";
-			html += "You were karped!";
+			html += "You were karped! You have been eliminated from the game.";
 		} else {
+			html += "<br />";
 			let points = this.points.get(player) || 0;
 			if (!this.random(100)) {
 				goldenMagikarp = true;
@@ -111,11 +118,13 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			html += '&nbsp;Your total is now <b>' + points + '</b>.';
 		}
 
+		if (!magikarp) html += "<br /><br />" + this.getActionButtonsHtml(player);
 		html += '</center>';
-		player.sayPrivateUhtml(this.getCustomBoxDiv(html), this.actionSummaryUhtmlName);
+
+		this.sendPlayerActions(player, this.getCustomBoxDiv(html));
 
 		if (magikarp) {
-			this.eliminatePlayer(player, "The wheel landed on a Magikarp!");
+			this.eliminatePlayer(player);
 		} else {
 			let consecutiveWheels = this.consecutiveWheelSpins.get(player) || 0;
 			consecutiveWheels++;
@@ -128,58 +137,67 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		}
 	}
 
+	getActionButtonsHtml(player: Player): string {
+		const disabled = this.roundActions.has(player);
+		const wheel = this.playerWheels.get(player)!;
+		const index = this.wheelKeys.indexOf(wheel);
+
+		const buttons: string[] = [];
+		if (index > 0) {
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down to " + this.wheelKeys[index - 1], disabled));
+		} else {
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down", true));
+		}
+
+		buttons.push(this.getMsgRoomButton(TREAD_COMMAND, "Tread on " + this.wheelKeys[index], disabled));
+
+		if (index !== this.wheelKeys.length - 1) {
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up to " + this.wheelKeys[index + 1], disabled));
+		} else {
+			buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up", true));
+		}
+
+		const points = this.points.get(player);
+		if (points) {
+			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop at " + points, disabled));
+		} else {
+			buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop", true));
+		}
+
+		return buttons.join("&nbsp;|&nbsp;");
+	}
+
+	sendActionButtons(player: Player): void {
+		this.sendPlayerActions(player, this.getCustomBoxDiv("<center>" + this.getActionButtonsHtml(player) + "</center>"));
+	}
+
 	onNextRound(): void {
 		this.canSwim = false;
-		if (this.round > 1) {
-			for (const i in this.players) {
-				if (this.players[i].eliminated || this.players[i].frozen) continue;
-				this.spinWheel(this.players[i]);
-			}
-		}
 
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
-		this.roundActions.clear();
 		this.roundCarp = false;
-
-		this.onCommands(this.actionCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
+		this.roundActions.clear();
 
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		this.onUhtml(uhtmlName, html, () => {
 			this.canSwim = true;
 
-			const lastIndex = this.wheelKeys.length - 1;
-			for (const i in this.players) {
-				if (this.players[i].eliminated || this.players[i].frozen) continue;
-				const player = this.players[i];
-				const wheel = this.playerWheels.get(player)!;
-				const index = this.wheelKeys.indexOf(wheel);
-
-				const buttons: string[] = [];
-				if (index > 0) {
-					buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down to " + this.wheelKeys[index - 1]));
-				} else {
-					buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_DOWN, "Swim down", true));
+			if (this.round === 1) {
+				for (const i in this.players) {
+					this.sendActionButtons(this.players[i]);
+				}
+			} else {
+				for (const i in this.players) {
+					if (this.players[i].eliminated || this.players[i].frozen) continue;
+					this.spinWheel(this.players[i]);
 				}
 
-				buttons.push(this.getMsgRoomButton(TREAD_COMMAND, "Tread on " + this.wheelKeys[index]));
-
-				if (index !== lastIndex) {
-					buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up to " + this.wheelKeys[index + 1]));
-				} else {
-					buttons.push(this.getMsgRoomButton(SWIM_COMMAND + " " + SWIM_UP, "Swim up", true));
-				}
-
-				const points = this.points.get(player);
-				if (points) {
-					buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop at " + points));
-				} else {
-					buttons.push(this.getMsgRoomButton(STAY_COMMAND, "Stop", true));
-				}
-
-				player.sayPrivateUhtml(this.getCustomButtonsDiv(buttons), this.actionButtonsUhtmlName);
+				if (!this.getRemainingPlayerCount()) return this.end();
 			}
+
+			this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
 
 			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
 		});
@@ -250,16 +268,23 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 			this.consecutiveWheelSpins.delete(player);
 			this.roundActions.add(player);
 			this.playerWheels.set(player, newWheel);
-			player.sayPrivateUhtml(this.getCustomBoxDiv("<center><h3>You are now on the " + newWheel.charAt(0).toUpperCase() +
+
+			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You are now on the " + newWheel.charAt(0).toUpperCase() +
 				newWheel.substr(1) + " wheel</h3>The chances of Magikarp have " + (direction === "up" ? "increased" : "decreased") +
-				" to <b>" + this.wheels[newWheel].magikarpChance + "%</b>!</center>"), this.uhtmlBaseName + "-swim");
+				" to <b>" + this.wheels[newWheel].magikarpChance + "%</b>!<br /><br />" + this.getActionButtonsHtml(player) + "</center>"));
 			return true;
 		},
 	},
 	[TREAD_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canSwim || this.players[user.id].frozen) return false;
-			this.roundActions.add(this.players[user.id]);
+			const player = this.players[user.id];
+			const wheel = this.playerWheels.get(player)!;
+			this.roundActions.add(player);
+
+			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You tread on the " + wheel.charAt(0).toUpperCase() +
+				wheel.substr(1) + " wheel</h3>The chances of Magikarp are <b>" + this.wheels[wheel].magikarpChance + "%</b>!<br /><br />" +
+				this.getActionButtonsHtml(player) + "</center>"));
 			return true;
 		},
 	},
@@ -272,9 +297,10 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 				player.say("You cannot stop without any points!");
 				return false;
 			}
-			player.say("You have stopped with **" + points + "**!");
+
 			player.frozen = true;
 			this.roundActions.add(player);
+			this.sendPlayerActions(player, this.getCustomBoxDiv("<center><h3>You have stopped with " + points + "!</h3></center>"));
 			return true;
 		},
 	},

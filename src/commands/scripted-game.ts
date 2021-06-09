@@ -4,6 +4,7 @@ import type { OneVsOne } from "../games/internal/one-vs-one";
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
+import type { GameActionGames, GameActionLocations } from "../types/storage";
 
 const CHALLENGE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
 
@@ -867,5 +868,55 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" +
 				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
 		},
+	},
+	setscriptedgameoption: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+			const targets = target.split(',');
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+				return this.sayError(['disabledGameFeatures', targetRoom.title]);
+			}
+
+			const option = Tools.toId(targets[1]);
+			if (!option) return this.say("You must specify an option.");
+
+			if (option === 'gameactions' || option === 'actions') {
+				const gameType = Tools.toId(targets[2]) as GameActionGames | '';
+				if (gameType !== 'card' && gameType !== 'map' && gameType !== 'greedentsberrypiles' && gameType !== 'magikarpswaterwheel') {
+					return this.say("You must specify a valid game or game type.");
+				}
+
+				const value = Tools.toId(targets[3]) as GameActionLocations | '';
+				const database = Storage.getDatabase(targetRoom);
+				if (value === 'htmlpage' || value === 'chat') {
+					if (!database.gameScriptedOptions) database.gameScriptedOptions = {};
+					if (!(user.id in database.gameScriptedOptions)) database.gameScriptedOptions[user.id] = {};
+					if (!database.gameScriptedOptions[user.id].actionsLocations) {
+						database.gameScriptedOptions[user.id].actionsLocations = {};
+					}
+
+					if (database.gameScriptedOptions[user.id].actionsLocations![gameType] === value) {
+						const format = Games.getFormat(gameType);
+						return targetRoom.sayPrivateHtml(user, "You have already set game actions to be sent to " + (value === 'htmlpage' ?
+							"an HTML page" : "the chat") + " for " + (Array.isArray(format) ? gameType + " games" : format.name) + "!");
+					}
+
+					database.gameScriptedOptions[user.id].actionsLocations![gameType] = value;
+					if (!targetRoom.game || targetRoom.game.started || !(user.id in targetRoom.game.players)) {
+						const format = Games.getFormat(gameType);
+						this.say("Starting the next game, your actions will be sent to " + (value === 'htmlpage' ? "an HTML page" :
+							"the chat") + " for " + (Array.isArray(format) ? gameType + " games" : format.name) + "!");
+					} else {
+						targetRoom.game.sendJoinNotice(targetRoom.game.players[user.id]);
+					}
+				} else {
+					return this.say("The options for game actions are 'HTML page' and 'chat'.");
+				}
+			}
+		},
+		aliases: ['scriptedgameoption'],
 	},
 };

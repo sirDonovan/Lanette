@@ -8,6 +8,7 @@ import type {
 	IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer,
 	LoadedGameCommands, PlayerList
 } from "./types/games";
+import type { GameActionLocations } from "./types/storage";
 import type { User } from "./users";
 
 const AUTO_START_VOTE_TIME = 5 * 1000;
@@ -26,6 +27,7 @@ export class ScriptedGame extends Game {
 	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
@@ -42,8 +44,7 @@ export class ScriptedGame extends Game {
 
 	// set in onInitialize()
 	declare format: IGameFormat;
-	actionButtonsUhtmlName!: string;
-	actionSummaryUhtmlName!: string;
+	actionsUhtmlName!: string;
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;
@@ -52,6 +53,7 @@ export class ScriptedGame extends Game {
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
 	commandDescriptions?: string[];
+	dontAutoCloseHtmlPages?: boolean;
 	isMiniGame?: boolean;
 	lateJoinQueueSize?: number;
 	readonly lives?: Map<Player, number>;
@@ -196,8 +198,7 @@ export class ScriptedGame extends Game {
 		this.format = format;
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
-		this.actionButtonsUhtmlName = this.uhtmlBaseName + "-action-buttons";
-		this.actionSummaryUhtmlName = this.uhtmlBaseName + "-action-summary";
+		this.actionsUhtmlName = this.uhtmlBaseName + "-actions";
 
 		if (format.commands) Object.assign(this.commands, format.commands);
 		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
@@ -394,9 +395,11 @@ export class ScriptedGame extends Game {
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
+
 		this.joinNotices.clear();
 		this.leaveNotices.clear();
 		if (this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
+
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			const signupsEndMessage = this.getSignupsEndMessage();
@@ -524,6 +527,12 @@ export class ScriptedGame extends Game {
 			}
 		}
 
+		if (this.usesHtmlPage && !this.dontAutoCloseHtmlPages) {
+			for (const i in this.players) {
+				this.players[i].closeHtmlPage();
+			}
+		}
+
 		const now = Date.now();
 		let usedDatabase = false;
 
@@ -580,6 +589,12 @@ export class ScriptedGame extends Game {
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e, this.format.name + " onForceEnd()");
+			}
+		}
+
+		if (this.usesHtmlPage && !this.dontAutoCloseHtmlPages) {
+			for (const i in this.players) {
+				this.players[i].closeHtmlPage();
 			}
 		}
 
@@ -819,6 +834,28 @@ export class ScriptedGame extends Game {
 				Tools.logError(e, this.format.name + " onEliminatePlayer()");
 				this.errorEnd();
 			}
+		}
+	}
+
+	sendPlayerActions(player: Player, html: string): void {
+		if (this.gameActionType && !this.gameActionLocations.has(player)) {
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedOptions) {
+				if (player.id in database.gameScriptedOptions &&
+					database.gameScriptedOptions[player.id].actionsLocations &&
+					database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
+					this.gameActionLocations.set(player, database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!);
+				} else {
+					this.gameActionLocations.set(player, 'chat');
+				}
+			}
+		}
+
+		const location = this.gameActionLocations.get(player) || 'chat';
+		if (location === 'htmlpage') {
+			player.sendHtmlPage(html);
+		} else {
+			player.sayPrivateUhtml(html, this.actionsUhtmlName);
 		}
 	}
 

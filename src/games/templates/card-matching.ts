@@ -241,7 +241,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		for (const card of cards) {
 			html.push('<div style="height:auto">' + this.getCardPrivateHtml(card) + '</div>');
 		}
-		return html.join("");
+		return html.join("<br />");
 	}
 
 	setTopCard(card: IPokemonCard, player: Player): void {
@@ -517,6 +517,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			this.canPlay = true;
 			this.sendPlayerCards(player!);
+			player!.sendHighlightPage("It is your turn!");
 
 			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
 

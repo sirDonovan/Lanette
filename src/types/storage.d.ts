@@ -87,6 +87,12 @@ export interface IGameHostDisplay extends IGameCustomBox {
 	gifOrIcon: GifIcon;
 }
 
+export type GameActionLocations = 'htmlpage' | 'chat';
+export type GameActionGames = 'card' | 'map' | 'greedentsberrypiles' | 'magikarpswaterwheel' | '';
+export interface IGameScriptedOptions {
+	actionsLocations?: PartialKeyedDict<GameActionGames, GameActionLocations>;
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export interface IUserHostStatusData {
@@ -140,6 +146,7 @@ export interface IDatabase {
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameHostDisplays?: Dict<IGameHostDisplay>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
+	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastCycleData?: ILastCycleData;
 	lastGameFormatTimes?: Dict<number>;
