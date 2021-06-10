@@ -291,6 +291,9 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	modeProperties: undefined,
 	tests: undefined,
 	variants: undefined,

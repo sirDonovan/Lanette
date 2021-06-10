@@ -141,6 +141,9 @@ export const game: IGameFile<AbsolsDiceDisaster> = {
 		"<b>Disaster</b>: rolls will be between 1 and " + senseRolls.disaster + "<br />" +
 		"<b>Stillness</b>: rolls will be between 1 and " + senseRolls.stillness + "<br />" +
 		"<b>Fortune</b>: rolls will be between 1 and " + senseRolls.fortune + "<br />",
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	name: "Absol's Dice Disaster",
 	mascot: "Absol",
 };

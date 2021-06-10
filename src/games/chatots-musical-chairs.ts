@@ -113,6 +113,9 @@ export const game: IGameFile<ChatotsMusicalChairs> = {
 	commands,
 	class: ChatotsMusicalChairs,
 	description: "Players try to be the first to sit in an open chair each round when the music stops!",
+	disallowedChallenges: {
+		onevsone: true,
+	},
 	name: "Chatot's Musical Chairs",
 	mascot: "Chatot",
 };
