@@ -441,7 +441,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 		if (newCardRound) {
 			for (const i in this.players) {
-				if (!this.players[i].eliminated && this.players[i] !== player && this.players[i] !== this.lastPlayer) {
+				if (!this.players[i].eliminated && this.players[i] !== player && this.players[i] !== this.lastPlayer &&
+					this.players[i].sentPrivateHtml) {
 					this.sendPlayerCards(this.players[i]);
 				}
 			}
