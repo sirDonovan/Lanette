@@ -5,7 +5,7 @@ import type { GameCommandDefinitions, IGameFile } from "../types/games";
 class ChatotsMusicalChairs extends ScriptedGame {
 	roundActions = new Map<Player, number>();
 	roundChairs: number = 0;
-	roundTimes: number[] = [5000, 6000, 7000, 8000];
+	roundTimes: number[] = [5000, 5500, 6000, 6500, 7000];
 
 	onStart(): void {
 		this.nextRound();
@@ -42,16 +42,21 @@ class ChatotsMusicalChairs extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const roundChairs = this.getRemainingPlayerCount() - 1;
-			const text = "The music has started! There " + (roundChairs === 1 ? "is 1 chair" : "are " + roundChairs + " chairs") +
-				" remaining.";
-			this.on(text, () => {
-				this.roundChairs = roundChairs;
+			const startText = "The music has started! There " + (roundChairs === 1 ? "is **1 chair**" :
+				"are **" + roundChairs + " chairs**") + " remaining.";
+			this.on(startText, () => {
 				this.timeout = setTimeout(() => {
-					this.say("**The music stopped!**");
+					const stopText = "**The music stopped!**";
+					this.on(stopText, () => {
+						this.roundChairs = roundChairs;
+					});
+					this.say(stopText);
+
 					this.timeout = setTimeout(() => this.stopMusic(), 5 * 1000);
 				}, this.sampleOne(this.roundTimes));
 			});
-			this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+
+			this.timeout = setTimeout(() => this.say(startText), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
