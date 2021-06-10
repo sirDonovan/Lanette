@@ -344,13 +344,13 @@ const commands: GameCommandDefinitions<Vote> = {
 		command(target, room, user, cmd) {
 			if (!this.canVote) return false;
 
+			const player = this.createPlayer(user) || this.players[user.id];
 			const pmVote = cmd === 'pmvote';
 			if (pmVote && !this.isPm(room, user)) {
-				user.say("You must use this command in PMs.");
+				player.sayPrivateHtml("You must use this command in PMs.");
 				return false;
 			}
 
-			const player = this.createPlayer(user) || this.players[user.id];
 			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
 			if (targetId === 'random' || targetId === 'randomgame') {
@@ -363,26 +363,26 @@ const commands: GameCommandDefinitions<Vote> = {
 				}
 
 				if (!format) {
-					user.say("A random game could not be chosen.");
+					player.sayPrivateHtml("A random game could not be chosen.");
 					return false;
 				}
 			} else {
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
 					target = this.getLeastPlayedFormat();
 					if (!target) {
-						user.say("There is no valid least played game at this time.");
+						player.sayPrivateHtml("There is no valid least played game at this time.");
 						return false;
 					}
 				}
 
 				const targetFormat = Games.getFormat(target, true);
 				if (Array.isArray(targetFormat)) {
-					user.say(CommandParser.getErrorText(targetFormat));
+					player.sayPrivateHtml(CommandParser.getErrorText(targetFormat));
 					return false;
 				}
 
 				if (targetFormat.tournamentGame) {
-					user.say("Tournament formats cannot be chosen. Please vote for a different game!");
+					player.sayPrivateHtml("Tournament formats cannot be chosen. Please vote for a different game!");
 					return false;
 				}
 
@@ -390,13 +390,13 @@ const commands: GameCommandDefinitions<Vote> = {
 			}
 
 			if (this.bannedFormats.includes(format.name)) {
-				user.say(format.name + " cannot be voted for until after the next game.");
+				player.sayPrivateHtml(format.name + " cannot be voted for until after the next game.");
 				return false;
 			}
 
 			const canCreateGame = Games.canCreateGame(this.room, format);
 			if (canCreateGame !== true) {
-				user.say(canCreateGame + " Please vote for a different game!");
+				player.sayPrivateHtml(canCreateGame + " Please vote for a different game!");
 				return false;
 			}
 
