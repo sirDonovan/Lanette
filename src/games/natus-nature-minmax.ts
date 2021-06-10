@@ -1,3 +1,4 @@
+import type { Player } from "../room-activity";
 import type { IGameFile } from "../types/games";
 import type { INature, StatID } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
@@ -11,7 +12,9 @@ const data: {natureAnswers: Dict<string[]>; statsKeys: Dict<string>, pokedex: st
 class NatusNatureMinMax extends QuestionAndAnswer {
 	lastStatsKey: string = '';
 	lastPokemon: string = '';
+	oneGuessPerHint = true;
 	roundTime: number = 30 * 1000;
+	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {
 		const pokedex = Games.getPokemonList(pokemon => {
