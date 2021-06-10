@@ -71,7 +71,7 @@ class FeebasChainFishing extends ScriptedGame {
 				for (let i = 0; i < this.queue.length; i++) {
 					const player = this.queue[i];
 					const reel = this.sampleOne(currentRod.pokemon);
-					if (this.rollForShinyPokemon()) this.unlockAchievement(player, FeebasChainFishing.achievements.sunkentreasure);
+
 					let points = reel.points;
 					if (i === 0) {
 						if (this.firstReel === undefined) {
@@ -81,11 +81,22 @@ class FeebasChainFishing extends ScriptedGame {
 						}
 						points += 50;
 					}
+
 					let totalPoints = this.points.get(player) || 0;
 					totalPoints += points;
 					this.points.set(player, totalPoints);
-					player.say("Your " + currentRod.rod + " reeled in " + reel.pokemon + " for " + points + " points! Your total is now " +
-						totalPoints);
+
+					const pokemon = Dex.getExistingPokemon(reel.pokemon);
+					const shiny = this.rollForShinyPokemon();
+					const gif = Dex.getPokemonModel(pokemon, undefined, undefined, shiny);
+					let html = "<center>";
+					if (gif) html += gif + "<br /><br />";
+					html += "Your " + currentRod.rod + " reeled in <b>" + pokemon.name + "</b> for " + points + " points! Your total is " +
+						"now " + totalPoints + ".</center>";
+
+					player.sayPrivateUhtml(this.getCustomBoxDiv(html, player), this.actionsUhtmlName);
+					if (shiny) this.unlockAchievement(player, FeebasChainFishing.achievements.sunkentreasure);
+
 					if (totalPoints > highestPoints) highestPoints = totalPoints;
 					num++;
 					if (num > divisor && roundRods.length) {
@@ -101,15 +112,18 @@ class FeebasChainFishing extends ScriptedGame {
 					return;
 				}
 			}
+
 			this.highestPoints = highestPoints;
 			if (this.highestPoints >= this.maxPoints) return this.end();
 		}
+
 		this.roundReels.clear();
 		this.queue = [];
+
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
-			const reelHtml = "<div class='infobox'><center><blink><font size='3'><b>[ ! ]</b></font></blink></center></div>";
+			const reelHtml = "<div class='infobox'><center><blink><b>[&nbsp;!&nbsp;]</b></blink></center></div>";
 			const reelUhtmlName = this.uhtmlBaseName + '-reel';
 			this.onUhtml(reelUhtmlName, reelHtml, () => {
 				this.canReel = true;
