@@ -711,7 +711,7 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		if (this.started && this.queueLateJoins) {
+		if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
 			this.lateJoinQueue.push(player);
 			if (this.lateJoinQueue.length === this.lateJoinQueueSize) {
 				for (const listener of this.commandsListeners) {
@@ -738,8 +738,9 @@ export class ScriptedGame extends Game {
 			} else {
 				player.frozen = true;
 				const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
-				player.say("You have added to the late-join queue! " + playersNeeded + " more player" +
-					(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to play.");
+				player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
+					(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
+					this.joinLeaveButtonUhtmlName);
 			}
 
 			return;
@@ -1143,6 +1144,8 @@ export class ScriptedGame extends Game {
 	getRandomAnswer?(): IRandomGameAnswer;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
+	/** Return `false` to add a player to the late-join queue */
+	tryQueueLateJoin?(player: Player): boolean;
 	onAddLateJoinQueuedPlayers?(players: Player[]): void;
 	onAddExistingPlayer?(player: Player): void;
 	onAfterDeallocate?(forceEnd: boolean): void;
