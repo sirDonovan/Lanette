@@ -1662,7 +1662,7 @@ export class Games {
 
 	getJoinButtonHtml(customBox: IGameCustomBox | undefined, freejoin: boolean, room: Room,
 		format?: IGameFormat | IUserHostedFormat): string {
-		let html = "<center>";
+		let html = "";
 		if (freejoin) {
 			html += "<b>This game is free-join!</b>";
 		} else {
@@ -1670,7 +1670,6 @@ export class Games {
 				format ? "Join the <b>" + (format.nameWithOptions || format.name) + "</b> game" : "Join game", false,
 				this.getCustomBoxButtonStyle(customBox, 'signups'));
 		}
-		html += "</center>";
 
 		return html;
 	}

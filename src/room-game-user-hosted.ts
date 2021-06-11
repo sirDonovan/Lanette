@@ -354,7 +354,8 @@ export class UserHostedGame extends Game {
 
 		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
 		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-		this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
+		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml(this.format.options.freejoin ? true : false) +
+			"</center>");
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
 

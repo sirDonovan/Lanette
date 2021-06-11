@@ -183,7 +183,7 @@ export abstract class Game extends Activity {
 		let html = "You have joined the <b>" + this.name + "</b> " + this.activityType + "!&nbsp;" +
 			Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "leavegame " + this.room.id, "Leave", false, buttonStyle);
 
-		if (this.gameActionType) {
+		if (this.gameActionType && !this.started) {
 			let gameActionLocation: GameActionLocations;
 			const database = Storage.getDatabase(this.room as Room);
 			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
@@ -245,8 +245,8 @@ export abstract class Game extends Activity {
 			customBox ? Games.getCustomBoxButtonStyle(customBox, 'game', disabled) : '');
 	}
 
-	getCustomBoxDiv(content: string, player?: Player): string {
-		return Games.getGameCustomBoxDiv(content, this.getPlayerOrPickedCustomBox(player));
+	getCustomBoxDiv(content: string, player?: Player, noBackgroundContent?: string): string {
+		return Games.getGameCustomBoxDiv(content, this.getPlayerOrPickedCustomBox(player), noBackgroundContent);
 	}
 
 	getCustomButtonsDiv(buttons: string[], player?: Player): string {
@@ -417,6 +417,19 @@ export abstract class Game extends Activity {
 			const team = this.teams[teamIds[i]];
 			if (team.players.length > this.largestTeam.players.length) this.largestTeam = team;
 		}
+	}
+
+	getSmallestTeam(): PlayerTeam {
+		if (!this.teams) throw new Error("setLargestTeam() called without teams");
+		const teamIds = Object.keys(this.teams);
+		let smallestTeam = this.teams[teamIds[0]];
+
+		for (let i = 1; i < teamIds.length; i++) {
+			const team = this.teams[teamIds[i]];
+			if (team.players.length < smallestTeam.players.length) smallestTeam = team;
+		}
+
+		return smallestTeam;
 	}
 
 	setTeamPlayerOrders(): void {

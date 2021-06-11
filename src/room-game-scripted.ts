@@ -334,7 +334,8 @@ export class ScriptedGame extends Game {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
 			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-			this.sayUhtml(this.joinLeaveButtonUhtmlName, this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
+			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml(this.format.options.freejoin ? true : false) +
+				"</center>");
 
 			this.notifyRankSignups = true;
 			const room = this.room as Room;
@@ -368,8 +369,8 @@ export class ScriptedGame extends Game {
 
 					this.signupsRefreshed = true;
 					this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName,
-						this.getJoinButtonHtml(this.format.options.freejoin ? true : false));
+					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" +
+						this.getJoinButtonHtml(this.format.options.freejoin ? true : false) + "</center>");
 
 					this.startTimer = setTimeout(() => {
 						if (!this.start()) {
@@ -486,8 +487,7 @@ export class ScriptedGame extends Game {
 		attributeText?: string): string {
 		let additionalSpanText = '';
 		if (this.subGameNumber) additionalSpanText += " - Game " + this.subGameNumber;
-		additionalSpanText += " - " + (roundText || "Round " + this.round);
-		let html = '<div class="infobox">' + this.getMascotAndNameHtml(additionalSpanText);
+		additionalSpanText += "&nbsp;-&nbsp;" + (roundText || "Round " + this.round);
 
 		if (!players) players = this.getRemainingPlayers();
 		const attributes = getAttributes.call(this, players);
@@ -499,12 +499,18 @@ export class ScriptedGame extends Game {
 			}
 		}
 
+		let additionalText = "";
 		if (attributes || attributeText) {
-			html += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") + attributes : "");
+			additionalText += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") +
+				attributes : "");
 		}
-		html += "</div>";
 
-		return html;
+		let html = this.getMascotAndNameHtml(additionalSpanText);
+		if (this.started && !this.format.options.freejoin && this.canLateJoin) {
+			html += "&nbsp;-&nbsp;" + this.getJoinButtonHtml(false);
+		}
+
+		return this.getCustomBoxDiv(html, undefined, additionalText);
 	}
 
 	end(): void {
