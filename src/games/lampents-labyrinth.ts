@@ -125,11 +125,4 @@ export const game: IGameFile<LampentsLabyrinth> = Games.copyTemplateProperties(m
 	name: "Lampent's Labyrinth",
 	mascot: "Lampent",
 	scriptedOnly: true,
-	variants: [
-		{
-			name: "Lampent's Group Labyrinth",
-			sharedMap: true,
-			variantAliases: ['group'],
-		},
-	],
 });
