@@ -1,95 +1,19 @@
-import type { Player, PlayerTeam } from "../../room-activity";
-import type { ScriptedGame } from "../../room-game-scripted";
+import type { Player } from "../../room-activity";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
-import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile
-} from "../../types/games";
+import type { GameFileTests, IGameModeFile } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
-
-const BASE_POINTS = 20;
+import { CollectiveTeam, commands, initialize as baseInitialize } from "./collective-team";
 
 const name = 'Spotlight Team';
 const description = 'One player from each team will be able to answer each round!';
 const removedOptions: string[] = ['points', 'freejoin'];
 
-type SpotlightTeamThis = QuestionAndAnswer & SpotlightTeam;
+type SpotlightTeamThis = QuestionAndAnswer & CollectiveTeam & SpotlightTeam;
 
-class SpotlightTeam {
-	canLateJoin: boolean = true;
+class SpotlightTeam extends CollectiveTeam {
+	static modeName: string = name;
+
 	currentPlayers: Dict<Player> = {};
-	firstAnswers: Dict<Player | false> = {};
-	lateJoinQueueSize: number = 0;
-	minPlayers: number = 4;
-	playerOrders: Dict<Player[]> = {};
-	queueLateJoins: boolean = true;
-	teamRound: number = 0;
-	teams: Dict<PlayerTeam> = {};
-
-	// set in onStart()
-	largestTeam!: PlayerTeam;
-
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
-		if (!format.name.includes(name)) namePrefixes.unshift(name);
-		format.description += ' ' + description;
-
-		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
-
-		for (const option of removedOptions) {
-			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
-
-			delete format.customizableOptions[option];
-		}
-
-		if (!('teamPoints' in format.customizableOptions)) {
-			format.customizableOptions.teamPoints = {
-				min: BASE_POINTS,
-				base: BASE_POINTS,
-				max: BASE_POINTS,
-			};
-		}
-	}
-
-	onAddLateJoinQueuedPlayers(this: SpotlightTeamThis, queuedPlayers: Player[]): void {
-		const teams = Object.keys(this.teams);
-		for (const queuedPlayer of queuedPlayers) {
-			queuedPlayer.frozen = false;
-
-			const team = this.teams[teams[0]];
-			teams.shift();
-
-			team.addPlayer(queuedPlayer);
-			this.playerOrders[team.id].push(queuedPlayer);
-			queuedPlayer.say("You are on **Team " + team.name + "** with: " +
-				Tools.joinList(team.getTeammateNames(queuedPlayer)));
-		}
-	}
-
-	setTeams(this: SpotlightTeamThis): void {
-		this.lateJoinQueueSize = this.format.options.teams;
-		this.teams = this.generateTeams(this.format.options.teams);
-		this.setLargestTeam();
-
-		for (const id in this.teams) {
-			const team = this.teams[id];
-			this.playerOrders[team.id] = [];
-			this.say("**Team " + team.name + "**: " + Tools.joinList(team.getPlayerNames()));
-		}
-	}
-
-	onRemovePlayer(this: SpotlightTeamThis, player: Player): void {
-		if (!this.started || !player.team) return;
-
-		const playerOrderIndex = this.playerOrders[player.team.id].indexOf(player);
-		if (playerOrderIndex !== -1) this.playerOrders[player.team.id].splice(playerOrderIndex, 1);
-
-		this.setLargestTeam();
-	}
-
-	onStart(this: SpotlightTeamThis): void {
-		this.setTeams();
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-	}
 
 	beforeNextRound(this: SpotlightTeamThis): boolean | string {
 		const emptyTeams = this.getEmptyTeams();
@@ -134,100 +58,28 @@ class SpotlightTeam {
 		return Tools.joinList(Object.values(this.currentPlayers).map(x => x.name), "**", "**") + ", you are up!";
 	}
 
-	getTeamPoints(): string {
-		const points: string[] = [];
-		for (const i in this.teams) {
-			points.push("<b>" + this.teams[i].name + "</b>: " + this.teams[i].points);
-		}
-
-		return points.join(" | ");
-	}
-
-	onEnd(this: SpotlightTeamThis): void {
-		this.winners.forEach((value, player) => {
-			const points = this.points.get(player);
-			let earnings = 250;
-			if (points) {
-				earnings += 50 * points;
-			}
-			this.addBits(player, earnings);
-		});
-
-		this.convertPointsToBits(0);
-		this.announceWinners();
-	}
-
 	canGuessAnswer(this: SpotlightTeamThis, player: Player): boolean {
 		if (this.ended || !this.canGuess || !this.answers.length) return false;
+
 		let currentPlayer = false;
 		for (const team in this.currentPlayers) {
 			if (this.currentPlayers[team] === player) {
 				currentPlayer = true;
 			}
 		}
+
 		if (!currentPlayer) return false;
 		return true;
 	}
 }
 
-const commandDefinitions: GameCommandDefinitions<SpotlightTeamThis> = {
-	guess: {
-		command(target, room, user, cmd, timestamp): GameCommandReturnType {
-			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
-			if (!this.canGuessAnswer(this.players[user.id])) return false;
-
-			const player = this.players[user.id];
-			const answer = this.guessAnswer(player, target);
-			if (!answer || !this.canGuessAnswer(player)) return false;
-
-			if (this.timeout) clearTimeout(this.timeout);
-
-			if (this.onCorrectGuess) this.onCorrectGuess(player, answer);
-
-			const awardedPoints = this.getPointsForAnswer ? this.getPointsForAnswer(answer, timestamp) : 1;
-			this.addPoints(player, awardedPoints);
-
-			if (this.allAnswersTeamAchievement) {
-				if (player.team!.id in this.firstAnswers) {
-					if (this.firstAnswers[player.team!.id] && this.firstAnswers[player.team!.id] !== player) {
-						this.firstAnswers[player.team!.id] = false;
-					}
-				} else {
-					this.firstAnswers[player.team!.id] = player;
-				}
-			}
-
-			if (this.hint) this.off(this.hint);
-			this.say('**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
-				(player.team!.points > 1 ? 's' : '') + '!');
-			this.displayAnswers(answer);
-
-			if (player.team!.points >= this.format.options.teamPoints) {
-				if (this.allAnswersTeamAchievement && this.firstAnswers[player.team!.id] === player) {
-					this.unlockAchievement(player, this.allAnswersTeamAchievement);
-				}
-
-				for (const teamMember of player.team!.players) {
-					if (!teamMember.eliminated) this.winners.set(teamMember, 1);
-				}
-				this.end();
-				return true;
-			}
-
-			this.answers = [];
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
-			return true;
-		},
-		aliases: ['g'],
-	},
-};
-
-const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
-
 const initialize = (game: QuestionAndAnswer): void => {
+	baseInitialize(game);
+
 	const mode = new SpotlightTeam();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
 		.concat(Object.getOwnPropertyNames(SpotlightTeam.prototype)) as (keyof SpotlightTeam)[];
+
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -264,7 +116,7 @@ const tests: GameFileTests<SpotlightTeamThis> = {
 };
 
 export const mode: IGameModeFile<SpotlightTeam, QuestionAndAnswer, SpotlightTeamThis> = {
-	aliases: ['st', 'team'],
+	aliases: ['st', 'team', 'spotlight'],
 	class: SpotlightTeam,
 	commands,
 	description,

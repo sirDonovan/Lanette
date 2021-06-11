@@ -13,16 +13,23 @@ const removedOptions: string[] = ['points', 'freejoin'];
 
 type CollectiveTeamThis = QuestionAndAnswer & CollectiveTeam;
 
-class CollectiveTeam {
+export class CollectiveTeam {
+	static modeName: string = name;
+
+	canLateJoin: boolean = true;
 	firstAnswers: Dict<Player | false> = {};
+	lateJoinQueueSize: number = 0;
 	minPlayers: number = 4;
 	playerOrders: Dict<Player[]> = {};
-	teamPoints: Dict<number> = {};
+	queueLateJoins: boolean = true;
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> = {};
 
+	// set in onStart()
+	largestTeam!: PlayerTeam;
+
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
-		if (!format.name.includes(name)) namePrefixes.unshift(name);
+		if (!format.name.includes(this.modeName)) namePrefixes.unshift(this.modeName);
 		format.description += ' ' + description;
 
 		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
@@ -43,25 +50,61 @@ class CollectiveTeam {
 		}
 	}
 
+	tryQueueLateJoin(this: CollectiveTeamThis, player: Player): boolean {
+		const teams = Object.keys(this.teams);
+		const teamSize = this.getRemainingPlayerCount(this.teams[teams[0]].players);
+		teams.shift();
+
+		let equalTeams = true;
+		for (const team of teams) {
+			if (this.getRemainingPlayerCount(this.teams[team].players) !== teamSize) {
+				equalTeams = false;
+				break;
+			}
+		}
+
+		if (equalTeams) return false;
+
+		this.addLateJoinPlayerToTeam(player, this.getSmallestTeam());
+		return true;
+	}
+
+	onAddLateJoinQueuedPlayers(this: CollectiveTeamThis, queuedPlayers: Player[]): void {
+		const teams = Object.keys(this.teams);
+		for (const queuedPlayer of queuedPlayers) {
+			this.addLateJoinPlayerToTeam(queuedPlayer, this.teams[teams[0]]);
+			teams.shift();
+		}
+	}
+
+	addLateJoinPlayerToTeam(this: CollectiveTeamThis, player: Player, team: PlayerTeam): void {
+		player.frozen = false;
+		team.addPlayer(player);
+		this.playerOrders[team.id].push(player);
+
+		player.sayPrivateUhtml("You are on **Team " + team.name + "** with: " + Tools.joinList(team.getTeammateNames(player)),
+			this.joinLeaveButtonUhtmlName);
+	}
+
 	setTeams(this: CollectiveTeamThis): void {
+		this.lateJoinQueueSize = this.format.options.teams;
 		this.teams = this.generateTeams(this.format.options.teams);
+		this.setLargestTeam();
 
-		const teamIds = Object.keys(this.teams);
-
-		for (const teamId of teamIds) {
-			const team = this.teams[teamId];
+		for (const id in this.teams) {
+			const team = this.teams[id];
 			this.playerOrders[team.id] = [];
+			this.say("**Team " + team.name + "**: " + Tools.joinList(team.getPlayerNames()));
 		}
+	}
 
-		for (const i in this.players) {
-			const player = this.players[i];
-			if (player.eliminated) continue;
-			this.playerOrders[player.team!.id].push(player);
-		}
+	onRemovePlayer(this: CollectiveTeamThis, player: Player): void {
+		if (!this.started || !player.team) return;
 
-		for (const team in this.teams) {
-			this.say("**Team " + this.teams[team].name + "**: " + Tools.joinList(this.teams[team].getPlayerNames()));
-		}
+		const playerOrderIndex = this.playerOrders[player.team.id].indexOf(player);
+		if (playerOrderIndex !== -1) this.playerOrders[player.team.id].splice(playerOrderIndex, 1);
+
+		this.setLargestTeam();
 	}
 
 	onStart(this: CollectiveTeamThis): void {
@@ -78,7 +121,7 @@ class CollectiveTeam {
 		return points.join(" | ");
 	}
 
-	beforeNextRound(this: CollectiveTeamThis): boolean {
+	beforeNextRound(this: CollectiveTeamThis): boolean | string {
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -168,12 +211,13 @@ const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 	},
 };
 
-const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
+export const commands = CommandParser.loadCommandDefinitions(commandDefinitions);
 
-const initialize = (game: QuestionAndAnswer): void => {
+export const initialize = (game: QuestionAndAnswer): void => {
 	const mode = new CollectiveTeam();
 	const propertiesToOverride = Object.getOwnPropertyNames(mode)
 		.concat(Object.getOwnPropertyNames(CollectiveTeam.prototype)) as (keyof CollectiveTeam)[];
+
 	for (const property of propertiesToOverride) {
 		// @ts-expect-error
 		game[property] = mode[property];
@@ -183,7 +227,7 @@ const initialize = (game: QuestionAndAnswer): void => {
 };
 
 export const mode: IGameModeFile<CollectiveTeam, QuestionAndAnswer, CollectiveTeamThis> = {
-	aliases: ['ct', 'group'],
+	aliases: ['ct', 'group', 'collective'],
 	class: CollectiveTeam,
 	commands,
 	description,
