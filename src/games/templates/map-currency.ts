@@ -19,7 +19,6 @@ export abstract class MapCurrencyGame extends MapGame {
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
-			if (this.round > 1) return false;
 			this.positionPlayer(player);
 		}
 		this.lives.set(player, this.startingLives);
@@ -32,9 +31,12 @@ export abstract class MapCurrencyGame extends MapGame {
 	}
 
 	onNextRound(): void {
+		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.eliminatePlayers();
+
 		const len = this.getRemainingPlayerCount();
 		if (len < 2) return this.end();
+
 		this.roundActions.clear();
 		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
 

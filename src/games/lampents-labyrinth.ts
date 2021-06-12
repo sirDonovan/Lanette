@@ -50,7 +50,6 @@ class LampentsLabyrinth extends MapGame  {
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
-			if (this.round > 1) return false;
 			this.positionPlayer(player);
 		}
 		this.lives.set(player, 3);
@@ -63,6 +62,8 @@ class LampentsLabyrinth extends MapGame  {
 	}
 
 	onNextRound(): void {
+		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
+
 		const len = this.getRemainingPlayerCount();
 		if (!len) {
 			this.say("The Lampent sweep through the labyrinth and find no remaining players!");

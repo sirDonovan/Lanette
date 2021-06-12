@@ -75,10 +75,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		},
 	};
 
-	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
-		if (lateJoin) {
-			if (this.round > 1) return false;
-		}
+	onAddPlayer(player: Player): boolean {
 		this.playerWheels.set(player, this.wheelKeys[0]);
 		return true;
 	}
@@ -173,6 +170,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canSwim = false;
 
 		const len = this.getRemainingPlayerCount();

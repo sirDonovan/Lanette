@@ -15,7 +15,6 @@ export abstract class MapDamageGame extends MapGame {
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
-			if (this.round > 1) return false;
 			this.positionPlayer(player);
 		}
 		return true;
@@ -36,6 +35,8 @@ export abstract class MapDamageGame extends MapGame {
 	}
 
 	onNextRound(): void {
+		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
+
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundActions.clear();

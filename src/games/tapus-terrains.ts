@@ -75,14 +75,6 @@ class TapusTerrains extends ScriptedGame {
 		}
 	}
 
-	onAddPlayer(player: Player): boolean {
-		if (this.terrainRound > 1) {
-			player.say("Sorry, the late-join period has ended.");
-			return false;
-		}
-		return true;
-	}
-
 	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.roundTime = 3 * 1000;
@@ -132,6 +124,8 @@ class TapusTerrains extends ScriptedGame {
 			this.currentTerrain = this.sampleOne(terrainKeys);
 			newTerrain = true;
 			this.terrainRound++;
+			if (this.canLateJoin && this.terrainRound > 1) this.canLateJoin = false;
+
 			if (this.format.options.freejoin) {
 				this.roundJumps.clear();
 			} else {

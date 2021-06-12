@@ -24,8 +24,8 @@ class SableyesTrickHouse extends ScriptedGame {
 	trapChosen: boolean = false;
 
 	onAddPlayer(player: Player): boolean {
-		if (this.trapChosen || this.round > 1) {
-			player.say("Sorry, the late-join period has ended.");
+		if (this.trapChosen) {
+			player.sayPrivateHtml("You must late-join before the trap door is chosen!");
 			return false;
 		}
 		return true;
@@ -61,6 +61,8 @@ class SableyesTrickHouse extends ScriptedGame {
 	onNextRound(): void {
 		this.canSelect = false;
 		if (this.round > 1) {
+			if (this.canLateJoin) this.canLateJoin = false;
+
 			let firstSelection = true;
 			this.roundSelections.forEach((door, player) => {
 				if (firstSelection) {

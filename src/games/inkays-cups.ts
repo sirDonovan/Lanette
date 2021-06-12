@@ -41,14 +41,6 @@ class InkaysCups extends ScriptedGame {
 		}
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
-		if (lateJoin && this.round > 1) {
-			player.say("Sorry, the late-join period has ended.");
-			return false;
-		}
-		return true;
-	}
-
 	onSignups(): void {
 		if (this.format.options.freejoin && !this.isMiniGame) {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
@@ -123,7 +115,9 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canGrab = false;
+
 		if (!this.format.options.freejoin) {
 			if (this.round > 1) {
 				if (this.roundTime > 5000) this.roundTime -= 2500;

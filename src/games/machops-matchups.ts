@@ -52,7 +52,11 @@ class MachopsMatchups extends ScriptedGame {
 			while (this.usedPokemon.includes(pokedex[0]) && pokedex.length) {
 				pokedex.shift();
 			}
-			if (this.usedPokemon.includes(pokedex[0])) return false;
+
+			if (this.usedPokemon.includes(pokedex[0])) {
+				this.canLateJoin = false;
+				return false;
+			}
 
 			this.assignPokemon(player, pokedex[0]);
 			pokedex.shift();

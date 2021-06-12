@@ -24,7 +24,6 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
 
 export class ScriptedGame extends Game {
 	awardedBits: boolean = false;
-	canLateJoin: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	gameActionLocations = new Map<Player, GameActionLocations>();
@@ -52,6 +51,7 @@ export class ScriptedGame extends Game {
 	readonly battleRooms?: string[];
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
+	canLateJoin?: boolean;
 	commandDescriptions?: string[];
 	dontAutoCloseHtmlPages?: boolean;
 	isMiniGame?: boolean;
@@ -695,6 +695,12 @@ export class ScriptedGame extends Game {
 		}
 
 		if (this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) {
+			if (!this.joinNotices.has(user.id)) {
+				player.sayPrivateHtml(this.canLateJoin === undefined ? "This game does not support late-joins." :
+					"The late-join window for this game has closed.");
+				this.joinNotices.add(user.id);
+			}
+
 			this.destroyPlayer(user, true);
 			return;
 		}
