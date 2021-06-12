@@ -33,6 +33,7 @@ const minimumMoveAvailability = 30;
 const maximumMoveAvailability = 500;
 
 class SpindasExcludedPokemon extends ScriptedGame {
+	canLateJoin = true;
 	currentPlayer: Player | null = null;
 	excludedHint: string = '';
 	excludedRound: number = 0;
@@ -109,6 +110,15 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			};
 			data.keys.push(pokemon.name);
 		}
+	}
+
+	onAddPlayer(player: Player, latejoin?: boolean): boolean {
+		if (latejoin) {
+			this.roundPlayerOrder.push(player);
+			this.playerOrder.push(player);
+		}
+
+		return true;
 	}
 
 	onStart(): void {
