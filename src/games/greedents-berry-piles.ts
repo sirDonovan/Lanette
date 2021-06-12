@@ -276,7 +276,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			}
 			text = "**Game " + this.subGameNumber + " winner" + (gameWinners.length > 1 ? "s" : "") + "**: " + gameWinners.join(", ") +
 				(perfectForages.length ? " | **Perfect forage" + (perfectForages.length > 1 ? "s" : "") + "**: " +
-				this.getPlayerNames(perfectForages) : "");
+				this.getPlayerNamesText(perfectForages) : "");
 		} else if (this.greedentTotalForaged > this.maxBerryTotal) {
 			text = "No one wins Game " + this.subGameNumber + "!";
 		} else {
