@@ -11,6 +11,7 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type SpotlightTeamThis = QuestionAndAnswer & CollectiveTeam & SpotlightTeam;
 
 class SpotlightTeam extends CollectiveTeam {
+	static modeDescription: string = description;
 	static modeName: string = name;
 
 	currentPlayers: Dict<Player> = {};

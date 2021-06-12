@@ -14,6 +14,7 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type CollectiveTeamThis = QuestionAndAnswer & CollectiveTeam;
 
 export class CollectiveTeam {
+	static modeDescription: string = description;
 	static modeName: string = name;
 
 	canLateJoin: boolean = true;
@@ -30,7 +31,7 @@ export class CollectiveTeam {
 
 	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
 		if (!format.name.includes(this.modeName)) namePrefixes.unshift(this.modeName);
-		format.description += ' ' + description;
+		format.description += ' ' + this.modeDescription;
 
 		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
 
