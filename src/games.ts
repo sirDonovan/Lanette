@@ -34,6 +34,7 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 	eggtoss: path.join(gamesDirectory, "internal", "egg-toss.js"),
 	headtohead: path.join(gamesDirectory, "internal", "head-to-head.js"),
 	onevsone: path.join(gamesDirectory, "internal", "one-vs-one.js"),
+	sweetthief: path.join(gamesDirectory, "internal", "sweet-thief.js"),
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 

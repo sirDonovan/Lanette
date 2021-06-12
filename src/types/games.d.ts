@@ -52,7 +52,7 @@ export interface IGameAchievement {
 	mode?: GameMode;
 }
 
-export type InternalGame = GameChallenge | 'eggtoss' | 'headtohead' | 'vote';
+export type InternalGame = GameChallenge | 'eggtoss' | 'headtohead' | 'sweetthief' | 'vote';
 
 interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;

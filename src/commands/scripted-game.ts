@@ -1,6 +1,7 @@
 import type { BotChallenge } from "../games/internal/bot-challenge";
 import type { HeadToHead } from "../games/internal/head-to-head";
 import type { OneVsOne } from "../games/internal/one-vs-one";
+import type { SweetThief } from "../games/internal/sweet-thief";
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { IGameFormat } from "../types/games";
@@ -178,6 +179,53 @@ export const commands: BaseCommandDefinitions = {
 			} else {
 				game.end();
 			}
+		},
+	},
+	hidesweets: {
+		command(target, room, user) {
+			if (this.isPm(room)) return;
+			if (room.game) {
+				this.run('steal');
+				return;
+			}
+			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
+			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				return this.sayError(['disabledGameFeatures', room.title]);
+			}
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
+
+			const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
+			if (remainingGameCooldown > 1000) {
+				const durationString = Tools.toDurationString(remainingGameCooldown);
+				this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the minigame " +
+					"cooldown remaining.");
+				return;
+			}
+
+			const targetUser = Users.get(target);
+			if (!targetUser) return this.sayError(["invalidUserInRoom"]);
+
+			if (!targetUser.rooms.has(room)) {
+				this.say("You can only hide the sweets with someone currently in the room.");
+				return false;
+			}
+			if (targetUser === user) {
+				this.say("You cannot hide the sweets with yourself!");
+				return false;
+			}
+
+			const sweetThiefFormat = Games.getInternalFormat('sweetthief');
+			if (Array.isArray(sweetThiefFormat)) {
+				return this.sayError(sweetThiefFormat);
+			}
+
+			const game = Games.createGame(room, sweetThiefFormat, room, true) as SweetThief;
+			game.signups();
+			game.currentHolder = game.createPlayer(targetUser)!;
+
+			this.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
+				Config.commandCharacter + "steal [user]`` before Thievul returns!");
 		},
 	},
 	challengecooldown: {
