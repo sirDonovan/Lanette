@@ -71,21 +71,21 @@ export class Player {
 	sayPrivateHtml(html: string): void {
 		if (this.id === Users.self.id) return;
 
-		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
+		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateHtml(this, html);
 	}
 
 	sayPrivateUhtml(html: string, name?: string): void {
 		if (this.id === Users.self.id) return;
 
-		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
+		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
 	sayPrivateUhtmlChange(html: string, name?: string): void {
 		if (this.id === Users.self.id) return;
 
-		if (!this.sentPrivateHtml) this.sentPrivateHtml = true;
+		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
@@ -98,7 +98,7 @@ export class Player {
 	sendHtmlPage(html: string, pageId?: string): void {
 		if (this.id === Users.self.id) return;
 
-		if (!this.sentHtmlPage) this.sentHtmlPage = true;
+		if (!this.sentHtmlPage && this.activity.started) this.sentHtmlPage = true;
 		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
