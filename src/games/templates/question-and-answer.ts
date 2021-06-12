@@ -183,9 +183,10 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 				if (!this.canGuess) this.canGuess = true;
 				if (newAnswer) {
 					this.hintTimestamp = timestamp;
-					if (this.roundTime) {
+					const roundTime = this.getRoundTime();
+					if (roundTime) {
 						if (this.answerTimeout) clearTimeout(this.answerTimeout);
-						this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), this.roundTime);
+						this.answerTimeout = setTimeout(() => this.onAnswerTimeLimit(), roundTime);
 					}
 				}
 				if (this.onHintHtml) this.onHintHtml();
@@ -631,9 +632,15 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 };
 
 export const game: IGameTemplateFile<QuestionAndAnswer> = {
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
 	},
 	canGetRandomAnswer: true,
 	commandDescriptions: [Config.commandCharacter + 'g [answer]'],

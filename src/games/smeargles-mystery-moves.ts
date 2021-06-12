@@ -83,9 +83,11 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 
 export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["smeargles", "mysterymoves", "smm", "wtm"],
-	botChallenge: {
-		enabled: false,
-	},
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
+		botchallenge: {
+			enabled: false,
+		},
+	}),
 	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "g [move]"],
 	class: SmearglesMysteryMoves,

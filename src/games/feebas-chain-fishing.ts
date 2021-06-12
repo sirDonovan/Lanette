@@ -173,6 +173,11 @@ const commands: GameCommandDefinitions<FeebasChainFishing> = {
 export const game: IGameFile<FeebasChainFishing> = {
 	aliases: ["feebas", "fcf", "cf"],
 	category: 'reaction',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "reel"],
 	commands,
 	class: FeebasChainFishing,

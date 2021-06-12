@@ -7,8 +7,8 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
-	AutoCreateTimerType, DefaultGameOption, DisallowedChallenges, GameCategory, GameChallenge, GameCommandDefinitions,
-	GameCommandReturnType, GameMode, IBotChallengeOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
+	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
+	GameCommandReturnType, GameMode, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
 	IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed, IUserHostedFormat,
 	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
@@ -18,6 +18,14 @@ import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
+
+type Achievements = Dict<IGameAchievement>;
+type Formats = Dict<LoadedGameFile>;
+type InternalFormats = KeyedDict<InternalGame, LoadedGameFile>;
+type LastChallengeTimes = KeyedDict<GameChallenge, Dict<Dict<number>>>;
+type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
+type Modes = Dict<IGameMode>;
+type UserHostedFormats = Dict<IUserHostedComputed>;
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
@@ -84,13 +92,7 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 	},
 };
 
-type Achievements = Dict<IGameAchievement>;
-type Formats = Dict<LoadedGameFile>;
-type InternalFormats = KeyedDict<InternalGame, LoadedGameFile>;
-type LastChallengeTimes = KeyedDict<GameChallenge, Dict<Dict<number>>>;
-type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
-type Modes = Dict<IGameMode>;
-type UserHostedFormats = Dict<IUserHostedComputed>;
+const gameChallenges: GameChallenge[] = ['botchallenge', 'onevsone'];
 
 export class Games {
 	private readonly achievements: Achievements = {};
@@ -312,11 +314,20 @@ export class Games {
 			const id = Tools.toId(file.name);
 			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
 
-			let botChallenge: IBotChallengeOptions | undefined;
-			if (file.botChallenge) {
-				botChallenge = Tools.deepClone(file.botChallenge);
-				if (botChallenge.options) botChallenge.options = botChallenge.options.map(x => Tools.toId(x));
-				if (botChallenge.requiredOptions) botChallenge.requiredOptions = botChallenge.requiredOptions.map(x => Tools.toId(x));
+			let challengeSettings: GameChallengeSettings | undefined;
+			if (file.challengeSettings) {
+				challengeSettings = Tools.deepClone(file.challengeSettings);
+				for (const gameChallenge of gameChallenges) {
+					if (!challengeSettings[gameChallenge]) continue;
+					if (challengeSettings[gameChallenge]!.options) {
+						challengeSettings[gameChallenge]!.options = challengeSettings[gameChallenge]!.options!.map(x => Tools.toId(x));
+					}
+
+					if (challengeSettings[gameChallenge]!.requiredOptions) {
+						challengeSettings[gameChallenge]!.requiredOptions = challengeSettings[gameChallenge]!.requiredOptions!
+							.map(x => Tools.toId(x));
+					}
+				}
 			}
 
 			let commands;
@@ -344,7 +355,7 @@ export class Games {
 
 			if (file.class.achievements) this.loadFileAchievements(file);
 
-			this.formats[id] = Object.assign({}, file, {botChallenge, commands, id, modes, variants});
+			this.formats[id] = Object.assign({}, file, {challengeSettings, commands, id, modes, variants});
 		}
 
 		for (const format of this.userHosted.formats) {
@@ -695,19 +706,17 @@ export class Games {
 			variant,
 		};
 
-		const botChallenge: IBotChallengeOptions = formatData.botChallenge || {enabled: false};
+		const challengeSettings: GameChallengeSettings = formatData.challengeSettings || {};
 		let customizableOptions: Dict<IGameOptionValues> = formatData.customizableOptions || {};
 		let defaultOptions: DefaultGameOption[] = formatData.defaultOptions || [];
-		const disallowedChallenges: DisallowedChallenges = formatData.disallowedChallenges || {};
 		if (variant) {
-			if (variant.botChallenge) Object.assign(botChallenge, variant.botChallenge);
+			if (variant.challengeSettings) Object.assign(challengeSettings, variant.challengeSettings);
 			if (variant.customizableOptions) customizableOptions = variant.customizableOptions;
 			if (variant.defaultOptions) defaultOptions = variant.defaultOptions;
-			if (variant.disallowedChallenges) Object.assign(disallowedChallenges, variant.disallowedChallenges);
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{botChallenge, customizableOptions, defaultOptions, disallowedChallenges, options: {}}) as IGameFormat;
+			{challengeSettings, customizableOptions, defaultOptions, options: {}}) as IGameFormat;
 		format.options = ScriptedGame.setOptions(format, mode, variant);
 
 		return format;
@@ -1878,13 +1887,16 @@ export class Games {
 			for (const key of keys) {
 				const format = this.getExistingFormat(key);
 				if (format.disabled || format.tournamentGame) continue;
-				if (!(format.disallowedChallenges && format.disallowedChallenges.onevsone)) {
-					oneVsOneGames.push("* " + format.name + "\n");
-				}
-				if (format.botChallenge && format.botChallenge.enabled) {
-					let name = format.name;
-					if (format.botChallenge.requiredFreejoin) name += " (freejoin)";
-					botChallengeGames.push("* " + name + "\n");
+				if (format.challengeSettings) {
+					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled) {
+						oneVsOneGames.push("* " + format.name + "\n");
+					}
+
+					if (format.challengeSettings.botchallenge && format.challengeSettings.botchallenge.enabled) {
+						let name = format.name;
+						if (format.challengeSettings.botchallenge.requiredFreejoin) name += " (freejoin)";
+						botChallengeGames.push("* " + name + "\n");
+					}
 				}
 			}
 

@@ -115,7 +115,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", this.roundLocations, true);
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+					this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 				});
 				this.say(text);
 			}, 5000);
@@ -186,9 +186,15 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 
 export const game: IGameFile<PoipolesRegionalPortals> = {
 	aliases: ["poipoles", "prp", "regionalportals", "portals"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
 	},
 	category: 'knowledge-2',
 	commandDescriptions: [Config.commandCharacter + "travel [location]"],

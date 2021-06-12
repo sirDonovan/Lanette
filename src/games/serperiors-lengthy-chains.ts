@@ -24,6 +24,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 	dataType: DataTypes = 'pokemon';
 	inactiveRoundLimit: number = 5;
 	points = new Map<Player, number>();
+	roundTime = 15 * 1000;
 
 	static loadData(): void {
 		for (const move of Games.getMovesList()) {
@@ -126,7 +127,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 			const text = "Make a chain of **" + this.category + "** " + (this.dataType === 'moves' ? "moves" : "Pokemon") + "!";
 			this.on(text, () => {
 				this.canChain = true;
-				this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
+				this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 			});
 			this.timeout = setTimeout(() => this.say(text), 5000);
 		});
@@ -188,6 +189,12 @@ const commands: GameCommandDefinitions<SerperiorLengthyChains> = {
 export const game: IGameFile<SerperiorLengthyChains> = {
 	aliases: ["serperiors", "slc"],
 	category: 'puzzle',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "g [chain]"],
 	commands,
 	class: SerperiorLengthyChains,

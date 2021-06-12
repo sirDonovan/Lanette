@@ -321,22 +321,23 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (!challengeFormat.botChallenge || !challengeFormat.botChallenge.enabled || challengeFormat.mode) {
+			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.botchallenge ||
+				!challengeFormat.challengeSettings.botchallenge.enabled) {
 				user.say(challengeFormat.nameWithOptions + " does not allow bot challenges.");
 				return;
 			}
 
-			if (challengeFormat.botChallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
+			if (challengeFormat.challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
 				user.say(challengeFormat.name + " can only be played as freejoin for bot challenges.");
 				return;
 			}
 
 			const parsedOptions: Dict<string> = {};
-			if (challengeFormat.botChallenge.options) {
+			if (challengeFormat.challengeSettings.botchallenge.options) {
 				for (const option of options) {
 					const parts = option.split(":");
 					const id = Tools.toId(parts[0]);
-					if (!challengeFormat.botChallenge.options.includes(id)) {
+					if (!challengeFormat.challengeSettings.botchallenge.options.includes(id)) {
 						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " bot challenges.");
 						return;
 					}
@@ -344,8 +345,8 @@ export const commands: BaseCommandDefinitions = {
 					parsedOptions[id] = parts.slice(1).join(":").trim();
 				}
 
-				if (challengeFormat.botChallenge.requiredOptions) {
-					for (const requiredOption of challengeFormat.botChallenge.requiredOptions) {
+				if (challengeFormat.challengeSettings.botchallenge.requiredOptions) {
+					for (const requiredOption of challengeFormat.challengeSettings.botchallenge.requiredOptions) {
 						if (!(requiredOption in parsedOptions)) {
 							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for bot challenges.");
 							return;
@@ -428,19 +429,54 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			const challengeFormat = Games.getFormat(targets.slice(1).join(","), true);
+			let options: string[] = [];
+			let challengeFormat = Games.getFormat(targets.slice(1).join(","), true);
 			if (Array.isArray(challengeFormat)) {
-				user.say(CommandParser.getErrorText(challengeFormat));
-				return;
+				options = targets[1].split("|");
+				challengeFormat = Games.getFormat(targets.slice(2).join(","), true);
+				if (Array.isArray(challengeFormat)) {
+					user.say(CommandParser.getErrorText(challengeFormat));
+					return;
+				}
 			}
 
-			if ((challengeFormat.disallowedChallenges && challengeFormat.disallowedChallenges.onevsone) || challengeFormat.mode) {
+			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.onevsone ||
+				!challengeFormat.challengeSettings.onevsone.enabled) {
 				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
 
+			const parsedOptions: Dict<string> = {};
+			if (challengeFormat.challengeSettings.onevsone.options) {
+				for (const option of options) {
+					const parts = option.split(":");
+					const id = Tools.toId(parts[0]);
+					if (!challengeFormat.challengeSettings.onevsone.options.includes(id)) {
+						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " one vs. one challenges.");
+						return;
+					}
+
+					parsedOptions[id] = parts.slice(1).join(":").trim();
+				}
+
+				if (challengeFormat.challengeSettings.onevsone.requiredOptions) {
+					for (const requiredOption of challengeFormat.challengeSettings.onevsone.requiredOptions) {
+						if (!(requiredOption in parsedOptions)) {
+							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for " +
+								"one vs. one challenges.");
+							return;
+						}
+					}
+				}
+			} else {
+				if (options.length) {
+					user.say(challengeFormat.nameWithOptions + " does not support any options for one vs. one challenges.");
+					return;
+				}
+			}
+
 			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
-			game.setupChallenge(user, targetUser, challengeFormat);
+			game.setupChallenge(user, targetUser, challengeFormat, parsedOptions);
 		},
 		aliases: ['onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c', '1v1c'],
 	},
@@ -508,19 +544,54 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			const challengeFormat = Games.getFormat(targets.slice(2).join(","), true);
+			let options: string[] = [];
+			let challengeFormat = Games.getFormat(targets.slice(2).join(","), true);
 			if (Array.isArray(challengeFormat)) {
-				this.say(CommandParser.getErrorText(challengeFormat));
+				options = targets[1].split("|");
+				challengeFormat = Games.getFormat(targets.slice(3).join(","), true);
+				if (Array.isArray(challengeFormat)) {
+					user.say(CommandParser.getErrorText(challengeFormat));
+					return;
+				}
+			}
+
+			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.onevsone ||
+				!challengeFormat.challengeSettings.onevsone.enabled) {
+				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
 
-			if ((challengeFormat.disallowedChallenges && challengeFormat.disallowedChallenges.onevsone) || challengeFormat.mode) {
-				this.say(challengeFormat.nameWithOptions + " does not allow head to head games.");
-				return;
+			const parsedOptions: Dict<string> = {};
+			if (challengeFormat.challengeSettings.onevsone.options) {
+				for (const option of options) {
+					const parts = option.split(":");
+					const id = Tools.toId(parts[0]);
+					if (!challengeFormat.challengeSettings.onevsone.options.includes(id)) {
+						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " one vs. one challenges.");
+						return;
+					}
+
+					parsedOptions[id] = parts.slice(1).join(":").trim();
+				}
+
+				if (challengeFormat.challengeSettings.onevsone.requiredOptions) {
+					for (const requiredOption of challengeFormat.challengeSettings.onevsone.requiredOptions) {
+						if (!(requiredOption in parsedOptions)) {
+							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for " +
+								"one vs. one challenges.");
+							return;
+						}
+					}
+				}
+			} else {
+				if (options.length) {
+					user.say(challengeFormat.nameWithOptions + " does not support any options for one vs. one challenges.");
+					return;
+				}
 			}
 
 			const game = Games.createGame(room, headToHeadFormat) as HeadToHead;
-			game.setupChallenge(leftUser, rightUser, challengeFormat);
+			game.setupChallenge(leftUser, rightUser, challengeFormat, parsedOptions);
 		},
 		aliases: ['hthgame', 'hthg'],
 	},

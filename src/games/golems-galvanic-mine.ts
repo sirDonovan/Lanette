@@ -85,7 +85,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-stones';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canMine = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -119,6 +119,12 @@ const commands: GameCommandDefinitions<GolemsGalvanicMine> = {
 export const game: IGameFile<GolemsGalvanicMine> = {
 	aliases: ["golems", "ggm", "galvanicmine"],
 	category: 'speed',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "mine [stone]"],
 	commands,
 	class: GolemsGalvanicMine,

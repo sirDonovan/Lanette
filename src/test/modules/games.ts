@@ -387,7 +387,7 @@ describe("Games", () => {
 		const oneVsOneFormat = Games.getInternalFormat('onevsone') as IGameFormat;
 
 		for (const format of formatsToTest) {
-			if (format.disallowedChallenges && format.disallowedChallenges.onevsone) continue;
+			if (!format.challengeSettings || !format.challengeSettings.onevsone || !format.challengeSettings.onevsone.enabled) continue;
 
 			const parentGame = Games.createGame(room, oneVsOneFormat) as OneVsOne;
 			assert(parentGame, format.name);
@@ -433,7 +433,8 @@ describe("Games", () => {
 		const botChallengeFormat = Games.getInternalFormat('botchallenge') as IGameFormat;
 
 		for (const format of formatsToTest) {
-			if (!format.botChallenge || !format.botChallenge.enabled) continue;
+			if (!format.challengeSettings || !format.challengeSettings.botchallenge ||
+				!format.challengeSettings.botchallenge.enabled) continue;
 
 			const parentGame = Games.createGame(room, botChallengeFormat) as OneVsOne;
 			assert(parentGame, format.name);

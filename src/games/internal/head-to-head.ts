@@ -5,6 +5,7 @@ import type { IGameFile, IGameFormat } from "../../types/games";
 import type { User } from "../../users";
 
 export class HeadToHead extends ScriptedGame {
+	challengeOptions: Dict<string> = {};
 	leftPlayer: Player | null = null;
 	leftPromotedName: string = '';
 	rightPlayer: Player | null = null;
@@ -18,7 +19,7 @@ export class HeadToHead extends ScriptedGame {
 
 	declare readonly room: Room;
 
-	setupChallenge(leftUser: User, rightUser: User, challengeFormat: IGameFormat): void {
+	setupChallenge(leftUser: User, rightUser: User, challengeFormat: IGameFormat, options?: Dict<string>): void {
 		if (challengeFormat.inputOptions.points) {
 			if (!('points' in challengeFormat.customizableOptions)) {
 				challengeFormat.customizableOptions.points = {
@@ -38,6 +39,8 @@ export class HeadToHead extends ScriptedGame {
 		this.rightPlayer = this.createPlayer(rightUser);
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
+
+		if (options) this.challengeOptions = options;
 
 		this.originalModchat = this.room.modchat;
 		this.room.setModchat("+");
@@ -84,8 +87,8 @@ export class HeadToHead extends ScriptedGame {
 		game.minPlayers = 2;
 
 		if (!game.format.inputOptions.points) {
-			if (game.format.challengePoints && game.format.challengePoints.onevsone) {
-				game.format.options.points = game.format.challengePoints.onevsone;
+			if (game.format.challengeSettings && game.format.challengeSettings.onevsone && game.format.challengeSettings.onevsone.points) {
+				game.format.options.points = game.format.challengeSettings.onevsone.points;
 			} else if ('points' in game.format.customizableOptions) {
 				game.format.options.points = game.format.customizableOptions.points.max;
 			} else if (game.format.defaultOptions.includes('points')) {
@@ -95,6 +98,7 @@ export class HeadToHead extends ScriptedGame {
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
 		game.signups();
+		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.format.options.freejoin) {
 			this.timeout = setTimeout(() => game.start(), 5 * 1000);

@@ -607,9 +607,6 @@ export const game: IGameFile<DragapultsDangerZone> = {
 	commands,
 	class: DragapultsDangerZone,
 	description: "Players are split into teams and attempt to sink the opposing players by firing Dreepy around the grid!",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	name: "Dragapult's Danger Zone",
 	mascot: "Dragapult",
 	scriptedOnly: true,
@@ -619,10 +616,12 @@ export const game: IGameFile<DragapultsDangerZone> = {
 			description: "Players attempt to sink the opposing players by firing Dreepy around the grid!",
 			aliases: ['dsdz'],
 			variantAliases: ['solo'],
-			commandDescriptions: [Config.commandCharacter + "fire [location]", Config.commandCharacter + "select [Pokemon]"],
-			disallowedChallenges: {
-				onevsone: false,
+			challengeSettings: {
+				onevsone: {
+					enabled: true,
+				},
 			},
+			commandDescriptions: [Config.commandCharacter + "fire [location]", Config.commandCharacter + "select [Pokemon]"],
 			teamBased: false,
 		},
 	],

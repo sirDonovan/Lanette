@@ -52,6 +52,7 @@ export class ScriptedGame extends Game {
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
 	canLateJoin?: boolean;
+	challengeRoundTimes: number[] | null = null;
 	commandDescriptions?: string[];
 	dontAutoCloseHtmlPages?: boolean;
 	isMiniGame?: boolean;
@@ -146,8 +147,9 @@ export class ScriptedGame extends Game {
 
 	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
 		if (challenge === 'botchallenge') {
-			if (this.format.botChallenge!.points) this.format.options.points = this.format.botChallenge!.points;
-			if (this.format.botChallenge!.options && this.format.botChallenge!.options.includes('speed') && this.roundTime) {
+			const challengeSettings = this.format.challengeSettings!.botchallenge!;
+			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
 					speed = this.roundTime;
@@ -164,6 +166,27 @@ export class ScriptedGame extends Game {
 				this.say("I will be playing at an average speed of " + Tools.toDurationString(speed, {milliseconds: true}) + "!");
 
 				this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
+			}
+		} else if (challenge === 'onevsone') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			const challengeSettings = this.format.challengeSettings!.onevsone!;
+			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime) {
+				let speed = parseFloat(options.speed);
+				if (isNaN(speed)) {
+					speed = this.roundTime;
+				} else {
+					if (speed < MIN_BOT_CHALLENGE_SPEED) speed = MIN_BOT_CHALLENGE_SPEED;
+					speed = Math.floor(speed * 1000);
+				}
+
+				if (speed >= this.roundTime) {
+					speed = this.roundTime;
+					this.roundTime += 400;
+				}
+
+				this.say("Rounds will last an average speed of " + Tools.toDurationString(speed, {milliseconds: true}) + "!");
+
+				this.challengeRoundTimes = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
 			}
 		}
 	}
@@ -479,6 +502,14 @@ export class ScriptedGame extends Game {
 				this.errorEnd();
 			}
 		}
+	}
+
+	getRoundTime(): number {
+		if (!this.roundTime) throw new Error("getRoundTime() called without a roundTime configured");
+
+		if (this.challengeRoundTimes) return this.sampleOne(this.challengeRoundTimes);
+
+		return this.roundTime;
 	}
 
 	getRoundHtml(getAttributes: (players: PlayerList) => string, players?: PlayerList | null, roundText?: string,

@@ -68,8 +68,10 @@ class NinjasksCorners extends ScriptedGame {
 		}
 		this.color = Tools.toId(color);
 		this.lastColor = color;
+
 		this.roundTravels.clear();
 		if (!this.format.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
+
 		const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
 			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
@@ -79,7 +81,7 @@ class NinjasksCorners extends ScriptedGame {
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(color, [], true);
-					this.timeout = setTimeout(() => this.checkRoundTravels(), this.roundTime);
+					this.timeout = setTimeout(() => this.checkRoundTravels(), this.getRoundTime());
 				});
 				this.say(text);
 			}, this.sampleOne([4000, 5000, 6000]));
@@ -153,10 +155,17 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 
 export const game: IGameFile<NinjasksCorners> = {
 	aliases: ["ninjasks", "nc"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
 	},
 	category: 'speed',
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],

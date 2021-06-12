@@ -312,9 +312,6 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 	],
 	commands: Object.assign(Tools.deepClone(boardPropertyGame.commands), commands),
 	description: "Players travel around the board to buy properties and avoid paying all of their Poke as rent for others!",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	mascot: "Jellicent",
 	name: "Jellicent's Phantom Finances",
 	variants: [

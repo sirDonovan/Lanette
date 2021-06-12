@@ -123,6 +123,11 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 export const game: IGameFile<FalinksFormations> = {
 	aliases: ["falinks", "formations"],
 	category: 'luck',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + GUESS_COMMAND + " [number]"],
 	commands,
 	class: FalinksFormations,

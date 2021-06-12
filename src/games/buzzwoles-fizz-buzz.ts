@@ -315,6 +315,11 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 export const game: IGameFile<BuzzwolesFizzBuzz> = {
 	aliases: ['buzzwoles', 'qb'],
 	category: 'knowledge-3',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: BuzzwolesFizzBuzz,
 	commandDescriptions: [Config.commandCharacter + "fizz [number or item]"],
 	commands,

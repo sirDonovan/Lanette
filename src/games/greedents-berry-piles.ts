@@ -355,6 +355,11 @@ commands.summary.aliases = ['berries'];
 export const game: IGameFile<GreedentsBerryPiles> = {
 	aliases: ["greedents", "berrypiles", "gbp"],
 	category: 'luck',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "grab", Config.commandCharacter + "run"],
 	commands,
 	class: GreedentsBerryPiles,

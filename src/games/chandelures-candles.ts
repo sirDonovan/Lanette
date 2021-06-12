@@ -173,6 +173,11 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 export const game: IGameFile<ChandeluresCandles> = {
 	aliases: ["chandelures", "candles", "cc"],
 	category: 'reaction',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "hide", Config.commandCharacter + "puff [player]"],
 	commands,
 	class: ChandeluresCandles,

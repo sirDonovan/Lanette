@@ -720,9 +720,6 @@ export const game: IGameFile<DarkraisLair> = Games.copyTemplateProperties(mapGam
 		"<br />" +
 		"<code>" + Config.commandCharacter + "dvision</code> (<b>Dream Vision</b>) - shows you the player you are currently closest to" +
 		"</details>",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	name: "Darkrai's Lair",
 	mascot: "Darkrai",
 	scriptedOnly: true,

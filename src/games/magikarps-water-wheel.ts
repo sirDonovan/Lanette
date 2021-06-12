@@ -310,6 +310,11 @@ const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {
 export const game: IGameFile<MagikarpsWaterWheel> = {
 	aliases: ['magikarps', 'mww', 'waterwheel', 'pyl'],
 	category: 'luck',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: MagikarpsWaterWheel,
 	commandDescriptions: [Config.commandCharacter + "swim [up/down]", Config.commandCharacter + "tread", Config.commandCharacter + "stay"],
 	commands,

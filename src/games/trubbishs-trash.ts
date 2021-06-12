@@ -73,7 +73,7 @@ class TrubbishsTrash extends ScriptedGame {
 		const text = "Trubbish found **" + moves.join(", ") + "**!";
 		this.on(text, () => {
 			this.canTrash = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -186,6 +186,12 @@ const commands: GameCommandDefinitions<TrubbishsTrash> = {
 export const game: IGameFile<TrubbishsTrash> = {
 	aliases: ["trubbishs", "tt"],
 	category: 'speed',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "trash [move]"],
 	commands,
 	class: TrubbishsTrash,

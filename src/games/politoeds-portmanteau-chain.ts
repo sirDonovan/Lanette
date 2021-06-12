@@ -35,11 +35,6 @@ class PolitoedsPortmanteauChain extends Chain {
 
 export const game: IGameFile<PolitoedsPortmanteauChain> = Games.copyTemplateProperties(chainGame, {
 	aliases: ["politoeds", "politoedsportchain", "portmanteauchain", "portchain", "ppc"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
-	},
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: PolitoedsPortmanteauChain,
 	defaultOptions: ['freejoin', 'points'],

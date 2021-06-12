@@ -146,14 +146,13 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['poliwraths', 'ports'],
-	botChallenge: Object.assign({}, questionAndAnswerGame.botChallenge, {
-		points: 5,
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
+		onevsone: {
+			points: 5,
+		},
 	}),
 	canGetRandomAnswer: false,
 	category: 'puzzle',
-	challengePoints: {
-		onevsone: 5,
-	},
 	class: PoliwrathsPortmanteaus,
 	customizableOptions: {
 		ports: {min: 2, base: BASE_NUMBER_OF_PORTS, max: 4},

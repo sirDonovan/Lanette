@@ -25,6 +25,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	maxPoints: number = 1500;
 	points = new Map<Player, number>();
 	roundMoves = new Map<Player, string>();
+	roundTime = 5 * 1000;
 	usedMoves: string[] = [];
 
 	static loadData(): void {
@@ -57,7 +58,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 				const fledText = this.currentPokemon!.name + " fled!";
 				this.on(fledText, () => this.nextRound());
 				this.say(fledText);
-			}, 5 * 1000);
+			}, this.getRoundTime());
 		});
 		this.say(summonText);
 	}
@@ -223,6 +224,12 @@ const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {
 export const game: IGameFile<ShedinjasWonderTrials> = {
 	aliases: ["shedinjas", "swt", "wondertrials"],
 	category: 'knowledge-1',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "use [move]"],
 	commands,
 	class: ShedinjasWonderTrials,

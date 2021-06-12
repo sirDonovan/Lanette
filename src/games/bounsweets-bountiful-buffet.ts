@@ -207,8 +207,5 @@ export const game: IGameFile<BounsweetsBountifulBuffet> = {
 	formerNames: ["Buneary's Bountiful Buffet"],
 	name: "Bounsweet's Bountiful Buffet",
 	mascot: "Bounsweet",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	tests,
 };

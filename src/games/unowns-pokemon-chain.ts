@@ -5,11 +5,6 @@ class UnownsPokemonChain extends Chain {}
 
 export const game: IGameFile<UnownsPokemonChain> = Games.copyTemplateProperties(chainGame, {
 	aliases: ["unowns", "upc", "pokemonchain"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
-	},
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: UnownsPokemonChain,
 	defaultOptions: ['freejoin', 'points'],

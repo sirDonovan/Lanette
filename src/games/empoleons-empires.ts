@@ -234,9 +234,6 @@ export const game: IGameFile<EmpoleonsEmpires> = {
 	class: EmpoleonsEmpires,
 	description: "Players choose aliases and await their turns to guess the aliases of other players. A player will guess until they " +
 		"are incorrect, at which point it will be the guessed player's turn.",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	formerNames: ["Empires"],
 	name: "Empoleon's Empires",
 	mascot: "Empoleon",

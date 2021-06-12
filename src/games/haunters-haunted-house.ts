@@ -1072,8 +1072,5 @@ export const game: IGameFile<HauntersHauntedHouse> = {
 		'background: ' + Tools.getNamedHexCode(tileColors.ghost).gradient + '">&nbsp;</div> - Ghosts<br />' +
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
 		'background: ' + Tools.getNamedHexCode(tileColors.candy).gradient + '">&nbsp;</div> - Candy<br /></details>',
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	scriptedOnly: true,
 };

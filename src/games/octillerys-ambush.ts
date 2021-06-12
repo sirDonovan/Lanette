@@ -105,9 +105,6 @@ export const game: IGameFile<OctillerysAmbush> = {
 	commands,
 	class: OctillerysAmbush,
 	description: "Players await Octillery's <code>FIRE</code> signal to eliminate their opponents with their Remoraid!",
-	disallowedChallenges: {
-		onevsone: true,
-	},
 	formerNames: ["Ambush"],
 	name: "Octillery's Ambush",
 	mascot: "Octillery",

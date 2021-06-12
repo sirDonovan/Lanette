@@ -133,7 +133,7 @@ class PanchamPairs extends ScriptedGame {
 			} else if (this.format.options.freejoin) {
 				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
 			} else {
-				this.timeout = setTimeout(() => this.listPossiblePairs(), this.roundTime);
+				this.timeout = setTimeout(() => this.listPossiblePairs(), this.getRoundTime());
 			}
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
@@ -389,10 +389,17 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 
 export const game: IGameFile<PanchamPairs> = {
 	aliases: ["panchams", "pairs"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
 	},
 	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "pair [name, name, param type]"],

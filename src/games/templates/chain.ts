@@ -181,7 +181,7 @@ export abstract class Chain extends ScriptedGame {
 				this.timeout = setTimeout(() => {
 					this.say("Time is up!");
 					this.nextRound();
-				}, this.roundTime);
+				}, this.getRoundTime());
 			});
 		} else {
 			if (!this.playerList.length) {
@@ -220,7 +220,7 @@ export abstract class Chain extends ScriptedGame {
 					this.eliminatePlayer(this.currentPlayer!);
 					this.currentPlayer = null;
 					this.nextRound();
-				}, this.roundTime);
+				}, this.getRoundTime());
 			});
 		}
 		this.say(text);
@@ -347,5 +347,17 @@ const commands: GameCommandDefinitions<Chain> = {
 
 export const game: IGameTemplateFile<Chain> = {
 	category: 'chain',
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+	},
 	commands,
 };

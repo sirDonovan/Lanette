@@ -174,6 +174,11 @@ const commands: GameCommandDefinitions<WishiwashisStatFishing> = {
 export const game: IGameFile<WishiwashisStatFishing> = {
 	aliases: ["wishiwashis", "wsf", "sf"],
 	category: 'reaction',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "reel"],
 	commands,
 	class: WishiwashisStatFishing,

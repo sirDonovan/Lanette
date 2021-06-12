@@ -107,9 +107,7 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 
 type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties<T>;
 
-export type DisallowedChallenges = PartialKeyedDict<GameChallenge, boolean>;
-
-export interface IBotChallengeOptions {
+export interface IChallengeSettings {
 	enabled: boolean,
 	points?: number;
 	options?: string[];
@@ -117,18 +115,18 @@ export interface IBotChallengeOptions {
 	requiredOptions?: string[];
 }
 
+export type GameChallengeSettings = PartialKeyedDict<GameChallenge, IChallengeSettings>;
+
 interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	aliases?: string[];
-	botChallenge?: IBotChallengeOptions;
 	canGetRandomAnswer?: boolean;
 	category?: GameCategory;
-	challengePoints?: PartialKeyedDict<GameChallenge, number>;
+	challengeSettings?: GameChallengeSettings;
 	commands?: GameCommandDefinitions<T>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	disabled?: boolean;
-	disallowedChallenges?: DisallowedChallenges;
 	freejoin?: boolean;
 	/** Legacy names, such as from before game mascots were introduced; used for aliases */
 	formerNames?: string[];
@@ -192,12 +190,11 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	variantAliases: string[];
 
 	aliases?: string[];
-	botChallenge?: IBotChallengeOptions;
+	challengeSettings?: PartialKeyedDict<GameChallenge, IChallengeSettings>;
 	commandDescriptions?: string[];
 	customizableOptions?: Dict<IGameOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
-	disallowedChallenges?: DisallowedChallenges;
 	freejoin?: boolean;
 	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
 	modes?: GameMode[];

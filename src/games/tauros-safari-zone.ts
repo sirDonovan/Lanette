@@ -102,7 +102,7 @@ class TaurosSafariZone extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -207,6 +207,12 @@ const commands: GameCommandDefinitions<TaurosSafariZone> = {
 export const game: IGameFile<TaurosSafariZone> = {
 	aliases: ["tauros", "tsz", "ctp", "safarizone"],
 	category: 'speed',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "catch [Pokemon]"],
 	commands,
 	class: TaurosSafariZone,

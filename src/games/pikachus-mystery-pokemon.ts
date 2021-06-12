@@ -119,9 +119,11 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 
 export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["pikachus", "mysterypokemon", "pmp", "wtp"],
-	botChallenge: {
-		enabled: false,
-	},
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
+		botchallenge: {
+			enabled: false,
+		},
+	}),
 	category: 'knowledge-3',
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	class: PikachusMysteryPokemon,

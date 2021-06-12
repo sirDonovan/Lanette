@@ -109,7 +109,7 @@ class InkaysCups extends ScriptedGame {
 			this.canGrab = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(Tools.joinList(paramNames), this.answers, true);
 			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -228,10 +228,17 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 
 export const game: IGameFile<InkaysCups> = {
 	aliases: ['inkays', 'cups'],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
 	},
 	category: 'knowledge-3',
 	class: InkaysCups,

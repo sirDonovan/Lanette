@@ -134,9 +134,11 @@ class ZygardesOrders extends QuestionAndAnswer {
 
 export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ["zygardes", "zo"],
-	botChallenge: {
-		enabled: false,
-	},
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
+		botchallenge: {
+			enabled: false,
+		},
+	}),
 	category: 'identification-2',
 	class: ZygardesOrders,
 	defaultOptions: ['points'],

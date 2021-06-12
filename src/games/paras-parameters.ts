@@ -283,9 +283,11 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(que
 	aliases: ['paras', 'params'],
 	canGetRandomAnswer: false,
 	category: 'puzzle',
-	challengePoints: {
-		onevsone: 5,
-	},
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
+		onevsone: {
+			points: 5,
+		},
+	}),
 	class: ParasParameters,
 	customizableOptions: {
 		gen: {min: MIN_GEN, base: MAX_GEN, max: MAX_GEN},

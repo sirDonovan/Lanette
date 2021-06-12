@@ -808,8 +808,13 @@ const tests: GameFileTests<CardMatching> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
-	botChallenge: {
-		enabled: true,
+	challengeOptions: {
+		botchallenge: {
+			enabled: true,
+		},
+		onevsone: {
+			enabled: true,
+		},
 	},
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	modes: undefined,

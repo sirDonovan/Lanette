@@ -154,6 +154,7 @@ class TapusTerrains extends ScriptedGame {
 
 		if (!this.format.options.freejoin) this.roundJumps.clear();
 
+		const roundTime = this.getRoundTime();
 		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonModel(Dex.getExistingPokemon(this.targetPokemon)) +
 			'<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
@@ -170,10 +171,10 @@ class TapusTerrains extends ScriptedGame {
 						this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 							this.canJump = true;
 							if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
-							this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+							this.timeout = setTimeout(() => this.nextRound(), roundTime);
 						});
 						this.sayUhtml(pokemonUhtmlName, pokemonHtml);
-					}, this.roundTime);
+					}, roundTime);
 				});
 				this.timeout = setTimeout(() => this.sayUhtml(terrainUhtmlName, terrainHtml), this.terrainDisplayTime);
 			});
@@ -184,10 +185,10 @@ class TapusTerrains extends ScriptedGame {
 				this.onUhtml(uhtmlName, pokemonHtml, () => {
 					this.canJump = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], false);
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+					this.timeout = setTimeout(() => this.nextRound(), roundTime);
 				});
 				this.sayUhtmlAuto(uhtmlName, pokemonHtml);
-			}, this.roundTime);
+			}, roundTime);
 		}
 	}
 
@@ -263,10 +264,17 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 
 export const game: IGameFile<TapusTerrains> = {
 	aliases: ['tapus', 'terrains', 'trace', 'tr'],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
 	},
 	category: 'reaction',
 	class: TapusTerrains,

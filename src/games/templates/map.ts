@@ -815,7 +815,4 @@ export const game: IGameTemplateFile<MapGame> = {
 	category: 'map',
 	commandDescriptions: [Config.commandCharacter + 'up/down/left/right [spaces]'],
 	commands,
-	disallowedChallenges: {
-		onevsone: true,
-	},
 };

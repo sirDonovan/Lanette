@@ -41,7 +41,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 		const text = "Randomly generated abilities: **" + abilities.join(", ") + "**!";
 		this.on(text, () => {
 			this.canSelect = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -145,6 +145,12 @@ const commands: GameCommandDefinitions<DedennesAbilityBlitz> = {
 export const game: IGameFile<DedennesAbilityBlitz> = {
 	aliases: ["dedennes", "dab"],
 	category: 'speed',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "select [ability]"],
 	commands,
 	class: DedennesAbilityBlitz,

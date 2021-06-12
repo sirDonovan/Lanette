@@ -7,6 +7,7 @@ import type { User } from "../../users";
 export class OneVsOne extends ScriptedGame {
 	canAcceptChallenge: boolean = false;
 	challenger: Player | null = null;
+	challengeOptions: Dict<string> = {};
 	challengerPromotedName: string = '';
 	defender: Player | null = null;
 	defenderPromotedName: string = '';
@@ -19,12 +20,14 @@ export class OneVsOne extends ScriptedGame {
 
 	declare readonly room: Room;
 
-	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat): void {
+	setupChallenge(challenger: User, defender: User, challengeFormat: IGameFormat, options?: Dict<string>): void {
 		this.challengeFormat = challengeFormat;
 		this.defender = this.createPlayer(defender);
 		this.challenger = this.createPlayer(challenger);
 		this.minPlayers = 2;
 		this.name += " (" + challengeFormat.nameWithOptions + ")";
+
+		if (options) this.challengeOptions = options;
 
 		const text = this.challenger!.name + " challenges " + this.defender!.name + " to a one vs. one game of " +
 			challengeFormat.nameWithOptions + "!";
@@ -113,8 +116,8 @@ export class OneVsOne extends ScriptedGame {
 		game.inheritPlayers(this.players);
 		game.minPlayers = 2;
 
-		if (game.format.challengePoints && game.format.challengePoints.onevsone) {
-			game.format.options.points = game.format.challengePoints.onevsone;
+		if (game.format.challengeSettings && game.format.challengeSettings.onevsone && game.format.challengeSettings.onevsone.points) {
+			game.format.options.points = game.format.challengeSettings.onevsone.points;
 		} else if ('points' in game.format.customizableOptions) {
 			game.format.options.points = game.format.customizableOptions.points.max;
 		} else if (game.format.defaultOptions.includes('points')) {
@@ -123,6 +126,7 @@ export class OneVsOne extends ScriptedGame {
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
 		game.signups();
+		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.format.options.freejoin) {
 			this.timeout = setTimeout(() => game.start(), 5 * 1000);

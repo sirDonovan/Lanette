@@ -208,7 +208,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		this.on(smeargleText, () => {
 			this.canEat = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(smeargleText, [], true);
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 
 		if (this.format.options.freejoin) {
@@ -305,10 +305,17 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 
 export const game: IGameFile<TropiusBerryPicking> = {
 	aliases: ["tropius", "berrypicking", "berries", "tbp"],
-	botChallenge: {
-		enabled: true,
-		options: ['speed'],
-		requiredFreejoin: true,
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+			requiredFreejoin: true,
+		},
 	},
 	category: 'knowledge-2',
 	commandDescriptions: [Config.commandCharacter + "eat [berry]"],

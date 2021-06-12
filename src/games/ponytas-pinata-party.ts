@@ -109,6 +109,11 @@ const commands: GameCommandDefinitions<PonytasPinataParty> = {
 export const game: IGameFile<PonytasPinataParty> = {
 	aliases: ['ponytas', 'pinataparty', 'ppp'],
 	category: 'luck',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: PonytasPinataParty,
 	commandDescriptions: [Config.commandCharacter + "hit"],
 	commands,
