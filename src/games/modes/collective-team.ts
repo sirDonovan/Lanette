@@ -71,11 +71,15 @@ export class CollectiveTeam {
 	}
 
 	onAddLateJoinQueuedPlayers(this: CollectiveTeamThis, queuedPlayers: Player[]): void {
+		const lateJoins: string[] = [];
 		const teams = Object.keys(this.teams);
 		for (const queuedPlayer of queuedPlayers) {
 			this.addLateJoinPlayerToTeam(queuedPlayer, this.teams[teams[0]]);
+			lateJoins.push(queuedPlayer.name + " on Team " + this.teams[teams[0]].name);
 			teams.shift();
 		}
+
+		this.say("The following players have late-joined the game: " + Tools.joinList(lateJoins) + ".");
 	}
 
 	addLateJoinPlayerToTeam(this: CollectiveTeamThis, player: Player, team: PlayerTeam): void {
