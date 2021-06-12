@@ -172,10 +172,23 @@ export abstract class Game extends Activity {
 	getSignupsPlayersHtml(): string {
 		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
 			this.getPlayerUsernamesHtml());
+	getJoinButtonHtml(lateJoin?: boolean): string {
+		let label = "";
+		if (lateJoin) {
+			label = "Late-join game";
+		} else if (this.format) {
+			if (!this.format.options.freejoin) {
+				label = "Join the <b>" + (this.format.nameWithOptions || this.format.name) + "</b> game";
+			}
+		} else {
+			label = "Join game";
+		}
+
+		return Games.getJoinButtonHtml(this.room as Room, label, this.customBox, lateJoin ? 'game' : undefined);
 	}
 
-	getJoinButtonHtml(freejoin: boolean): string {
-		return Games.getJoinButtonHtml(this.customBox, freejoin, this.room as Room, this.format);
+	getLateJoinButtonHtml(): string {
+		return this.getJoinButtonHtml(true);
 	}
 
 	sendJoinNotice(player: Player): void {

@@ -1660,15 +1660,13 @@ export class Games {
 			playerNames);
 	}
 
-	getJoinButtonHtml(customBox: IGameCustomBox | undefined, freejoin: boolean, room: Room,
-		format?: IGameFormat | IUserHostedFormat): string {
+	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {
 		let html = "";
-		if (freejoin) {
-			html += "<b>This game is free-join!</b>";
+		if (label) {
+			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id, label, false,
+				this.getCustomBoxButtonStyle(customBox, optionalType || 'signups'));
 		} else {
-			html += Client.getQuietPmButton(room, Config.commandCharacter + "joingame " + room.id,
-				format ? "Join the <b>" + (format.nameWithOptions || format.name) + "</b> game" : "Join game", false,
-				this.getCustomBoxButtonStyle(customBox, 'signups'));
+			html += "<b>This game is free-join!</b>";
 		}
 
 		return html;

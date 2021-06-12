@@ -334,8 +334,7 @@ export class ScriptedGame extends Game {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
 			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml(this.format.options.freejoin ? true : false) +
-				"</center>");
+			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 			this.notifyRankSignups = true;
 			const room = this.room as Room;
@@ -369,8 +368,7 @@ export class ScriptedGame extends Game {
 
 					this.signupsRefreshed = true;
 					this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" +
-						this.getJoinButtonHtml(this.format.options.freejoin ? true : false) + "</center>");
+					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 					this.startTimer = setTimeout(() => {
 						if (!this.start()) {
@@ -499,15 +497,16 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		let additionalText = "";
-		if (attributes || attributeText) {
-			additionalText += "<br /><br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") +
-				attributes : "");
-		}
-
 		let html = this.getMascotAndNameHtml(additionalSpanText);
 		if (this.started && !this.format.options.freejoin && this.canLateJoin) {
-			html += "&nbsp;-&nbsp;" + this.getJoinButtonHtml(false);
+			html += "&nbsp;-&nbsp;" + this.getLateJoinButtonHtml();
+		}
+		html += "<br />&nbsp;";
+
+		let additionalText = "";
+		if (attributes || attributeText) {
+			additionalText += "<br />" + (attributeText ? attributeText : "") + (attributes ? (attributeText ? ": " : "") +
+				attributes : "");
 		}
 
 		return this.getCustomBoxDiv(html, undefined, additionalText);
