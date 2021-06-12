@@ -363,12 +363,11 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			return 0;
 		});
 
-		let html = '';
+		let html = '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br /><br />';
 		const playerTurn = this.currentPlayer === player && this.awaitingCurrentPlayerCard;
 		if (playerTurn && this.getPlayerTurnHtml) {
 			html += this.getPlayerTurnHtml(player);
 		} else {
-			html += '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br />';
 			html += this.getCardsPrivateHtml(playerCards, player, playerTurn);
 		}
 
@@ -454,7 +453,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	getPlayerCards(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
-			return player.name + (cards ? " (" + cards.length + ")" : "");
+			return "<username>" + player.name + "</username>" + (cards ? " (" + cards.length + ")" : "");
 		}, players).join(', ');
 	}
 

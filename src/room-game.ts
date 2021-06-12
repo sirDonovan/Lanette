@@ -131,7 +131,9 @@ export abstract class Game extends Activity {
 				}
 			}
 
-			if (!trainerCardsShown) this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNames(this.winners));
+			if (!trainerCardsShown) {
+				this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNamesText(this.winners));
+			}
 		} else {
 			this.say("No winners this game!");
 		}
@@ -171,7 +173,9 @@ export abstract class Game extends Activity {
 
 	getSignupsPlayersHtml(): string {
 		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerUsernamesHtml());
+			this.getPlayerNames());
+	}
+
 	getJoinButtonHtml(lateJoin?: boolean): string {
 		let label = "";
 		if (lateJoin) {
@@ -504,7 +508,7 @@ export abstract class Game extends Activity {
 			return "**Teams** | " + teamDisplays.join(" | ");
 		}
 
-		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPoints() : this.getPlayerNames());
+		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPointsText() : this.getPlayerNamesText());
 	}
 
 	getPointsDisplay(points: number | undefined, decimalPlaces?: number): string {
@@ -522,6 +526,14 @@ export abstract class Game extends Activity {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
 			const pointsDisplay = this.getPointsDisplay(points);
+			return "<username>" + player.name + "</username>" + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
+		}, players).join(', ');
+	}
+
+	getPlayerPointsText(players?: PlayerList): string {
+		return this.getPlayerAttributes(player => {
+			const points = this.points!.get(player) || this.startingPoints;
+			const pointsDisplay = this.getPointsDisplay(points);
 			return player.name + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
 		}, players).join(', ');
 	}
@@ -529,12 +541,12 @@ export abstract class Game extends Activity {
 	getPlayerWins(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.winners.get(player);
-			return player.name + (wins ? " (" + wins + ")" : "");
+			return "<username>" + player.name + "</username>" + (wins ? " (" + wins + ")" : "");
 		}, players).join(', ');
 	}
 
-	getTeamPlayers(players?: PlayerList): Dict<string[]> {
-		if (!this.teams) throw new Error("getTeamPlayers() called without teams");
+	getTeamPlayerUsernames(players?: PlayerList): Dict<string[]> {
+		if (!this.teams) throw new Error("getTeamPlayerUsernames() called without teams");
 
 		players = this.getPlayerList(players);
 		const teamPlayers: Dict<string[]> = {};
@@ -542,21 +554,21 @@ export abstract class Game extends Activity {
 			const team = this.teams[i];
 			teamPlayers[team.id] = [];
 			for (const player of team.players) {
-				if (players.includes(player)) teamPlayers[team.id].push(player.name);
+				if (players.includes(player)) teamPlayers[team.id].push("<username>" + player.name + "</username>");
 			}
 		}
 
 		return teamPlayers;
 	}
 
-	getTeamPlayerNames(players?: PlayerList): string {
-		if (!this.teams) throw new Error("getTeamPlayers() called without teams");
+	getTeamsPlayerNames(players?: PlayerList): string {
+		if (!this.teams) throw new Error("getTeamsPlayerNames() called without teams");
 
-		const teamPlayers = this.getTeamPlayers(players);
+		const teamPlayerUsernames = this.getTeamPlayerUsernames(players);
 		const output: string[] = [];
 		const teamKeys = Object.keys(this.teams).sort();
 		for (const key of teamKeys) {
-			output.push("<b>" + this.teams[key].name + "</b>: " + Tools.joinList(teamPlayers[key]));
+			output.push("<b>" + this.teams[key].name + "</b>: " + Tools.joinList(teamPlayerUsernames[key]));
 		}
 		return output.join(" | ");
 	}

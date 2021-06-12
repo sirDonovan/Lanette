@@ -160,13 +160,21 @@ export class PlayerTeam {
 	getPlayerNames(excludedPlayers?: Player[]): string[] {
 		const names: string[] = [];
 		for (const player of this.players) {
+			if (!excludedPlayers || !excludedPlayers.includes(player)) names.push("<username>" + player.name + "</username>");
+		}
+		return names;
+	}
+
+	getPlayerNamesText(excludedPlayers?: Player[]): string[] {
+		const names: string[] = [];
+		for (const player of this.players) {
 			if (!excludedPlayers || !excludedPlayers.includes(player)) names.push(player.name);
 		}
 		return names;
 	}
 
 	getTeammateNames(player: Player): string[] {
-		return this.getPlayerNames([player]);
+		return this.getPlayerNamesText([player]);
 	}
 }
 
@@ -468,11 +476,11 @@ export abstract class Activity {
 	}
 
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
 	}
 
-	getPlayerUsernamesHtml(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+	getPlayerNamesText(players?: PlayerList): string {
+		return this.getPlayerAttributes(player => player.name, players).join(', ');
 	}
 
 	onEnd?(): void;

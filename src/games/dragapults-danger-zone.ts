@@ -219,7 +219,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				this.setTeamPlayerOrders();
 
 				this.teamRound++;
-				const html = this.getRoundHtml(players => this.getTeamPlayerNames(players), undefined, 'Round ' + this.teamRound);
+				const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players), undefined, 'Round ' + this.teamRound);
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

@@ -94,7 +94,7 @@ export class CollectiveTeam {
 		for (const id in this.teams) {
 			const team = this.teams[id];
 			this.playerOrders[team.id] = [];
-			this.say("**Team " + team.name + "**: " + Tools.joinList(team.getPlayerNames()));
+			this.say("**Team " + team.name + "**: " + Tools.joinList(team.getPlayerNamesText()));
 		}
 	}
 
@@ -137,6 +137,11 @@ export class CollectiveTeam {
 			this.timeout = setTimeout(() => this.end(), 5000);
 			return false;
 		} else {
+			if (this.round % 5 === 0) {
+				this.sayUhtml(this.uhtmlBaseName + '-round-html',
+					this.getRoundHtml(() => this.getTeamPoints(), undefined, undefined, "Team standings"));
+			}
+
 			return true;
 		}
 	}

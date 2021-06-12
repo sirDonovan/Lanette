@@ -236,7 +236,8 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	getPlayerLetters(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name + " (" + this.playerLetters.get(player) + ")", players).join(', ');
+		return this.getPlayerAttributes(player => "<username>" + player.name + "</username> (" + this.playerLetters.get(player) + ")",
+			players).join(', ');
 	}
 
 	onPlayerRoll?(player: Player): boolean;

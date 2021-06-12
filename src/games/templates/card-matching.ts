@@ -159,8 +159,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	getPlayerTurnHtml(player: Player): string {
 		const playerCards = this.playerCards.get(player)!;
 		const turnCards = this.getTurnCards(player);
-		let html = '<b>Your cards</b>:' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '<br />';
-		html += this.getCardsPrivateHtml(playerCards);
+		let html = this.getCardsPrivateHtml(playerCards);
 
 		const playButtons: string[] = [];
 		for (const card of turnCards.action) {

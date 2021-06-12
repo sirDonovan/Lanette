@@ -151,11 +151,11 @@ const commands: GameCommandDefinitions<ChanseysEggToss> = {
 			const player = this.players[user.id];
 			const id = Tools.toId(target);
 			if (!(id in this.players) || this.players[id].eliminated) {
-				player.say("You must pass the egg to someone currently in the game!");
+				player.sayPrivateHtml("You must pass the egg to someone currently in the game!");
 				return false;
 			}
 			if (player === this.players[id]) {
-				player.say("You cannot pass the egg to yourself!");
+				player.sayPrivateHtml("You cannot pass the egg to yourself!");
 				return false;
 			}
 

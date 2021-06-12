@@ -51,8 +51,8 @@ class EmpoleonsEmpires extends ScriptedGame {
 		}
 		const uhtmlName = this.uhtmlBaseName + '-aliases';
 		const html = "<div class='infobox'><b>Remaining players (" + this.getRemainingPlayerCount() + ")</b>: " +
-			this.getPlayerNames(this.getRemainingPlayers()) + "<br /><br /><b>Remaining aliases</b>: " + Tools.shuffle(aliases).join(", ") +
-			".</div>";
+			this.getPlayerNames(this.getRemainingPlayers()) + "<br /><br /><b>Remaining aliases</b>: " +
+			Tools.shuffle(aliases).join(", ") + ".</div>";
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.currentPlayer) this.currentPlayer = this.getRandomPlayer();
 			const currentPlayer = this.currentPlayer;

@@ -410,7 +410,7 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNames());
+		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNamesText());
 
 		if (this.onStart) {
 			try {
@@ -493,7 +493,8 @@ export class ScriptedGame extends Game {
 		if (!attributeText) {
 			const remainingPlayerCount = this.getRemainingPlayerCount(players);
 			if (remainingPlayerCount > 0) {
-				attributeText = (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount + ")";
+				attributeText = "<b>" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount +
+					")</b>";
 			}
 		}
 
@@ -1090,7 +1091,7 @@ export class ScriptedGame extends Game {
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
-			return player.name + (lives ? " (" + lives + ")" : "");
+			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 

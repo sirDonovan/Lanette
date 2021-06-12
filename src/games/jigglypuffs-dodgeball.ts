@@ -68,7 +68,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 		this.roundActions.clear();
 		this.queue = [];
 
-		const html = this.getRoundHtml(players => this.getTeamPlayerNames(players), undefined, undefined, "Remaining team players");
+		const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players), undefined, undefined, "Remaining team players");
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			const time = this.sampleOne([8000, 9000, 10000]);

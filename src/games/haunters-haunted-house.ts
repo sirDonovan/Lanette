@@ -781,7 +781,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 	getPlayerNumbers(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
-			return player.name + " (P" + this.playerNumbers.get(player) + ")";
+			return "<username>" + player.name + "</username> (P" + this.playerNumbers.get(player) + ")";
 		}, players).join(', ');
 	}
 
