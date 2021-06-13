@@ -505,7 +505,7 @@ export class ScriptedGame extends Game {
 	}
 
 	getRoundTime(): number {
-		if (!this.roundTime) throw new Error("getRoundTime() called without a roundTime configured");
+		if (this.roundTime === undefined) throw new Error("getRoundTime() called without a roundTime configured");
 
 		if (this.challengeRoundTimes) return this.sampleOne(this.challengeRoundTimes);
 

@@ -148,6 +148,7 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	aliases: ['poliwraths', 'ports'],
 	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
 		onevsone: {
+			enabled: true,
 			points: 5,
 		},
 	}),

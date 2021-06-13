@@ -116,6 +116,9 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 		botchallenge: {
 			enabled: false,
 		},
+		onevsone: {
+			enabled: true,
+		},
 	}),
 	category: 'identification-2',
 	class: MareaniesMarquee,

@@ -113,6 +113,9 @@ export const game: IGameFile<AmbipomsTossups> = Games.copyTemplateProperties(que
 		botchallenge: {
 			enabled: false,
 		},
+		onevsone: {
+			enabled: true,
+		},
 	}),
 	category: 'identification-2',
 	class: AmbipomsTossups,

@@ -138,6 +138,9 @@ export const game: IGameFile<ZygardesOrders> = Games.copyTemplateProperties(ques
 		botchallenge: {
 			enabled: false,
 		},
+		onevsone: {
+			enabled: true,
+		},
 	}),
 	category: 'identification-2',
 	class: ZygardesOrders,

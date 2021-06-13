@@ -151,6 +151,9 @@ export const game: IGameFile<LanturnsIlluminatedLetters> = Games.copyTemplatePro
 		botchallenge: {
 			enabled: false,
 		},
+		onevsone: {
+			enabled: true,
+		},
 	}),
 	category: 'identification-2',
 	class: LanturnsIlluminatedLetters,
