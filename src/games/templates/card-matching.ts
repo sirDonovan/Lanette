@@ -808,7 +808,7 @@ const tests: GameFileTests<CardMatching> = {
 };
 
 export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClone(cardGame), {
-	challengeOptions: {
+	challengeSettings: {
 		botchallenge: {
 			enabled: true,
 		},
