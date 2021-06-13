@@ -4,10 +4,13 @@ import { addPlayers, assert, runCommand } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 
-const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
+const data: {'parameters': Dict<string[]>; 'parameterLengths': Dict<number>; 'pokemon': string[]} = {
 	"parameters": {},
+	"parameterLengths": {},
 	"pokemon": [],
 };
+
+const MINIMUM_PARAMETERS = 2;
 
 class DelcattysHideAndSeek extends ScriptedGame {
 	canCharm: boolean = false;
@@ -63,6 +66,10 @@ class DelcattysHideAndSeek extends ScriptedGame {
 					});
 			}
 		}
+
+		for (const i in data.parameters) {
+			data.parameterLengths[i] = data.parameters[i].length;
+		}
 	}
 
 	onRemovePlayer(player: Player): void {
@@ -84,10 +91,11 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 		this.pokemonChoices.clear();
 		this.charmer = this.getRandomPlayer();
-		let requiredPokemon = remainingPlayerCount;
-		if (requiredPokemon > 2) requiredPokemon += this.random(3) - 1;
+		const hideCount = remainingPlayerCount - 1;
+		let requiredPokemon = Math.max(hideCount, MINIMUM_PARAMETERS);
+		if (requiredPokemon > MINIMUM_PARAMETERS) requiredPokemon += this.random(3) - 1;
 
-		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameters[x].length === requiredPokemon));
+		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameterLengths[x] === requiredPokemon));
 		this.categories = param.split(", ");
 
 		const otherPlayers: string[] = [];
@@ -102,7 +110,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 			this.canSelect = true;
 			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
 		});
-		this.onCommands(['select'], {max: this.getRemainingPlayerCount() - 1, remainingPlayersMax: true},
+		this.onCommands(['select'], {max: hideCount, remainingPlayersMax: true},
 			() => this.selectCharmedPokemon());
 		this.say(text);
 	}
@@ -247,7 +255,7 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 			// potentially +/- 1 Pokemon each round
 			const maxPlayers = game.maxPlayers + 1;
 			const parameterKeys = Object.keys(data.parameters);
-			for (let i = game.minPlayers - 1; i < maxPlayers; i++) {
+			for (let i = MINIMUM_PARAMETERS; i < maxPlayers; i++) {
 				let hasParameters = false;
 				for (const key of parameterKeys) {
 					if (data.parameters[key].length === i) {
