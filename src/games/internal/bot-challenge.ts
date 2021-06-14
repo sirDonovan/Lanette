@@ -106,12 +106,15 @@ export class BotChallenge extends ScriptedGame {
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
 		game.signups();
-
 		game.loadChallengeOptions('botchallenge', this.challengeOptions);
 		this.say('glhf');
 
 		if (!game.format.options.freejoin) {
-			this.timeout = setTimeout(() => game.start(), 5 * 1000);
+			if (game.gameActionType) {
+				game.sendJoinNotice(this.challenger);
+			}
+
+			this.timeout = setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

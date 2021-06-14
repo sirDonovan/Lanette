@@ -94,7 +94,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	onStart(): void {
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.nextRound();
 	}
 
 	onNextRound(): void {
@@ -129,7 +129,12 @@ export class OneVsOne extends ScriptedGame {
 		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.format.options.freejoin) {
-			this.timeout = setTimeout(() => game.start(), 5 * 1000);
+			if (game.gameActionType) {
+				game.sendJoinNotice(this.defender);
+				game.sendJoinNotice(this.challenger);
+			}
+
+			this.timeout = setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

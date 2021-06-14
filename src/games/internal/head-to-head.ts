@@ -101,7 +101,12 @@ export class HeadToHead extends ScriptedGame {
 		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.format.options.freejoin) {
-			this.timeout = setTimeout(() => game.start(), 5 * 1000);
+			if (game.gameActionType) {
+				game.sendJoinNotice(this.leftPlayer);
+				game.sendJoinNotice(this.rightPlayer);
+			}
+
+			this.timeout = setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 
