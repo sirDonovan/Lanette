@@ -220,6 +220,8 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(sweetThiefFormat);
 			}
 
+			sweetThiefFormat.minigameCreator = user.id;
+
 			const game = Games.createGame(room, sweetThiefFormat, room, true) as SweetThief;
 			game.signups();
 			game.currentHolder = game.createPlayer(targetUser)!;
