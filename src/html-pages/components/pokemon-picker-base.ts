@@ -20,12 +20,15 @@ export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	onPickType: (pickerIndex: number, type: string, dontRender: boolean | undefined) => void;
 }
 
+const defaultModelGeneration: ModelGeneration = 'xy';
+
 const setGeneration = 'setgeneration';
 const setShininess = 'setshininess';
 const setShiny = "shiny";
 const setNotShiny = "notshiny";
 
 export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemonPickerProps> {
+	static defaultModelGeneration: ModelGeneration = defaultModelGeneration;
 	static pokemonGens: KeyedDict<ModelGeneration, string[]> = {
 		'rb': [],
 		'gs': [],
@@ -52,7 +55,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		'bw': {},
 		'xy': {},
 	};
-	generation: ModelGeneration = 'xy';
+	generation: ModelGeneration = defaultModelGeneration;
 	replicationTargets: PokemonPickerBase[] = [];
 	shininess: boolean = false;
 

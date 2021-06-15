@@ -5,6 +5,7 @@ import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
 import type { Room } from "../../rooms";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
+import { PokemonPickerBase } from "./pokemon-picker-base";
 
 const clearPokemon = 'clearpokemon';
 const randomizePokemon = 'randomizepokemon';
@@ -60,6 +61,17 @@ export class RandomHostDisplay extends HostDisplayBase {
 				this.iconPokemonPickers[this.pokemonPickerIndex].active = active;
 			}
 		}
+	}
+
+	onSetGifOrIcon(dontRender?: boolean): void {
+		if (this.gifOrIcon === 'icon') {
+			for (let i = 0; i < this.gifPokemonPickers.length; i++) {
+				if (!this.iconPokemonPickers[i]) break;
+				this.iconPokemonPickers[i].pickGeneration(PokemonPickerBase.defaultModelGeneration, true, this.gifPokemonPickers[i]);
+			}
+		}
+
+		super.onSetGifOrIcon(dontRender);
 	}
 
 	toggleTrainerPicker(active: boolean): void {
