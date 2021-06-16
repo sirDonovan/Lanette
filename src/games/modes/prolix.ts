@@ -46,6 +46,16 @@ const tests: GameFileTests<ProlixThis> = {
 
 export const mode: IGameModeFile<Prolix, QuestionAndAnswer, ProlixThis> = {
 	aliases: ['pro'],
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	class: Prolix,
 	description,
 	initialize,

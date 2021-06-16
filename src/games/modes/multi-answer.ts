@@ -113,6 +113,16 @@ const tests: GameFileTests<MultiAnswerThis> = {
 
 export const mode: IGameModeFile<MultiAnswer, QuestionAndAnswer, MultiAnswerThis> = {
 	aliases: ['ma', 'multi'],
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+			options: ['speed'],
+		},
+		onevsone: {
+			enabled: true,
+			options: ['speed'],
+		},
+	},
 	class: MultiAnswer,
 	description,
 	initialize,

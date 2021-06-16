@@ -4,7 +4,7 @@ import type { OneVsOne } from "../games/internal/one-vs-one";
 import type { SweetThief } from "../games/internal/sweet-thief";
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { IGameFormat } from "../types/games";
+import type { GameChallengeSettings, IGameFormat } from "../types/games";
 import type { GameActionGames, GameActionLocations } from "../types/storage";
 
 const CHALLENGE_GAME_COOLDOWN = 2 * 60 * 60 * 1000;
@@ -323,23 +323,29 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.botchallenge ||
-				!challengeFormat.challengeSettings.botchallenge.enabled) {
+			let challengeSettings: GameChallengeSettings | undefined;
+			if (challengeFormat.mode) {
+				challengeSettings = challengeFormat.mode.challengeSettings;
+			} else {
+				challengeSettings = challengeFormat.challengeSettings;
+			}
+
+			if (!challengeSettings || !challengeSettings.botchallenge || !challengeSettings.botchallenge.enabled) {
 				user.say(challengeFormat.nameWithOptions + " does not allow bot challenges.");
 				return;
 			}
 
-			if (challengeFormat.challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
+			if (challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
 				user.say(challengeFormat.name + " can only be played as freejoin for bot challenges.");
 				return;
 			}
 
 			const parsedOptions: Dict<string> = {};
-			if (challengeFormat.challengeSettings.botchallenge.options) {
+			if (challengeSettings.botchallenge.options) {
 				for (const option of options) {
 					const parts = option.split(":");
 					const id = Tools.toId(parts[0]);
-					if (!challengeFormat.challengeSettings.botchallenge.options.includes(id)) {
+					if (!challengeSettings.botchallenge.options.includes(id)) {
 						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " bot challenges.");
 						return;
 					}
@@ -347,8 +353,8 @@ export const commands: BaseCommandDefinitions = {
 					parsedOptions[id] = parts.slice(1).join(":").trim();
 				}
 
-				if (challengeFormat.challengeSettings.botchallenge.requiredOptions) {
-					for (const requiredOption of challengeFormat.challengeSettings.botchallenge.requiredOptions) {
+				if (challengeSettings.botchallenge.requiredOptions) {
+					for (const requiredOption of challengeSettings.botchallenge.requiredOptions) {
 						if (!(requiredOption in parsedOptions)) {
 							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for bot challenges.");
 							return;
@@ -442,18 +448,24 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.onevsone ||
-				!challengeFormat.challengeSettings.onevsone.enabled) {
+			let challengeSettings: GameChallengeSettings | undefined;
+			if (challengeFormat.mode) {
+				challengeSettings = challengeFormat.mode.challengeSettings;
+			} else {
+				challengeSettings = challengeFormat.challengeSettings;
+			}
+
+			if (!challengeSettings || !challengeSettings.onevsone || !challengeSettings.onevsone.enabled) {
 				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
 
 			const parsedOptions: Dict<string> = {};
-			if (challengeFormat.challengeSettings.onevsone.options) {
+			if (challengeSettings.onevsone.options) {
 				for (const option of options) {
 					const parts = option.split(":");
 					const id = Tools.toId(parts[0]);
-					if (!challengeFormat.challengeSettings.onevsone.options.includes(id)) {
+					if (!challengeSettings.onevsone.options.includes(id)) {
 						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " one vs. one challenges.");
 						return;
 					}
@@ -461,8 +473,8 @@ export const commands: BaseCommandDefinitions = {
 					parsedOptions[id] = parts.slice(1).join(":").trim();
 				}
 
-				if (challengeFormat.challengeSettings.onevsone.requiredOptions) {
-					for (const requiredOption of challengeFormat.challengeSettings.onevsone.requiredOptions) {
+				if (challengeSettings.onevsone.requiredOptions) {
+					for (const requiredOption of challengeSettings.onevsone.requiredOptions) {
 						if (!(requiredOption in parsedOptions)) {
 							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for " +
 								"one vs. one challenges.");
@@ -557,18 +569,24 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (challengeFormat.mode || !challengeFormat.challengeSettings || !challengeFormat.challengeSettings.onevsone ||
-				!challengeFormat.challengeSettings.onevsone.enabled) {
+			let challengeSettings: GameChallengeSettings | undefined;
+			if (challengeFormat.mode) {
+				challengeSettings = challengeFormat.mode.challengeSettings;
+			} else {
+				challengeSettings = challengeFormat.challengeSettings;
+			}
+
+			if (!challengeSettings || !challengeSettings.onevsone || !challengeSettings.onevsone.enabled) {
 				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
 				return;
 			}
 
 			const parsedOptions: Dict<string> = {};
-			if (challengeFormat.challengeSettings.onevsone.options) {
+			if (challengeSettings.onevsone.options) {
 				for (const option of options) {
 					const parts = option.split(":");
 					const id = Tools.toId(parts[0]);
-					if (!challengeFormat.challengeSettings.onevsone.options.includes(id)) {
+					if (!challengeSettings.onevsone.options.includes(id)) {
 						user.say("'" + id + "' is not an option for " + challengeFormat.nameWithOptions + " one vs. one challenges.");
 						return;
 					}
@@ -576,8 +594,8 @@ export const commands: BaseCommandDefinitions = {
 					parsedOptions[id] = parts.slice(1).join(":").trim();
 				}
 
-				if (challengeFormat.challengeSettings.onevsone.requiredOptions) {
-					for (const requiredOption of challengeFormat.challengeSettings.onevsone.requiredOptions) {
+				if (challengeSettings.onevsone.requiredOptions) {
+					for (const requiredOption of challengeSettings.onevsone.requiredOptions) {
 						if (!(requiredOption in parsedOptions)) {
 							user.say(challengeFormat.nameWithOptions + " requires the option '" + requiredOption + "' for " +
 								"one vs. one challenges.");

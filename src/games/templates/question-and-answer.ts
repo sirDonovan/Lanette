@@ -375,10 +375,21 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 		this.botTurnTimeout = setTimeout(() => {
 			const command = this.answerCommands ? this.answerCommands[0] : "g";
-			const answer = this.sampleOne(this.answers).toLowerCase();
-			const text = Config.commandCharacter + command + " " + answer;
+			let answer = this.sampleOne(this.answers);
+			let text = Config.commandCharacter + command + " " + answer.toLowerCase();
 			this.on(text, () => {
-				botPlayer.useCommand(command, answer);
+				if (!this.canGuess || !this.answers.length) return;
+
+				if (!this.answers.includes(answer)) {
+					answer = this.sampleOne(this.answers);
+					text = Config.commandCharacter + command + " " + answer.toLowerCase();
+					this.on(text, () => {
+						if (this.canGuess) botPlayer.useCommand(command, answer);
+					});
+					this.say(text);
+				} else {
+					botPlayer.useCommand(command, answer);
+				}
 			});
 			this.say(text);
 		}, this.sampleOne(this.botChallengeSpeeds!));

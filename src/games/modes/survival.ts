@@ -200,6 +200,11 @@ const tests: GameFileTests<SurvivalThis> = {
 
 export const mode: IGameModeFile<Survival, QuestionAndAnswer, SurvivalThis> = {
 	aliases: ['surv'],
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: Survival,
 	commands,
 	description,

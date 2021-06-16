@@ -91,6 +91,11 @@ const tests: GameFileTests<PMTimeAttackThis> = {
 
 export const mode: IGameModeFile<PMTimeAttack, QuestionAndAnswer, PMTimeAttackThis> = {
 	aliases: ['pta', 'pmta', 'pmsta', 'tapm', 'tapms'],
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: PMTimeAttack,
 	description,
 	initialize,

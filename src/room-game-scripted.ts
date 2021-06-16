@@ -160,7 +160,7 @@ export class ScriptedGame extends Game {
 
 				if (speed >= this.roundTime) {
 					speed = this.roundTime;
-					this.roundTime += 400;
+					this.roundTime += 300 + (Client.getSendThrottle() * 2);
 				}
 
 				this.say("I will be playing at an average speed of " + Tools.toDurationString(speed, {milliseconds: true}) + "!");
@@ -170,7 +170,7 @@ export class ScriptedGame extends Game {
 		} else if (challenge === 'onevsone') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const challengeSettings = this.format.challengeSettings!.onevsone!;
 			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
-			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime) {
+			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime && options.speed) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
 					speed = this.roundTime;

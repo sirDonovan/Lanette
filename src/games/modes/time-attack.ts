@@ -107,6 +107,14 @@ const tests: GameFileTests<TimeAttackThis> = {
 
 export const mode: IGameModeFile<TimeAttack, QuestionAndAnswer, TimeAttackThis> = {
 	aliases: ['ta'],
+	challengeSettings: {
+		botchallenge: {
+			enabled: true,
+		},
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: TimeAttack,
 	description,
 	initialize,

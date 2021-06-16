@@ -249,6 +249,7 @@ export interface IGameModeFile<T = ScriptedGame, U extends ScriptedGame = Script
 	naming: 'prefix' | 'suffix';
 
 	aliases?: string[];
+	challengeSettings?: GameChallengeSettings;
 	commands?: LoadedGameCommands<T & U>;
 	removedOptions?: string[];
 	tests?: GameFileTests<V>;
