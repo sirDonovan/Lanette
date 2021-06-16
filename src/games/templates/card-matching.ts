@@ -606,6 +606,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 
 		if (played) {
+			if (this.checkTopCardStaleness) this.checkTopCardStaleness();
 			this.lastPlayer = this.currentPlayer;
 			this.currentPlayer = null;
 		}
@@ -725,6 +726,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			this.say(text);
 		}, this.sampleOne([1000, 1500, 2000]));
 	}
+
+	checkTopCardStaleness?(): void;
 }
 
 const commands: GameCommandDefinitions<CardMatching> = {

@@ -578,12 +578,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return true;
 	}
 
-	isStaleTopCard(): boolean {
-		return this.hasNoWeaknesses(this.getDex(), this.topCard.types);
-	}
-
 	checkTopCardStaleness(): void {
-		if (this.isStaleTopCard()) {
+		if (this.hasNoWeaknesses(this.getDex(), this.topCard.types)) {
 			const previousTopCard = this.topCard.name;
 			let topCard = this.getCard();
 			while (topCard.action) {
@@ -682,8 +678,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			drawCards = [card1, card2];
 			cardDetail = newTopCard.name;
 		}
-
-		this.checkTopCardStaleness();
 
 		this.awaitingCurrentPlayerCard = false;
 

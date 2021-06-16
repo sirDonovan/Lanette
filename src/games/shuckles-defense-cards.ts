@@ -530,12 +530,8 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return noResistances;
 	}
 
-	isStaleTopCard(): boolean {
-		return this.hasNoResistances(this.getDex(), this.topCard.types);
-	}
-
 	checkTopCardStaleness(): void {
-		if (this.isStaleTopCard()) {
+		if (this.hasNoResistances(this.getDex(), this.topCard.types)) {
 			const previousTopCard = this.topCard.name;
 			let topCard = this.getCard();
 			while (topCard.action) {
@@ -631,8 +627,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			drawCards = [card1, card2];
 			cardDetail = newTopCard.name;
 		}
-
-		this.checkTopCardStaleness();
 
 		this.awaitingCurrentPlayerCard = false;
 
