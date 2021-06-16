@@ -534,14 +534,15 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return this.hasNoResistances(this.getDex(), this.topCard.types);
 	}
 
-	checkTopCardStaleness(message?: string): void {
+	checkTopCardStaleness(): void {
 		if (this.isStaleTopCard()) {
-			this.say(message || this.topCard.name + " no longer has any resistances!");
+			const previousTopCard = this.topCard.name;
 			let topCard = this.getCard();
 			while (topCard.action) {
 				topCard = this.getCard();
 			}
 			this.topCard = topCard as IPokemonCard;
+			this.say(previousTopCard + " had no resistances in the deck and was replaced with " + this.topCard.name + "!");
 		}
 	}
 
@@ -579,12 +580,10 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			const topCardTypes = this.topCard.types.slice();
 			topCardTypes.push("Poison");
 			this.topCard.types = topCardTypes;
-			this.checkTopCardStaleness();
 		} else if (id === 'irondefense') {
 			const topCardTypes = this.topCard.types.slice();
 			topCardTypes.push("Steel");
 			this.topCard.types = topCardTypes;
-			this.checkTopCardStaleness();
 		} else if (id === 'conversion') {
 			const type = Tools.toId(targets[0]);
 			this.topCard.types = [this.usableTypes[type]];
@@ -594,8 +593,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			const type2 = Tools.toId(targets[1]);
 			this.topCard.types = [this.usableTypes[type1], this.usableTypes[type2]];
 			cardDetail = this.usableTypes[type1] + ", " + this.usableTypes[type2];
-
-			this.checkTopCardStaleness();
 		} else if (id === 'transform') {
 			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
@@ -604,8 +601,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			}
 			this.setTopCard(newTopCard, player);
 			cardDetail = newTopCard.name;
-
-			this.checkTopCardStaleness(this.topCard.name + " has no resistances! Randomly selecting a different Pokemon...");
 		} else if (id === 'topsyturvy') {
 			this.say("**The turn order was reversed!**");
 			this.playerOrder.reverse();
@@ -636,6 +631,8 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			drawCards = [card1, card2];
 			cardDetail = newTopCard.name;
 		}
+
+		this.checkTopCardStaleness();
 
 		this.awaitingCurrentPlayerCard = false;
 
