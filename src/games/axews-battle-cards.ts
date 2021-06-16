@@ -582,14 +582,15 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		return this.hasNoWeaknesses(this.getDex(), this.topCard.types);
 	}
 
-	checkTopCardStaleness(message?: string): void {
+	checkTopCardStaleness(): void {
 		if (this.isStaleTopCard()) {
-			this.say(message || this.topCard.name + " no longer has any weaknesses!");
+			const previousTopCard = this.topCard.name;
 			let topCard = this.getCard();
 			while (topCard.action) {
 				topCard = this.getCard();
 			}
 			this.topCard = topCard as IPokemonCard;
+			this.say(previousTopCard + " had no weaknesses in the deck and was replaced with " + this.topCard.name + "!");
 		}
 	}
 
@@ -635,18 +636,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			const type2 = Tools.toId(targets[1]);
 			this.topCard.types = [this.usableTypes[type1], this.usableTypes[type2]];
 			cardDetail = this.usableTypes[type1] + ", " + this.usableTypes[type2];
-
-			this.checkTopCardStaleness();
 		} else if (id === 'trickortreat') {
 			const topCardTypes = this.topCard.types.slice();
 			topCardTypes.push("Ghost");
 			this.topCard.types = topCardTypes;
-			this.checkTopCardStaleness();
 		} else if (id === 'forestscurse') {
 			const topCardTypes = this.topCard.types.slice();
 			topCardTypes.push("Grass");
 			this.topCard.types = topCardTypes;
-			this.checkTopCardStaleness();
 		} else if (id === 'transform') {
 			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
@@ -685,6 +682,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			drawCards = [card1, card2];
 			cardDetail = newTopCard.name;
 		}
+
+		this.checkTopCardStaleness();
 
 		this.awaitingCurrentPlayerCard = false;
 
