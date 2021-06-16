@@ -37,6 +37,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
 	answerCommands?: string[];
+	longestAnswersOnly?: boolean;
 	oneGuessPerHint?: boolean;
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	pmGuessing?: boolean;
@@ -120,11 +121,34 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			if (this.ended) return;
 		}
 
+		let roundAnswersCount = this.answers.length;
+		if (this.longestAnswersOnly && roundAnswersCount > 1) {
+			let longestLength = 0;
+			let longestAnswers: string[] = [];
+			for (const answer of this.answers) {
+				const answerLength = answer.length;
+				if (answerLength > longestLength) {
+					longestLength = answerLength;
+					longestAnswers = [answer];
+				} else if (answerLength === longestLength) {
+					longestAnswers.push(answer);
+				}
+			}
+
+			if (longestAnswers.length === roundAnswersCount && roundAnswersCount >= 3) {
+				await this.setNextAnswer();
+				return;
+			}
+
+			this.answers = longestAnswers;
+			roundAnswersCount = this.answers.length;
+		}
+
 		if (this.roundGuesses) this.roundGuesses.clear();
 		this.guessedAnswers = [];
 		this.correctPlayers = [];
 		this.incorrectAnswers = 0;
-		this.roundAnswersCount = this.answers.length;
+		this.roundAnswersCount = roundAnswersCount;
 		this.hintTimestamp = 0;
 		this.questionAndAnswerRound++;
 	}
