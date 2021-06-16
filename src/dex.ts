@@ -2174,6 +2174,15 @@ export class Dex {
 			filteredNatureKeys.push(key);
 		}
 
+		const typeKeys = this.pokemonShowdownDex.types.all().map(x => x.id);
+		const filteredTypeKeys: string[] = [];
+		for (const key of typeKeys) {
+			const type = this.getType(key)!;
+			if (type.id === 'fairy' && this.gen < 6) continue;
+			if ((type.id === 'dark' || type.id === 'steel') && this.gen < 2) continue;
+			filteredTypeKeys.push(key);
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : dexes.base.dataCache!.formatKeys.slice(),
@@ -2182,7 +2191,7 @@ export class Dex {
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
-			typeKeys: this.pokemonShowdownDex.types.all().map(x => x.id),
+			typeKeys: filteredTypeKeys,
 			alternateIconNumbers,
 			badges: badgeData,
 			categories: parsedCategories,

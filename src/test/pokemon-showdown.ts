@@ -284,6 +284,86 @@ describe("pokemon-showdown", () => {
 		assert(pokemonKeys.includes('pokestarsmeargle'));
 		assert(pokemonKeys.includes('arghonaut'));
 
+		const gen1PokemonKeys = Dex.getDex('gen1').getData().pokemonKeys;
+		const gen2PokemonKeys = Dex.getDex('gen2').getData().pokemonKeys;
+		const gen3PokemonKeys = Dex.getDex('gen3').getData().pokemonKeys;
+		const gen4PokemonKeys = Dex.getDex('gen4').getData().pokemonKeys;
+		const gen5PokemonKeys = Dex.getDex('gen5').getData().pokemonKeys;
+		const gen6PokemonKeys = Dex.getDex('gen6').getData().pokemonKeys;
+		const gen7PokemonKeys = Dex.getDex('gen7').getData().pokemonKeys;
+		const gen8PokemonKeys = Dex.getDex('gen8').getData().pokemonKeys;
+		assert(gen1PokemonKeys.includes('bulbasaur'));
+		assert(gen2PokemonKeys.includes('bulbasaur'));
+		assert(gen3PokemonKeys.includes('bulbasaur'));
+		assert(gen4PokemonKeys.includes('bulbasaur'));
+		assert(gen5PokemonKeys.includes('bulbasaur'));
+		assert(gen6PokemonKeys.includes('bulbasaur'));
+		assert(gen7PokemonKeys.includes('bulbasaur'));
+		assert(gen8PokemonKeys.includes('bulbasaur'));
+
+		assert(!gen1PokemonKeys.includes('chikorita'));
+		assert(gen2PokemonKeys.includes('chikorita'));
+		assert(gen3PokemonKeys.includes('chikorita'));
+		assert(gen4PokemonKeys.includes('chikorita'));
+		assert(gen5PokemonKeys.includes('chikorita'));
+		assert(gen6PokemonKeys.includes('chikorita'));
+		assert(gen7PokemonKeys.includes('chikorita'));
+		assert(gen8PokemonKeys.includes('chikorita'));
+
+		assert(!gen1PokemonKeys.includes('treecko'));
+		assert(!gen2PokemonKeys.includes('treecko'));
+		assert(gen3PokemonKeys.includes('treecko'));
+		assert(gen4PokemonKeys.includes('treecko'));
+		assert(gen5PokemonKeys.includes('treecko'));
+		assert(gen6PokemonKeys.includes('treecko'));
+		assert(gen7PokemonKeys.includes('treecko'));
+		assert(gen8PokemonKeys.includes('treecko'));
+
+		assert(!gen1PokemonKeys.includes('turtwig'));
+		assert(!gen2PokemonKeys.includes('turtwig'));
+		assert(!gen3PokemonKeys.includes('turtwig'));
+		assert(gen4PokemonKeys.includes('turtwig'));
+		assert(gen5PokemonKeys.includes('turtwig'));
+		assert(gen6PokemonKeys.includes('turtwig'));
+		assert(gen7PokemonKeys.includes('turtwig'));
+		assert(gen8PokemonKeys.includes('turtwig'));
+
+		assert(!gen1PokemonKeys.includes('snivy'));
+		assert(!gen2PokemonKeys.includes('snivy'));
+		assert(!gen3PokemonKeys.includes('snivy'));
+		assert(!gen4PokemonKeys.includes('snivy'));
+		assert(gen5PokemonKeys.includes('snivy'));
+		assert(gen6PokemonKeys.includes('snivy'));
+		assert(gen7PokemonKeys.includes('snivy'));
+		assert(gen8PokemonKeys.includes('snivy'));
+
+		assert(!gen1PokemonKeys.includes('chespin'));
+		assert(!gen2PokemonKeys.includes('chespin'));
+		assert(!gen3PokemonKeys.includes('chespin'));
+		assert(!gen4PokemonKeys.includes('chespin'));
+		assert(!gen5PokemonKeys.includes('chespin'));
+		assert(gen6PokemonKeys.includes('chespin'));
+		assert(gen7PokemonKeys.includes('chespin'));
+		assert(gen8PokemonKeys.includes('chespin'));
+
+		assert(!gen1PokemonKeys.includes('rowlet'));
+		assert(!gen2PokemonKeys.includes('rowlet'));
+		assert(!gen3PokemonKeys.includes('rowlet'));
+		assert(!gen4PokemonKeys.includes('rowlet'));
+		assert(!gen5PokemonKeys.includes('rowlet'));
+		assert(!gen6PokemonKeys.includes('rowlet'));
+		assert(gen7PokemonKeys.includes('rowlet'));
+		assert(gen8PokemonKeys.includes('rowlet'));
+
+		assert(!gen1PokemonKeys.includes('grookey'));
+		assert(!gen2PokemonKeys.includes('grookey'));
+		assert(!gen3PokemonKeys.includes('grookey'));
+		assert(!gen4PokemonKeys.includes('grookey'));
+		assert(!gen5PokemonKeys.includes('grookey'));
+		assert(!gen6PokemonKeys.includes('grookey'));
+		assert(!gen7PokemonKeys.includes('grookey'));
+		assert(gen8PokemonKeys.includes('grookey'));
+
 		for (const i of pokemonKeys) {
 			const pokemon = Dex.getPokemon(i);
 			assert(pokemon, i);
@@ -448,6 +528,51 @@ describe("pokemon-showdown", () => {
 		const typeKeys = Dex.getData().typeKeys;
 		assert(typeKeys.length);
 		assert(typeKeys.includes('normal'));
+
+		const gen1TypeKeys = Dex.getDex('gen1').getData().typeKeys;
+		const gen2TypeKeys = Dex.getDex('gen2').getData().typeKeys;
+		const gen3TypeKeys = Dex.getDex('gen3').getData().typeKeys;
+		const gen4TypeKeys = Dex.getDex('gen4').getData().typeKeys;
+		const gen5TypeKeys = Dex.getDex('gen5').getData().typeKeys;
+		const gen6TypeKeys = Dex.getDex('gen6').getData().typeKeys;
+		const gen7TypeKeys = Dex.getDex('gen7').getData().typeKeys;
+		const gen8TypeKeys = Dex.getDex('gen8').getData().typeKeys;
+
+		assert(gen1TypeKeys.includes('normal'));
+		assert(gen2TypeKeys.includes('normal'));
+		assert(gen3TypeKeys.includes('normal'));
+		assert(gen4TypeKeys.includes('normal'));
+		assert(gen5TypeKeys.includes('normal'));
+		assert(gen6TypeKeys.includes('normal'));
+		assert(gen7TypeKeys.includes('normal'));
+		assert(gen8TypeKeys.includes('normal'));
+
+		assert(!gen1TypeKeys.includes('dark'));
+		assert(gen2TypeKeys.includes('dark'));
+		assert(gen3TypeKeys.includes('dark'));
+		assert(gen4TypeKeys.includes('dark'));
+		assert(gen5TypeKeys.includes('dark'));
+		assert(gen6TypeKeys.includes('dark'));
+		assert(gen7TypeKeys.includes('dark'));
+		assert(gen8TypeKeys.includes('dark'));
+
+		assert(!gen1TypeKeys.includes('steel'));
+		assert(gen2TypeKeys.includes('steel'));
+		assert(gen3TypeKeys.includes('steel'));
+		assert(gen4TypeKeys.includes('steel'));
+		assert(gen5TypeKeys.includes('steel'));
+		assert(gen6TypeKeys.includes('steel'));
+		assert(gen7TypeKeys.includes('steel'));
+		assert(gen8TypeKeys.includes('steel'));
+
+		assert(!gen1TypeKeys.includes('fairy'));
+		assert(!gen2TypeKeys.includes('fairy'));
+		assert(!gen3TypeKeys.includes('fairy'));
+		assert(!gen4TypeKeys.includes('fairy'));
+		assert(!gen5TypeKeys.includes('fairy'));
+		assert(gen6TypeKeys.includes('fairy'));
+		assert(gen7TypeKeys.includes('fairy'));
+		assert(gen8TypeKeys.includes('fairy'));
 
 		for (const i of typeKeys) {
 			const type = Dex.getType(i);
