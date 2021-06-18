@@ -15,7 +15,7 @@ class ReleaseAndEvolve extends EliminationTournament {
 	requiredDrop = true;
 	requiredEvolution = true;
 	canReroll = true;
-	firstRoundExtraTime = 3 * 60 * 1000;
+	firstRoundExtraTime = 5 * 60 * 1000;
 	baseTournamentName = name;
 	tournamentDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
