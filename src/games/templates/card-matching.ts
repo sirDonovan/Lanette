@@ -406,6 +406,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		}
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.cardRound;
+	}
+
 	onNextRound(): void {
 		this.canPlay = false;
 		if (this.currentPlayer) {

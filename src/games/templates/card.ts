@@ -411,10 +411,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return true;
 	}
 
-	getDisplayedRoundNumber(): number {
-		return this.cardRound;
-	}
-
 	getNextPlayer(): Player | null {
 		let newCardRound = false;
 
