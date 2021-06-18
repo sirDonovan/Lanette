@@ -214,6 +214,10 @@ export const commands: BaseCommandDefinitions = {
 				this.say("You cannot hide the sweets with yourself!");
 				return false;
 			}
+			if (targetUser.away || targetUser.isIdleStatus()) {
+				this.say("You cannot hide the sweets with someone who is marked as away.");
+				return false;
+			}
 
 			const sweetThiefFormat = Games.getInternalFormat('sweetthief');
 			if (Array.isArray(sweetThiefFormat)) {
