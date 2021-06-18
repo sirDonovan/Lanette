@@ -23,6 +23,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen8pu': {
 		info: 'https://www.smogon.com/dex/ss/formats/pu',
+		teams: 'https://www.smogon.com/forums/threads/3662279/#post-8421075',
 	},
 	'gen8lc': {
 		info: 'https://www.smogon.com/dex/ss/formats/lc',
@@ -89,6 +90,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen8doublesubers': {
 		teams: 'https://www.smogon.com/forums/threads/3661142',
+	},
+	'gen8battlestadiumsingles': {
+		teams: 'https://www.smogon.com/forums/threads/3685911/#post-8882870',
 	},
 
 	// Gen 7
