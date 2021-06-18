@@ -59,8 +59,8 @@ class SpotlightTeam extends CollectiveTeam {
 		return Tools.joinList(Object.values(this.currentPlayers).map(x => x.name), "**", "**") + ", you are up!";
 	}
 
-	canGuessAnswer(this: SpotlightTeamThis, player: Player): boolean {
-		if (this.ended || !this.canGuess || !this.answers.length) return false;
+	canGuessAnswer(this: SpotlightTeamThis, player: Player | undefined): boolean {
+		if (!player || this.ended || !this.canGuess || !this.answers.length) return false;
 
 		let currentPlayer = false;
 		for (const team in this.currentPlayers) {

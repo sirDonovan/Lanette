@@ -91,7 +91,7 @@ class Survival {
 		this.announceWinners();
 	}
 
-	canGuessAnswer(this: SurvivalThis, player: Player): boolean {
+	canGuessAnswer(this: SurvivalThis, player: Player | undefined): boolean {
 		if (this.ended || !this.canGuess || !this.answers.length || player !== this.currentPlayer) return false;
 		return true;
 	}

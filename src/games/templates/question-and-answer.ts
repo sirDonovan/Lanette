@@ -252,8 +252,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	canGuessAnswer(player: Player): boolean {
-		if (this.ended || !this.canGuess || !this.answers.length || this.correctPlayers.includes(player)) return false;
+	canGuessAnswer(player: Player | undefined): boolean {
+		if (!player || this.ended || !this.canGuess || !this.answers.length || this.correctPlayers.includes(player)) return false;
 		return true;
 	}
 
