@@ -7,7 +7,7 @@ const timeLimit = 30 * 1000;
 
 interface IPlayerVote {
 	format: string;
-	pmVote: boolean;
+	anonymous: boolean;
 }
 
 export class Vote extends ScriptedGame {
@@ -38,7 +38,7 @@ export class Vote extends ScriptedGame {
 			const format = Games.getExistingFormat(vote.format);
 			const name = format.nameWithOptions;
 			if (!(name in formatNames)) formatNames[name] = [];
-			formatNames[name].push(vote.pmVote ? "[Anonymous]" : "<username>" + player.name + "</username>");
+			formatNames[name].push(vote.anonymous ? "[Anonymous]" : "<username>" + player.name + "</username>");
 		});
 
 		let html = "<div class='infobox'><center>";
@@ -110,11 +110,11 @@ export class Vote extends ScriptedGame {
 		return false;
 	}
 
-	getPmVoteButton(inputTarget: string, text: string, buttonStyle?: string): string {
-		return Client.getQuietPmButton(this.room, Config.commandCharacter + "vote " + inputTarget, text, false, buttonStyle);
+	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, buttonStyle?: string): string {
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + inputTarget, text, false, buttonStyle);
 	}
 
-	sendPrivateVoteHtml(player: Player, format: IGameFormat): void {
+	sendPrivateVoteHtml(player: Player, format: IGameFormat, pm: boolean, anonymous: boolean): void {
 		if (player.id in this.privateVotesHtmlTimeouts) return;
 
 		const variants: IGameFormat[] = [];
@@ -147,11 +147,13 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
+		const voteCommand = anonymous ? 'pmvote' : pm ? 'vote' : 'buttonvote';
+
 		let variantsHtml = "";
 		if (variants.length) {
 			variantsHtml += "<details><summary><b>Votable variants</b></summary>";
 			for (const variant of variants) {
-				variantsHtml += this.getPmVoteButton(variant.inputTarget, variant.nameWithOptions);
+				variantsHtml += this.getPmVoteButton(voteCommand, variant.inputTarget, variant.nameWithOptions);
 			}
 			variantsHtml += "</details>";
 		}
@@ -167,7 +169,7 @@ export class Vote extends ScriptedGame {
 			if (modes.length) {
 				modesHtml += "<details><summary><b>Votable modes</b></summary>";
 				for (const mode of modes) {
-					modesHtml += this.getPmVoteButton(mode.inputTarget, mode.nameWithOptions);
+					modesHtml += this.getPmVoteButton(voteCommand, mode.inputTarget, mode.nameWithOptions);
 				}
 				modesHtml += "</details>";
 			}
@@ -181,12 +183,17 @@ export class Vote extends ScriptedGame {
 			html += modesHtml;
 		}
 
-		player.sayPrivateUhtml(html, this.privateVoteUhtmlName);
+		if (pm) {
+			if (player.sentPrivateHtml) player.clearPrivateUhtml(this.privateVoteUhtmlName);
+			player.sayUhtml(html, this.privateVoteUhtmlName);
+		} else {
+			player.sayPrivateUhtml(html, this.privateVoteUhtmlName);
+		}
 
 		this.privateVotesHtmlTimeouts[player.id] = setTimeout(() => {
 			delete this.privateVotesHtmlTimeouts[player.id];
 			const currentFormat = Games.getExistingFormat(this.votes.get(player)!.format);
-			if (currentFormat.nameWithOptions !== format.nameWithOptions) this.sendPrivateVoteHtml(player, currentFormat);
+			if (currentFormat.nameWithOptions !== format.nameWithOptions) this.sendPrivateVoteHtml(player, currentFormat, pm, anonymous);
 		}, Client.getSendThrottle() * 4);
 	}
 
@@ -233,12 +240,13 @@ export class Vote extends ScriptedGame {
 				this.getHighlightPhrase() + '">Enable voting highlights</button> | <button class="button" name="parseCommand" ' +
 				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
 
+		const voteCommand = 'buttonvote';
 		if (this.botSuggestions.length) {
 			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
 
 			const buttons: string[] = [];
 			for (const pick of this.botSuggestions) {
-				buttons.push(this.getPmVoteButton(pick, pick));
+				buttons.push(this.getPmVoteButton(voteCommand, pick, pick));
 			}
 			html += buttons.join(" | ");
 			html += "<br />";
@@ -246,15 +254,15 @@ export class Vote extends ScriptedGame {
 
 		const leastPlayedFormat = this.getLeastPlayedFormat();
 		if (leastPlayedFormat) {
-			html += this.getPmVoteButton(leastPlayedFormat, "Least played game") + " | ";
+			html += this.getPmVoteButton(voteCommand, leastPlayedFormat, "Least played game") + " | ";
 		}
 
-		html += this.getPmVoteButton("random", "Random game");
+		html += this.getPmVoteButton(voteCommand, "random", "Random game");
 		html += "<br /><br />";
 
 		html += "<details><summary>Current votable games</summary>";
 		for (const format of votableFormats) {
-			html += this.getPmVoteButton(format, format);
+			html += this.getPmVoteButton(voteCommand, format, format);
 		}
 		html += "</details></center>";
 
@@ -296,17 +304,17 @@ export class Vote extends ScriptedGame {
 		this.canVote = false;
 		this.updateVotesHtml(() => {
 			this.timeout = setTimeout(() => {
-				const votes: {format: string, pmVote: boolean, player: Player}[] = [];
+				const votes: {format: string, anonymous: boolean, player: Player}[] = [];
 				this.votes.forEach((vote, player) => {
-					votes.push({format: vote.format, pmVote: vote.pmVote, player});
+					votes.push({format: vote.format, anonymous: vote.anonymous, player});
 				});
 
-				let pmVote = false;
+				let anonymous = false;
 				let voter: string = '';
 				let format: string;
 				if (votes.length) {
 					const chosen = this.sampleOne(votes);
-					pmVote = chosen.pmVote;
+					anonymous = chosen.anonymous;
 					format = chosen.format;
 					voter = chosen.player.name;
 				} else {
@@ -319,7 +327,7 @@ export class Vote extends ScriptedGame {
 				}
 
 				this.chosenFormat = format;
-				if (!pmVote) this.chosenVoter = voter;
+				if (!anonymous) this.chosenVoter = voter;
 				this.end();
 			}, 3000);
 		});
@@ -345,8 +353,8 @@ const commands: GameCommandDefinitions<Vote> = {
 			if (!this.canVote) return false;
 
 			const player = this.createPlayer(user) || this.players[user.id];
-			const pmVote = cmd === 'pmvote';
-			if (pmVote && !this.isPm(room, user)) {
+			const anonymous = cmd === 'pmvote';
+			if (anonymous && !this.isPm(room, user)) {
 				player.sayPrivateHtml("You must use this command in PMs.");
 				return false;
 			}
@@ -400,9 +408,9 @@ const commands: GameCommandDefinitions<Vote> = {
 				return false;
 			}
 
-			this.votes.set(player, {format: format.inputTarget, pmVote});
+			this.votes.set(player, {format: format.inputTarget, anonymous});
 
-			this.sendPrivateVoteHtml(player, format);
+			this.sendPrivateVoteHtml(player, format, cmd === 'buttonvote' ? false : this.isPm(room, user), anonymous);
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
@@ -413,7 +421,7 @@ const commands: GameCommandDefinitions<Vote> = {
 
 			return true;
 		},
-		aliases: ['suggest', 'pmvote'],
+		aliases: ['suggest', 'pmvote', 'buttonvote'],
 		pmGameCommand: true,
 	},
 };
