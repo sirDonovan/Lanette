@@ -1518,6 +1518,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.updateBracketHtml();
 		this.updateHtmlPages();
 
+		const database = Storage.getDatabase(this.room);
+		if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
+		database.lastGameFormatTimes[this.format.id] = Date.now();
+
 		const places = Tournaments.getPlacesFromTree(this.treeRoot!);
 		if (places.winner && places.runnerup && places.semifinalists) {
 			const winners: Player[] = [places.winner];

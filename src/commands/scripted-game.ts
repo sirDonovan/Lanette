@@ -981,13 +981,15 @@ export const commands: BaseCommandDefinitions = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) {
+				if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(targetRoom.id)) &&
+					(!Config.allowTournamentGames || !Config.allowTournamentGames.includes(targetRoom.id))) {
 					return this.sayError(['disabledGameFeatures', targetRoom.title]);
 				}
 				gameRoom = targetRoom;
 			} else {
 				if (!user.hasRank(room, 'voice')) return;
-				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
+				if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) &&
+					(!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id))) {
 					return this.sayError(['disabledGameFeatures', room.title]);
 				}
 				gameRoom = room;
@@ -999,11 +1001,13 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("The last scripted game in " + gameRoom.title + " ended **" +
 					Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
 			}
+
 			const format = Games.getFormat(targets[0]);
 			if (Array.isArray(format)) return this.sayError(format);
 			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) {
 				return this.say(format.name + " has not been played in " + gameRoom.title + ".");
 			}
+
 			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" +
 				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
 		},
