@@ -64,6 +64,10 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.resetCount();
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.quizRound;
+	}
+
 	resetCount(): void {
 		this.currentNumber = 0;
 		let firstMultiple = 2;
@@ -93,7 +97,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.expectedMultiples['secondMultiple'] = data.categoryPools[Tools.toId(secondCategory)].slice();
 		this.quizRound++;
 
-		const html = this.getRoundHtml(players => this.getPlayerNames(players), undefined, "Round " + this.quizRound);
+		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.timeout = setTimeout(() => {

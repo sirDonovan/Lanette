@@ -19,6 +19,8 @@ class HypnosHunches extends QuestionAndAnswer {
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
 	hints: string[] = [];
+	hintUpdates: number = 0;
+	hunchesRound: number = 0;
 	solvedLetters: string[] = [];
 	uniqueLetters: number = 0;
 	lastAnswer: string = '';
@@ -50,6 +52,8 @@ class HypnosHunches extends QuestionAndAnswer {
 
 		this.solvedLetters = [];
 		this.guessedLetters = [];
+		this.hintUpdates = 0;
+
 		const letters = answer.split("");
 		this.letters = letters;
 		const id = Tools.toId(answer).split("");
@@ -62,7 +66,16 @@ class HypnosHunches extends QuestionAndAnswer {
 	}
 
 	updateHint(): void {
-		if (this.timeout) this.timeout = null;
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = null;
+		}
+
+		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.hunchesRound++;
+		}
+
 		this.roundGuesses.clear();
 		for (let i = 0; i < this.letters.length; i++) {
 			const id = Tools.toId(this.letters[i]);
@@ -123,6 +136,10 @@ class HypnosHunches extends QuestionAndAnswer {
 
 	increaseDifficulty(): void {
 		this.roundTime = Math.max(5000, this.roundTime - 2000);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.hunchesRound;
 	}
 }
 

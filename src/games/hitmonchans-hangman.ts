@@ -19,7 +19,9 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
 	guessLimit: number = 10;
+	hangmanRound: number = 0;
 	hints: string[] = [];
+	hintUpdates: number = 0;
 	lastAnswer: string = '';
 	letters: string[] = [];
 	multiRoundHints = true;
@@ -50,10 +52,13 @@ class HitmonchansHangman extends QuestionAndAnswer {
 
 		this.solvedLetters = [];
 		this.guessedLetters = [];
+		this.hintUpdates = 0;
+
 		const letters = answer.split("");
 		this.letters = letters;
 		const allLetters = Tools.toId(answer).split("");
 		this.allLetters = allLetters.filter((value, pos) => allLetters.indexOf(value) === pos).length;
+
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i];
@@ -61,7 +66,16 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	}
 
 	updateHint(): void {
-		if (this.timeout) this.timeout = null;
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			this.timeout = null;
+		}
+
+		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.hangmanRound++;
+		}
+
 		this.roundGuesses.clear();
 		for (let i = 0; i < this.letters.length; i++) {
 			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
@@ -115,6 +129,10 @@ class HitmonchansHangman extends QuestionAndAnswer {
 
 	increaseDifficulty(): void {
 		this.roundTime = Math.max(5000, this.roundTime - 2000);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.hangmanRound;
 	}
 }
 

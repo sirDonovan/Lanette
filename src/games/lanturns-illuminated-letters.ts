@@ -26,6 +26,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	lastAnswer: string = '';
 	lastIlluminatedletters: string = '';
 	letters: string[] = [];
+	lettersRound: number = 0;
 	multiRoundHints = true;
 	oneGuessPerHint = true;
 	revealedColor: IHexCodeData = Tools.getNamedHexCode("White");
@@ -97,6 +98,9 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 
 	updateHint(): void {
 		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.lettersRound++;
+		}
 
 		let illuminatedLetters = '';
 		let hint: string[] = [];
@@ -142,6 +146,10 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 		}
 
 		this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.lettersRound;
 	}
 }
 

@@ -18,6 +18,7 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 	canGuess: boolean = false;
 	hints: string[] = [];
 	lastMove: string = '';
+	movesRound: number = 0;
 	multiRoundHints = true;
 	mysteryRound: number = -1;
 	points = new Map<Player, number>();
@@ -52,7 +53,12 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 
 	updateHint(): void {
 		this.mysteryRound++;
+		if (this.mysteryRound === 0) {
+			this.movesRound++;
+		}
+
 		if (this.roundGuesses) this.roundGuesses.clear();
+
 		const pastHints = this.hints.slice(0, this.mysteryRound);
 		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
 			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");
@@ -78,6 +84,10 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 		} else {
 			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.movesRound;
 	}
 }
 

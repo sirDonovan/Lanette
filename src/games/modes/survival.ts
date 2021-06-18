@@ -42,8 +42,12 @@ class Survival {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
-	beforeNextRound(this: SurvivalThis): boolean | string {
-		if (this.answers.length) return true;
+	getDisplayedRoundNumber(this: SurvivalThis): number {
+		return this.survivalRound;
+	}
+
+	beforeNextRound(this: SurvivalThis, newAnswer: boolean): boolean | string {
+		if (!newAnswer) return true;
 		if (this.currentPlayer) {
 			this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
 			this.playerRounds.set(this.currentPlayer, this.survivalRound);
@@ -61,15 +65,14 @@ class Survival {
 				this.end();
 				return false;
 			}
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerNames(players), null,
-				"Round " + this.survivalRound));
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerNames(players)));
 			this.playerList = this.shufflePlayers();
 			if (this.survivalRound > 1) this.increaseDifficulty();
 		}
 
 		const currentPlayer = this.playerList[0];
 		this.playerList.shift();
-		if (currentPlayer.eliminated) return this.beforeNextRound();
+		if (currentPlayer.eliminated) return this.beforeNextRound(newAnswer);
 
 		this.currentPlayer = currentPlayer;
 		return "**" + this.currentPlayer.name + "** you are up!";

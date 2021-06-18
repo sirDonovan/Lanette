@@ -25,6 +25,7 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 	multiRoundHints = true;
 	mysteryRound: number = -1;
 	points = new Map<Player, number>();
+	pokemonRound: number = 0;
 	roundGuesses: Map<Player, boolean> | undefined = new Map();
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
@@ -88,7 +89,12 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 
 	updateHint(): void {
 		this.mysteryRound++;
+		if (this.mysteryRound === 0) {
+			this.pokemonRound++;
+		}
+
 		if (this.roundGuesses) this.roundGuesses.clear();
+
 		const pastHints = this.hints.slice(0, this.mysteryRound);
 		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
 			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");
@@ -114,6 +120,10 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 		} else {
 			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.pokemonRound;
 	}
 }
 

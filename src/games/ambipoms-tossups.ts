@@ -16,6 +16,7 @@ const categories = Object.keys(data) as DataKey[];
 class AmbipomsTossups extends QuestionAndAnswer {
 	currentCategory: string = '';
 	hints: string[] = [];
+	hintUpdates: number = 0;
 	lastAnswer: string = '';
 	letterCount: number = 0;
 	letters: string[] = [];
@@ -26,7 +27,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
 	roundTime = 0;
 	scaleMaxRevealedLetters: boolean = false;
-	tossupRound: number = 0;
+	tossupsRound: number = 0;
 	updateHintTime: number = 5 * 1000;
 
 	static loadData(): void {
@@ -49,7 +50,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		this.answers = [answer];
 
 		this.revealedLetters = 0;
-		this.tossupRound = 0;
+		this.hintUpdates = 0;
 		this.roundGuesses.clear();
 
 		const letters = answer.split("");
@@ -63,8 +64,10 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	}
 
 	updateHint(): void {
-		this.tossupRound++;
-		if (this.tossupRound > 1) {
+		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.tossupsRound++;
+		} else if (this.hintUpdates > 1) {
 			let index = this.random(this.hints.length);
 			while (this.hints[index] !== '_') {
 				index = this.random(this.hints.length);
@@ -104,6 +107,10 @@ class AmbipomsTossups extends QuestionAndAnswer {
 
 	increaseDifficulty(): void {
 		this.updateHintTime = Math.max(1000, this.updateHintTime - 500);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.tossupsRound;
 	}
 }
 

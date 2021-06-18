@@ -504,6 +504,10 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.round;
+	}
+
 	getRoundTime(): number {
 		if (this.roundTime === undefined) throw new Error("getRoundTime() called without a roundTime configured");
 
@@ -516,7 +520,7 @@ export class ScriptedGame extends Game {
 		attributeText?: string): string {
 		let additionalSpanText = '';
 		if (this.subGameNumber) additionalSpanText += " - Game " + this.subGameNumber;
-		additionalSpanText += "&nbsp;-&nbsp;" + (roundText || "Round " + this.round);
+		additionalSpanText += "&nbsp;-&nbsp;" + (roundText || "Round " + this.getDisplayedRoundNumber());
 
 		if (!players) players = this.getRemainingPlayers();
 		const attributes = getAttributes.call(this, players);

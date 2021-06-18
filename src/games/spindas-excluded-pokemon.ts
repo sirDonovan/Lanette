@@ -159,6 +159,10 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		this.parameter = parameter;
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.excludedRound;
+	}
+
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			if (this.addPlayerInactiveRound(this.currentPlayer)) {
@@ -186,8 +190,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			this.roundPlayerOrder = this.shufflePlayers();
 			this.playerOrder = this.roundPlayerOrder.slice();
 			this.excludedRound++;
-			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerPoints(players), null, "Round " +
-				this.excludedRound));
+			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerPoints(players)));
 			this.setParameter();
 			this.say("A randomly chosen Pokemon that **is** excluded is **" + this.excludedHint + "**!");
 		}

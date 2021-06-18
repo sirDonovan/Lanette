@@ -170,6 +170,10 @@ export abstract class Chain extends ScriptedGame {
 		this.roundLinks[this.currentLink.id] = true;
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.format.options.freejoin ? this.round : this.survivalRound;
+	}
+
 	onNextRound(): void {
 		let text;
 		if (this.format.options.freejoin) {
@@ -194,7 +198,7 @@ export abstract class Chain extends ScriptedGame {
 				if (this.survivalRound > 1 && this.roundTime > 3000) this.roundTime -= 500;
 				this.resetLinkCounts();
 				this.setLink();
-				const html = this.getRoundHtml(players => this.getPlayerNames(players), null, "Round " + this.survivalRound);
+				const html = this.getRoundHtml(players => this.getPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

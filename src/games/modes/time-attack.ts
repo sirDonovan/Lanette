@@ -38,8 +38,8 @@ export class TimeAttack {
 		};
 	}
 
-	beforeNextRound(this: TimeAttackThis): boolean | string {
-		if (!this.answers.length) {
+	beforeNextRound(this: TimeAttackThis, newAnswer: boolean): boolean | string {
+		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}
 		return true;

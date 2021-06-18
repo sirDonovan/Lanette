@@ -87,6 +87,10 @@ class TapusTerrains extends ScriptedGame {
 		this.nextRound();
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.terrainRound;
+	}
+
 	onNextRound(): void {
 		this.canJump = false;
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
@@ -159,7 +163,7 @@ class TapusTerrains extends ScriptedGame {
 			'<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
 			const roundHtml = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
-				this.getPlayerNames(players), null, "Round " + this.terrainRound);
+				this.getPlayerNames(players));
 			const roundUhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(roundUhtmlName, roundHtml, () => {
 				const terrainHtml = '<div class="infobox"><center><br />The terrain is <b>' + this.currentTerrain + '</b> (jump on <b>' +

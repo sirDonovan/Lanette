@@ -22,6 +22,10 @@ class FalinksFormations extends ScriptedGame {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.formationsRound;
+	}
+
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			this.say(this.currentPlayer.name + " did not guess a number and has been eliminated from the game!");
@@ -36,10 +40,15 @@ class FalinksFormations extends ScriptedGame {
 			}
 
 			this.formationsRound++;
-			this.sayUhtml(this.uhtmlBaseName + '-round-html',
-				this.getRoundHtml(players => this.getPlayerPoints(players), null, "Round " + this.formationsRound));
-			this.playerList = this.shufflePlayers();
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+
+			const uhtmlName = this.uhtmlBaseName + '-round-html';
+			const html = this.getRoundHtml(players => this.getPlayerPoints(players));
+			this.onUhtml(uhtmlName, html, () => {
+				this.playerList = this.shufflePlayers();
+				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			});
+			this.sayUhtml(uhtmlName, html);
+
 			return;
 		}
 

@@ -411,6 +411,10 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return true;
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.cardRound;
+	}
+
 	getNextPlayer(): Player | null {
 		let newCardRound = false;
 
@@ -431,7 +435,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 				const html = this.getRoundHtml(players => this.showPlayerCards ? this.getPlayerCards(players) : this.lives &&
 					this.startingLives && this.startingLives > 1 ? this.getPlayerLives(players) : this.getPlayerNames(players),
-					this.getRemainingPlayers(this.playerOrder), "Round " + this.cardRound);
+					this.getRemainingPlayers(this.playerOrder));
 				this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 			}
 

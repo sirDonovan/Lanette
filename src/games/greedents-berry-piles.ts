@@ -188,6 +188,10 @@ class GreedentsBerryPiles extends ScriptedGame {
 		this.startSubGame();
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.subGameRound;
+	}
+
 	onNextRound(): void {
 		this.canGrab = false;
 		let playersLeft: number;
@@ -231,7 +235,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		this.roundActions.clear();
-		const html = this.getRoundHtml(players => this.getPlayerWins(players), null, "Round " + this.subGameRound);
+		const html = this.getRoundHtml(players => this.getPlayerWins(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;

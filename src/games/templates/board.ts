@@ -120,14 +120,17 @@ export abstract class BoardGame extends ScriptedGame {
 		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.boardRound;
+	}
+
 	onNextRound(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		if (!this.playerList.length) {
 			this.boardRound++;
 			this.playerList = this.playerOrder.slice();
 			const uhtmlName = this.uhtmlBaseName + '-round';
-			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder),
-				"Round " + this.boardRound);
+			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder));
 			this.onUhtml(uhtmlName, html, () => {
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			});

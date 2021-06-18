@@ -25,12 +25,13 @@ class ZygardesOrders extends QuestionAndAnswer {
 	currentCategory: string = '';
 	guessedLetters: string[] = [];
 	hints: string[] = [];
+	hintUpdates: number = 0;
 	lastAnswer: string = '';
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
 	multiRoundHints = true;
 	oneGuessPerHint = true;
-	orderRound: number = 0;
+	ordersRound: number = 0;
 	revealedLetters: number = 0;
 	roundGuesses = new Map<Player, boolean>();
 	roundTime = 0;
@@ -58,23 +59,29 @@ class ZygardesOrders extends QuestionAndAnswer {
 		this.lastAnswer = answer;
 		this.answers = [answer];
 
-		this.orderRound = 0;
+		this.hintUpdates = 0;
+		this.ordersRound = 0;
 		this.roundGuesses.clear();
+
 		this.letters = Tools.toId(answer).split("");
 		this.allLetters = this.letters.length;
 		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.allLetters / 2) + 2;
+
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = '';
 		}
+
 		const firstLetter = this.random(this.letters.length);
 		this.hints[firstLetter] = this.letters[firstLetter];
 		this.revealedLetters = 1;
 	}
 
 	updateHint(): void {
-		this.orderRound++;
-		if (this.orderRound > 1) {
+		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.ordersRound++;
+		} else if (this.hintUpdates > 1) {
 			let indicies: number[] = [];
 			for (let i = 0; i < this.hints.length; i++) {
 				if (this.hints[i] === '') indicies.push(i);
@@ -129,6 +136,10 @@ class ZygardesOrders extends QuestionAndAnswer {
 
 	increaseDifficulty(): void {
 		this.updateHintTime = Math.max(1000, this.updateHintTime - 500);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.ordersRound;
 	}
 }
 

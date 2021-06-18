@@ -20,6 +20,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 	hintUpdateLimitMultiplier: number = 2;
 	lastAnswer: string = '';
 	letters: string[] = [];
+	marqueesRound: number = 0;
 	multiRoundHints = true;
 	roundTime = 0;
 	updateHintTime = 1500;
@@ -64,6 +65,9 @@ class MareaniesMarquee extends QuestionAndAnswer {
 
 	updateHint(): void {
 		this.hintUpdates++;
+		if (this.hintUpdates === 1) {
+			this.marqueesRound++;
+		}
 
 		if (this.currentIndex === -1) {
 			let index = this.random(this.letters.length);
@@ -107,6 +111,10 @@ class MareaniesMarquee extends QuestionAndAnswer {
 
 	increaseDifficulty(): void {
 		this.updateHintTime = Math.max(400, this.updateHintTime - 100);
+	}
+
+	getDisplayedRoundNumber(): number {
+		return this.marqueesRound;
 	}
 }
 

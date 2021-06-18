@@ -16,7 +16,9 @@ class SpotlightTeam extends CollectiveTeam {
 
 	currentPlayers: Dict<Player> = {};
 
-	beforeNextRound(this: SpotlightTeamThis): boolean | string {
+	beforeNextRound(this: SpotlightTeamThis, newAnswer: boolean): boolean | string {
+		if (!newAnswer) return true;
+
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -42,7 +44,7 @@ class SpotlightTeam extends CollectiveTeam {
 			}
 
 			this.teamRound++;
-			const html = this.getRoundHtml(() => this.getTeamPoints(), undefined, 'Round ' + this.teamRound, "Team standings");
+			const html = this.getRoundHtml(() => this.getTeamPoints(), undefined, undefined, "Team standings");
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', html);
 		} else {
 			for (const id in this.teams) {

@@ -31,6 +31,10 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		this.nextRound();
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.parametersRound;
+	}
+
 	async onNextRound(): Promise<void> {
 		this.canAdd = false;
 		this.offCommands(['add']);
@@ -48,7 +52,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			this.parametersRound++;
 			this.playerOrder = this.shufflePlayers(this.getRemainingPlayers());
 			this.playerList = this.playerOrder.slice();
-			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.playerOrder, "Round " + this.parametersRound);
+			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.playerOrder);
 			const uhtmlName = this.uhtmlBaseName + "-round";
 			const result = await Games.getWorkers().parameters.search({
 				customParamTypes: null,

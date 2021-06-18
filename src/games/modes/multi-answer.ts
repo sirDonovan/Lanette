@@ -42,8 +42,8 @@ class MultiAnswer {
 		};
 	}
 
-	beforeNextRound(this: MultiAnswerThis): boolean | string {
-		if (!this.answers.length) {
+	beforeNextRound(this: MultiAnswerThis, newAnswer: boolean): boolean | string {
+		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}
 		return true;

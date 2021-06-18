@@ -223,8 +223,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		return gridHtml;
 	}
 
-	beforeNextRound(): boolean {
-		if (!this.answers.length) {
+	beforeNextRound(newAnswer: boolean): boolean {
+		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}
 		return true;

@@ -198,6 +198,10 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.nextRound();
 	}
 
+	getDisplayedRoundNumber(): number {
+		return this.teamBased ? this.teamRound : this.soloRound;
+	}
+
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			if (!this.currentPlayer.eliminated) {
@@ -219,7 +223,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				this.setTeamPlayerOrders();
 
 				this.teamRound++;
-				const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players), undefined, 'Round ' + this.teamRound);
+				const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -248,7 +252,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				this.soloPlayerOrder = this.shufflePlayers();
 
 				this.soloRound++;
-				const html = this.getRoundHtml(players => this.getPlayerNames(players), undefined, 'Round ' + this.soloRound);
+				const html = this.getRoundHtml(players => this.getPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
 					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);

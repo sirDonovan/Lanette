@@ -87,7 +87,7 @@ export class CollectiveTeam {
 		team.addPlayer(player);
 		this.playerOrders[team.id].push(player);
 
-		player.sayPrivateUhtml("You are on **Team " + team.name + "** with: " + Tools.joinList(team.getTeammateNames(player)),
+		player.sayPrivateUhtml("You are on <b>Team " + team.name + "</b> with: " + Tools.joinList(team.getPlayerNames([player])),
 			this.joinLeaveButtonUhtmlName);
 	}
 
@@ -126,7 +126,7 @@ export class CollectiveTeam {
 		return points.join(" | ");
 	}
 
-	beforeNextRound(this: CollectiveTeamThis): boolean | string {
+	beforeNextRound(this: CollectiveTeamThis, newAnswer: boolean): boolean | string {
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -142,9 +142,11 @@ export class CollectiveTeam {
 			this.timeout = setTimeout(() => this.end(), 5000);
 			return false;
 		} else {
-			if (this.round % 5 === 0) {
-				this.sayUhtml(this.uhtmlBaseName + '-round-html',
-					this.getRoundHtml(() => this.getTeamPoints(), undefined, undefined, "Team standings"));
+			if (newAnswer) {
+				if (this.getDisplayedRoundNumber() % 5 === 0) {
+					this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getTeamPoints(), undefined, undefined,
+						"Team standings"));
+				}
 			}
 
 			return true;

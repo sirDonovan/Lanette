@@ -179,12 +179,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		}
 
-		let roundText: boolean | string | undefined;
-		if (this.beforeNextRound) {
-			roundText = this.beforeNextRound();
-			if (roundText === false) return;
-		}
-
 		this.previousHint = this.hint;
 
 		let newAnswer = false;
@@ -199,6 +193,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.updateHint) {
 			this.updateHint();
 			if (this.ended) return;
+		}
+
+		let roundText: boolean | string | undefined;
+		if (this.beforeNextRound) {
+			roundText = this.beforeNextRound(newAnswer);
+			if (roundText === false) return;
 		}
 
 		const sayHint = () => {
@@ -395,7 +395,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 
-	beforeNextRound?(): boolean | string;
+	beforeNextRound?(newAnswer: boolean): boolean | string;
 	filterGuess?(guess: string, player?: Player): boolean;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
