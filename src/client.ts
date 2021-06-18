@@ -74,7 +74,7 @@ const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'player': '\u2606',
 	'voice': '+',
 	'prizewinner': '^',
-	'star': '✩',
+	'star': '\u2729',
 	'regularuser': ' ',
 	'muted': '!',
 	'locked': '\u203d',
