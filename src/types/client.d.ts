@@ -50,8 +50,8 @@ export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 	sentTime?: number;
 }
 
-export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' | 'host' |
-	'roomowner' | 'administrator';
+export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'star' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' |
+	'host' | 'roomowner' | 'administrator';
 
 export interface ILoginOptions {
 	hostname: string | undefined;

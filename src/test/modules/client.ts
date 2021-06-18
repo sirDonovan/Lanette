@@ -28,6 +28,7 @@ describe("Client", () => {
 			'player': serverGroups[groupSymbols.player].ranking,
 			'voice': serverGroups[groupSymbols.voice].ranking,
 			'prizewinner': serverGroups[groupSymbols.prizewinner].ranking,
+			'star': serverGroups[groupSymbols.star].ranking,
 			'regularuser': serverGroups[groupSymbols.regularuser].ranking,
 			'muted': serverGroups[groupSymbols.muted].ranking,
 			'locked': serverGroups[groupSymbols.locked].ranking,
