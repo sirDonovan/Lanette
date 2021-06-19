@@ -36,6 +36,15 @@ class SpotlightTeam extends CollectiveTeam {
 			return false;
 		}
 
+		if (this.canLateJoin) {
+			for (const i in this.teams) {
+				if (this.teams[i].points >= CollectiveTeam.lateJoinPointsCutoff) {
+					this.canLateJoin = false;
+					break;
+				}
+			}
+		}
+
 		if (!this.playerOrders[this.largestTeam.id].length) {
 			for (const id in this.teams) {
 				const team = this.teams[id];

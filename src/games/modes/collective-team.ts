@@ -6,6 +6,7 @@ import type {
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const BASE_POINTS = 20;
+const LATE_JOIN_POINTS_CUTOFF = BASE_POINTS / 2;
 
 const name = 'Collective Team';
 const description = 'Players will be split into teams but everyone can answer each round!';
@@ -16,6 +17,7 @@ type CollectiveTeamThis = QuestionAndAnswer & CollectiveTeam;
 export class CollectiveTeam {
 	static modeDescription: string = description;
 	static modeName: string = name;
+	static lateJoinPointsCutoff: number = LATE_JOIN_POINTS_CUTOFF;
 
 	canLateJoin: boolean = true;
 	firstAnswers: Dict<Player | false> = {};
@@ -143,6 +145,15 @@ export class CollectiveTeam {
 			return false;
 		} else {
 			if (newAnswer) {
+				if (this.canLateJoin) {
+					for (const i in this.teams) {
+						if (this.teams[i].points >= LATE_JOIN_POINTS_CUTOFF) {
+							this.canLateJoin = false;
+							break;
+						}
+					}
+				}
+
 				if (this.getDisplayedRoundNumber() % 5 === 0) {
 					this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getTeamPoints(), undefined, undefined,
 						"Team standings"));
