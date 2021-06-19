@@ -25,7 +25,8 @@ export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 export type GameCategory = 'chain' | 'elimination-tournament' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
 	'knowledge-3' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'speed' | 'tabletop';
 
-export type GameMode = 'collectiveteam' | 'multianswer' | 'pmtimeattack' | 'prolix' | 'spotlightteam' | 'survival' | 'timeattack';
+export type GameMode = 'abridged' | 'collectiveteam' | 'multianswer' | 'pmtimeattack' | 'prolix' | 'spotlightteam' | 'survival' |
+	'timeattack';
 
 export type GameChallenge = 'botchallenge' | 'onevsone';
 

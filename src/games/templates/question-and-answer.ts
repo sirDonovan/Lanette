@@ -43,6 +43,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	pmGuessing?: boolean;
 	roundCategory?: string;
 	readonly roundGuesses?: Map<Player, boolean>;
+	shortestAnswersOnly?: boolean;
 	updateHintTime?: number;
 
 	abstract generateAnswer(): Promise<void> | void;
@@ -141,6 +142,27 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 
 			this.answers = longestAnswers;
+			roundAnswersCount = this.answers.length;
+		} else if (this.shortestAnswersOnly && roundAnswersCount > 1) {
+			let shortestLength = this.answers[0].length;
+			let shortestAnswers: string[] = [this.answers[0]];
+			for (let i = 1; i < this.answers.length; i++) {
+				const answer = this.answers[i];
+				const answerLength = answer.length;
+				if (answerLength < shortestLength) {
+					shortestLength = answerLength;
+					shortestAnswers = [answer];
+				} else if (answerLength === shortestLength) {
+					shortestAnswers.push(answer);
+				}
+			}
+
+			if (shortestAnswers.length === roundAnswersCount && roundAnswersCount >= 3) {
+				await this.setNextAnswer();
+				return;
+			}
+
+			this.answers = shortestAnswers;
 			roundAnswersCount = this.answers.length;
 		}
 

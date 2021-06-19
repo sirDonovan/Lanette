@@ -66,7 +66,7 @@ export const game: IGameFile<PiplupsLetterPlacements> = Games.copyTemplateProper
 	freejoin: true,
 	name: "Piplup's Letter Placements",
 	mascot: "Piplup",
-	modes: ["collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
+	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
 	minigameCommand: 'placement',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer that contains the given letters " +
 		"back-to-back!",
