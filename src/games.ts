@@ -1009,16 +1009,16 @@ export class Games {
 			}
 		}
 
+		if (pastGameMode) {
+			return "There is another " + pastGameMode + "-mode game on the past games list.";
+		}
+
 		const categoryCooldown = Config.gameCategoryCooldowns && room.id in Config.gameCategoryCooldowns ?
 			Config.gameCategoryCooldowns[room.id] : DEFAULT_CATEGORY_COOLDOWN;
 		if (pastGameCategory && categoryGamesBetween < categoryCooldown) {
 			const remainingGames = categoryCooldown - categoryGamesBetween;
 			return remainingGames + " more game" + (remainingGames > 1 ? "s" : "") + " must be played before another " + format.category +
 				" game.";
-		}
-
-		if (pastGameMode) {
-			return "There is another " + pastGameMode + "-mode game on the past games list.";
 		}
 
 		return true;
