@@ -30,7 +30,7 @@ export class Vote extends ScriptedGame {
 	// hack for onSignups()
 	declare readonly room: Room;
 
-	updateVotesHtml(callback?: () => void, uhtmlAuto?: boolean): void {
+	updateVotesHtml(callback?: () => void, signups?: boolean): void {
 		const ended = this.canVote === false;
 
 		const formatNames: Dict<string[]> = {};
@@ -69,11 +69,12 @@ export class Vote extends ScriptedGame {
 
 			html += "<h3>Current votes</h3>";
 			if (formats.length) {
+				const currentVotes: string[] = [];
 				for (const format of formats) {
 					const votes = formatNames[format].length;
-					html += format + (votes > 1 ? " (" + votes + ")" : "") + ": " + formatNames[format].join(", ");
-					html += "<br />";
+					currentVotes.push(format + (votes > 1 ? " (" + votes + ")" : "") + ": " + formatNames[format].join(", "));
 				}
+				html += currentVotes.join(" | ");
 			} else {
 				html += "&nbsp;(none)";
 			}
@@ -81,13 +82,13 @@ export class Vote extends ScriptedGame {
 
 		html += "</center></div>";
 
-		this.onUhtml(uhtmlName, html, () => {
-			if (callback) callback();
-		});
+		if (callback) {
+			this.onUhtml(uhtmlName, html, () => {
+				callback();
+			});
+		}
 
-		if (uhtmlAuto) {
-			this.sayUhtmlAuto(uhtmlName, html);
-		} else if (ended) {
+		if (ended || signups) {
 			this.sayUhtml(uhtmlName, html);
 		} else {
 			this.sayUhtmlChange(uhtmlName, html);
@@ -284,12 +285,7 @@ export class Vote extends ScriptedGame {
 
 		this.onHtml(html, () => {
 			this.canVote = true;
-			const updateTimer = timeLimit / 2;
-			this.timeout = setTimeout(() => {
-				this.updateVotesHtml(undefined, true);
-
-				this.timeout = setTimeout(() => this.endVoting(), updateTimer);
-			}, updateTimer);
+			this.timeout = setTimeout(() => this.endVoting(), timeLimit);
 		});
 		this.sayHtml(html);
 		this.updateVotesHtml(undefined, true);
