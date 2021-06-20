@@ -17,7 +17,8 @@ export type TimeZone = 'GMT-12:00' | 'GMT-11:00' | 'GMT-10:00' | 'GMT-09:30' | '
 export interface IHexCodeData {
 	color: string;
 	gradient: string;
-	category?: 'light' | 'dark';
+	category?: 'tint' | 'light' | 'dark' | 'shade' | 'brown' | 'white' | 'gray' | 'black' | 'light-brown' | 'light-gray' |
+		'dark-brown' | 'dark-gray';
 	textColor?: '#000000' | '#ffffff';
 }
 
