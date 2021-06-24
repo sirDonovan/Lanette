@@ -358,7 +358,7 @@ export class Client {
 
 	getQuietPmButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		const roomData = Users.self.rooms.get(room);
-		if (!roomData || roomData.rank !== this.groupSymbols.bot) {
+		if (!roomData || (roomData.rank !== this.groupSymbols.bot && roomData.rank !== this.groupSymbols.roomowner)) {
 			return this.getPmSelfButton(message, label, disabled, buttonStyle);
 		}
 
