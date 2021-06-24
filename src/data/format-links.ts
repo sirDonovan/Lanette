@@ -226,6 +226,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen6nu': {
 		info: 'https://www.smogon.com/dex/xy/formats/nu',
+		teams: 'https://www.smogon.com/forums/threads/3563961',
 		viability: 'https://www.smogon.com/forums/threads/3555650',
 	},
 	'gen6pu': {
