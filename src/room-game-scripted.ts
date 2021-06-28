@@ -778,8 +778,8 @@ export class ScriptedGame extends Game {
 
 			const presentPlayers: Player[] = [];
 			for (const queuedPlayer of this.lateJoinQueue) {
-				const user = Users.get(queuedPlayer.name);
-				if (!user || !user.rooms.has(this.room as Room)) continue;
+				const queuedUser = Users.get(queuedPlayer.name);
+				if (!queuedUser || !queuedUser.rooms.has(this.room as Room)) continue;
 				presentPlayers.push(queuedPlayer);
 			}
 
