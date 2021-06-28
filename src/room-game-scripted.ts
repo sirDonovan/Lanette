@@ -730,13 +730,28 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		if (this.started && (!this.canLateJoin || (this.playerCap && this.playerCount >= this.playerCap))) {
+		let failedToJoin = false;
+		// separate notice for max player cap
+		if (this.started && this.playerCap && this.playerCount >= this.playerCap) {
+			if (!this.joinNotices.has(user.id)) {
+				player.sayPrivateHtml("The game has already reached the max player count.");
+				this.joinNotices.add(user.id);
+			}
+
+			failedToJoin = true;
+		}
+
+		if (this.started && !this.canLateJoin) {
 			if (!this.joinNotices.has(user.id)) {
 				player.sayPrivateHtml(this.canLateJoin === undefined ? "This game does not support late-joins." :
 					"The late-join window for this game has closed.");
 				this.joinNotices.add(user.id);
 			}
 
+			failedToJoin = true;
+		}
+
+		if (failedToJoin) {
 			this.destroyPlayer(user, true);
 			return;
 		}
@@ -812,7 +827,10 @@ export class ScriptedGame extends Game {
 				if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
 			}
 		} else {
-			if (this.playerCap && this.playerCount >= this.playerCap) this.start();
+			if (this.playerCap && this.playerCount >= this.playerCap) {
+				if (this.canLateJoin) this.canLateJoin = false;
+				this.start();
+			}
 		}
 
 		return player;
