@@ -37,8 +37,9 @@ class SpotlightTeam extends CollectiveTeam {
 		}
 
 		if (this.canLateJoin) {
+			const cutOff = this.format.options.teamPoints / 2;
 			for (const i in this.teams) {
-				if (this.teams[i].points >= CollectiveTeam.lateJoinPointsCutoff) {
+				if (this.teams[i].points >= cutOff) {
 					this.canLateJoin = false;
 					break;
 				}
