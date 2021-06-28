@@ -775,13 +775,20 @@ export class ScriptedGame extends Game {
 
 		if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
 			this.lateJoinQueue.push(player);
-			if (this.lateJoinQueue.length === this.lateJoinQueueSize) {
+
+			const presentPlayers: Player[] = [];
+			for (const queuedPlayer of this.lateJoinQueue) {
+				const user = Users.get(queuedPlayer.name);
+				if (!user || !user.rooms.has(this.room as Room)) continue;
+				presentPlayers.push(queuedPlayer);
+			}
+
+			if (presentPlayers.length === this.lateJoinQueueSize) {
 				for (const listener of this.commandsListeners) {
 					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
 				}
 
-				const queuedPlayers = this.lateJoinQueue.slice(0, this.lateJoinQueueSize);
-				for (const queuedPlayer of queuedPlayers) {
+				for (const queuedPlayer of presentPlayers) {
 					queuedPlayer.frozen = false;
 					queuedPlayer.say("You are now in the game!");
 					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
@@ -789,7 +796,7 @@ export class ScriptedGame extends Game {
 
 				if (this.onAddLateJoinQueuedPlayers) {
 					try {
-						this.onAddLateJoinQueuedPlayers(queuedPlayers);
+						this.onAddLateJoinQueuedPlayers(presentPlayers);
 					} catch (e) {
 						console.log(e);
 						Tools.logError(e, this.format.name + " onAddLateJoinQueuedPlayers()");
