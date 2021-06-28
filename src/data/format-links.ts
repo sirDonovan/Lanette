@@ -94,6 +94,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8battlestadiumsingles': {
 		teams: 'https://www.smogon.com/forums/threads/3685911/#post-8882870',
 	},
+	'gen8thelosersgame': {
+		teams: 'https://www.smogon.com/forums/threads/3657270/#post-8301904',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
