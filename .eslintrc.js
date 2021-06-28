@@ -1,24 +1,26 @@
 module.exports = {
-	root: true,
-	plugins: [
+    root: true,
+    plugins: [
         '@typescript-eslint',
-	],
-	env: {
+    ],
+    env: {
         node: true,
         es6: true,
-	},
-	extends: [
+    },
+    extends: [
         'eslint:recommended',
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
-	],
-	parserOptions: {
+    ],
+    reportUnusedDisableDirectives: true,
+    parserOptions: {
         sourceType: 'module',
-		project: [
-			'./tsconfig.json',
-		],
-		tsconfigRootDir: __dirname,
-		warnOnUnsupportedTypeScriptVersion: false,
+        project: [
+            './tsconfig.json',
+        ],
+        allowAutomaticSingleRunInference: true,
+        tsconfigRootDir: __dirname,
+        warnOnUnsupportedTypeScriptVersion: false,
     },
     parser: '@typescript-eslint/parser',
     rules: {
@@ -87,7 +89,7 @@ module.exports = {
                 'memberTypes': [
                     // Index signature
                     'signature',
-                    
+
                     // Fields
                     'public-abstract-field',
                     'protected-abstract-field',
@@ -98,12 +100,12 @@ module.exports = {
                     'public-instance-field',
                     'protected-instance-field',
                     'private-instance-field',
-                    
+
                     // Constructors
                     'public-constructor',
                     'protected-constructor',
                     'private-constructor',
-                    
+
                     // Methods
                     'public-abstract-method',
                     'protected-abstract-method',
@@ -126,20 +128,18 @@ module.exports = {
             'format': ['camelCase', 'UPPER_CASE'],
             'leadingUnderscore': 'forbid',
             'trailingUnderscore': 'forbid'
-          }, {
+        }, {
             'selector': 'typeLike',
             'format': ['PascalCase'],
             'leadingUnderscore': 'forbid',
             'trailingUnderscore': 'forbid'
-          },
-          {
+        }, {
             'selector': 'interface',
             'format': ['PascalCase'],
             'leadingUnderscore': 'forbid',
             'trailingUnderscore': 'forbid',
             'prefix': ['I']
-          }
-        ],
+        }],
 
         'no-array-constructor': 'off',
         '@typescript-eslint/no-array-constructor': 'error',

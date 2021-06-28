@@ -51,7 +51,6 @@ export class EliminationNode<T> {
 		const queue: EliminationNode<T>[] = [this];
 		let node = queue.shift();
 		while (node) {
-			// eslint-disable-next-line callback-return
 			callback(node);
 			if (node.children) queue.push(...node.children);
 			node = queue.shift();
@@ -63,7 +62,6 @@ export class EliminationNode<T> {
 		const queue: EliminationNode<T>[] = [this];
 		let node = queue.shift();
 		while (node) {
-			// eslint-disable-next-line callback-return
 			const value = callback(node);
 			if (value) {
 				return value;
@@ -73,13 +71,11 @@ export class EliminationNode<T> {
 		}
 		return undefined;
 	}
-	// eslint-disable-next-line no-restricted-globals
 	[Symbol.iterator](): IterableIterator<EliminationNode<T>> {
 		const results: EliminationNode<T>[] = [this];
 		for (const result of results) {
 			if (result.children) results.push(...result.children);
 		}
-		// eslint-disable-next-line no-restricted-globals
 		return results[Symbol.iterator]();
 	}
 }

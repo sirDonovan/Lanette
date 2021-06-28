@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
 interface IWorkerQueueItem<T> {
@@ -13,7 +12,6 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	workerData: WorkerData | undefined = undefined;
 	workerNames: WorkerNames[] | undefined = undefined;
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	protected workers: worker_threads.Worker[] | undefined = undefined;
 
 	private messageNumber: number = 0;
@@ -64,7 +62,6 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 			}
 
 			for (let i = 0; i < numberOfWorkers; i++) {
-				// eslint-disable-next-line @typescript-eslint/naming-convention
 				const worker = new worker_threads.Worker(this.threadPath, {workerData: this.workerData});
 
 				worker.on('message', (message: string) => {

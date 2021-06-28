@@ -315,7 +315,7 @@ export class Dex {
 			dexes[CURRENT_GEN_STRING] = this;
 			this.pokemonShowdownDex = pokemonShowdownDexBase;
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 			this.pokemonShowdownValidator = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js"))
 				.TeamValidator as IPokemonShowdownValidator;
 		} else {

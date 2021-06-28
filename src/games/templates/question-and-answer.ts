@@ -273,7 +273,6 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.roundTime = Math.max(2000, this.roundTime - 1000);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	canGuessAnswer(player: Player | undefined): boolean {
 		if (!player || this.ended || !this.canGuess || !this.answers.length || this.correctPlayers.includes(player)) return false;
 		return true;

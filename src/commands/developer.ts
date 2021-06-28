@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import child_process = require('child_process');
 
 import type { BaseCommandDefinitions } from "../types/command-parser";
@@ -18,7 +17,6 @@ export const commands: BaseCommandDefinitions = {
 	},
 	gitpull: {
 		command() {
-			// eslint-disable-next-line @typescript-eslint/naming-convention
 			child_process.exec('git pull', {}, err => {
 				if (err) {
 					this.say("An error occurred while running ``git pull``: " + err.message);

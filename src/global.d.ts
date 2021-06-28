@@ -10,7 +10,7 @@ import type { Tournaments as tournamentsType } from './tournaments';
 import type { BaseLoadedCommands } from "./types/command-parser";
 import type { Users as usersType } from './users';
 
-/* eslint-disable no-redeclare, no-undef, @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention */
 declare global {
 	const BaseCommands: BaseLoadedCommands;
 	const Client: clientType;

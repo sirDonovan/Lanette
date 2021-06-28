@@ -46,7 +46,6 @@ export interface IPokemonCard extends ICard {
 	shiny?: boolean;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IItemCard extends ICard {
 	effectType: 'item';
 }

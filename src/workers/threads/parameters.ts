@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/naming-convention
 import worker_threads = require('worker_threads');
 
 import type { PRNGSeed } from '../../lib/prng';
@@ -11,7 +10,6 @@ import type {
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const data = worker_threads.workerData as DeepImmutable<IParametersWorkerData>;
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
@@ -157,7 +155,6 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 	return {params, pokemon, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const parts = incommingMessage.split("|");
 	const messageNumber = parts[0];
@@ -178,6 +175,5 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		Tools.logError(e);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
 });

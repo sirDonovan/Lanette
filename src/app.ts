@@ -54,7 +54,6 @@ module.exports = (): void => {
 
 	global.__reloadInProgress = false;
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	global.__reloadModules = async(username: string, targets: string[]): Promise<void> => {
 		let user = Users.get(username);
 		const hasModules: boolean[] = moduleOrder.slice().map(() => false);

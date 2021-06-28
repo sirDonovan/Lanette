@@ -78,7 +78,6 @@ export class CommandContext {
 		}
 		const target = newTarget !== undefined ? newTarget : this.target;
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return Commands[command].command.call(this, target, this.room, this.user, command, this.timestamp);
 	}
 
@@ -187,7 +186,6 @@ export class CommandParser {
 		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	parse(room: Room | User, user: User, message: string, timestamp: number): void {
 		if (!this.isCommandMessage(message)) return;
 		message = message.substr(1);
