@@ -664,13 +664,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Porygon's Movesearch Match",
-			mascot: "Porygon",
-			description: "Players guess Pokemon based on the given movesets!",
-			aliases: ['porygons', 'pmm'],
-			freejoin: true,
-		},
-		{
 			name: "Precise Timing",
 			aliases: ['pt'],
 			description: "Each round, the host will set a timer and players must do <code>/me check</code> before time runs out. The " +
