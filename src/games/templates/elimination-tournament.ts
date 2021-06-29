@@ -1113,6 +1113,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				this.updatePossibleTeams(player, pokemon);
+
+				player.say("You were given a first round bye so check the tournament page for additional team changes!");
 			}
 		});
 
