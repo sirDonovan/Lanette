@@ -1357,50 +1357,50 @@ export class Dex {
 					info = parsedThread;
 				}
 			}
+		}
 
-			if (format.id in formatLinks) {
-				const links = formatLinks[format.id]!;
-				if (links.info) {
-					format['info-official'] = info;
-					format.info = links.info;
-				} else {
-					format.info = info ? info.link : undefined;
-				}
-
-				if (links.teams) {
-					format['teams-official'] = teams;
-					format.teams = links.teams;
-				} else {
-					format.teams = teams ? teams.link : undefined;
-				}
-
-				if (links.viability) {
-					format['viability-official'] = viability;
-					format.viability = links.viability;
-				} else {
-					format.viability = viability ? viability.link : undefined;
-				}
+		if (format.id in formatLinks) {
+			const links = formatLinks[format.id]!;
+			if (links.info) {
+				format['info-official'] = info;
+				format.info = links.info;
 			} else {
 				format.info = info ? info.link : undefined;
-				format.teams = teams ? teams.link : undefined;
-				format.viability = viability ? viability.link : undefined;
 			}
 
-			const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
-			for (const id of links) {
-				if (format[id]) {
-					// @ts-expect-error
-					const officialLink = format[id + '-official'] as IParsedSmogonLink | undefined;
-					if (!officialLink) continue;
+			if (links.teams) {
+				format['teams-official'] = teams;
+				format.teams = links.teams;
+			} else {
+				format.teams = teams ? teams.link : undefined;
+			}
 
-					const storedLink = Tools.parseSmogonLink(format[id]!);
-					if (!storedLink || storedLink.dexPage) continue;
+			if (links.viability) {
+				format['viability-official'] = viability;
+				format.viability = links.viability;
+			} else {
+				format.viability = viability ? viability.link : undefined;
+			}
+		} else {
+			format.info = info ? info.link : undefined;
+			format.teams = teams ? teams.link : undefined;
+			format.viability = viability ? viability.link : undefined;
+		}
 
-					if (officialLink.dexPage) {
-						format[id] = officialLink.link;
-					} else if (officialLink.threadId && storedLink.threadId) {
-						format[id] = Tools.getNewerForumLink(storedLink, officialLink).link;
-					}
+		const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
+		for (const id of links) {
+			if (format[id]) {
+				// @ts-expect-error
+				const officialLink = format[id + '-official'] as IParsedSmogonLink | undefined;
+				if (!officialLink) continue;
+
+				const storedLink = Tools.parseSmogonLink(format[id]!);
+				if (!storedLink || storedLink.dexPage) continue;
+
+				if (officialLink.dexPage) {
+					format[id] = officialLink.link;
+				} else if (officialLink.threadId && storedLink.threadId) {
+					format[id] = Tools.getNewerForumLink(storedLink, officialLink).link;
 				}
 			}
 		}
