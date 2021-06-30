@@ -884,7 +884,8 @@ export const commands: BaseCommandDefinitions = {
 			room.game.winners.delete(player);
 			room.game.removePlayer(target, true);
 			this.say(player.name + " has been disqualified from the game.");
-			room.modnote(user.name + " DQed " + player.name + " from " + room.game.name + ".");
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			room.modnote(user.name + " DQed " + player.name + " from " + (room.game ? room.game.name : "the game") + ".");
 		},
 	},
 	game: {
