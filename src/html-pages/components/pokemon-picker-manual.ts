@@ -277,11 +277,19 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		this.pokemonTextInputs[this.generation].active = true;
 
 		if (this.letterViews[previousGeneration]) {
-			this.letterPaginations[previousGeneration][this.letterViews[previousGeneration]!].active = false;
-			this.letterPaginations[this.generation][this.letterViews[previousGeneration]!].active = true;
+			const previousLetter = this.letterViews[previousGeneration]!;
+			this.letterPaginations[previousGeneration][previousLetter].active = false;
 
-			this.parentPickLetter(this.letterViews[previousGeneration]!);
-			if (this.currentPick) this.letterPaginations[this.generation][this.letterViews[this.generation]!].autoSelectPage();
+			if (previousLetter in this.letterPaginations[this.generation]) {
+				this.parentPickLetter(previousLetter);
+				if (this.currentPick) this.letterPaginations[this.generation][previousLetter].autoSelectPage();
+			} else {
+				this.choices = this.choicesByGeneration[previousGeneration];
+				this.parentClear();
+				this.choices = this.choicesByGeneration[this.generation];
+
+				this.parentPickLetter(Object.keys(this.letterPaginations[this.generation])[0]);
+			}
 		}
 
 		this.autoSetPokemonTextInput();

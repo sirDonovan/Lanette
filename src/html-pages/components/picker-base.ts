@@ -69,7 +69,9 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 		this.currentPick = undefined;
 
 		if (previousPick in this.choiceElements) {
-			this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+			if (previousPick in this.choices) {
+				this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+			}
 			this.choiceElements[previousPick].selected = false;
 		}
 
@@ -103,8 +105,10 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 		const previousPick = this.currentPick;
 		this.currentPick = pick;
 		if (previousPick) {
-			if (previousPick in this.choiceElements && previousPick in this.choices) {
-				this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+			if (previousPick in this.choiceElements) {
+				if (previousPick in this.choices) {
+					this.choiceElements[previousPick].html = this.renderChoiceElement(this.choices, previousPick);
+				}
 				this.choiceElements[previousPick].selected = false;
 			}
 		} else {
