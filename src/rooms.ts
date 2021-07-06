@@ -19,6 +19,7 @@ export class Room {
 	readonly messageListeners: Dict<MessageListener> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	publicRoom: boolean = false;
 	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
 	serverBannedWords: string[] | null = null;
 	serverBannedWordsRegex: RegExp | null = null;
@@ -41,6 +42,7 @@ export class Room {
 	constructor(id: string) {
 		this.setId(id);
 		this.setTitle(id);
+		this.setPublicRoom(Client.getPublicRooms().includes(id));
 
 		this.updateConfigSettings();
 	}
@@ -62,6 +64,10 @@ export class Room {
 	setTitle(title: string): void {
 		// @ts-expect-error
 		this.title = title;
+	}
+
+	setPublicRoom(publicRoom: boolean): void {
+		this.publicRoom = publicRoom;
 	}
 
 	init(type: RoomType): void {
@@ -467,6 +473,13 @@ export class Rooms {
 	updateConfigSettings(): void {
 		for (const i in this.rooms) {
 			this.rooms[i].updateConfigSettings();
+		}
+	}
+
+	updatePublicRooms(): void {
+		const publicRooms = Client.getPublicRooms();
+		for (const i in this.rooms) {
+			this.rooms[i].setPublicRoom(publicRooms.includes(this.rooms[i].id));
 		}
 	}
 }

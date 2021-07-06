@@ -302,6 +302,10 @@ export class Client {
 		return this.lastOutgoingMessage;
 	}
 
+	getPublicRooms(): string[] {
+		return this.publicChatRooms;
+	}
+
 	getServer(): string {
 		return this.server;
 	}
@@ -1011,6 +1015,8 @@ export class Client {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomsResponse;
 
+					this.publicChatRooms = [];
+
 					if (response.chat) {
 						for (const chatRoom of response.chat) {
 							this.publicChatRooms.push(Tools.toRoomId(chatRoom.title));
@@ -1028,6 +1034,8 @@ export class Client {
 							this.publicChatRooms.push(Tools.toRoomId(psplRoom.title));
 						}
 					}
+
+					Rooms.updatePublicRooms();
 				}
 			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				if (messageArguments.response && messageArguments.response !== 'null') {
@@ -1192,7 +1200,7 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
-			Storage.updateLastSeen(user, now);
+			if (room.publicRoom) Storage.updateLastSeen(user, now);
 			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
 			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
 				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
@@ -1221,7 +1229,7 @@ export class Client {
 
 			const user = Users.add(username, id);
 
-			Storage.updateLastSeen(user, now);
+			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
 			room.onUserLeave(user);
 			break;
@@ -1245,7 +1253,7 @@ export class Client {
 				Storage.retrieveOfflineMessages(user);
 			}
 
-			Storage.updateLastSeen(user, now);
+			if (room.publicRoom) Storage.updateLastSeen(user, now);
 			break;
 		}
 
@@ -1349,7 +1357,7 @@ export class Client {
 				this.parseChatMessage(room, user, messageArguments.message, now);
 			}
 
-			Storage.updateLastSeen(user, messageArguments.timestamp);
+			if (room.publicRoom) Storage.updateLastSeen(user, messageArguments.timestamp);
 
 			if (messageArguments.message.startsWith('/log ')) {
 				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
