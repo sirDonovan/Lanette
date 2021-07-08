@@ -145,13 +145,11 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 						'-Zeraora, -Keldeo, -Slaking, -Regigigas, +Greninja-Ash, -Urshifu-Rapid-Strike, +Tornadus-Therian,' +
 						'+Metagrossite, +Naganadel, +Genesect, -Hoopa-Unbound, -Kartana, -Dragonite, +Darmanitan-Galar,' +
 						'+Metagross-Mega, -Victini, -Melmetal, -Archeops',
-					'8': 'ubers, !Obtainable Abilities, -Arena Trap, -Comatose, -Contrary, -Fluffy, -Fur Coat, -Gorilla Tactics,' +
-						'-Huge Power, -Ice Scales, -Illusion, -Imposter, -Innards Out, -Intrepid Sword, -Libero, -Moody,' +
-						'-Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout,' +
-						'-Speed Boost, -Water Bubble, -Wonder Guard, -Shedinja, 2 Ability Clause, -Dracovish, -Dragapult,' +
-						'-Zeraora, -Keldeo, -Slaking, -Regigigas, +Greninja-Ash, -Urshifu-Rapid-Strike, +Tornadus-Therian,' +
-						'+Metagrossite, +Naganadel, +Genesect, -Hoopa-Unbound, -Kartana, -Dragonite, +Darmanitan-Galar,' +
-						'+Metagross-Mega, -Victini, -Melmetal, -Archeops',
+					'8': 'ubers, Dynamax Clause, !Obtainable Abilities, 2 Ability Clause, -Arena Trap, -Comatose, -Contrary, -Fluffy,' +
+						'-Fur Coat, -Gorilla Tactics, -Huge Power, -Ice Scales, -Illusion, -Imposter, -Innards Out, -Intrepid Sword,' +
+						'-Libero, -Moody, -Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout,' +
+						'-Speed Boost, -Water Bubble, -Wonder Guard, -Calyrex-Shadow, -Marshadow, -Shedinja, -Urshifu-Single-Strike,' +
+						'+Cinderace, +Darmanitan-Galar, +Magearna, +Naganadel, +Zacian, +Zacian-Crowned',
 					'9': 'national dex, gen8shared power, -medichamite, -mawilite, -pure power, -beedrillite',
 					'10': 'gen 8 doubles ou, STABmons Move Legality, -Blissey, -Chansey, -Shedinja, -Silvally, -Snorlax,' +
 						'*Acupressure, *Astral Barrage, *Belly Drum, *Bolt Beak, *Decorate, *Diamond Storm, *Double Iron Bash,' +
