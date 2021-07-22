@@ -454,12 +454,15 @@ export const commands: BaseCommandDefinitions = {
 						"in " + Tools.toDurationString(statusTime) + "." : ""));
 				}
 			} else {
-				if (!database.userHostStatuses || !(hostId in database.userHostStatuses)) {
+				const now = Date.now();
+				if (!database.userHostStatuses || !(hostId in database.userHostStatuses) ||
+					(database.userHostStatuses[hostId].expirationTime && database.userHostStatuses[hostId].expirationTime <= now)) {
 					return this.say(hostName + "'s host status is 'standard'.");
 				}
+
 				this.say(hostName + "'s host status is '" + database.userHostStatuses[hostId].status + "'" +
 					(database.userHostStatuses[hostId].expirationTime ? " (" +
-					Tools.toDurationString(database.userHostStatuses[hostId].expirationTime - Date.now()) + " remaining)" : "") + ".");
+					Tools.toDurationString(database.userHostStatuses[hostId].expirationTime - now) + " remaining)" : "") + ".");
 			}
 		},
 		aliases: ['hstatus'],
