@@ -266,6 +266,19 @@ describe("Tools", () => {
 		permutations = Tools.getPermutations([1, 2, 3], 1, 2);
 		assertStrictEqual(permutations.length, 9);
 		assertStrictEqual(JSON.stringify(permutations), '[[1],[1,2],[1,3],[2],[2,1],[2,3],[3],[3,1],[3,2]]');
+
+		permutations = Tools.getPermutations([1, 2, 3, 1], 1, 2);
+		assertStrictEqual(permutations.length, 16);
+		assertStrictEqual(JSON.stringify(permutations),
+			'[[1],[1,2],[1,3],[1,1],[2],[2,1],[2,3],[2,1],[3],[3,1],[3,2],[3,1],[1],[1,1],[1,2],[1,3]]');
+
+		permutations = Tools.getPermutations([1, 2, 3], 1, 2, true);
+		assertStrictEqual(permutations.length, 6);
+		assertStrictEqual(JSON.stringify(permutations), '[[1],[1,2],[1,3],[2],[2,3],[3]]');
+
+		permutations = Tools.getPermutations([1, 2, 3, 1], 1, 2, true);
+		assertStrictEqual(permutations.length, 10);
+		assertStrictEqual(JSON.stringify(permutations), '[[1],[1,2],[1,3],[1,1],[2],[2,3],[2,1],[3],[3,1],[1]]');
 	});
 	it('should properly generate combinations', () => {
 		let combinations = Tools.getCombinations();

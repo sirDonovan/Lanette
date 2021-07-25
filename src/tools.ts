@@ -668,7 +668,7 @@ export class Tools {
 		}
 	}
 
-	getPermutations<T>(elements: readonly T[], minimumLength?: number, maximumLength?: number): T[][] {
+	getPermutations<T>(elements: readonly T[], minimumLength?: number, maximumLength?: number, ordered?: boolean): T[][] {
 		const length = elements.length;
 
 		if (minimumLength === undefined) {
@@ -684,8 +684,8 @@ export class Tools {
 		}
 
 		const permutations: T[][] = [];
-		const elementsInUse = new Set<T>();
-		const depthFirstSearch = (currentPermutation?: T[]) => {
+		const indicesInUse = new Set<number>();
+		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number) => {
 			if (!currentPermutation) currentPermutation = [];
 			const currentLength = currentPermutation.length;
 			if (currentLength >= minimumLength!) {
@@ -693,11 +693,11 @@ export class Tools {
 				if (currentLength === maximumLength) return;
 			}
 
-			for (let i = 0; i < length; i++){
-				if (!elementsInUse.has(elements[i])) {
-					elementsInUse.add(elements[i]);
-					depthFirstSearch(currentPermutation.concat(elements[i]));
-					elementsInUse.delete(elements[i]);
+			for (let i = startingIndex || 0; i < length; i++){
+				if (!indicesInUse.has(i)) {
+					indicesInUse.add(i);
+					depthFirstSearch(currentPermutation.concat(elements[i]), ordered ? i + 1 : undefined);
+					indicesInUse.delete(i);
 				}
 			}
 		};
