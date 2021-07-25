@@ -9,10 +9,15 @@ const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
 const removeFromBuild = ["require('better-sqlite3')", 'require("better-sqlite3")'];
 const removeFromPackageJson = [
-	"@types/better-sqlite3", "probe-image-size", "sockjs",
+	// dependencies
+	"@swc/core", "@types/better-sqlite3", "probe-image-size", "sockjs", "ts-node",
+	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "node-static", "nodemailer", "permessage-deflate", "sql-template-strings", "sqlite",
+	// secretDependencies
 	"node-oom-heapdump",
-	"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha"
+	// devDependencies
+	"@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/sockjs", "@typescript-eslint/eslint-plugin",
+		"@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
 ];
 
 const exec = util.promisify(child_process.exec);
