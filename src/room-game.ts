@@ -82,6 +82,8 @@ export abstract class Game extends Activity {
 		this.description = format.description;
 
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
+
+		if (this.afterInitialize) this.afterInitialize();
 	}
 
 	announceWinners(): void {
@@ -572,4 +574,6 @@ export abstract class Game extends Activity {
 		}
 		return output.join(" | ");
 	}
+
+	afterInitialize?(): void;
 }

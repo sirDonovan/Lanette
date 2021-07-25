@@ -4,7 +4,7 @@ import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
 import type {
-	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameFormat, IGameTemplateFile
+	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameTemplateFile
 } from "../../types/games";
 import type { IFormat, IPokemon } from "../../types/pokemon-showdown";
 import type { User } from "../../users";
@@ -100,9 +100,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	declare readonly room: Room;
 
-	onInitialize(format: IGameFormat): void {
-		super.onInitialize(format);
-
+	afterInitialize(): void {
 		this.battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
