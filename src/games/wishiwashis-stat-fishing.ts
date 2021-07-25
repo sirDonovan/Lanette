@@ -28,8 +28,9 @@ class WishiwashisStatFishing extends ScriptedGame {
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(x => x.types.includes("Water") && Dex.hasModelData(x));
-		for (const pokemon of pokemonList) {
+		for (const pokemon of Games.getPokemonList()) {
+			if (!pokemon.types.includes("Water") || !Dex.hasModelData(pokemon)) continue;
+
 			let bst = 0;
 			for (const i in pokemon.baseStats) {
 				// @ts-expect-error

@@ -24,6 +24,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	hintUhtmlName: string = '';
 	inactiveRoundLimit: number = 10;
 	incorrectAnswers: number = 0;
+	inverse: boolean = false;
+	lastHintKey: string = '';
 	lastHintHtml: string = '';
 	maxCorrectPlayersPerRound: number = 1;
 	minimumAnswersPerHint: number = 0;
@@ -37,7 +39,11 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	allAnswersAchievement?: IGameAchievement;
 	allAnswersTeamAchievement?: IGameAchievement;
 	answerCommands?: string[];
+	currentCategory?: string;
+	hintPrefix?: string;
 	longestAnswersOnly?: boolean;
+	maxHintKeyLength?: number;
+	minHintKeyLength?: number;
 	oneGuessPerHint?: boolean;
 	noIncorrectAnswersMinigameAchievement?: IGameAchievement;
 	pmGuessing?: boolean;
@@ -46,12 +52,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	shortestAnswersOnly?: boolean;
 	updateHintTime?: number;
 
-	abstract generateAnswer(): Promise<void> | void;
-
-	onInitialize(format: IGameFormat): void {
-		super.onInitialize(format);
-
-		if (!format.options.points && !(format.mode && format.mode.removedOptions && format.mode.removedOptions.includes('points'))) {
+	afterInitialize(): void {
+		if (!this.format.options.points && !(this.format.mode && this.format.mode.removedOptions &&
+			this.format.mode.removedOptions.includes('points'))) {
 			throw new Error("Question and Answer games must include default or customizable points options");
 		}
 	}
@@ -102,22 +105,98 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.nextRound();
 	}
 
-	async tryGenerateAnswer(): Promise<void> {
+	async generateHint(): Promise<void> {
 		try {
-			await this.generateAnswer();
+			if (this.format.class.cachedData) {
+				let categories: readonly string[] | undefined;
+				if (this.inverse && this.format.class.cachedData.inverseCategories) {
+					categories = this.format.class.cachedData.inverseCategories;
+				} else if (this.format.class.cachedData.categories) {
+					categories = this.format.class.cachedData.categories;
+				}
+
+				let categoryHintKeys: Dict<readonly string[]> | undefined;
+				if (this.inverse && this.format.class.cachedData.inverseCategoryHintKeys) {
+					categoryHintKeys = this.format.class.cachedData.inverseCategoryHintKeys;
+				} else if (this.format.class.cachedData.categoryHintKeys) {
+					categoryHintKeys = this.format.class.cachedData.categoryHintKeys;
+				}
+
+				if (categories && categoryHintKeys) {
+					const category = this.roundCategory || this.sampleOne(categories);
+					this.currentCategory = category;
+
+					let hintKey = this.sampleOne(categoryHintKeys[category]);
+					while (hintKey === this.lastHintKey || (this.maxHintKeyLength && hintKey.length > this.maxHintKeyLength) ||
+						(this.minHintKeyLength && hintKey.length < this.minHintKeyLength)) {
+						hintKey = this.sampleOne(categoryHintKeys[category]);
+					}
+					this.lastHintKey = hintKey;
+
+					let categoryHintAnswers: Dict<Dict<readonly string[]>> | undefined;
+					if (this.inverse && this.format.class.cachedData.inverseCategoryHintAnswers) {
+						categoryHintAnswers = this.format.class.cachedData.inverseCategoryHintAnswers;
+					} else if (this.format.class.cachedData.categoryHintAnswers) {
+						categoryHintAnswers = this.format.class.cachedData.categoryHintAnswers;
+					}
+
+					this.setGeneratedHint(hintKey, categoryHintAnswers ? categoryHintAnswers[category] : undefined);
+				} else {
+					let hintKeys: readonly string[] | undefined;
+					if (this.inverse && this.format.class.cachedData.inverseHintKeys) {
+						hintKeys = this.format.class.cachedData.inverseHintKeys;
+					} else if (this.format.class.cachedData.hintKeys) {
+						hintKeys = this.format.class.cachedData.hintKeys;
+					}
+
+					if (!hintKeys) throw new Error("No hint keys cached");
+
+					let hintKey = this.sampleOne(hintKeys);
+					while (hintKey === this.lastHintKey || (this.maxHintKeyLength && hintKey.length > this.maxHintKeyLength) ||
+						(this.minHintKeyLength && hintKey.length < this.minHintKeyLength)) {
+						hintKey = this.sampleOne(hintKeys);
+					}
+					this.lastHintKey = hintKey;
+
+					let hintAnswers: Dict<readonly string[]> | undefined;
+					if (this.inverse && this.format.class.cachedData.inverseHintAnswers) {
+						hintAnswers = this.format.class.cachedData.inverseHintAnswers;
+					} else if (this.format.class.cachedData.hintAnswers) {
+						hintAnswers = this.format.class.cachedData.hintAnswers;
+					}
+
+					this.setGeneratedHint(hintKey, hintAnswers);
+				}
+			} else {
+				if (!this.customGenerateHint) throw new Error("No customGenerateHint() method defined");
+				await this.customGenerateHint();
+			}
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e, this.format.name + " generateAnswer()");
+			Tools.logError(e, this.format.name + " generateHint()");
 			this.errorEnd();
 		}
 	}
 
+	setGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): void {
+		if (hintAnswers) {
+			this.answers = hintKey in hintAnswers ? hintAnswers[hintKey] : [];
+			const hintPrefix = this.hintPrefix || this.currentCategory;
+			this.hint = (hintPrefix ? "<b>" + hintPrefix + "</b>: <i>" : "") + hintKey + (hintPrefix ? "</i>" : "");
+		} else {
+			if (!this.onSetGeneratedHint) throw new Error("No onSetGeneratedHint() method defined");
+			this.answers = [hintKey];
+		}
+
+		if (this.onSetGeneratedHint) this.onSetGeneratedHint(hintKey, hintAnswers);
+	}
+
 	async setNextAnswer(): Promise<void> {
-		await this.tryGenerateAnswer();
+		await this.generateHint();
 		if (this.ended) return;
 
 		while (this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint) {
-			await this.tryGenerateAnswer();
+			await this.generateHint();
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this.ended) return;
 		}
@@ -349,8 +428,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	getRandomAnswer(): IRandomGameAnswer {
-		// formats with async generateAnswer should not have canGetRandomAnswer set to `true`
-		void this.generateAnswer();
+		// formats with async generateHint should not have canGetRandomAnswer set to `true`
+		void this.generateHint();
 		if (this.updateHint) this.updateHint();
 		return {answers: this.getAnswers(), hint: this.hint};
 	}
@@ -418,10 +497,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	beforeNextRound?(newAnswer: boolean): boolean | string;
 	filterGuess?(guess: string, player?: Player): boolean;
+	customGenerateHint?(): Promise<void> | void;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
+	onSetGeneratedHint?(hintKey: string, hintAnswers?: Dict<readonly string[]>): void;
 	updateHint?(): void;
 }
 
@@ -472,7 +553,6 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 
 			const reachedMaxPoints = points >= this.format.options.points;
 			if (this.maxCorrectPlayersPerRound === 1 || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
-				if (this.hint) this.off(this.hint);
 				this.say("**" + player.name + "** advances to **" + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
 					"** point" + (points > 1 ? 's' : '') + "!");
 				this.displayAnswers(answer);

@@ -1,23 +1,15 @@
 import type { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-// eslint-disable-next-line max-len
-const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Locations': string[]} = {
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-	"Locations": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
+const MAX_LETTERS = 18;
 
 class AmbipomsTossups extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
 	currentCategory: string = '';
 	hints: string[] = [];
 	hintUpdates: number = 0;
-	lastAnswer: string = '';
 	letterCount: number = 0;
 	letters: string[] = [];
 	maxRevealedLetters: number | undefined;
@@ -31,31 +23,30 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	updateHintTime: number = 5 * 1000;
 
 	static loadData(): void {
-		data["Locations"] = Dex.getLocations().filter(x => x.length < 18);
-		data["Pokemon"] = Games.getPokemonList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().filter(x => x.name.length < 18).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().filter(x => x.name.length < 18).map(x => x.name);
+		this.cachedData.categories = ["Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		this.cachedData.categoryHintKeys = {
+			"Locations": Dex.getLocations().filter(x => x.length <= MAX_LETTERS),
+			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length <= MAX_LETTERS),
+			"Pokemon Abilities": Games.getAbilitiesList().map(x => x.name).filter(x => x.length <= MAX_LETTERS),
+			"Pokemon Items": Games.getItemsList().map(x => x.name).filter(x => x.length <= MAX_LETTERS),
+			"Pokemon Moves": Games.getMovesList().map(x => x.name).filter(x => x.length <= MAX_LETTERS),
+		};
 	}
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		this.currentCategory = category;
+	afterInitialize(): void {
+		super.afterInitialize();
 
-		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer || (this.maxRevealedLetters && answer.length < 7)) {
-			answer = this.sampleOne(data[category]);
-		}
-		this.lastAnswer = answer;
-		this.answers = [answer];
+		if (this.scaleMaxRevealedLetters) this.minHintKeyLength = 7;
+	}
 
+	onSetGeneratedHint(hintKey: string): void {
 		this.revealedLetters = 0;
 		this.hintUpdates = 0;
 		this.roundGuesses.clear();
 
-		const letters = answer.split("");
+		const letters = hintKey.split("");
 		this.letters = letters;
-		this.letterCount = Tools.toId(answer).split("").length;
+		this.letterCount = Tools.toId(hintKey).split("").length;
 		if (this.scaleMaxRevealedLetters) this.maxRevealedLetters = Math.floor(this.letterCount / 2) + 1;
 		this.hints = this.letters.slice();
 		for (let i = 0; i < this.hints.length; i++) {

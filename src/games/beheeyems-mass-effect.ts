@@ -1,28 +1,24 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "cognitivecerebrum";
-
-const data: {types: Dict<string[]>} = {
-	types: {},
-};
-const effectivenessLists: Dict<string[]> = {};
-const effectivenessListsKeys: string[] = [];
 
 class BeheeyemsMassEffect extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'cognitivecerebrum': {name: "Cognitive Cerebrum", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = BeheeyemsMassEffect.achievements.cognitivecerebrum;
-	lastEffectiveness: string = '';
+	hintPrefix: string = "Randomly generated effectiveness";
 	roundTime: number = 20 * 1000;
 
 	static loadData(): void {
+		const types: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			const typing = pokemon.types.slice().sort().join('/');
-			if (!(typing in data.types)) data.types[typing] = [];
-			data.types[typing].push(pokemon.name);
+			if (!(typing in types)) types[typing] = [];
+			types[typing].push(pokemon.name);
 		}
 
 		const typeNames: Dict<string> = {};
@@ -31,7 +27,10 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 			typeNames[key] = Dex.getExistingType(key).name;
 		}
 
-		for (const typing in data.types) {
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+
+		for (const typing in types) {
 			const immunities: string[] = [];
 			const resistances: string[] = [];
 			const weaknesses: string[] = [];
@@ -60,31 +59,24 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 			if (immunities.length) text.push("Immune to " + Tools.joinList(immunities));
 
 			const effectiveness = text.join(" | ");
-			if (!(effectiveness in effectivenessLists)) {
-				effectivenessLists[effectiveness] = [];
-				effectivenessListsKeys.push(effectiveness);
+			if (!(effectiveness in hints)) {
+				hints[effectiveness] = [];
+				hintKeys.push(effectiveness);
 			}
 
-			for (const pokemon of data.types[typing]) {
-				if (!effectivenessLists[effectiveness].includes(pokemon)) effectivenessLists[effectiveness].push(pokemon);
+			for (const pokemon of types[typing]) {
+				if (!hints[effectiveness].includes(pokemon)) hints[effectiveness].push(pokemon);
 			}
 		}
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
-	}
-
-	generateAnswer(): void {
-		let effectiveness = this.sampleOne(effectivenessListsKeys);
-		while (effectiveness === this.lastEffectiveness) {
-			effectiveness = this.sampleOne(effectivenessListsKeys);
-		}
-		this.lastEffectiveness = effectiveness;
-		this.answers = effectivenessLists[effectiveness];
-		this.hint = "<b>Randomly generated effectiveness</b>: <i>" + effectiveness + "</i>";
 	}
 }
 

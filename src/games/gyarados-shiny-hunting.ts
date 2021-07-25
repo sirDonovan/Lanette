@@ -18,16 +18,14 @@ const MAX_POKEMON_WIDTH = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPA
 const MAX_POKEMON_HEIGHT = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, BASE_ROWS_PER_GRID, true);
 
 const SPRITE_GENERATION: ModelGeneration = 'bw';
-const answerCommand = 'hunt';
-
-const letters = Tools.letters.toUpperCase().split("");
-const data: {pokemon: string[], gifData: Dict<IGifDirectionData>} = {
-	pokemon: [],
-	gifData: {},
-};
+const ANSWER_COMMAND = 'hunt';
+const LETTERS = Tools.letters.toUpperCase().split("");
 
 class GyaradosShinyHunting extends QuestionAndAnswer {
-	answerCommands: string[] = [answerCommand];
+	static gifData: Dict<IGifDirectionData> = {};
+	static gifDataKeys: string[] = [];
+
+	answerCommands: string[] = [ANSWER_COMMAND];
 	cooldownBetweenRounds: number = 5 * 1000;
 	currentPokemon: string = '';
 	inactiveRoundLimit: number = 5;
@@ -43,8 +41,8 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 			if (pokemon.forme || pokemon.gen > 5) continue;
 			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
 			if (gifData && gifData.w && gifData.h && gifData.w <= MAX_POKEMON_WIDTH && gifData.h <= MAX_POKEMON_HEIGHT) {
-				data.gifData[pokemon.name] = gifData;
-				data.pokemon.push(pokemon.name);
+				this.gifData[pokemon.name] = gifData;
+				this.gifDataKeys.push(pokemon.name);
 			}
 		}
 	}
@@ -83,22 +81,24 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		return Dex.getPokemonModel(pokemon, SPRITE_GENERATION, undefined, true);
 	}
 
-	generateAnswer(): void {
-		let species = this.sampleOne(data.pokemon);
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async customGenerateHint(): Promise<void> {
+		let species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
 		while (species === this.lastPokemon) {
-			species = this.sampleOne(data.pokemon);
+			species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
 		}
 		this.lastPokemon = species;
 		this.currentPokemon = species;
 
 		let pokemonInRow = BASE_POKEMON_PER_ROW;
-		while (((pokemonInRow + 1) * (data.gifData[species].w + ADDITIONAL_WIDTH)) < MAX_TABLE_WIDTH) {
+		while (((pokemonInRow + 1) * (GyaradosShinyHunting.gifData[species].w + ADDITIONAL_WIDTH)) < MAX_TABLE_WIDTH) {
 			pokemonInRow++;
 			if (pokemonInRow === MAX_POKEMON_PER_ROW) break;
 		}
 
 		let rowsInGrid = BASE_ROWS_PER_GRID;
-		while (rowsInGrid < pokemonInRow && ((rowsInGrid + 1) * (data.gifData[species].h + ADDITIONAL_HEIGHT)) < MAX_TABLE_HEIGHT) {
+		while (rowsInGrid < pokemonInRow &&
+			((rowsInGrid + 1) * (GyaradosShinyHunting.gifData[species].h + ADDITIONAL_HEIGHT)) < MAX_TABLE_HEIGHT) {
 			rowsInGrid++;
 			if (rowsInGrid === MAX_ROWS_PER_GRID) break;
 		}
@@ -128,7 +128,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		this.sayUhtml(this.uhtmlBaseName + '-preview', "<center>Find the shiny <b>" + this.currentPokemon + "</b>!<br />" +
 			this.getCurrentGif(pokemon) + "&nbsp;" + this.getShinyCurrentGif(pokemon) + "</center>");
 
-		this.answers = this.shinyCoordinates.map(x => Tools.toId(letters[x[0]] + x[1]));
+		this.answers = this.shinyCoordinates.map(x => Tools.toId(LETTERS[x[0]] + x[1]));
 	}
 
 	generateShinyCoordinates(pokemonInRow: number, rowsInGrid: number): [number, number] {
@@ -136,8 +136,8 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	getHintHtml(): string {
-		const tableWidth = this.roundPokemonPerRow * (data.gifData[this.currentPokemon].w + ADDITIONAL_WIDTH);
-		const rowHeight = data.gifData[this.currentPokemon].h + ADDITIONAL_HEIGHT;
+		const tableWidth = this.roundPokemonPerRow * (GyaradosShinyHunting.gifData[this.currentPokemon].w + ADDITIONAL_WIDTH);
+		const rowHeight = GyaradosShinyHunting.gifData[this.currentPokemon].h + ADDITIONAL_HEIGHT;
 		const backgroundColor = Tools.getNamedHexCode('White');
 
 		let gridHtml = '<table align="center" border="1" ' +
@@ -157,7 +157,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 					gridHtml += gif;
 				}
 
-				gridHtml += "<br />" + letters[x] + y;
+				gridHtml += "<br />" + LETTERS[x] + y;
 				gridHtml += '</td>';
 			}
 			gridHtml += '</tr>';
@@ -187,9 +187,9 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		}
 
 		const letter = targets[0].trim().toUpperCase();
-		const letterIndex = letters.indexOf(letter);
+		const letterIndex = LETTERS.indexOf(letter);
 		if (letterIndex === -1 || letterIndex > this.roundLastLetterIndex) {
-			player.say("You must specify a letter between " + letters[0] + " and " + letters[this.roundLastLetterIndex] + "!");
+			player.say("You must specify a letter between " + LETTERS[0] + " and " + LETTERS[this.roundLastLetterIndex] + "!");
 			return true;
 		}
 
@@ -209,12 +209,12 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 
 const commands = Tools.deepClone(questionAndAnswerGame.commands!);
 if (!commands.guess.aliases) commands.guess.aliases = [];
-commands.guess.aliases.push(answerCommand);
+commands.guess.aliases.push(ANSWER_COMMAND);
 
 export const game: IGameFile<GyaradosShinyHunting> = {
 	aliases: ["gyarados", "shinyhunting", "gsh"],
 	category: 'speed',
-	commandDescriptions: [Config.commandCharacter + answerCommand + " [coordinates]"],
+	commandDescriptions: [Config.commandCharacter + ANSWER_COMMAND + " [coordinates]"],
 	commands,
 	class: GyaradosShinyHunting,
 	customizableOptions: {

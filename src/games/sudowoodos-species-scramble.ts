@@ -1,41 +1,39 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "genusgenius";
-
-const data: {categories: Dict<string[]>} = {
-	categories: {},
-};
-const categoryKeys: string[] = [];
 
 class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = SudowoodosSpeciesScramble.achievements.genusgenius;
+	hintPrefix: string = "Sudowoodo imitated";
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+
+		for (const pokemon of Games.getPokemonList()) {
 			const category = Dex.getPokemonCategory(pokemon);
 			if (!category) continue;
-			if (!(category in data.categories)) {
-				data.categories[category] = [];
-				categoryKeys.push(category);
+
+			const hintKey = "the " + category + " Pokemon";
+			if (!(hintKey in hints)) {
+				hints[hintKey] = [];
+				hintKeys.push(hintKey);
 			}
-			data.categories[category].push(pokemon.name);
+			hints[hintKey].push(pokemon.name);
 		}
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-	}
-
-	generateAnswer(): void {
-		const category = this.sampleOne(categoryKeys);
-		this.answers = data.categories[category];
-		this.hint = "<b>Sudowoodo imitated</b>: <i>the " + category + " Pokemon</i>";
 	}
 }
 

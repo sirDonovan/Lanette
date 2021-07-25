@@ -1,12 +1,7 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "skillswapper" | "captainskillswapper";
-
-const data: {abilities: Dict<string[]>; pokedex: string[]} = {
-	"abilities": {},
-	"pokedex": [],
-};
 
 class AbrasAbilitySwitch extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -14,51 +9,33 @@ class AbrasAbilitySwitch extends QuestionAndAnswer {
 		"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for ' +
 			'your team and win the game'},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = AbrasAbilitySwitch.achievements.skillswapper;
 	allAnswersTeamAchievement = AbrasAbilitySwitch.achievements.captainskillswapper;
-	lastAbility: string = '';
-	lastPokemon: string = '';
+	hintPrefix: string = "Abra wants the ability";
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList();
-		for (const pokemon of pokedex) {
-			const abilities: string[] = [];
+		const abilities: Dict<string[]> = {};
+		for (const pokemon of Games.getPokemonList()) {
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error
-				abilities.push(pokemon.abilities[i]);
-			}
-			data.abilities[pokemon.id] = abilities;
-			data.pokedex.push(pokemon.name);
-		}
-	}
-
-	generateAnswer(): void {
-		let pokemon = this.sampleOne(data.pokedex);
-		while (pokemon === this.lastPokemon) {
-			pokemon = this.sampleOne(data.pokedex);
-		}
-		this.lastPokemon = pokemon;
-
-		const id = Tools.toId(pokemon);
-		let ability = this.sampleOne(data.abilities[id]);
-		while (ability === this.lastAbility) {
-			if (data.abilities[id].length === 1) {
-				this.generateAnswer();
-				return;
-			}
-			ability = this.sampleOne(data.abilities[id]);
-		}
-		this.lastAbility = ability;
-
-		const answers: string[] = [];
-		for (const name of data.pokedex) {
-			if (data.abilities[Tools.toId(name)].includes(ability)) {
-				answers.push(name);
+				const ability = Dex.getExistingAbility(pokemon.abilities[i] as string);
+				if (!(ability.name in abilities)) abilities[ability.name] = [];
+				abilities[ability.name].push(pokemon.name);
 			}
 		}
-		this.answers = answers;
-		this.hint = "<b>Abra wants the ability</b>: <i>" + ability + "</i>";
+
+		this.cachedData.hintAnswers = {};
+		const hintKeys: string[] = [];
+
+		for (const ability in abilities) {
+			if (abilities[ability].length === 1) continue;
+			this.cachedData.hintAnswers[ability] = abilities[ability];
+			hintKeys.push(ability);
+		}
+
+		this.cachedData.hintKeys = hintKeys;
 	}
 }
 

@@ -1,59 +1,144 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "swiftplacing";
 
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
-	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
+const MIN_LETTERS = 4;
 
 class PiplupsLetterPlacements extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'swiftplacing': {name: "Swift Placing", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = PiplupsLetterPlacements.achievements.swiftplacing;
-	lastAnswer: string = '';
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length > 3);
-		data["Locations"] = Dex.getLocations().filter(x => x.length > 3);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length > 3).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length > 3).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length > 3).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length > 3).map(x => x.name);
-	}
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		let randomAnswer = Tools.toId(this.sampleOne(data[category]));
-		while (randomAnswer === this.lastAnswer) {
-			randomAnswer = Tools.toId(this.sampleOne(data[category]));
+		const categoryHints: Dict<Dict<string[]>> = {
+			"Characters": {},
+			"Locations": {},
+			"Pokemon": {},
+			"Pokemon Abilities": {},
+			"Pokemon Items": {},
+			"Pokemon Moves": {},
+		};
+		const categoryHintKeys: Dict<string[]> = {
+			"Characters": [],
+			"Locations": [],
+			"Pokemon": [],
+			"Pokemon Abilities": [],
+			"Pokemon Items": [],
+			"Pokemon Moves": [],
+		};
+
+		for (const character of Dex.getCharacters()) {
+			const id = Tools.toId(character);
+			if (id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < id.length; i++) {
+				const b = id[i + 1];
+				const c = id[i + 2];
+				if (!b || !c) break;
+
+				const key = id[i] + b + c;
+				if (!(key in categoryHints["Characters"])) {
+					categoryHints["Characters"][key] = [];
+					categoryHintKeys["Characters"].push(key);
+				}
+				categoryHints["Characters"][key].push(character);
+			}
 		}
-		this.lastAnswer = randomAnswer;
 
-		const startingPosition = this.random(randomAnswer.length - 2);
-		const letters = randomAnswer.substr(startingPosition, 3);
-		if (Client.checkFilters(letters, this.isPmActivity(this.room) ? undefined : this.room)) {
-			this.generateAnswer();
-			return;
+		for (const location of Dex.getLocations()) {
+			const id = Tools.toId(location);
+			if (id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < id.length; i++) {
+				const b = id[i + 1];
+				const c = id[i + 2];
+				if (!b || !c) break;
+
+				const key = id[i] + b + c;
+				if (!(key in categoryHints["Locations"])) {
+					categoryHints["Locations"][key] = [];
+					categoryHintKeys["Locations"].push(key);
+				}
+				categoryHints["Locations"][key].push(location);
+			}
 		}
 
-		const answers: string[] = [];
-		for (const answer of data[category]) {
-			if (Tools.toId(answer).includes(letters)) answers.push(answer);
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < pokemon.id.length; i++) {
+				const b = pokemon.id[i + 1];
+				const c = pokemon.id[i + 2];
+				if (!b || !c) break;
+
+				const key = pokemon.id[i] + b + c;
+				if (!(key in categoryHints["Pokemon"])) {
+					categoryHints["Pokemon"][key] = [];
+					categoryHintKeys["Pokemon"].push(key);
+				}
+				categoryHints["Pokemon"][key].push(pokemon.name);
+			}
 		}
 
-		this.answers = answers;
-		this.hint = '<b>' + category + '</b>: <i>' + letters + '</i>';
+		for (const ability of Games.getAbilitiesList()) {
+			if (ability.id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < ability.id.length; i++) {
+				const b = ability.id[i + 1];
+				const c = ability.id[i + 2];
+				if (!b || !c) break;
+
+				const key = ability.id[i] + b + c;
+				if (!(key in categoryHints["Pokemon Abilities"])) {
+					categoryHints["Pokemon Abilities"][key] = [];
+					categoryHintKeys["Pokemon Abilities"].push(key);
+				}
+				categoryHints["Pokemon Abilities"][key].push(ability.name);
+			}
+		}
+
+		for (const item of Games.getItemsList()) {
+			if (item.id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < item.id.length; i++) {
+				const b = item.id[i + 1];
+				const c = item.id[i + 2];
+				if (!b || !c) break;
+
+				const key = item.id[i] + b + c;
+				if (!(key in categoryHints["Pokemon Items"])) {
+					categoryHints["Pokemon Items"][key] = [];
+					categoryHintKeys["Pokemon Items"].push(key);
+				}
+				categoryHints["Pokemon Items"][key].push(item.name);
+			}
+		}
+
+		for (const move of Games.getMovesList()) {
+			if (move.id.length < MIN_LETTERS) continue;
+
+			for (let i = 0; i < move.id.length; i++) {
+				const b = move.id[i + 1];
+				const c = move.id[i + 2];
+				if (!b || !c) break;
+
+				const key = move.id[i] + b + c;
+				if (!(key in categoryHints["Pokemon Moves"])) {
+					categoryHints["Pokemon Moves"][key] = [];
+					categoryHintKeys["Pokemon Moves"].push(key);
+				}
+				categoryHints["Pokemon Moves"][key].push(move.name);
+			}
+		}
+
+		this.cachedData.categoryHintAnswers = categoryHints;
+		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 }
 

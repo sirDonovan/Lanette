@@ -1,29 +1,21 @@
 import type { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import type { IHexCodeData } from "../types/tools";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
-
-const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
 
 const BANNED_CHARACTERS: string[] = ['.', '-', '(', ')'];
 const LETTERS_TO_REVEAL = 3;
 const MINIMUM_LENGTH = LETTERS_TO_REVEAL * 2;
 
 class LanturnsIlluminatedLetters extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
 	currentCategory: string = '';
 	currentIndicies: number[] = [];
 	hiddenColor: IHexCodeData = Tools.getNamedHexCode("Black");
 	hintUpdates: number = 0;
 	hintUpdateLimit: number = 0;
 	hintUpdateLimitMultiplier: number = 2;
-	lastAnswer: string = '';
 	lastIlluminatedletters: string = '';
 	letters: string[] = [];
 	lettersRound: number = 0;
@@ -35,7 +27,10 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	updateHintTime = 3000;
 
 	static loadData(): void {
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => {
+		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+
+		const categoryHintKeys: Dict<string[]> = {};
+		categoryHintKeys["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
 				if (x.includes(character)) return false;
@@ -44,7 +39,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 			return true;
 		});
 
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name).filter(x => {
+		categoryHintKeys["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
 				if (x.includes(character)) return false;
@@ -53,7 +48,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 			return true;
 		});
 
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name).filter(x => {
+		categoryHintKeys["Pokemon Items"] = Games.getItemsList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
 				if (x.includes(character)) return false;
@@ -62,7 +57,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 			return true;
 		});
 
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name).filter(x => {
+		categoryHintKeys["Pokemon Moves"] = Games.getMovesList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
 				if (x.includes(character)) return false;
@@ -70,29 +65,22 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 
 			return true;
 		});
+
+		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		this.currentCategory = category;
-
-		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer) {
-			answer = this.sampleOne(data[category]);
-		}
-		this.lastAnswer = answer;
-		this.answers = [answer];
-		this.letters = answer.split("");
+	onSetGeneratedHint(hintKey: string): void {
+		this.letters = hintKey.split("");
 
 		const indices: number[] = [];
-		for (let i = 0; i < answer.length; i++) {
+		for (let i = 0; i < hintKey.length; i++) {
 			indices.push(i);
 		}
 
 		this.currentIndicies = indices;
 		this.hintUpdates = 0;
 		this.lastIlluminatedletters = '';
-		this.hintUpdateLimit = answer.length * this.hintUpdateLimitMultiplier;
+		this.hintUpdateLimit = hintKey.length * this.hintUpdateLimitMultiplier;
 		this.updateHint();
 	}
 

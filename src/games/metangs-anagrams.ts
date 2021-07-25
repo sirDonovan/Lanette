@@ -1,19 +1,9 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "wordmaster" | "captainwordmaster";
 
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
-	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
+const MIN_LETTERS = 3;
 
 class MetangsAnagrams extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -21,35 +11,31 @@ class MetangsAnagrams extends QuestionAndAnswer {
 		'captainwordmaster': {name: "Captain Wordmaster", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
 			description: "get every answer for your team and win the game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = MetangsAnagrams.achievements.wordmaster;
 	allAnswersTeamAchievement = MetangsAnagrams.achievements.captainwordmaster;
-	lastAnswer: string = '';
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 3);
-		data["Locations"] = Dex.getLocations().filter(x => x.length >= 3);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		this.cachedData.categoryHintKeys = {
+			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),
+			"Locations": Dex.getLocations().filter(x => x.length >= MIN_LETTERS),
+			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Abilities": Games.getAbilitiesList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Items": Games.getItemsList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Moves": Games.getMovesList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+		};
 	}
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer) {
-			answer = this.sampleOne(data[category]);
-		}
-		this.lastAnswer = answer;
-		this.answers = [answer];
-		const id = Tools.toId(answer);
+	onSetGeneratedHint(hintKey: string): void {
+		const id = Tools.toId(hintKey);
 		const letters = id.split("");
 		let hint = this.shuffle(letters);
 		while (hint.join("") === id) {
 			hint = this.shuffle(letters);
 		}
-		this.hint = '<b>' + category + '</b>: <i>' + hint.join(", ") + '</i>';
+		this.hint = '<b>' + this.currentCategory + '</b>: <i>' + hint.join(", ") + '</i>';
 	}
 }
 

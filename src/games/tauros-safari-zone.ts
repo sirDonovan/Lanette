@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../types/games";
+import type { IPokemon } from "../types/pokemon-showdown";
 
 type AchievementNames = "pokemonranger";
 
@@ -35,14 +36,16 @@ class TaurosSafariZone extends ScriptedGame {
 	winners = new Map<Player, number>();
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(pokemon => Dex.hasModelData(pokemon) && pokemon.id !== 'voltorb' &&
-			pokemon.id !== 'electrode');
-		const listWithFormes = pokemonList.slice();
-		for (const pokemon of pokemonList) {
+		const listWithFormes: IPokemon[] = [];
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.id === 'voltorb' || pokemon.id === 'electrode' || !Dex.hasModelData(pokemon)) continue;
+
+			listWithFormes.push(pokemon);
+
 			if (pokemon.otherFormes) {
 				for (const name of pokemon.otherFormes) {
 					const forme = Dex.getExistingPokemon(name);
-					if (Dex.hasModelData(forme)) listWithFormes.push(forme);
+					if (Dex.hasModelData(forme) && !listWithFormes.includes(forme)) listWithFormes.push(forme);
 				}
 			}
 		}

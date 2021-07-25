@@ -1,14 +1,7 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "proteaneye" | "captainproteaneye";
-
-const data: {pokedex: string[]; reverseTypes: Dict<string>; species: Dict<string>; types: Dict<string>} = {
-	pokedex: [],
-	reverseTypes: {},
-	species: {},
-	types: {},
-};
 
 class GreninjasTypings extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -16,42 +9,45 @@ class GreninjasTypings extends QuestionAndAnswer {
 		'captainproteaneye': {name: "Captain Protean Eye", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
 			description: "get every answer for your team and win the game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = GreninjasTypings.achievements.proteaneye;
 	allAnswersTeamAchievement = GreninjasTypings.achievements.captainproteaneye;
-	lastPokemon: string = '';
-	lastTyping: string = '';
-	noOrder: boolean = false;
+	hintPrefix: string = "Randomly generated typing";
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(x => !x.name.startsWith('Arceus-') && !x.name.startsWith('Silvally-'));
-		for (const pokemon of pokedex) {
-			data.pokedex.push(pokemon.id);
-			data.species[pokemon.id] = pokemon.name;
-			data.reverseTypes[pokemon.id] = pokemon.types.slice().reverse().join('/');
-			data.types[pokemon.id] = pokemon.types.join('/');
-		}
-	}
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+		const inverseHints: Dict<string[]> = {};
 
-	generateAnswer(): void {
-		let pokemon = this.sampleOne(data.pokedex);
-		let typing = data.types[pokemon];
-		let reverseTyping = data.reverseTypes[pokemon];
-		while (!typing.includes('/') || typing === this.lastTyping || (this.noOrder && reverseTyping === this.lastTyping)) {
-			pokemon = this.sampleOne(data.pokedex);
-			typing = data.types[pokemon];
-			reverseTyping = data.reverseTypes[pokemon];
-		}
-		this.lastTyping = typing;
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.name.startsWith('Arceus-') || pokemon.name.startsWith('Silvally-')) continue;
 
-		const answers: string[] = [];
-		for (const otherPokemon of data.pokedex) {
-			if (typing === data.types[otherPokemon] || (this.noOrder && typing === data.reverseTypes[otherPokemon])) {
-				answers.push(data.species[otherPokemon]);
+			const key = pokemon.types.join('/');
+			if (!(key in hints)) {
+				hints[key] = [];
+				hintKeys.push(key);
+			}
+			hints[key].push(pokemon.name);
+
+			if (pokemon.types.length > 1) {
+				const inverseKey = pokemon.types.slice().reverse().join('/');
+				if (!(inverseKey in inverseHints)) {
+					inverseHints[inverseKey] = [];
+				}
+				inverseHints[inverseKey].push(pokemon.name);
 			}
 		}
-		this.answers = answers;
-		this.hint = "<b>Randomly generated typing</b>: <i>" + typing + "</i>";
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
+		this.cachedData.inverseHintAnswers = inverseHints;
+	}
+
+	onSetGeneratedHint(hintKey: string): void {
+		if (this.inverse) {
+			this.answers = this.answers.concat(GreninjasTypings.cachedData.hintAnswers![hintKey]);
+		}
 	}
 }
 
@@ -74,7 +70,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 			name: "Greninja's No Order Typings",
 			aliases: ['gnot'],
 			description: "Players guess Pokemon that match the given typing (order not important)!",
-			noOrder: true,
+			inverse: true,
 			variantAliases: ['no order'],
 		},
 	],

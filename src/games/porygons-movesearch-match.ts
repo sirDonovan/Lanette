@@ -1,19 +1,18 @@
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 class PorygonsMovesearchMatch extends QuestionAndAnswer {
-	static data: {hints: Dict<string[]>; hintKeys: string[]} = {
-		hints: {},
-		hintKeys: [],
-	};
+	static cachedData: IGameCachedData = {};
 
-	lastMoveset: string = '';
+	hintPrefix: string = "Randomly generated moveset";
 	roundTime: number = 20 * 1000;
 
 	static loadData(): void {
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
 		const movesets: Dict<string[]> = {};
-		const pokedex = Games.getPokemonList();
-		for (const pokemon of pokedex) {
+
+		for (const pokemon of Games.getPokemonList()) {
 			if (!pokemon.randomBattleMoves) continue;
 			const key = pokemon.randomBattleMoves.map(x => Tools.toId(x)).sort().join(',');
 			if (!(key in movesets)) movesets[key] = [];
@@ -22,20 +21,12 @@ class PorygonsMovesearchMatch extends QuestionAndAnswer {
 
 		for (const key in movesets) {
 			const formatted = key.split(',').map(x => Dex.getExistingMove(x).name).join(', ');
-			this.data.hints[formatted] = movesets[key];
-			this.data.hintKeys.push(formatted);
+			hints[formatted] = movesets[key];
+			hintKeys.push(formatted);
 		}
-	}
 
-	generateAnswer(): void {
-		let moveset = this.sampleOne(PorygonsMovesearchMatch.data.hintKeys);
-		while (moveset === this.lastMoveset) {
-			moveset = this.sampleOne(PorygonsMovesearchMatch.data.hintKeys);
-		}
-		this.lastMoveset = moveset;
-
-		this.answers = PorygonsMovesearchMatch.data.hints[moveset];
-		this.hint = "<b>Randomly generated moveset</b>: <i>" + moveset + "</i>";
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 }
 

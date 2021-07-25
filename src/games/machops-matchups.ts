@@ -26,10 +26,10 @@ class MachopsMatchups extends ScriptedGame {
 	currentPokemon!: IPokemon;
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(x => !x.forme && !banlist.includes(x.id) && Dex.hasModelData(x) && x.types.length > 1 &&
-			!x.types.includes('Steel') && !x.types.includes('Normal'));
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.forme || banlist.includes(pokemon.id) || !Dex.hasModelData(pokemon) || pokemon.types.length > 1 ||
+				pokemon.types.includes('Steel') || pokemon.types.includes('Normal')) continue;
 
-		for (const pokemon of pokemonList) {
 			data.keys.push(pokemon.name);
 			data.pokemon[pokemon.name] = pokemon.types;
 

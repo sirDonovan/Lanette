@@ -1,38 +1,33 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "genusgenius";
-
-const data: {pokemon: Dict<string[]>} = {
-	pokemon: {},
-};
-const pokemonKeys: string[] = [];
 
 class BonslysCategoryClutters extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'genusgenius': {name: "Genus Genius", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = BonslysCategoryClutters.achievements.genusgenius;
+	hintPrefix: string = "Bonsly imitated";
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
+		this.cachedData.hintAnswers = {};
+		const hintKeys: string[] = [];
+
+		for (const pokemon of Games.getPokemonList()) {
 			const category = Dex.getPokemonCategory(pokemon);
 			if (!category) continue;
-			data.pokemon[pokemon.name] = [category];
-			pokemonKeys.push(pokemon.name);
+			this.cachedData.hintAnswers[pokemon.name] = [category];
+			hintKeys.push(pokemon.name);
 		}
+
+		this.cachedData.hintKeys = hintKeys;
 	}
 
 	onSignups(): void {
 		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-	}
-
-	generateAnswer(): void {
-		const pokemon = this.sampleOne(pokemonKeys);
-		this.answers = data.pokemon[pokemon];
-		this.hint = "<b>Bonsly imitated</b>: <i>" + pokemon + "</i>";
 	}
 }
 

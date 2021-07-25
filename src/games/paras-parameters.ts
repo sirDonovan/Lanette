@@ -68,7 +68,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		return names.sort();
 	}
 
-	async generateAnswer(): Promise<void> {
+	async customGenerateHint(): Promise<void> {
 		let numberOfParams: number;
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;

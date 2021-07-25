@@ -1,22 +1,22 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import type { IMove } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "mootronome";
 
-const data: {'moves': Dict<Dict<string[]>>; 'pokemon': string[]} = {
-	moves: {},
-	pokemon: [],
-};
-
 class MiltanksMoves extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'mootronome': {name: "Mootronome", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = MiltanksMoves.achievements.mootronome;
 
 	static loadData(): void {
+		const categories: string[] = [];
+		const categoryHints: Dict<Dict<string[]>> = {};
+		const categoryHintKeys: Dict<string[]> = {};
+
 		const maxMoveAvailability = Games.getMaxMoveAvailability();
 		const bannedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
@@ -25,8 +25,9 @@ class MiltanksMoves extends QuestionAndAnswer {
 		}
 
 		const moveCache: Dict<IMove> = {};
-		const pokedex = Games.getPokemonList(x => x.baseSpecies === x.name);
-		for (const pokemon of pokedex) {
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.forme) continue;
+
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			if (allPossibleMoves.length === 1) continue;
 
@@ -35,33 +36,43 @@ class MiltanksMoves extends QuestionAndAnswer {
 				if (!(possibleMove in moveCache)) {
 					moveCache[possibleMove] = Dex.getExistingMove(possibleMove);
 				}
+
 				const move = moveCache[possibleMove];
-				if (!(pokemon.name in data.moves)) {
-					data.moves[pokemon.name] = {};
-					data.pokemon.push(pokemon.name);
+				if (!(pokemon.name in categoryHints)) {
+					categoryHints[pokemon.name] = {};
+					categoryHintKeys[pokemon.name] = [];
+					categories.push(pokemon.name);
 				}
-				if (!(move.type in data.moves[pokemon.name])) data.moves[pokemon.name][move.type] = [];
-				data.moves[pokemon.name][move.type].push(move.name);
+
+				if (!(move.type in categoryHints[pokemon.name])) categoryHints[pokemon.name][move.type] = [];
+
+				categoryHints[pokemon.name][move.type].push(move.name);
 			}
 		}
 
-		for (const species in data.moves) {
-			for (const i in data.moves[species]) {
-				if (data.moves[species][i].length > 4) delete data.moves[species][i];
+		for (const species in categoryHints) {
+			for (const type in categoryHints[species]) {
+				if (categoryHints[species][type].length > 4) {
+					delete categoryHints[species][type];
+				} else {
+					categoryHintKeys[species].push(type);
+				}
 			}
 
-			if (!Object.keys(data.moves[species]).length) {
-				delete data.moves[species];
-				data.pokemon.splice(data.pokemon.indexOf(species), 1);
+			if (!Object.keys(categoryHints[species]).length) {
+				delete categoryHints[species];
+				delete categoryHintKeys[species];
+				categories.splice(categories.indexOf(species), 1);
 			}
 		}
+
+		this.cachedData.categories = categories;
+		this.cachedData.categoryHintAnswers = categoryHints;
+		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	generateAnswer(): void {
-		const species = this.sampleOne(data.pokemon);
-		const type = this.sampleOne(Object.keys(data.moves[species]));
-		this.answers = data.moves[species][type];
-		this.hint = "<b>Randomly generated Pokemon and type</b>: <i>" + species + " - " + type + " type</i>";
+	onSetGeneratedHint(hintKey: string): void {
+		this.hint = "<b>Randomly generated Pokemon and type</b>: <i>" + this.currentCategory + " - " + hintKey + " type</i>";
 	}
 }
 
@@ -74,6 +85,8 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(quest
 	freejoin: true,
 	name: "Miltank's Moves",
 	mascot: "Miltank",
+	minigameCommand: "miltankmove",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a move of the specified type that the Pokemon learns!",
 	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
 	nonTrivialLoadData: true,
 });

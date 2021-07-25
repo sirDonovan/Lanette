@@ -1,76 +1,128 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type AchievementNames = "splittersplatter";
 
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
-	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
+const MIN_LETTERS = 3;
+
+function getLetterPermutations(id: string): string[][] {
+	return Tools.getPermutations(id.toUpperCase().split(""), 2, Math.min(id.length, 4), true);
+}
 
 class KyuremsSplits extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'splittersplatter': {name: "Splitter Splatter", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 3);
-		data["Locations"] = Dex.getLocations().filter(x => x.length >= 3);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
-	}
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
-	isValid(answer: string, hint: string): boolean {
-		while (hint.length > 0) {
-			const index = answer.indexOf(hint[0]);
-			if (index === -1) return false;
-			answer = answer.substr(index + 1);
-			hint = hint.substr(1);
-		}
-		return true;
-	}
+		const categoryHints: Dict<Dict<string[]>> = {
+			"Characters": {},
+			"Locations": {},
+			"Pokemon": {},
+			"Pokemon Abilities": {},
+			"Pokemon Items": {},
+			"Pokemon Moves": {},
+		};
+		const categoryHintKeys: Dict<string[]> = {
+			"Characters": [],
+			"Locations": [],
+			"Pokemon": [],
+			"Pokemon Abilities": [],
+			"Pokemon Items": [],
+			"Pokemon Moves": [],
+		};
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
+		for (const character of Dex.getCharacters()) {
+			if (character.length < MIN_LETTERS) continue;
 
-		let answers: string[] = [];
-		let hint = '';
-		while (!answers.length || answers.length > 15 ||
-			Client.checkFilters(hint, !this.isPmActivity(this.room) ? this.room : undefined)) {
-			const randomAnswer = Tools.toId(this.sampleOne(data[category]));
-			const validIndices: number[] = [];
-			for (let i = 1; i < randomAnswer.length; i++) {
-				validIndices.push(i);
-			}
-			const numberOfLetters = Math.min(4, Math.max(2, Math.floor(validIndices.length * (this.random(0.4) + 0.3))));
-			const chosenIndices = this.sampleMany(validIndices, numberOfLetters);
-
-			hint = '';
-			for (const index of chosenIndices) {
-				hint += randomAnswer[index];
-			}
-
-			answers = [];
-			for (const answer of data[category]) {
-				if (this.isValid(Tools.toId(answer), hint)) {
-					answers.push(answer);
+			const permutations = getLetterPermutations(Tools.toId(character));
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Characters"])) {
+					categoryHints["Characters"][key] = [];
+					categoryHintKeys["Characters"].push(key);
 				}
+				categoryHints["Characters"][key].push(character);
 			}
 		}
 
-		this.answers = answers;
-		this.hint = "<b>" + category + "</b>: <i>" + hint.toUpperCase() + "</i>";
+		for (const location of Dex.getLocations()) {
+			if (location.length < MIN_LETTERS) continue;
+
+			const permutations = getLetterPermutations(Tools.toId(location));
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Locations"])) {
+					categoryHints["Locations"][key] = [];
+					categoryHintKeys["Locations"].push(key);
+				}
+				categoryHints["Locations"][key].push(location);
+			}
+		}
+
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.name.length < MIN_LETTERS) continue;
+
+			const permutations = getLetterPermutations(pokemon.id);
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Pokemon"])) {
+					categoryHints["Pokemon"][key] = [];
+					categoryHintKeys["Pokemon"].push(key);
+				}
+				categoryHints["Pokemon"][key].push(pokemon.name);
+			}
+		}
+
+		for (const ability of Games.getAbilitiesList()) {
+			if (ability.name.length < MIN_LETTERS) continue;
+
+			const permutations = getLetterPermutations(ability.id);
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Pokemon Abilities"])) {
+					categoryHints["Pokemon Abilities"][key] = [];
+					categoryHintKeys["Pokemon Abilities"].push(key);
+				}
+				categoryHints["Pokemon Abilities"][key].push(ability.name);
+			}
+		}
+
+		for (const item of Games.getItemsList()) {
+			if (item.name.length < MIN_LETTERS) continue;
+
+			const permutations = getLetterPermutations(item.id);
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Pokemon Items"])) {
+					categoryHints["Pokemon Items"][key] = [];
+					categoryHintKeys["Pokemon Items"].push(key);
+				}
+				categoryHints["Pokemon Items"][key].push(item.name);
+			}
+		}
+
+		for (const move of Games.getMovesList()) {
+			if (move.name.length < MIN_LETTERS) continue;
+
+			const permutations = getLetterPermutations(move.id);
+			for (const permutation of permutations) {
+				const key = permutation.join("");
+				if (!(key in categoryHints["Pokemon Moves"])) {
+					categoryHints["Pokemon Moves"][key] = [];
+					categoryHintKeys["Pokemon Moves"].push(key);
+				}
+				categoryHints["Pokemon Moves"][key].push(move.name);
+			}
+		}
+
+		this.cachedData.categoryHintAnswers = categoryHints;
+		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 }
 
@@ -87,7 +139,8 @@ export const game: IGameFile<KyuremsSplits> = Games.copyTemplateProperties(quest
 	minigameCommand: 'split',
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an answer with all of the given letters in that " +
 		"order!",
-	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
+	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
+	nonTrivialLoadData: true,
 	variants: [
 		{
 			name: "Kyurem's Ability Splits",

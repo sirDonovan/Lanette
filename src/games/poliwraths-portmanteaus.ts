@@ -22,7 +22,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		Games.getWorkers().portmanteaus.init();
 	}
 
-	async generateAnswer(): Promise<void> {
+	async customGenerateHint(): Promise<void> {
 		let numberOfPorts: number;
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;

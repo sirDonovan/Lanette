@@ -1,20 +1,12 @@
 import type { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
-	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
+const MIN_LETTERS = 3;
 
 class HypnosHunches extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
 	currentCategory: string = '';
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];
@@ -23,7 +15,6 @@ class HypnosHunches extends QuestionAndAnswer {
 	hunchesRound: number = 0;
 	solvedLetters: string[] = [];
 	uniqueLetters: number = 0;
-	lastAnswer: string = '';
 	letters: string[] = [];
 	multiRoundHints = true;
 	roundGuesses = new Map<Player, boolean>();
@@ -31,32 +22,25 @@ class HypnosHunches extends QuestionAndAnswer {
 	updateHintTime = 3000;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length >= 3);
-		data["Locations"] = Dex.getLocations().filter(x => x.length >= 3);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		this.cachedData.categoryHintKeys = {
+			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),
+			"Locations": Dex.getLocations().filter(x => x.length >= MIN_LETTERS),
+			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Abilities": Games.getAbilitiesList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Items": Games.getItemsList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+			"Pokemon Moves": Games.getMovesList().map(x => x.name).filter(x => x.length >= MIN_LETTERS),
+		};
 	}
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		this.currentCategory = category;
-
-		let answer = this.sampleOne(data[category]);
-		while (answer === this.lastAnswer) {
-			answer = this.sampleOne(data[category]);
-		}
-		this.lastAnswer = answer;
-		this.answers = [answer];
-
+	onSetGeneratedHint(hintKey: string): void {
 		this.solvedLetters = [];
 		this.guessedLetters = [];
 		this.hintUpdates = 0;
 
-		const letters = answer.split("");
+		const letters = hintKey.split("");
 		this.letters = letters;
-		const id = Tools.toId(answer).split("");
+		const id = Tools.toId(hintKey).split("");
 		const uniqueLetters: string[] = [];
 		for (const letter of id) {
 			if (!uniqueLetters.includes(letter)) uniqueLetters.push(letter);

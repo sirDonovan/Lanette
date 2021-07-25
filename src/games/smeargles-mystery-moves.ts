@@ -1,53 +1,51 @@
 import type { Player } from "../room-activity";
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "moverelearner";
-
-const data: {moves: string[]} = {
-	moves: [],
-};
 
 class SmearglesMysteryMoves extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"moverelearner": {name: "Move Relearner", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = SmearglesMysteryMoves.achievements.moverelearner;
-	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
-	lastMove: string = '';
 	movesRound: number = 0;
 	multiRoundHints = true;
 	mysteryRound: number = -1;
-	points = new Map<Player, number>();
 	roundGuesses: Map<Player, boolean> | undefined = new Map();
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
 	static loadData(): void {
-		data.moves = Games.getMovesList(x => !!x.shortDesc).map(x => x.name);
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+
+		for (const move of Games.getMovesList()) {
+			if (!move.shortDesc) continue;
+
+			const moveHints: string[] = [];
+			moveHints.push("<b>Type</b>: " + move.type);
+			moveHints.push("<b>Base PP</b>: " + move.pp);
+			moveHints.push("<b>Category</b>: " + move.category);
+			moveHints.push("<b>Accuracy</b>: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
+			if (move.category !== 'Status') moveHints.push("<b>Base power</b>: " + move.basePower);
+			moveHints.push("<b>Description</b>: " + move.shortDesc);
+
+			hints[move.name] = moveHints;
+			hintKeys.push(move.name);
+		}
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 
-	generateAnswer(): void {
-		let name = this.sampleOne(data.moves);
-		while (this.lastMove === name) {
-			name = this.sampleOne(data.moves);
-		}
-		this.lastMove = name;
-
-		const move = Dex.getExistingMove(name);
-		const hints: string[] = [];
-		hints.push("<b>Type</b>: " + move.type);
-		hints.push("<b>Base PP</b>: " + move.pp);
-		hints.push("<b>Category</b>: " + move.category);
-		hints.push("<b>Accuracy</b>: " + (move.accuracy === true ? "does not check" : move.accuracy + "%"));
-		if (move.category !== 'Status') hints.push("<b>Base power</b>: " + move.basePower);
-		hints.push("<b>Description</b>: " + move.shortDesc);
-		this.hints = this.shuffle(hints);
-		this.answers = [move.name];
-
+	onSetGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): void {
+		this.hints = this.shuffle(hintAnswers![hintKey]);
+		this.answers = [hintKey];
 		this.mysteryRound = -1;
 	}
 

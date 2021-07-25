@@ -1,85 +1,119 @@
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_POINTS = 50;
 const BASE_TEAM_POINTS = 100;
+const MIN_LETTERS = 6;
+const LETTERS = Tools.letters.split("");
 
-const data: {'Pokemon': Dict<string>; 'Pokemon Abilities': Dict<string>; 'Pokemon Items': Dict<string>; 'Pokemon Moves': Dict<string>} = {
-	"Pokemon": {},
-	"Pokemon Abilities": {},
-	"Pokemon Items": {},
-	"Pokemon Moves": {},
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
-const dataKeys: KeyedDict<DataKey, string[]> = {
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
+function getAvailableLetters(id: string): string {
+	const availableLetters: string[] = [];
+	for (const letter of LETTERS) {
+		if (!id.includes(letter)) availableLetters.push(letter);
+	}
 
-const letters = Tools.letters.split("");
+	return availableLetters.join("");
+}
 
 class LugiasObstructiveLetters extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
 	loserPointsToBits: number = 2;
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
-			data["Pokemon"][pokemon.id] = pokemon.name;
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		const categoryHints: Dict<Dict<string[]>> = {
+			"Characters": {},
+			"Locations": {},
+			"Pokemon": {},
+			"Pokemon Abilities": {},
+			"Pokemon Items": {},
+			"Pokemon Moves": {},
+		};
+		const categoryHintKeys: Dict<string[]> = {
+			"Characters": [],
+			"Locations": [],
+			"Pokemon": [],
+			"Pokemon Abilities": [],
+			"Pokemon Items": [],
+			"Pokemon Moves": [],
+		};
+
+		for (const character of Dex.getCharacters()) {
+			if (character.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(Tools.toId(character));
+			if (!(key in categoryHints["Characters"])) {
+				categoryHints["Characters"][key] = [];
+				categoryHintKeys["Characters"].push(key);
+			}
+			categoryHints["Characters"][key].push(character);
 		}
 
-		const abilities = Games.getAbilitiesList();
-		for (const ability of abilities) {
-			data["Pokemon Abilities"][ability.id] = ability.name;
+		for (const location of Dex.getLocations()) {
+			if (location.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(Tools.toId(location));
+			if (!(key in categoryHints["Locations"])) {
+				categoryHints["Locations"][key] = [];
+				categoryHintKeys["Locations"].push(key);
+			}
+			categoryHints["Locations"][key].push(location);
 		}
 
-		const items = Games.getItemsList();
-		for (const item of items) {
-			data["Pokemon Items"][item.id] = item.name;
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.name.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(pokemon.id);
+			if (!(key in categoryHints["Pokemon"])) {
+				categoryHints["Pokemon"][key] = [];
+				categoryHintKeys["Pokemon"].push(key);
+			}
+			categoryHints["Pokemon"][key].push(pokemon.name);
 		}
 
-		const moves = Games.getMovesList();
-		for (const move of moves) {
-			data["Pokemon Moves"][move.id] = move.name;
+		for (const ability of Games.getAbilitiesList()) {
+			if (ability.name.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(ability.id);
+			if (!(key in categoryHints["Pokemon Abilities"])) {
+				categoryHints["Pokemon Abilities"][key] = [];
+				categoryHintKeys["Pokemon Abilities"].push(key);
+			}
+			categoryHints["Pokemon Abilities"][key].push(ability.name);
 		}
 
-		for (const category of categories) {
-			dataKeys[category] = Object.keys(data[category]);
+		for (const item of Games.getItemsList()) {
+			if (item.name.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(item.id);
+			if (!(key in categoryHints["Pokemon Items"])) {
+				categoryHints["Pokemon Items"][key] = [];
+				categoryHintKeys["Pokemon Items"].push(key);
+			}
+			categoryHints["Pokemon Items"][key].push(item.name);
 		}
+
+		for (const move of Games.getMovesList()) {
+			if (move.name.length < MIN_LETTERS) continue;
+
+			const key = getAvailableLetters(move.id);
+			if (!(key in categoryHints["Pokemon Moves"])) {
+				categoryHints["Pokemon Moves"][key] = [];
+				categoryHintKeys["Pokemon Moves"].push(key);
+			}
+			categoryHints["Pokemon Moves"][key].push(move.name);
+		}
+
+		this.cachedData.categoryHintAnswers = categoryHints;
+		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	generateAnswer(): void {
-		let answers: string[] = [];
-		let category: DataKey;
-		let unavailableLetters: string[] = [];
-		while (!answers.length || answers.length > 20) {
-			category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-			const id = this.sampleOne(dataKeys[category]);
-			const availableLetters: string[] = [];
-			for (const letter of letters) {
-				if (!id.includes(letter)) availableLetters.push(letter);
-			}
-			unavailableLetters = this.sampleMany(availableLetters, Math.floor(availableLetters.length / 2)).sort();
-			answers = [];
-			for (const answer of dataKeys[category]) {
-				if (answer.length <= 5) continue;
-				let hasUnavailableLetter = false;
-				for (const letter of unavailableLetters) {
-					if (answer.includes(letter)) {
-						hasUnavailableLetter = true;
-						break;
-					}
-				}
-				if (hasUnavailableLetter) continue;
-				answers.push(data[category][answer]);
-			}
-		}
-		this.answers = answers;
-		this.hint = "<b>" + category! + "</b>: <i>" + unavailableLetters.map(letter => letter.toUpperCase()).join(", ") + "</i>";
+	onSetGeneratedHint(hintKey: string): void {
+		this.hint = "<b>" + this.currentCategory + "</b>: <i>" +
+			this.sampleMany(hintKey.split(""), Math.floor(hintKey.length / 2)).sort().join(", ").toUpperCase() + "</i>";
 	}
 
 	getPointsForAnswer(answer: string): number {

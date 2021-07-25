@@ -1,41 +1,36 @@
 import type { Player } from "../room-activity";
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "pokemonprofessor";
-
-const data: {abilities: Dict<string[]>; eggGroups: Dict<string>; pokedex: string[]; regions: Dict<string>; types: Dict<string>} = {
-	abilities: {},
-	eggGroups: {},
-	pokedex: [],
-	regions: {},
-	types: {},
-};
 
 class PikachusMysteryPokemon extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"pokemonprofessor": {name: "Pokemon Professor", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = PikachusMysteryPokemon.achievements.pokemonprofessor;
-	answers: string[] = [];
 	canGuess: boolean = false;
 	hints: string[] = [];
-	lastSpecies: string = '';
 	multiRoundHints = true;
 	mysteryRound: number = -1;
-	points = new Map<Player, number>();
 	pokemonRound: number = 0;
 	roundGuesses: Map<Player, boolean> | undefined = new Map();
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(pokemon => !pokemon.forme);
-		for (const pokemon of pokemonList) {
-			data.pokedex.push(pokemon.id);
-			data.eggGroups[pokemon.id] = pokemon.eggGroups.join(", ");
-			data.types[pokemon.id] = pokemon.types.join("/");
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.forme) continue;
+
+			const pokemonHints: string[] = [];
+			pokemonHints.push("<b>Type" + (pokemon.types.length > 1 ? "s" : "") + "</b>: " + pokemon.types.join("/"));
+			pokemonHints.push("<b>Color</b>: " + pokemon.color);
+			pokemonHints.push("<b>Egg group" + (pokemon.eggGroups.length > 1 ? "s" : "") + "</b>: " + pokemon.eggGroups.join(", "));
 
 			let region;
 			if (pokemon.gen === 1) {
@@ -55,35 +50,20 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 			} else if (pokemon.gen === 8) {
 				region = 'Galar';
 			}
-			if (region) data.regions[pokemon.id] = region;
 
-			const abilities: string[] = [];
-			for (const i in pokemon.abilities) {
-				if (i === 'H') continue;
-				// @ts-expect-error
-				abilities.push(pokemon.abilities[i]);
-			}
-			data.abilities[pokemon.id] = abilities;
+			if (region) pokemonHints.push("<b>Region</b>: " + region);
+
+			hints[pokemon.name] = pokemonHints;
+			hintKeys.push(pokemon.name);
 		}
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 
-	generateAnswer(): void {
-		let species = this.sampleOne(data.pokedex);
-		while (this.lastSpecies === species) {
-			species = this.sampleOne(data.pokedex);
-		}
-		this.lastSpecies = species;
-
-		const pokemon = Dex.getExistingPokemon(species);
-		const hints: string[] = [];
-		hints.push("<b>Type" + (data.types[species].includes('/') ? "s" : "") + "</b>: " + data.types[species]);
-		if (species in data.regions) hints.push("<b>Region</b>: " + data.regions[species]);
-		hints.push("<b>Color</b>: " + pokemon.color);
-		hints.push("<b>Egg group" + (data.eggGroups[species].includes(',') ? "s" : "") + "</b>: " + data.eggGroups[species]);
-		hints.push("<b>Ability</b>: " + this.sampleOne(data.abilities[species]));
-		this.hints = this.shuffle(hints);
-		this.answers = [pokemon.name];
-
+	onSetGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): void {
+		this.hints = this.shuffle(hintAnswers![hintKey]);
+		this.answers = [hintKey];
 		this.mysteryRound = -1;
 	}
 

@@ -1,24 +1,22 @@
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_NAMES = 2;
-const data: {'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]; 'Pokemon': string[]} = {
-	'Pokemon Abilities': [],
-	'Pokemon Items': [],
-	'Pokemon Moves': [],
-	'Pokemon': [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
 
 class MagnetonsMashups extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
+	currentCategory: string = '';
 	roundTime: number = 30 * 1000;
 
 	static loadData(): void {
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name);
+		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		this.cachedData.categoryHintKeys = {
+			"Pokemon": Games.getPokemonList().map(x => x.name),
+			"Pokemon Abilities": Games.getAbilitiesList().map(x => x.name),
+			"Pokemon Items": Games.getItemsList().map(x => x.name),
+			"Pokemon Moves": Games.getMovesList().map(x => x.name),
+		};
 	}
 
 	getAnswers(): string[] {
@@ -33,7 +31,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "";
 	}
 
-	generateAnswer(): void {
+	onSetGeneratedHint(): void {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
 			numberOfElements = this.format.options.names;
@@ -44,8 +42,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			}
 		}
 
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		const elements = this.sampleMany(data[category], numberOfElements);
+		const elements = this.sampleMany(MagnetonsMashups.cachedData.categoryHintKeys![this.currentCategory], numberOfElements);
 
 		let mashup = "";
 		let totalLength = 0;
@@ -97,13 +94,13 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		}
 
 		if (Client.checkFilters(mashup, !this.isPmActivity(this.room) ? this.room : undefined)) {
-			this.generateAnswer();
+			void this.generateHint();
 			return;
 		}
 
 		this.answers = [Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&")].concat(
 			Tools.getPermutations(elements).map(x => x.join("")));
-		this.hint = "<b>" + category + "</b>: <i>" + mashup + "</i>";
+		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + mashup + "</i>";
 		this.additionalHintHeader = "- " + numberOfElements + " names";
 	}
 }

@@ -1,99 +1,198 @@
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "alphabetsweep";
 
-const data: {'Characters': string[]; 'Locations': string[]; 'Pokemon': string[]; 'Pokemon Abilities': string[];
-	'Pokemon Items': string[]; 'Pokemon Moves': string[];} = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
-const vowels: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
+const VOWELS: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
+
+function getLostLetters(answer: string, inverse?: boolean): string | null {
+	const lostLetters: string[] = [];
+	for (const letter of answer.split('')) {
+		if (letter === ' ') continue;
+		if (inverse) {
+			if (VOWELS.includes(letter)) {
+				lostLetters.push(letter);
+			}
+		} else {
+			if (!VOWELS.includes(letter)) {
+				lostLetters.push(letter);
+			}
+		}
+	}
+
+	return lostLetters.join('');
+}
 
 class FeraligatrsLostLetters extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'alphabetsweep': {name: "Alphabet Sweep", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
-	categoryList: DataKey[] = categories.slice();
-	inverseLostLetters: boolean = false;
 
 	static loadData(): void {
-		data["Characters"] = Dex.getCharacters().filter(x => x.length > 3);
-		data["Locations"] = Dex.getLocations().filter(x => x.length > 3);
-		data["Pokemon"] = Games.getPokemonList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Abilities"] = Games.getAbilitiesList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Items"] = Games.getItemsList(x => x.name.length >= 3).map(x => x.name);
-		data["Pokemon Moves"] = Games.getMovesList(x => x.name.length >= 3).map(x => x.name);
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		const inverseCategories = this.cachedData.categories.slice();
+		inverseCategories.splice(inverseCategories.indexOf("Characters"), 1);
+		this.cachedData.inverseCategories = inverseCategories;
+
+		const categoryHintKeys: Dict<string[]> = {
+			"Characters": [],
+			"Locations": [],
+			"Pokemon": [],
+			"Pokemon Abilities": [],
+			"Pokemon Items": [],
+			"Pokemon Moves": [],
+		};
+		const categoryHints: Dict<Dict<string[]>> = {
+			"Characters": {},
+			"Locations": {},
+			"Pokemon": {},
+			"Pokemon Abilities": {},
+			"Pokemon Items": {},
+			"Pokemon Moves": {},
+		};
+
+		const inverseCategoryHintKeys = Tools.deepClone(categoryHintKeys);
+		const inverseCategoryHints = Tools.deepClone(categoryHints);
+
+		for (const character of Dex.getCharacters()) {
+			const lostLetters = getLostLetters(character);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Characters"])) {
+					categoryHintKeys["Characters"].push(lostLetters);
+					categoryHints["Characters"][lostLetters] = [];
+				}
+				categoryHints["Characters"][lostLetters].push(character);
+			}
+
+			const inverseLostLetters = getLostLetters(character, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Characters"])) {
+					inverseCategoryHintKeys["Characters"].push(inverseLostLetters);
+					inverseCategoryHints["Characters"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Characters"][inverseLostLetters].push(character);
+			}
+		}
+
+		for (const location of Dex.getLocations()) {
+			const lostLetters = getLostLetters(location);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Locations"])) {
+					categoryHintKeys["Locations"].push(lostLetters);
+					categoryHints["Locations"][lostLetters] = [];
+				}
+				categoryHints["Locations"][lostLetters].push(location);
+			}
+
+			const inverseLostLetters = getLostLetters(location, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Locations"])) {
+					inverseCategoryHintKeys["Locations"].push(inverseLostLetters);
+					inverseCategoryHints["Locations"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Locations"][inverseLostLetters].push(location);
+			}
+		}
+
+		for (const pokemon of Games.getPokemonList()) {
+			const lostLetters = getLostLetters(pokemon.name);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Pokemon"])) {
+					categoryHintKeys["Pokemon"].push(lostLetters);
+					categoryHints["Pokemon"][lostLetters] = [];
+				}
+				categoryHints["Pokemon"][lostLetters].push(pokemon.name);
+			}
+
+			const inverseLostLetters = getLostLetters(pokemon.name, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Pokemon"])) {
+					inverseCategoryHintKeys["Pokemon"].push(inverseLostLetters);
+					inverseCategoryHints["Pokemon"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Pokemon"][inverseLostLetters].push(pokemon.name);
+			}
+		}
+
+		for (const ability of Games.getAbilitiesList()) {
+			const lostLetters = getLostLetters(ability.name);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Pokemon Abilities"])) {
+					categoryHintKeys["Pokemon Abilities"].push(lostLetters);
+					categoryHints["Pokemon Abilities"][lostLetters] = [];
+				}
+				categoryHints["Pokemon Abilities"][lostLetters].push(ability.name);
+			}
+
+			const inverseLostLetters = getLostLetters(ability.name, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Pokemon Abilities"])) {
+					inverseCategoryHintKeys["Pokemon Abilities"].push(inverseLostLetters);
+					inverseCategoryHints["Pokemon Abilities"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Pokemon Abilities"][inverseLostLetters].push(ability.name);
+			}
+		}
+
+		for (const item of Games.getItemsList()) {
+			const lostLetters = getLostLetters(item.name);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Pokemon Items"])) {
+					categoryHintKeys["Pokemon Items"].push(lostLetters);
+					categoryHints["Pokemon Items"][lostLetters] = [];
+				}
+				categoryHints["Pokemon Items"][lostLetters].push(item.name);
+			}
+
+			const inverseLostLetters = getLostLetters(item.name, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Pokemon Items"])) {
+					inverseCategoryHintKeys["Pokemon Items"].push(inverseLostLetters);
+					inverseCategoryHints["Pokemon Items"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Pokemon Items"][inverseLostLetters].push(item.name);
+			}
+		}
+
+		for (const move of Games.getMovesList()) {
+			const lostLetters = getLostLetters(move.name);
+			if (lostLetters) {
+				if (!(lostLetters in categoryHints["Pokemon Moves"])) {
+					categoryHintKeys["Pokemon Moves"].push(lostLetters);
+					categoryHints["Pokemon Moves"][lostLetters] = [];
+				}
+				categoryHints["Pokemon Moves"][lostLetters].push(move.name);
+			}
+
+			const inverseLostLetters = getLostLetters(move.name, true);
+			if (inverseLostLetters) {
+				if (!(inverseLostLetters in inverseCategoryHints["Pokemon Moves"])) {
+					inverseCategoryHintKeys["Pokemon Moves"].push(inverseLostLetters);
+					inverseCategoryHints["Pokemon Moves"][inverseLostLetters] = [];
+				}
+				inverseCategoryHints["Pokemon Moves"][inverseLostLetters].push(move.name);
+			}
+		}
+
+		this.cachedData.categoryHintKeys = categoryHintKeys;
+		this.cachedData.categoryHintAnswers = categoryHints;
+		this.cachedData.inverseCategoryHintKeys = inverseCategoryHintKeys;
+		this.cachedData.inverseCategoryHintAnswers = inverseCategoryHints;
 	}
 
 	getMinigameDescription(): string {
 		return "Use <code>" + Config.commandCharacter + "g</code> to guess the answer after finding the missing " +
-			(this.inverseLostLetters ? "consonants" : "vowels") + "!";
+			(this.inverse ? "consonants" : "vowels") + "!";
 	}
 
 	onSignups(): void {
 		super.onSignups();
-		if (this.inverseLostLetters) {
+		if (this.inverse) {
 			this.roundTime = 15 * 1000;
-			this.categoryList.splice(this.categoryList.indexOf('Characters'), 1);
 		}
-	}
-
-	removeLetters(letters: string[]): string {
-		const newLetters: string[] = [];
-		for (const letter of letters) {
-			if (letter === ' ') continue;
-			if (this.inverseLostLetters) {
-				if (vowels.includes(letter)) {
-					newLetters.push(letter);
-				}
-			} else {
-				if (!vowels.includes(letter)) {
-					newLetters.push(letter);
-				}
-			}
-		}
-
-		return newLetters.join('');
-	}
-
-	generateAnswer(): void {
-		let category: DataKey;
-		if (this.roundCategory) {
-			category = this.roundCategory as DataKey;
-		} else {
-			category = this.sampleOne(this.categoryList);
-		}
-
-		let answer: string = '';
-		let hint: string = '';
-		while (!answer) {
-			let name = this.sampleOne(data[category]);
-			if (!name || name.endsWith('-Mega')) continue;
-			name = name.trim();
-			hint = this.removeLetters(name.split(''));
-			if (!hint || hint.length === name.length ||
-				Client.checkFilters(hint, !this.isPmActivity(this.room) ? this.room : undefined)) continue;
-			answer = name;
-		}
-
-		const answers: string[] = [answer];
-		for (let name of data[category]) {
-			name = name.trim();
-			if (name === answer) continue;
-			if (this.removeLetters(name.split('')) === hint) answers.push(name);
-		}
-
-		this.answers = answers;
-		this.hint = '<b>' + category + '</b>: <i>' + hint + '</i>';
 	}
 }
 
@@ -124,7 +223,7 @@ export const game: IGameFile<FeraligatrsLostLetters> = Games.copyTemplatePropert
 		{
 			name: "Feraligatr's Inverse Lost Letters",
 			description: "Players guess the missing consonants to find the answers!",
-			inverseLostLetters: true,
+			inverse: true,
 			variantAliases: ['inverse'],
 		},
 		{

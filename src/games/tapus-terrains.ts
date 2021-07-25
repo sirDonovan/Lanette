@@ -62,8 +62,9 @@ class TapusTerrains extends ScriptedGame {
 	terrainRound: number = 0;
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(x => Dex.hasModelData(x));
-		for (const pokemon of pokedex) {
+		for (const pokemon of Games.getPokemonList()) {
+			if (!Dex.hasModelData(pokemon)) continue;
+
 			for (const type of pokemon.types) {
 				for (const key of terrainKeys) {
 					if (type === terrains[key]) {

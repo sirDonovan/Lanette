@@ -1,17 +1,8 @@
 import type { Player } from "../room-activity";
-import type { IGameAchievement, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 type AchievementNames = "achillesheel" | "captainachilles";
-
-const data: {pokedex: string[]; inverseTypeKeys: string[]; inverseTypeWeaknesses: Dict<string[]>; typeKeys: string[];
-	typeWeaknesses: Dict<string[]>;} = {
-	pokedex: [],
-	inverseTypeKeys: [],
-	inverseTypeWeaknesses: {},
-	typeKeys: [],
-	typeWeaknesses: {},
-};
 
 class MagcargosWeakSpot extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -19,13 +10,11 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 		"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team ' +
 			'and win the game'},
 	};
+	static cachedData: IGameCachedData = {};
 
 	allAnswersAchievement = MagcargosWeakSpot.achievements.achillesheel;
 	allAnswersTeamAchievement = MagcargosWeakSpot.achievements.captainachilles;
-	inverseTypes: boolean = false;
 	lastAnswers: string[] = [];
-	lastPokemon: string = '';
-	lastType: string = '';
 	oneGuessPerHint = true;
 	roundGuesses = new Map<Player, boolean>();
 
@@ -35,42 +24,45 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 			types.push(Dex.getExistingType(key).name);
 		}
 
-		const pokemonList = Games.getPokemonList(x => !x.name.startsWith("Arceus-") && !x.name.startsWith('Silvally-'));
-		for (const pokemon of pokemonList) {
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
+		const inverseHints: Dict<string[]> = {};
+		const inverseHintKeys: string[] = [];
+
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.name.startsWith("Arceus-") || pokemon.name.startsWith('Silvally-')) continue;
+
 			for (const type of types) {
 				const effectiveness = Dex.getEffectiveness(type, pokemon);
 				if (Dex.isImmune(type, pokemon) || effectiveness <= -1) {
-					if (!(type in data.inverseTypeWeaknesses)) {
-						data.inverseTypeWeaknesses[type] = [];
-						data.inverseTypeKeys.push(type);
+					if (!(type in inverseHints)) {
+						inverseHints[type] = [];
+						inverseHintKeys.push(type);
 					}
-					data.inverseTypeWeaknesses[type].push(pokemon.name);
+					inverseHints[type].push(pokemon.name);
 				} else if (effectiveness >= 1) {
-					if (!(type in data.typeWeaknesses)) {
-						data.typeWeaknesses[type] = [];
-						data.typeKeys.push(type);
+					if (!(type in hints)) {
+						hints[type] = [];
+						hintKeys.push(type);
 					}
-					data.typeWeaknesses[type].push(pokemon.name);
+					hints[type].push(pokemon.name);
 				}
 			}
 		}
+
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
+		this.cachedData.inverseHintAnswers = inverseHints;
+		this.cachedData.inverseHintKeys = inverseHintKeys;
 	}
 
-	generateAnswer(): void {
-		const typeKeys: string[] = this.inverseTypes ? data.inverseTypeKeys : data.typeKeys;
-		const typeWeaknesses: Dict<string[]> = this.inverseTypes ? data.inverseTypeWeaknesses : data.typeWeaknesses;
-		let type = this.sampleOne(typeKeys);
-		let pokemonList = this.sampleMany(typeWeaknesses[type], 3).sort();
-		while (type === this.lastType || pokemonList.join(', ') === this.lastPokemon) {
-			type = this.sampleOne(typeKeys);
-			pokemonList = this.sampleMany(typeWeaknesses[type], 3).sort();
-		}
-		this.lastPokemon = pokemonList.join(', ');
-		this.lastType = type;
-
-		const answers: string[] = [type];
+	onSetGeneratedHint(hintKey: string): void {
+		const typeWeaknesses: Dict<readonly string[]> = this.inverse ? MagcargosWeakSpot.cachedData.inverseHintAnswers! :
+			MagcargosWeakSpot.cachedData.hintAnswers!;
+		const pokemonList = this.sampleMany(typeWeaknesses[hintKey], 3).sort();
+		const answers: string[] = [hintKey];
 		for (const i in typeWeaknesses) {
-			if (i === type) continue;
+			if (i === hintKey) continue;
 			let containsPokemon = true;
 			for (const pokemon of pokemonList) {
 				if (!typeWeaknesses[i].includes(pokemon)) {
@@ -80,6 +72,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 			}
 			if (containsPokemon) answers.push(i);
 		}
+
 		let containsPreviousAnswer = false;
 		for (const answer of answers) {
 			if (this.lastAnswers.includes(answer)) {
@@ -88,12 +81,10 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 			}
 		}
 		if (containsPreviousAnswer) {
-			this.generateAnswer();
+			void this.generateHint();
 			return;
 		}
 
-		this.roundGuesses.clear();
-		this.lastAnswers = answers;
 		this.answers = answers;
 		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + pokemonList.join(", ") + "</i>";
 	}
@@ -109,12 +100,14 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(q
 	freejoin: true,
 	name: "Magcargo's Weak Spot",
 	mascot: "Magcargo",
+	minigameCommand: 'weakspot',
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the weakness(es) that the given Pokemon share!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
 			name: "Magcargo's Inverse Weak Spot",
 			description: "Using an inverted type chart, players guess the weakness(es) that the given Pokemon share!",
-			inverseTypes: true,
+			inverse: true,
 			variantAliases: ['inverse'],
 		},
 	],

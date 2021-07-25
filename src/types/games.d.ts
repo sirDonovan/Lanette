@@ -55,9 +55,23 @@ export interface IGameAchievement {
 
 export type InternalGame = GameChallenge | 'eggtoss' | 'headtohead' | 'sweetthief' | 'vote';
 
+export interface IGameCachedData {
+	categories?: readonly string[];
+	categoryHintAnswers?: Dict<Dict<readonly string[]>>;
+	categoryHintKeys?: Dict<readonly string[]>;
+	inverseCategories?: readonly string[];
+	inverseCategoryHintAnswers?: Dict<Dict<readonly string[]>>;
+	inverseCategoryHintKeys?: Dict<readonly string[]>;
+	hintAnswers?: Dict<readonly string[]>;
+	hintKeys?: readonly string[];
+	inverseHintAnswers?: Dict<readonly string[]>;
+	inverseHintKeys?: readonly string[];
+}
+
 interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	achievements?: Dict<IGameAchievement>;
+	cachedData?: IGameCachedData;
 	loadData?: (room: Room | User, extendedClass?: boolean) => void;
 	loadedData?: boolean;
 }

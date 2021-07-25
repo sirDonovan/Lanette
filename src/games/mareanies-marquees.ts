@@ -1,24 +1,16 @@
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
-
-const data: {'Pokemon': string[]; 'Pokemon Abilities': string[]; 'Pokemon Items': string[]; 'Pokemon Moves': string[]} = {
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
-type DataKey = keyof typeof data;
-const categories = Object.keys(data) as DataKey[];
 
 const LETTERS_TO_REVEAL = 4;
 
-class MareaniesMarquee extends QuestionAndAnswer {
+class MareaniesMarquees extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
 	currentCategory: string = '';
 	currentIndex: number = -1;
 	hintUpdates: number = 0;
 	hintUpdateLimit: number = 0;
 	hintUpdateLimitMultiplier: number = 2;
-	lastAnswer: string = '';
 	letters: string[] = [];
 	marqueesRound: number = 0;
 	multiRoundHints = true;
@@ -26,37 +18,27 @@ class MareaniesMarquee extends QuestionAndAnswer {
 	updateHintTime = 1500;
 
 	static loadData(): void {
-		data["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
-		data["Pokemon Abilities"] = Games.getAbilitiesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
-		data["Pokemon Items"] = Games.getItemsList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
-		data["Pokemon Moves"] = Games.getMovesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL);
+		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		this.cachedData.categoryHintKeys = {
+			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),
+			"Pokemon Abilities": Games.getAbilitiesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),
+			"Pokemon Items": Games.getItemsList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),
+			"Pokemon Moves": Games.getMovesList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),
+		};
 	}
 
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		this.currentCategory = category;
-
-		let answer = '';
-		let letters: string[] = [];
-		let willBeFiltered = false;
-		while (!answer || answer === this.lastAnswer || willBeFiltered) {
-			answer = this.sampleOne(data[category]);
-			letters = answer.replace(" ", "").split("");
-			willBeFiltered = false;
-
-			for (let i = 0; i < letters.length; i++) {
-				let part = letters.slice(i, i + LETTERS_TO_REVEAL);
-				if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
-				if (Client.checkFilters(part.join(''), !this.isPmActivity(this.room) ? this.room : undefined)) {
-					willBeFiltered = true;
-					break;
-				}
+	onSetGeneratedHint(hintKey: string): void {
+		const letters = hintKey.replace(" ", "").split("");
+		for (let i = 0; i < letters.length; i++) {
+			let part = letters.slice(i, i + LETTERS_TO_REVEAL);
+			if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
+			if (Client.checkFilters(part.join(''), !this.isPmActivity(this.room) ? this.room : undefined)) {
+				void this.generateHint();
+				return;
 			}
 		}
-		this.lastAnswer = answer;
-		this.answers = [answer];
-		this.letters = letters;
 
+		this.letters = letters;
 		this.currentIndex = -1;
 		this.hintUpdates = 0;
 		this.hintUpdateLimit = letters.length * this.hintUpdateLimitMultiplier;
@@ -118,7 +100,7 @@ class MareaniesMarquee extends QuestionAndAnswer {
 	}
 }
 
-export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(questionAndAnswerGame, {
+export const game: IGameFile<MareaniesMarquees> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['mareanies', 'marquees'],
 	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
 		botchallenge: {
@@ -129,7 +111,7 @@ export const game: IGameFile<MareaniesMarquee> = Games.copyTemplateProperties(qu
 		},
 	}),
 	category: 'identification-2',
-	class: MareaniesMarquee,
+	class: MareaniesMarquees,
 	defaultOptions: ['points'],
 	description: "Players guess the answers as letters are cycled through 1 at a time!",
 	freejoin: true,

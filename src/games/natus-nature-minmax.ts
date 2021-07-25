@@ -1,35 +1,30 @@
 import type { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import type { INature, StatID } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const data: {natureAnswers: Dict<string[]>; statsKeys: Dict<string>, pokedex: string[]} = {
-	"natureAnswers": {},
-	"statsKeys": {},
-	"pokedex": [],
-};
-
 class NatusNatureMinMax extends QuestionAndAnswer {
-	lastStatsKey: string = '';
-	lastPokemon: string = '';
+	static cachedData: IGameCachedData = {};
+
+	hintPrefix: string = "Randomly generated Pokemon";
 	oneGuessPerHint = true;
 	roundTime: number = 30 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(pokemon => {
-			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
-				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
-				pokemon.baseStats.spd === pokemon.baseStats.spe) return false;
-			return true;
-		});
+		const hints: Dict<string[]> = {};
+		const hintKeys: string[] = [];
 
 		const natures: INature[] = [];
 		for (const key of Dex.getData().natureKeys) {
 			natures.push(Dex.getExistingNature(key));
 		}
 
-		for (const pokemon of pokedex) {
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
+				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
+				pokemon.baseStats.spd === pokemon.baseStats.spe) continue;
+
 			const statKeys = Object.keys(pokemon.baseStats) as StatID[];
 			statKeys.sort((a, b) => pokemon.baseStats[b] - pokemon.baseStats[a]);
 
@@ -75,24 +70,12 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 
 			if (!highestLowestCache[dataKey].length) continue;
 
-			data.statsKeys[pokemon.id] = dataKey;
-			data.natureAnswers[dataKey] = highestLowestCache[dataKey];
-			data.pokedex.push(pokemon.id);
+			hints[pokemon.name] = highestLowestCache[dataKey];
+			hintKeys.push(pokemon.name);
 		}
-	}
 
-	generateAnswer(): void {
-		let pokemon = this.sampleOne(data.pokedex);
-		let statsKey = data.statsKeys[pokemon];
-		while (pokemon === this.lastPokemon || statsKey === this.lastStatsKey) {
-			pokemon = this.sampleOne(data.pokedex);
-			statsKey = data.statsKeys[pokemon];
-		}
-		this.lastPokemon = pokemon;
-		this.lastStatsKey = statsKey;
-
-		this.answers = data.natureAnswers[statsKey];
-		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + Dex.getExistingPokemon(pokemon).name + "</i>";
+		this.cachedData.hintAnswers = hints;
+		this.cachedData.hintKeys = hintKeys;
 	}
 }
 

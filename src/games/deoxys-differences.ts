@@ -77,7 +77,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		return data.gifData[pokemon].h + ADDITIONAL_HEIGHT;
 	}
 
-	generateAnswer(): void {
+	async customGenerateHint(): Promise<void> {
 		const pokemonPerGridRow = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
 		const rowsPerGrid = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
 
@@ -90,7 +90,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 
 		for (let i = 0; i < rowsPerGrid; i++) {
 			if (list.length < pokemonPerGridRow) {
-				this.generateAnswer();
+				await this.customGenerateHint();
 				return;
 			}
 
@@ -98,7 +98,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 			while (this.getRowWidth(row) > MAX_GRID_WIDTH) {
 				list.shift();
 				if (!list.length || list.length < pokemonPerGridRow) {
-					this.generateAnswer();
+					await this.customGenerateHint();
 					return;
 				}
 
@@ -126,7 +126,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		differenceRow.splice(differenceRowIndex, 1, differencePokemon);
 		while (this.getRowWidth(differenceRow) > MAX_GRID_WIDTH) {
 			if (!differenceList.length) {
-				this.generateAnswer();
+				await this.customGenerateHint();
 				return;
 			}
 

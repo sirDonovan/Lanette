@@ -33,9 +33,10 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	}
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList(x => !x.forme);
 		const movesByPokemon: Dict<string[]> = {};
-		for (const pokemon of pokedex) {
+		for (const pokemon of Games.getPokemonList()) {
+			if (pokemon.forme) continue;
+
 			const allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 			if (allPossibleMoves.length <= 1) continue;
 

@@ -1,33 +1,5 @@
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
-
-interface IMudbraysOneAwaysData {
-	'Characters': Dict<string[]>;
-	'Locations': Dict<string[]>;
-	'Pokemon': Dict<string[]>;
-	'Pokemon Abilities': Dict<string[]>;
-	'Pokemon Items': Dict<string[]>;
-	'Pokemon Moves': Dict<string[]>;
-}
-
-const data: IMudbraysOneAwaysData = {
-	"Characters": {},
-	"Locations": {},
-	"Pokemon": {},
-	"Pokemon Abilities": {},
-	"Pokemon Items": {},
-	"Pokemon Moves": {},
-};
-type DataKey = keyof IMudbraysOneAwaysData;
-const categories = Object.keys(data) as DataKey[];
-const dataKeys: KeyedDict<DataKey, string[]> = {
-	"Characters": [],
-	"Locations": [],
-	"Pokemon": [],
-	"Pokemon Abilities": [],
-	"Pokemon Items": [],
-	"Pokemon Moves": [],
-};
 
 const upperCaseLetters: string[] = Tools.letters.toUpperCase().split("");
 const lowerCaseLetters: string[] = Tools.letters.split("");
@@ -68,17 +40,39 @@ function getOneAways(word: string): string[] | null {
 }
 
 class MudbraysOneAways extends QuestionAndAnswer {
-	lastOneAway: string = '';
+	static cachedData: IGameCachedData = {};
+
 	roundTime: number = 30 * 1000;
 
 	static loadData(): void {
+		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
+		const categoryHintKeys: Dict<string[]> = {
+			"Characters": [],
+			"Locations": [],
+			"Pokemon": [],
+			"Pokemon Abilities": [],
+			"Pokemon Items": [],
+			"Pokemon Moves": [],
+		};
+		const categoryHints: Dict<Dict<string[]>> = {
+			"Characters": {},
+			"Locations": {},
+			"Pokemon": {},
+			"Pokemon Abilities": {},
+			"Pokemon Items": {},
+			"Pokemon Moves": {},
+		};
+
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const oneAways = getOneAways(character);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Characters"])) data["Characters"][oneAway] = [];
-				data["Characters"][oneAway].push(character);
+				if (!(oneAway in categoryHints["Characters"])) {
+					categoryHints["Characters"][oneAway] = [];
+					categoryHintKeys["Characters"].push(oneAway);
+				}
+				categoryHints["Characters"][oneAway].push(character);
 			}
 		}
 
@@ -87,8 +81,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(location);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Locations"])) data["Locations"][oneAway] = [];
-				data["Locations"][oneAway].push(location);
+				if (!(oneAway in categoryHints["Locations"])) {
+					categoryHints["Locations"][oneAway] = [];
+					categoryHintKeys["Locations"].push(oneAway);
+				}
+				categoryHints["Locations"][oneAway].push(location);
 			}
 		}
 
@@ -96,8 +93,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(pokemon.name);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Pokemon"])) data["Pokemon"][oneAway] = [];
-				data["Pokemon"][oneAway].push(pokemon.name);
+				if (!(oneAway in categoryHints["Pokemon"])) {
+					categoryHints["Pokemon"][oneAway] = [];
+					categoryHintKeys["Pokemon"].push(oneAway);
+				}
+				categoryHints["Pokemon"][oneAway].push(pokemon.name);
 			}
 		}
 
@@ -105,8 +105,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(ability.name);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Pokemon Abilities"])) data["Pokemon Abilities"][oneAway] = [];
-				data["Pokemon Abilities"][oneAway].push(ability.name);
+				if (!(oneAway in categoryHints["Pokemon Abilities"])) {
+					categoryHints["Pokemon Abilities"][oneAway] = [];
+					categoryHintKeys["Pokemon Abilities"].push(oneAway);
+				}
+				categoryHints["Pokemon Abilities"][oneAway].push(ability.name);
 			}
 		}
 
@@ -114,8 +117,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(item.name);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Pokemon Items"])) data["Pokemon Items"][oneAway] = [];
-				data["Pokemon Items"][oneAway].push(item.name);
+				if (!(oneAway in categoryHints["Pokemon Items"])) {
+					categoryHints["Pokemon Items"][oneAway] = [];
+					categoryHintKeys["Pokemon Items"].push(oneAway);
+				}
+				categoryHints["Pokemon Items"][oneAway].push(item.name);
 			}
 		}
 
@@ -123,26 +129,16 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(move.name);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in data["Pokemon Moves"])) data["Pokemon Moves"][oneAway] = [];
-				data["Pokemon Moves"][oneAway].push(move.name);
+				if (!(oneAway in categoryHints["Pokemon Moves"])) {
+					categoryHints["Pokemon Moves"][oneAway] = [];
+					categoryHintKeys["Pokemon Moves"].push(oneAway);
+				}
+				categoryHints["Pokemon Moves"][oneAway].push(move.name);
 			}
 		}
 
-		const keys = Object.keys(data) as DataKey[];
-		for (const key of keys) {
-			dataKeys[key] = Object.keys(data[key]);
-		}
-	}
-
-	generateAnswer(): void {
-		const category = (this.roundCategory || this.sampleOne(categories)) as DataKey;
-		let oneAway = this.sampleOne(dataKeys[category]);
-		while (oneAway === this.lastOneAway || Client.checkFilters(oneAway, this.isPmActivity(this.room) ? undefined : this.room)) {
-			oneAway = this.sampleOne(dataKeys[category]);
-		}
-		this.lastOneAway = oneAway;
-		this.answers = data[category][oneAway];
-		this.hint = "<b>" + category + "</b>: <i>" + oneAway + "</i>";
+		this.cachedData.categoryHintKeys = categoryHintKeys;
+		this.cachedData.categoryHintAnswers = categoryHints;
 	}
 }
 

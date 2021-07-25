@@ -1,35 +1,35 @@
 import type { Player } from "../room-activity";
-import type { IGameFile } from "../types/games";
+import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const data: {stats: Dict<string[]>} = {
-	stats: {},
-};
-const statsKeys: string[] = [];
-
 class ChimechosStatSchool extends QuestionAndAnswer {
+	static cachedData: IGameCachedData = {};
+
+	hintPrefix: string = "Randomly generated base stats";
 	oneGuessPerHint = true;
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList();
-		for (const pokemon of pokemonList) {
-			const stats = Object.values(pokemon.baseStats).join(" / ");
-			if (!(stats in data.stats)) {
-				data.stats[stats] = [];
+		const statSpreads: Dict<string[]> = {};
+		for (const pokemon of Games.getPokemonList()) {
+			const statSpread = Object.values(pokemon.baseStats).join(" / ");
+			if (!(statSpread in statSpreads)) {
+				statSpreads[statSpread] = [];
 			}
-			data.stats[stats].push(pokemon.name);
+			statSpreads[statSpread].push(pokemon.name);
 		}
 
-		for (const i in data.stats) {
-			if (data.stats[i].length === 1) statsKeys.push(i);
-		}
-	}
+		this.cachedData.hintAnswers = {};
+		const hintKeys: string[] = [];
 
-	generateAnswer(): void {
-		const stats = this.sampleOne(statsKeys);
-		this.answers = data.stats[stats];
-		this.hint = "<b>Randomly generated base stats</b>: <i>" + stats + "</i>";
+		for (const i in statSpreads) {
+			if (statSpreads[i].length === 1) {
+				this.cachedData.hintAnswers[i] = statSpreads[i];
+				hintKeys.push(i);
+			}
+		}
+
+		this.cachedData.hintKeys = hintKeys;
 	}
 }
 
@@ -38,9 +38,12 @@ export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties
 	category: 'knowledge-3',
 	class: ChimechosStatSchool,
 	defaultOptions: ['points'],
-	description: "Players guess Pokemon with the given base stat distributions!",
+	description: "Players guess Pokemon based on random base stats!",
 	freejoin: true,
 	name: "Chimecho's Stat School",
 	mascot: "Chimecho",
+	minigameCommand: 'statschool',
+	minigameCommandAliases: ['sschool'],
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon with the given base stats!",
 	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

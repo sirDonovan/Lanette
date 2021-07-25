@@ -5,20 +5,18 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/qu
 type Operation = 'add' | 'subtract' | 'multiply' | 'divide';
 
 const BASE_OPERANDS = 2;
-const operations: Operation[] = ['add', 'subtract', 'multiply', 'divide'];
-const operationSymbols: KeyedDict<Operation, string> = {
+const OPERATIONS: Operation[] = ['add', 'subtract', 'multiply', 'divide'];
+const OPERATION_SYMBOLS: KeyedDict<Operation, string> = {
 	'add': '+',
 	'subtract': '-',
 	'multiply': '*',
 	'divide': '/',
 };
 
-const data: {highestPokedexNumber: number, pokemonByNumber: Dict<string[]>} = {
-	highestPokedexNumber: 0,
-	pokemonByNumber: {},
-};
-
 class GrumpigsPokemath extends QuestionAndAnswer {
+	static pokemonByNumber: Dict<string[]> = {};
+	static highestPokedexNumber: number = 0;
+
 	lastOperation: Operation = 'divide';
 	lastResult: number = 0;
 	roundTime = 30 * 1000;
@@ -26,17 +24,16 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	roundOperands?: number;
 
 	static loadData(): void {
-		const pokedex = Games.getPokemonList();
-		for (const pokemon of pokedex) {
-			if (!(pokemon.num in data.pokemonByNumber)) data.pokemonByNumber[pokemon.num] = [];
-			data.pokemonByNumber[pokemon.num].push(pokemon.name);
-
-			if (pokemon.num > data.highestPokedexNumber) data.highestPokedexNumber = pokemon.num;
+		for (const pokemon of Games.getPokemonList()) {
+			if (!(pokemon.num in this.pokemonByNumber)) this.pokemonByNumber[pokemon.num] = [];
+			this.pokemonByNumber[pokemon.num].push(pokemon.name);
 		}
+
+		this.highestPokedexNumber = Object.keys(this.pokemonByNumber).map(x => parseInt(x)).sort((a, b) => b - a)[0];
 	}
 
 	getOperand(): number {
-		return this.random(data.highestPokedexNumber) + 1;
+		return this.random(GrumpigsPokemath.highestPokedexNumber) + 1;
 	}
 
 	generateOperands(operation: Operation, amount: number): number[] {
@@ -62,7 +59,7 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	getOperandsAndResult(operation: Operation, amount: number): {operands: number[], result: number} {
 		let operands = this.generateOperands(operation, amount);
 		let result = this.calculateResult(operation, operands);
-		while (result === this.lastResult || !(result in data.pokemonByNumber)) {
+		while (result === this.lastResult || !(result in GrumpigsPokemath.pokemonByNumber)) {
 			operands = this.generateOperands(operation, amount);
 			result = this.calculateResult(operation, operands);
 		}
@@ -89,10 +86,11 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		return result;
 	}
 
-	generateAnswer(): void {
-		let operation = this.sampleOne(operations);
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async customGenerateHint(): Promise<void> {
+		let operation = this.sampleOne(OPERATIONS);
 		while (operation === this.lastOperation) {
-			operation = this.sampleOne(operations);
+			operation = this.sampleOne(OPERATIONS);
 		}
 		this.lastOperation = operation;
 
@@ -111,10 +109,10 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		const operandsAndResult = this.getOperandsAndResult(operation, operandsCount);
 		this.lastResult = operandsAndResult.result;
 
-		this.answers = data.pokemonByNumber[operandsAndResult.result];
+		this.answers = GrumpigsPokemath.pokemonByNumber[operandsAndResult.result];
 
-		this.hint = "<b>" + operandsAndResult.operands.map(x => data.pokemonByNumber[x][0]).join(" " + operationSymbols[operation] + " ") +
-			" = ?</b>";
+		this.hint = "<b>" + operandsAndResult.operands.map(x => GrumpigsPokemath.pokemonByNumber[x][0]).join(" " +
+			OPERATION_SYMBOLS[operation] + " ") + " = ?</b>";
 	}
 
 	increaseDifficulty(): void {
