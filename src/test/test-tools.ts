@@ -90,6 +90,12 @@ export function addPlayers(game: ScriptedGame, numberOrNames?: number | string[]
 	return players;
 }
 
+export function startGame(game: ScriptedGame): void {
+	game.start();
+	assert(game.started);
+	assert(!game.ended);
+}
+
 export function runCommand(command: string, target: string, room: Room | User, user: User | string): void {
 	if (typeof user === 'string') user = Users.add(user, Tools.toId(user));
 	CommandParser.parse(room, user, Config.commandCharacter + command + (target ? " " + target : ""), Date.now());

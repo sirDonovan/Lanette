@@ -79,7 +79,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						});
 					} catch (e) {
 						console.log(e);
-						fail((e as Error).message + " (" + testFormat.name + "; initial seed = " + game.initialSeed + ")");
+						fail();
 					}
 				});
 			} else {
@@ -91,7 +91,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
 						console.log(e);
-						fail((e as Error).message + " (" + testFormat.name + "; initial seed = " + game.initialSeed + ")");
+						fail();
 					}
 				});
 			}

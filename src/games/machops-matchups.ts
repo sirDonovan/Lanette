@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, IGameFile } from "../types/games";
+import { addPlayers, assertStrictEqual, startGame } from "../test/test-tools";
+import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 
 const data: {keys: string[], pokemon: Dict<readonly string[]>, pokemonByType: Dict<string[]>} = {
@@ -27,17 +28,15 @@ class MachopsMatchups extends ScriptedGame {
 
 	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
-			if (pokemon.forme || banlist.includes(pokemon.id) || !Dex.hasModelData(pokemon) || pokemon.types.length > 1 ||
+			if (pokemon.forme || banlist.includes(pokemon.id) || !Dex.hasModelData(pokemon) || pokemon.types.length < 2 ||
 				pokemon.types.includes('Steel') || pokemon.types.includes('Normal')) continue;
 
 			data.keys.push(pokemon.name);
 			data.pokemon[pokemon.name] = pokemon.types;
 
-			if (pokemon.types.length > 1) {
-				for (const type of pokemon.types) {
-					if (!(type in data.pokemonByType)) data.pokemonByType[type] = [];
-					data.pokemonByType[type].push(pokemon.name);
-				}
+			for (const type of pokemon.types) {
+				if (!(type in data.pokemonByType)) data.pokemonByType[type] = [];
+				data.pokemonByType[type].push(pokemon.name);
 			}
 		}
 	}
@@ -96,8 +95,7 @@ class MachopsMatchups extends ScriptedGame {
 
 	getPokemonHtml(pokemon: IPokemon): string {
 		return "<center>" + Dex.getPokemonModel(pokemon) + "<br /><b>" + pokemon.name +
-			"</b><br />" + Dex.getTypeHtml(Dex.getExistingType(pokemon.types[0])) + "&nbsp;/&nbsp;" +
-			Dex.getTypeHtml(Dex.getExistingType(pokemon.types[1])) + "</center>";
+			"</b><br />" + pokemon.types.map(x => Dex.getTypeHtml(Dex.getExistingType(x))).join("&nbsp;/&nbsp;") + "</center>";
 	}
 
 	onNextRound(): void {
@@ -170,6 +168,16 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 	},
 };
 
+const tests: GameFileTests<MachopsMatchups> = {
+	'should assign Pokemon': {
+		test(game): void {
+			addPlayers(game, 4);
+			startGame(game);
+			assertStrictEqual(game.playerPokemon.size, 4);
+		},
+	},
+};
+
 export const game: IGameFile<MachopsMatchups> = {
 	aliases: ["machops", "matchups"],
 	category: 'luck',
@@ -181,6 +189,7 @@ export const game: IGameFile<MachopsMatchups> = {
 	name: "Machop's Matchups",
 	mascot: "Machop",
 	scriptedOnly: true,
+	tests,
 	variants: [
 		{
 			name: "Machop's Inverse Matchups",
