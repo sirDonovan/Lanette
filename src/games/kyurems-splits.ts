@@ -47,7 +47,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Characters"][key] = [];
 					categoryHintKeys["Characters"].push(key);
 				}
-				categoryHints["Characters"][key].push(character);
+				if (!categoryHints["Characters"][key].includes(character)) categoryHints["Characters"][key].push(character);
 			}
 		}
 
@@ -61,7 +61,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Locations"][key] = [];
 					categoryHintKeys["Locations"].push(key);
 				}
-				categoryHints["Locations"][key].push(location);
+				if (!categoryHints["Locations"][key].includes(location)) categoryHints["Locations"][key].push(location);
 			}
 		}
 
@@ -75,7 +75,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Pokemon"][key] = [];
 					categoryHintKeys["Pokemon"].push(key);
 				}
-				categoryHints["Pokemon"][key].push(pokemon.name);
+				if (!categoryHints["Pokemon"][key].includes(pokemon.name)) categoryHints["Pokemon"][key].push(pokemon.name);
 			}
 		}
 
@@ -89,7 +89,9 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Pokemon Abilities"][key] = [];
 					categoryHintKeys["Pokemon Abilities"].push(key);
 				}
-				categoryHints["Pokemon Abilities"][key].push(ability.name);
+				if (!categoryHints["Pokemon Abilities"][key].includes(ability.name)) {
+					categoryHints["Pokemon Abilities"][key].push(ability.name);
+				}
 			}
 		}
 
@@ -103,7 +105,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Pokemon Items"][key] = [];
 					categoryHintKeys["Pokemon Items"].push(key);
 				}
-				categoryHints["Pokemon Items"][key].push(item.name);
+				if (!categoryHints["Pokemon Items"][key].includes(item.name)) categoryHints["Pokemon Items"][key].push(item.name);
 			}
 		}
 
@@ -117,7 +119,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 					categoryHints["Pokemon Moves"][key] = [];
 					categoryHintKeys["Pokemon Moves"].push(key);
 				}
-				categoryHints["Pokemon Moves"][key].push(move.name);
+				if (!categoryHints["Pokemon Moves"][key].includes(move.name)) categoryHints["Pokemon Moves"][key].push(move.name);
 			}
 		}
 
