@@ -4,34 +4,29 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/qu
 const BASE_POINTS = 50;
 const BASE_TEAM_POINTS = 100;
 const MIN_LETTERS = 6;
+const MAX_ANSWERS = 20;
 const LETTERS = Tools.letters.split("");
 
-function getAvailableLetters(id: string): string {
+function getAvailableLetters(id: string): string[] {
 	const availableLetters: string[] = [];
 	for (const letter of LETTERS) {
 		if (!id.includes(letter)) availableLetters.push(letter);
 	}
 
-	return availableLetters.join("");
+	return availableLetters;
 }
 
 class LugiasObstructiveLetters extends QuestionAndAnswer {
+	static availableLetters: Dict<string[]> = {};
 	static cachedData: IGameCachedData = {};
 
+	currentCategory: string = '';
 	loserPointsToBits: number = 2;
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
 	static loadData(): void {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
-		const categoryHints: Dict<Dict<string[]>> = {
-			"Characters": {},
-			"Locations": {},
-			"Pokemon": {},
-			"Pokemon Abilities": {},
-			"Pokemon Items": {},
-			"Pokemon Moves": {},
-		};
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
 			"Locations": [],
@@ -44,76 +39,74 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		for (const character of Dex.getCharacters()) {
 			if (character.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(Tools.toId(character));
-			if (!(key in categoryHints["Characters"])) {
-				categoryHints["Characters"][key] = [];
-				categoryHintKeys["Characters"].push(key);
-			}
-			categoryHints["Characters"][key].push(character);
+			this.availableLetters[character] = getAvailableLetters(Tools.toId(character));
+			categoryHintKeys["Characters"].push(character);
 		}
 
 		for (const location of Dex.getLocations()) {
 			if (location.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(Tools.toId(location));
-			if (!(key in categoryHints["Locations"])) {
-				categoryHints["Locations"][key] = [];
-				categoryHintKeys["Locations"].push(key);
-			}
-			categoryHints["Locations"][key].push(location);
+			this.availableLetters[location] = getAvailableLetters(Tools.toId(location));
+			categoryHintKeys["Locations"].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.name.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(pokemon.id);
-			if (!(key in categoryHints["Pokemon"])) {
-				categoryHints["Pokemon"][key] = [];
-				categoryHintKeys["Pokemon"].push(key);
-			}
-			categoryHints["Pokemon"][key].push(pokemon.name);
+			this.availableLetters[pokemon.name] = getAvailableLetters(pokemon.id);
+			categoryHintKeys["Pokemon"].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
 			if (ability.name.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(ability.id);
-			if (!(key in categoryHints["Pokemon Abilities"])) {
-				categoryHints["Pokemon Abilities"][key] = [];
-				categoryHintKeys["Pokemon Abilities"].push(key);
-			}
-			categoryHints["Pokemon Abilities"][key].push(ability.name);
+			this.availableLetters[ability.name] = getAvailableLetters(ability.id);
+			categoryHintKeys["Pokemon Abilities"].push(ability.name);
 		}
 
 		for (const item of Games.getItemsList()) {
 			if (item.name.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(item.id);
-			if (!(key in categoryHints["Pokemon Items"])) {
-				categoryHints["Pokemon Items"][key] = [];
-				categoryHintKeys["Pokemon Items"].push(key);
-			}
-			categoryHints["Pokemon Items"][key].push(item.name);
+			this.availableLetters[item.name] = getAvailableLetters(item.id);
+			categoryHintKeys["Pokemon Items"].push(item.name);
 		}
 
 		for (const move of Games.getMovesList()) {
 			if (move.name.length < MIN_LETTERS) continue;
 
-			const key = getAvailableLetters(move.id);
-			if (!(key in categoryHints["Pokemon Moves"])) {
-				categoryHints["Pokemon Moves"][key] = [];
-				categoryHintKeys["Pokemon Moves"].push(key);
-			}
-			categoryHints["Pokemon Moves"][key].push(move.name);
+			this.availableLetters[move.name] = getAvailableLetters(move.id);
+			categoryHintKeys["Pokemon Moves"].push(move.name);
 		}
 
-		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
 	onSetGeneratedHint(hintKey: string): void {
-		this.hint = "<b>" + this.currentCategory + "</b>: <i>" +
-			this.sampleMany(hintKey.split(""), Math.floor(hintKey.length / 2)).sort().join(", ").toUpperCase() + "</i>";
+		const unavailableLetters = this.sampleMany(LugiasObstructiveLetters.availableLetters[hintKey],
+			Math.floor(LugiasObstructiveLetters.availableLetters[hintKey].length / 2)).sort();
+		const answers: string[] = [];
+		for (const answer of LugiasObstructiveLetters.cachedData.categoryHintKeys![this.currentCategory]) {
+			const id = Tools.toId(answer);
+			let hasUnavailableLetter = false;
+			for (const letter of unavailableLetters) {
+				if (id.includes(letter)) {
+					hasUnavailableLetter = true;
+					break;
+				}
+			}
+
+			if (hasUnavailableLetter) continue;
+
+			answers.push(answer);
+		}
+
+		if (answers.length > MAX_ANSWERS) {
+			void this.generateHint();
+			return;
+		}
+
+		this.answers = answers;
+		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + unavailableLetters.join(", ").toUpperCase() + "</i>";
 	}
 
 	getPointsForAnswer(answer: string): number {
