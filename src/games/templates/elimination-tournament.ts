@@ -564,8 +564,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 			if (!onStart) {
 				const notificationTitle = "New " + this.name + " opponent!";
-				player.sendHighlightPage(notificationTitle);
-				opponent.sendHighlightPage(notificationTitle);
+				player.sendHighlight(notificationTitle);
+				opponent.sendHighlight(notificationTitle);
 			}
 
 			let activityWarning = this.activityWarnTimeout;

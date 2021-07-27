@@ -108,10 +108,14 @@ export class Player {
 		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId);
 	}
 
-	sendHighlightPage(notificationTitle: string, pageId?: string, highlightPhrase?: string): void {
-		if (this.id === Users.self.id || !this.sentHtmlPage) return;
+	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string): void {
+		if (this.id === Users.self.id) return;
 
-		this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
+		if (this.sentHtmlPage) {
+			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
+		} else {
+			this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase);
+		}
 	}
 
 	useCommand(command: string, target?: string): void {

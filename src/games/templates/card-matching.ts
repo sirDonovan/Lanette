@@ -39,8 +39,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	showPlayerCards: boolean = true;
 	timeLimit: number = 25 * 60 * 1000;
 	turnTimeLimit: number = 30 * 1000;
-	turnChatWarningTime: number = 10 * 1000;
-	turnPmWarningTime: number = 10 * 1000;
+	turnPmWarningTime: number = 20 * 1000;
 	typesLimit: number = 0;
 	usesColors: boolean = false;
 
@@ -520,44 +519,40 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			this.canPlay = true;
 			this.sendPlayerCards(player!);
-			player!.sendHighlightPage("It is your turn!");
+			player!.sendHighlight("It is your turn!");
 
 			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
 
 			this.timeout = setTimeout(() => {
-				if (player!.sentPrivateHtml) this.say(player!.name + " it is your turn!");
+				const timeAfterWarning = this.turnTimeLimit - this.turnPmWarningTime;
+				const timeAfterWarningString = Tools.toDurationString(timeAfterWarning);
+				player!.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString +
+					" of your turn left!");
 
 				this.timeout = setTimeout(() => {
-					const timeAfterWarnings = this.turnTimeLimit - this.turnChatWarningTime - this.turnPmWarningTime;
-					const timeAfterWarningString = Tools.toDurationString(timeAfterWarnings);
-					player!.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString +
-						" of your turn left!");
+					if (!player!.eliminated) {
+						if (this.finitePlayerCards) {
+							if (this.addPlayerInactiveRound(player!)) {
+								this.say(player!.name + " DQed for inactivity!");
+								// nextRound() called in onRemovePlayer
+								this.eliminatePlayer(player!);
+								this.sendPlayerCards(player!);
 
-					this.timeout = setTimeout(() => {
-						if (!player!.eliminated) {
-							if (this.finitePlayerCards) {
-								if (this.addPlayerInactiveRound(player!)) {
-									this.say(player!.name + " DQed for inactivity!");
-									// nextRound() called in onRemovePlayer
-									this.eliminatePlayer(player!);
-									this.sendPlayerCards(player!);
+								const newFinalPlayer = this.getFinalPlayer();
+								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
 
-									const newFinalPlayer = this.getFinalPlayer();
-									if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
-
-									this.onRemovePlayer(player!);
-								} else {
-									player!.useCommand('draw');
-								}
+								this.onRemovePlayer(player!);
 							} else {
-								this.autoPlay(player!, turnCards);
+								player!.useCommand('draw');
 							}
 						} else {
-							this.nextRound();
+							this.autoPlay(player!, turnCards);
 						}
-					}, timeAfterWarnings);
-				}, this.turnPmWarningTime);
-			}, this.turnChatWarningTime);
+					} else {
+						this.nextRound();
+					}
+				}, timeAfterWarning);
+			}, this.turnPmWarningTime);
 		});
 
 		if (!skippedPlayerCount && this.round === currentRound) {
