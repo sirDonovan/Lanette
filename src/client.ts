@@ -48,6 +48,8 @@ const TOURNAMENT_SCOUTING_COMMAND = "/log (The tournament was set to disallow sc
 const TOURNAMENT_MODJOIN_COMMAND = "/log (The tournament was set to disallow modjoin by ";
 const TOURNAMENT_RUNAUTODQ_COMMAND = "All available matches were checked for automatic disqualification.";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
+const NOTIFY_USER_MESSAGE = "Sent a notification to ";
+const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
@@ -1590,6 +1592,18 @@ export class Client {
 			} else if (messageArguments.message === TOURNAMENT_RUNAUTODQ_COMMAND) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-runautodq' &&
 					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith(NOTIFY_USER_MESSAGE)) {
+				const recipient = messageArguments.message.substr(NOTIFY_USER_MESSAGE.length);
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyuser' &&
+					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith(NOTIFY_OFF_USER_MESSAGE)) {
+				const recipient = messageArguments.message.substr(NOTIFY_OFF_USER_MESSAGE.length);
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyoffuser' &&
+					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(HIGHLIGHT_HTML_PAGE_MESSAGE)) {

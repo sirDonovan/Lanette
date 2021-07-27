@@ -24,7 +24,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
-	'tournament-scouting' | 'tournament-modjoin';
+	'tournament-scouting' | 'tournament-modjoin' | 'notifyuser' | 'notifyoffuser';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;

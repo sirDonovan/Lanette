@@ -292,6 +292,21 @@ export class Room {
 			{dontCheckFilter: true, dontPrepare: true, type: 'notifyoffrank', notifyId: this.id + "-rank-" + rank});
 	}
 
+	notifyUser(userOrPlayer: User | Player, title: string, message?: string): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
+		this.say("/notifyuser " + user.id + "," + title + (message ? "," + message : ""),
+			{dontCheckFilter: true, dontPrepare: true, type: 'notifyuser', user: user.id});
+	}
+
+	notifyOffUser(userOrPlayer: User | Player): void {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !user.rooms.has(this)) return;
+
+		this.say("/notifyoffuser " + user.id, {dontCheckFilter: true, dontPrepare: true, type: 'notifyoffuser', user: user.id});
+	}
+
 	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string): void {
 		const user = Users.get(userOrPlayer.name);
 		if (!user || !user.rooms.has(this)) return;
