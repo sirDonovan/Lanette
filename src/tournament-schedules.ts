@@ -192,7 +192,7 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 						'-Archeops, -Zygarde, -Regigigas, +Zygarde-10%, -Tinted Lens, *Glacial Lance, +Landorus-Base, -Urshifu,' +
 						'+Mamoswine, +Urshifu-Rapid-Strike, -Landorus-Therian, -Latios, -Magearna, *Oblivion Wing, +Clangorous Soul,' +
 						'+Precipice Blades, *Dragon Ascent, -Poison Heal',
-					'3': 'First Blood, Gen 8 Camomons, !Team Preview, Team Type Preview',
+					'3': 'alphabet cup, Gen 8 Camomons, !Team Preview, Team Type Preview',
 					'4': 'Random Battle, Team Preview, Maxteamsize = 10, Pickedteamsize = 6',
 					'5': 'Gen 5 RU, -Moltres, -Durant',
 					'6': 'OU, -Dragapult, -Kyurem, -Tapu Lele',
