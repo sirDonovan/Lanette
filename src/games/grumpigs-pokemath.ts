@@ -38,6 +38,8 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 
 	generateOperands(operation: Operation, amount: number): number[] {
 		const multiplyOrDivide = operation === 'multiply' || operation === 'divide';
+		if (multiplyOrDivide && amount > 3) amount = 3;
+
 		const operands: number[] = [];
 		for (let i = 0; i < amount; i++) {
 			let operand = this.getOperand();
