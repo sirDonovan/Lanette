@@ -17,6 +17,7 @@ class ChanseysEggToss extends ScriptedGame {
 
 	canToss: boolean = false;
 	currentHolder: Player | null = null;
+	hasAssistActions: boolean = true;
 	maxPlayers: number = 20;
 	holdTime: number = 0;
 	roundTimes: number[] = [7000, 8000, 9000, 10000];
@@ -65,8 +66,8 @@ class ChanseysEggToss extends ScriptedGame {
 			}
 		}
 
-		player.sayPrivateUhtml(this.getCustomButtonsDiv(buttons, player), this.actionsUhtmlName);
-		if (previousHolder) previousHolder.clearPrivateUhtml(this.actionsUhtmlName);
+		this.sendPlayerAssistActions(player, this.getCustomButtonsDiv(buttons, player), this.actionsUhtmlName);
+		if (previousHolder) this.clearPlayerAssistActions(previousHolder, this.actionsUhtmlName);
 	}
 
 	explodeEgg(reason?: string): void {

@@ -9,6 +9,7 @@ const REMOVE_COMMAND = "remove";
 class CrustlesCrumblingBlocks extends ScriptedGame {
 	blocks: number = 0;
 	currentPlayer: Player | null = null;
+	hasAssistActions: boolean = true;
 	minPlayers: number = 4;
 	order: Player[] = [];
 	playerList: Player[] = [];
@@ -101,7 +102,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 				false, currentPlayer));
 		}
 
-		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons, currentPlayer), this.actionsUhtmlName);
+		this.sendPlayerAssistActions(currentPlayer, this.getCustomButtonsDiv(buttons, currentPlayer), this.actionsUhtmlName);
 	}
 
 	removeLastBlock(player: Player): void {
@@ -137,7 +138,7 @@ const commands: GameCommandDefinitions<CrustlesCrumblingBlocks> = {
 
 			if (this.timeout) clearTimeout(this.timeout);
 
-			player.clearPrivateUhtml(this.actionsUhtmlName);
+			this.clearPlayerAssistActions(player, this.actionsUhtmlName);
 
 			this.blocks -= targetNumber;
 			if (this.blocks <= 0) {

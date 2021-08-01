@@ -1061,7 +1061,29 @@ export const commands: BaseCommandDefinitions = {
 						targetRoom.game.sendJoinNotice(targetRoom.game.players[user.id]);
 					}
 				} else {
-					return this.say("The options for game actions are 'HTML page' and 'chat'.");
+					return this.say("The options for game actions are ``HTML page`` and ``chat``.");
+				}
+			} else if (option === 'assistactions') {
+				const value = Tools.toId(targets[2]);
+				const database = Storage.getDatabase(targetRoom);
+				if (value === 'on' || value === 'off') {
+					if (!database.gameScriptedOptions) database.gameScriptedOptions = {};
+					if (!(user.id in database.gameScriptedOptions)) database.gameScriptedOptions[user.id] = {};
+
+					const storedValue = value === 'on';
+					if (database.gameScriptedOptions[user.id].assistActions === storedValue) {
+						return targetRoom.sayPrivateHtml(user, "You have already set assist actions to be " +
+							(storedValue ? "displayed " : "hidden") + "!");
+					}
+
+					database.gameScriptedOptions[user.id].assistActions = storedValue;
+					if (!targetRoom.game || targetRoom.game.started || !(user.id in targetRoom.game.players)) {
+						this.say("Starting the next game, your assist actions will be " + (storedValue ? "displayed" : "hidden") + "!");
+					} else {
+						targetRoom.game.sendJoinNotice(targetRoom.game.players[user.id]);
+					}
+				} else {
+					return this.say("The options for assist actions are ``on`` and ``off``.");
 				}
 			}
 		},

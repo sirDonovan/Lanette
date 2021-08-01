@@ -8,6 +8,7 @@ const BASE_POINTS = 12;
 const GUESS_COMMAND = "guess";
 
 class FalinksFormations extends ScriptedGame {
+	hasAssistActions: boolean = true;
 	points = new Map<Player, number>();
 	playerList: Player[] = [];
 	currentPlayer: Player | null = null;
@@ -69,7 +70,7 @@ class FalinksFormations extends ScriptedGame {
 			buttons.push(this.getMsgRoomButton(GUESS_COMMAND + " " + i, "Guess <b>" + i + "</b> Falinks", false, currentPlayer));
 		}
 
-		currentPlayer.sayPrivateUhtml(this.getCustomButtonsDiv(buttons, currentPlayer), this.actionsUhtmlName);
+		this.sendPlayerAssistActions(currentPlayer, this.getCustomButtonsDiv(buttons, currentPlayer), this.actionsUhtmlName);
 	}
 
 	onEnd(): void {
@@ -96,7 +97,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 
 			if (this.timeout) clearTimeout(this.timeout);
 
-			player.clearPrivateUhtml(this.actionsUhtmlName);
+			this.clearPlayerAssistActions(player, this.actionsUhtmlName);
 
 			this.canGuess = false;
 			const falinks = this.random(MAX_GUESS + 1) + 1;

@@ -91,6 +91,7 @@ export type GameActionLocations = 'htmlpage' | 'chat';
 export type GameActionGames = 'card' | 'map' | 'greedentsberrypiles' | 'magikarpswaterwheel' | '';
 export interface IGameScriptedOptions {
 	actionsLocations?: PartialKeyedDict<GameActionGames, GameActionLocations>;
+	assistActions?: boolean;
 }
 
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';

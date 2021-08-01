@@ -40,6 +40,7 @@ export abstract class Game extends Activity {
 	customBox?: IGameCustomBox;
 	format?: IGameFormat | IUserHostedFormat;
 	gameActionType?: GameActionGames;
+	hasAssistActions?: boolean;
 	isUserHosted?: boolean;
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
@@ -202,22 +203,35 @@ export abstract class Game extends Activity {
 		let html = "You have joined the <b>" + this.name + "</b> " + this.activityType + "!&nbsp;" +
 			Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "leavegame " + this.room.id, "Leave", false, buttonStyle);
 
-		if (this.gameActionType && !this.started) {
-			let gameActionLocation: GameActionLocations;
+		if ((this.gameActionType || this.hasAssistActions) && !this.started) {
+			let gameActionLocation: GameActionLocations = 'chat';
+			let assistActions = true;
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
-				database.gameScriptedOptions[player.id].actionsLocations &&
-				database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
-				gameActionLocation = database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!;
-			} else {
-				gameActionLocation = 'chat';
+			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions) {
+				if (this.gameActionType && database.gameScriptedOptions[player.id].actionsLocations &&
+					database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
+					gameActionLocation = database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!;
+				}
+
+				if (database.gameScriptedOptions[player.id].assistActions !== undefined) {
+					assistActions = database.gameScriptedOptions[player.id].assistActions!;
+				}
 			}
 
-			const chat = gameActionLocation === 'chat';
-			html += "<br /><br />Your actions will be sent to " + (chat ? "the chat" : "an HTML page") + "!&nbsp;" +
-				Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "setscriptedgameoption " + this.room.id +
-				", actions," + this.gameActionType + "," + (chat ? "htmlpage" : "chat"), "Send to " + (chat ? "an HTML page" :
-				"the chat"), false, buttonStyle);
+			if (this.gameActionType) {
+				const chat = gameActionLocation === 'chat';
+				html += "<br /><br />Your actions will be sent to " + (chat ? "the chat" : "an HTML page") + "!&nbsp;" +
+					Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "setscriptedgameoption " + this.room.id +
+					", actions," + this.gameActionType + "," + (chat ? "htmlpage" : "chat"), "Send to " + (chat ? "an HTML page" :
+					"the chat"), false, buttonStyle);
+			}
+
+			if (this.hasAssistActions) {
+				html += "<br /><br />Your assist actions will be " + (assistActions ? "displayed " : "hidden") + "!&nbsp;" +
+					Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "setscriptedgameoption " + this.room.id +
+					", assistactions," + (assistActions ? "off" : "on"), (assistActions ? "Hide" : "Display") + " assist actions",
+					false, buttonStyle);
+			}
 		}
 
 		player.sayPrivateUhtml(html, this.privateJoinLeaveUhtmlName);

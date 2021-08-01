@@ -14,6 +14,7 @@ export class Player {
 	/** The player has met the activity's win condition */
 	metWinCondition: boolean | undefined;
 	round: number | undefined;
+	sentAssistActions: boolean | undefined;
 	sentHtmlPage: boolean | undefined;
 	sentPrivateHtml: boolean | undefined;
 	team: PlayerTeam | undefined;

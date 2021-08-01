@@ -26,6 +26,7 @@ export class ScriptedGame extends Game {
 	awardedBits: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
@@ -910,17 +911,36 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	sendPlayerAssistActions(player: Player, html: string, uhtmlName?: string): void {
+		if (!this.enabledAssistActions.has(player)) {
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
+				database.gameScriptedOptions[player.id].assistActions !== undefined) {
+				this.enabledAssistActions.set(player, database.gameScriptedOptions[player.id].assistActions!);
+			} else {
+				this.enabledAssistActions.set(player, true);
+			}
+		}
+
+		if (this.enabledAssistActions.get(player)) {
+			player.sayPrivateUhtml(html, uhtmlName);
+			if (!player.sentAssistActions) player.sentAssistActions = true;
+		}
+	}
+
+	clearPlayerAssistActions(player: Player, uhtmlName: string): void {
+		if (player.sentAssistActions) player.clearPrivateUhtml(uhtmlName);
+	}
+
 	sendPlayerActions(player: Player, html: string): void {
 		if (this.gameActionType && !this.gameActionLocations.has(player)) {
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedOptions) {
-				if (player.id in database.gameScriptedOptions &&
-					database.gameScriptedOptions[player.id].actionsLocations &&
-					database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
-					this.gameActionLocations.set(player, database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!);
-				} else {
-					this.gameActionLocations.set(player, 'chat');
-				}
+			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
+				database.gameScriptedOptions[player.id].actionsLocations &&
+				database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]) {
+				this.gameActionLocations.set(player, database.gameScriptedOptions[player.id].actionsLocations![this.gameActionType]!);
+			} else {
+				this.gameActionLocations.set(player, 'chat');
 			}
 		}
 
