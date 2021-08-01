@@ -135,7 +135,7 @@ class TapusTerrains extends ScriptedGame {
 				this.roundJumps.clear();
 			} else {
 				if (this.roundTime > 2000) this.roundTime -= 500;
-				if (this.terrainRound === 20) {
+				if (this.terrainRound > 20) {
 					this.end();
 					return;
 				}
