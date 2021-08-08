@@ -472,10 +472,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				result + ")");
 		}
 
-		const activityTimer = this.activityTimers.get(targetNode);
-		if (activityTimer) clearTimeout(activityTimer);
-		const checkChallengesTimer = this.checkChallengesTimers.get(targetNode);
-		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+		this.clearNodeTimers(targetNode);
 
 		this.playerOpponents.delete(p1);
 		this.playerOpponents.delete(p2);
