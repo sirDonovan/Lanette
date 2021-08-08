@@ -101,6 +101,11 @@ const commands: GameCommandDefinitions<OctillerysAmbush> = {
 export const game: IGameFile<OctillerysAmbush> = {
 	aliases: ["octillerys", "oa"],
 	category: 'reaction',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "fire [player]"],
 	commands,
 	class: OctillerysAmbush,

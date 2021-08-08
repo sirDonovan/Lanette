@@ -109,6 +109,11 @@ const commands: GameCommandDefinitions<ChatotsMusicalChairs> = {
 export const game: IGameFile<ChatotsMusicalChairs> = {
 	aliases: ["chatots", "cmc", "musicalchairs"],
 	category: 'reaction',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + "sit [chair]"],
 	commands,
 	class: ChatotsMusicalChairs,
