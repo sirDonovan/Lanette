@@ -284,9 +284,20 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 				let points = this.points.get(player) || 0;
 				points += 1;
 				this.points.set(player, points);
+
+				if (this.firstEat === undefined) {
+					this.firstEat = player;
+				} else {
+					if (this.firstEat && this.firstEat !== player) this.firstEat = false;
+				}
+
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
 					'answer was __' + berry.name + '__.');
+
 				if (points === this.format.options.points) {
+					if (this.firstEat === player && !this.parentGame) {
+						this.unlockAchievement(player, TropiusBerryPicking.achievements.berrymaster);
+					}
 					this.winners.set(player, points);
 					this.end();
 					return true;
