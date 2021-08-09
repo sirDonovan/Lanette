@@ -272,6 +272,11 @@ commands.guess.aliases.push(answerCommand);
 export const game: IGameFile<DeoxysDifferences> = {
 	aliases: ["deoxys", "dd"],
 	category: 'speed',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	commandDescriptions: [Config.commandCharacter + answerCommand + " [coordinates]"],
 	commands,
 	class: DeoxysDifferences,
