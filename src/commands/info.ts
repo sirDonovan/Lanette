@@ -34,8 +34,13 @@ export const commands: BaseCommandDefinitions = {
 			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
 			const format = Dex.getFormat(target);
 			if (!format) return this.sayError(['invalidFormat', target]);
-			if (!format.teams) return this.say("No sample teams link found for " + format.name + ".");
-			this.say("**" + format.name + " sample teams**: " + format.teams);
+
+			const teams: string[] = [];
+			if (format.teams) teams.push("sample teams: " + format.teams);
+			if (format.ruinsOfAlphTeams) teams.push("Ruins of Alph team hub: " + format.ruinsOfAlphTeams);
+
+			if (!teams.length) return this.say("No sample teams links found for " + format.name + ".");
+			this.say("**" + format.name + "** | " + teams.join(" | "));
 		},
 		aliases: ['steams'],
 	},

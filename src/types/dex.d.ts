@@ -22,6 +22,7 @@ export interface IFormatDataLinks {
 	info?: string;
 	'info-official'?: IParsedSmogonLink;
 	roleCompendium?: string;
+	ruinsOfAlphTeams?: string;
 	teams?: string;
 	'teams-official'?: IParsedSmogonLink;
 	viability?: string;

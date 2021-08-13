@@ -1381,11 +1381,15 @@ export class Dex {
 			} else {
 				format.viability = viability ? viability.link : undefined;
 			}
+
+			if (links.ruinsOfAlphTeams) format.ruinsOfAlphTeams = links.ruinsOfAlphTeams;
 		} else {
 			format.info = info ? info.link : undefined;
 			format.teams = teams ? teams.link : undefined;
 			format.viability = viability ? viability.link : undefined;
 		}
+
+		if (format.teams && format.ruinsOfAlphTeams && format.teams === format.ruinsOfAlphTeams) format.teams = undefined;
 
 		const links = ['info', 'roleCompendium', 'teams', 'viability'] as const;
 		for (const id of links) {
@@ -1439,6 +1443,10 @@ export class Dex {
 
 		if (format.teams) {
 			links.push('&bull;&nbsp;<a href="' + format.teams + '">Sample teams</a>');
+		}
+
+		if (format.ruinsOfAlphTeams) {
+			links.push('&bull;&nbsp;<a href="' + format.ruinsOfAlphTeams + '">Ruins of Alph team hub</a>');
 		}
 
 		if (format.viability) {
