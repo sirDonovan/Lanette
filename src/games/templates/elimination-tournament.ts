@@ -50,6 +50,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
+	disqualifiedOpponents = new Map<Player, Player>();
 	disqualifiedPlayers = new Set<Player>();
 	dontAutoCloseHtmlPages: boolean = true;
 	dropsPerRound: number = 0;
@@ -363,7 +364,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	disqualifyPlayers(players: Player[]): void {
-		if (!this.treeRoot) throw new Error("disqualifyUsers() called before bracket generated");
+		if (!this.treeRoot) throw new Error("disqualifyPlayers() called before bracket generated");
 
 		for (const player of players) {
 			player.eliminated = true;
@@ -403,6 +404,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 				} else {
 					winner = found.match[0];
 				}
+
+				this.disqualifiedOpponents.set(winner, player);
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
@@ -593,6 +596,18 @@ export abstract class EliminationTournament extends ScriptedGame {
 				this.activityTimers.set(node, dqTimeout);
 			}, activityWarning + UPDATE_HTML_PAGE_DELAY);
 			this.activityTimers.set(node, warningTimeout);
+		}
+
+		for (const i in this.players) {
+			const player = this.players[i];
+			if (!player.eliminated && this.disqualifiedOpponents.has(player)) {
+				if (!this.playerOpponents.has(player)) {
+					player.say("Your previous opponent " + this.disqualifiedOpponents.get(player)!.name + " was disqualified! Check " +
+						"the tournament page for possible team changes.");
+				}
+
+				this.disqualifiedOpponents.delete(player);
+			}
 		}
 
 		const oldBracketHtml = this.bracketHtml;
