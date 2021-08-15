@@ -8,6 +8,7 @@ const description = "Every player is given a different randomly generated Pokemo
 class CloakAndDagger extends EliminationTournament {
 	firstRoundExtraTime = 3 * 60 * 1000;
 	startingTeamsLength = 1;
+	allowsFormes = false;
 	baseTournamentName = name;
 	tournamentDescription = description;
 	requiredTier = "OU";
