@@ -1,3 +1,4 @@
+import type { SearchChallenge } from "./games/templates/search-challenge";
 import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
@@ -21,6 +22,7 @@ export class Room {
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	publicRoom: boolean = false;
 	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
+	searchChallenge: SearchChallenge | undefined = undefined;
 	serverBannedWords: string[] | null = null;
 	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | undefined = undefined;
@@ -76,6 +78,7 @@ export class Room {
 
 	deInit(): void {
 		if (this.game && this.game.room === this) this.game.deallocate(true);
+		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
 
@@ -137,6 +140,7 @@ export class Room {
 		user.rooms.set(this, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
+		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user, onRename);
 		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user, onRename);
 		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user, onRename);
 	}
@@ -146,6 +150,7 @@ export class Room {
 		user.rooms.delete(this);
 
 		if (this.game && this.game.onUserLeaveRoom) this.game.onUserLeaveRoom(this, user);
+		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);
 		if (this.tournament && this.tournament.onUserLeaveRoom) this.tournament.onUserLeaveRoom(this, user);
 		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
 

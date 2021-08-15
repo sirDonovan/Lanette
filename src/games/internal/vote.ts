@@ -385,6 +385,11 @@ const commands: GameCommandDefinitions<Vote> = {
 					return false;
 				}
 
+				if (targetFormat.searchChallenge) {
+					player.sayPrivateHtml("Search challenge formats cannot be chosen. Please vote for a different game!");
+					return false;
+				}
+
 				if (targetFormat.tournamentGame) {
 					player.sayPrivateHtml("Tournament formats cannot be chosen. Please vote for a different game!");
 					return false;

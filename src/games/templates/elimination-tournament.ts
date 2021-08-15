@@ -26,7 +26,6 @@ const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 20 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
-const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
 
 export abstract class EliminationTournament extends ScriptedGame {
 	abstract baseTournamentName: string;
@@ -137,10 +136,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return maxPlayers;
 	}
 
-	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution'): boolean {
+	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution', bannedFormes: readonly string[]): boolean {
 		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
-			(this.type && !pokemon.types.includes(this.type)) || TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.name) ||
-			(pokemon.forme && TEAM_PREVIEW_HIDDEN_FORMES.includes(pokemon.baseSpecies))) {
+			(this.type && !pokemon.types.includes(this.type)) || bannedFormes.includes(pokemon.name) ||
+			(pokemon.forme && bannedFormes.includes(pokemon.baseSpecies)) || (pokemon.forme && !this.allowsFormes)) {
 			return false;
 		}
 
@@ -158,13 +157,14 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	createPokedex(): string[] {
+		const teamPreviewHiddenFormes = Dex.getTeamPreviewHiddenFormes();
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
 
 		const pokedex: IPokemon[] = [];
 		for (const name of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
-			if (!this.meetsPokemonCriteria(pokemon, 'starter')) continue;
+			if (!this.meetsPokemonCriteria(pokemon, 'starter', teamPreviewHiddenFormes)) continue;
 
 			if (this.gen && pokemon.gen !== this.gen) continue;
 			if (this.color && pokemon.color !== this.color) continue;
@@ -185,7 +185,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 					for (const stage of line) {
 						const evolution = Dex.getExistingPokemon(stage);
 						if (evolution === pokemon) continue;
-						if (!this.meetsPokemonCriteria(evolution, 'evolution')) {
+						if (!this.meetsPokemonCriteria(evolution, 'evolution', teamPreviewHiddenFormes)) {
 							validEvolutionLines--;
 							validLine = false;
 							break;

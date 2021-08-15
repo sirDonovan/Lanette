@@ -71,7 +71,9 @@ module.exports = (): void => {
 
 				const workerGameRooms: rooms.Room[] = [];
 				Users.self.rooms.forEach((rank, room) => {
-					if (room.game && room.game.usesWorkers) workerGameRooms.push(room);
+					if ((room.game && room.game.usesWorkers) || (room.searchChallenge && room.searchChallenge.usesWorkers)) {
+						workerGameRooms.push(room);
+					}
 				});
 				if (workerGameRooms.length) {
 					if (user) user.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +

@@ -99,6 +99,9 @@ export class User {
 
 		this.rooms.forEach((value, room) => {
 			if (room.game && room.game.onUserUpdateStatus) room.game.onUserUpdateStatus(this, status, away);
+			if (room.searchChallenge && room.searchChallenge.onUserUpdateStatus) {
+				room.searchChallenge.onUserUpdateStatus(this, status, away);
+			}
 			if (room.tournament && room.tournament.onUserUpdateStatus) room.tournament.onUserUpdateStatus(this, status, away);
 			if (room.userHostedGame && room.userHostedGame.onUserUpdateStatus) room.userHostedGame.onUserUpdateStatus(this, status, away);
 		});
@@ -236,6 +239,7 @@ export class Users {
 		this.users[id] = user;
 		user.rooms.forEach((value, room) => {
 			if (room.game) room.game.renamePlayer(user, oldId);
+			if (room.searchChallenge) room.searchChallenge.renamePlayer(user, oldId);
 			if (room.tournament) room.tournament.renamePlayer(user, oldId);
 			if (room.userHostedGame) room.userHostedGame.renamePlayer(user, oldId);
 		});

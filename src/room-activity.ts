@@ -499,8 +499,8 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
 	}
 
-	getPlayerNamesText(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).join(', ');
+	getPlayerNamesText(players?: PlayerList): string[] {
+		return this.getPlayerAttributes(player => player.name, players);
 	}
 
 	onEnd?(): void;

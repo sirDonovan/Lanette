@@ -328,7 +328,7 @@ describe("Games", () => {
 	it('should start signups for scripted games', () => {
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
-			if (format.tournamentGame) continue;
+			if (format.tournamentGame || format.searchChallenge) continue;
 
 			const startingSendQueueIndex = Client.getOutgoingMessageQueue().length;
 			const gameLog: string[] = [];

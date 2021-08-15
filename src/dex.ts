@@ -22,6 +22,7 @@ const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 const POKEMON_ICON_HEIGHT = 30;
 const POKEMON_ICON_WIDTH = 40;
+const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
 
 const mechanicsDifferences: Dict<string> = {
 	'gen1': '3668073/post-8553244',
@@ -332,6 +333,10 @@ export class Dex {
 		for (const mod in dexes) {
 			dexes[mod].loadData();
 		}
+	}
+
+	getTeamPreviewHiddenFormes(): readonly string[] {
+		return TEAM_PREVIEW_HIDDEN_FORMES;
 	}
 
 	getCharacterTypes(): CharacterTypes {
@@ -1543,6 +1548,25 @@ export class Dex {
 
 		format.usablePokemon = usablePokemon;
 		return usablePokemon;
+	}
+
+	getUsableMoves(format: IFormat): string[] {
+		if (format.usableMoves) return format.usableMoves;
+
+		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+
+		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const usableMoves: string[] = [];
+		for (const i of formatDex.getData().moveKeys) {
+			const move = formatDex.pokemonShowdownDex.moves.get(i);
+			if (!validator.checkMove({}, move, {})) {
+				usableMoves.push(move.name);
+			}
+		}
+
+		format.usableMoves = usableMoves;
+		return usableMoves;
 	}
 
 	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {

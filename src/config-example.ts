@@ -253,6 +253,11 @@ export let allowTournamentGames: string[] = [];
 export let allowChallengeGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where search challenges are allowed to be played
+ */
+export let allowSearchChallenges: string[] = [];
+
+/**
  * A list of rooms (roomids) where game achievements are able to be unlocked
  */
 export let allowGameAchievements: string[] = [];

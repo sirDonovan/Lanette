@@ -135,7 +135,7 @@ export abstract class Game extends Activity {
 			}
 
 			if (!trainerCardsShown) {
-				this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNamesText(this.winners));
+				this.say("**Winner" + (numberOfWinners > 1 ? "s" : "") + "**: " + this.getPlayerNamesText(this.winners).join(", "));
 			}
 		} else {
 			this.say("No winners this game!");
@@ -524,7 +524,8 @@ export abstract class Game extends Activity {
 			return "**Teams** | " + teamDisplays.join(" | ");
 		}
 
-		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPointsText() : this.getPlayerNamesText());
+		return "**Players (" + remainingPlayers + ")**: " + (this.points ? this.getPlayerPointsText() :
+			this.getPlayerNamesText().join(", "));
 	}
 
 	getPointsDisplay(points: number | undefined, decimalPlaces?: number): string {

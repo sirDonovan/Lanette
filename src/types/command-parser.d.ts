@@ -33,8 +33,8 @@ export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | '
 	'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
 export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' |
-	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledUserHostedGameFeatures' | 'disabledUserHostedTournamentFeatures' |
-	'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
+	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledSearchChallengeFeatures' | 'disabledUserHostedGameFeatures' |
+	'disabledUserHostedTournamentFeatures' | 'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
 
 export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
 

@@ -846,6 +846,7 @@ export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLink
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;
+	usableMoves?: string[];
 	usablePokemon?: string[];
 	separatedCustomRules?: ISeparatedCustomRules;
 }
@@ -982,6 +983,8 @@ export interface IPokemonShowdownValidator {
 	// eslint-disable-next-line @typescript-eslint/no-misused-new
 	new(format: string | IFormat, dex: IPokemonShowdownDex): IPokemonShowdownValidator;
 	checkCanLearn: (move: IMove, pokemon: IPokemon) => boolean;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	checkMove: (set: Dict<any>, move: IMove, setHas: Dict<boolean>) => string | null;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	checkSpecies: (set: Dict<any>, pokemon: IPokemon, tierPokemon: IPokemon, setHas: Dict<boolean>) => string | null;
 	learnsetParent: (pokemon: IPokemon) => IPokemon | null;

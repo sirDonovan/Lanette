@@ -788,6 +788,7 @@ export class Client {
 		}
 
 		for (const id of this.roomsToRejoin) {
+			const reconnectRoomMessages: string[] = [];
 			const room = Rooms.get(id)!;
 			let game: ScriptedGame | UserHostedGame | undefined;
 			if (room.game && room.game.started) {
@@ -797,9 +798,17 @@ export class Client {
 			}
 
 			if (game) {
-				this.reconnectRoomMessages[room.id] = [Users.self.name + " had to reconnect to the server so the game was " +
-					"forcibly ended."];
+				reconnectRoomMessages.push(Users.self.name + " had to reconnect to the server so the game was forcibly ended.");
 				game.deallocate(true);
+			}
+
+			if (room.searchChallenge) {
+				reconnectRoomMessages.push(Users.self.name + " had to reconnect to the server so the search challenge was forcibly ended.");
+				room.searchChallenge.deallocate(true);
+			}
+
+			if (reconnectRoomMessages.length) {
+				this.reconnectRoomMessages[room.id] = reconnectRoomMessages;
 			}
 		}
 

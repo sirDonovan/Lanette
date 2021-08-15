@@ -81,6 +81,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const allowsScripted = Config.allowScriptedGames && Config.allowScriptedGames.includes(gameRoom.id);
+			const allowsSearchChallenge = Config.allowSearchChallenges && Config.allowSearchChallenges.includes(gameRoom.id);
 			const allowsTournament = Config.allowTournamentGames && Config.allowTournamentGames.includes(gameRoom.id);
 			const allowsUserHosted = Config.allowUserHostedGames && Config.allowUserHostedGames.includes(gameRoom.id);
 			if (!allowsScripted && !allowsTournament && !allowsUserHosted) {
@@ -99,7 +100,8 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if ((format.tournamentGame && !allowsTournament) || (!format.tournamentGame && !allowsScripted)) {
+			if ((format.searchChallenge && !allowsSearchChallenge) || (format.tournamentGame && !allowsTournament) ||
+				(!format.tournamentGame && !allowsScripted)) {
 				this.sayError(['invalidGameFormat', inputTarget]);
 				return;
 			}
@@ -651,6 +653,8 @@ export const commands: BaseCommandDefinitions = {
 			} else {
 				const inputFormat = Games.getFormat(target, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
+				if (!inputFormat.tournamentGame) return this.say(inputFormat.name + " is not a tournament game!");
+
 				const canCreateGame = Games.canCreateGame(room, inputFormat);
 				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different tournament!");
 				format = inputFormat;
@@ -660,6 +664,46 @@ export const commands: BaseCommandDefinitions = {
 			game.signups();
 		},
 		aliases: ['createtourgame', 'ctourgame', 'ctg', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
+	},
+	createsearchchallenge: {
+		command(target, room, user, cmd) {
+			if (this.isPm(room)) return;
+			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame || room.searchChallenge) return;
+			if (!Config.allowSearchChallenges || !Config.allowSearchChallenges.includes(room.id)) {
+				return this.sayError(['disabledSearchChallengeFeatures', room.title]);
+			}
+			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
+
+			let format: IGameFormat | undefined;
+			if (cmd === 'createrandomsearchchallenge' || cmd === 'randomsearchchallenge' || cmd === 'crsc' ||
+				Tools.toId(target) === 'random') {
+				const formats = Tools.shuffle(Games.getSearchChallengeList());
+				for (const randomFormat of formats) {
+					if (Games.canCreateGame(room, randomFormat) === true) {
+						format = randomFormat;
+						break;
+					}
+				}
+				if (!format) return this.say("A random search challenge could not be chosen.");
+			} else {
+				const inputFormat = Games.getFormat(target, true);
+				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
+				if (!inputFormat.searchChallenge) return this.say(inputFormat.name + " is not a search challenge!");
+
+				const canCreateGame = Games.canCreateGame(room, inputFormat);
+				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different search challenge!");
+				format = inputFormat;
+			}
+
+			if (room.tournament) {
+				return this.say("You must wait for the " + room.tournament.name + " tournament to end!");
+			}
+
+			const game = Games.createSearchChallenge(room, format, room);
+			game.signups();
+		},
+		aliases: ['csearchchallenge', 'csc', 'createrandomsearchchallenge', 'randomsearchchallenge', 'crsc'],
 	},
 	randomminigame: {
 		command(target, room, user) {
@@ -779,6 +823,7 @@ export const commands: BaseCommandDefinitions = {
 				const inputFormat = Games.getFormat(gameTarget, true);
 				if (Array.isArray(inputFormat)) return this.sayError(inputFormat);
 				if (inputFormat.tournamentGame) return this.say("You must use the ``" + Config.commandCharacter + "ctg`` command.");
+				if (inputFormat.searchChallenge) return this.say("You must use the ``" + Config.commandCharacter + "csc`` command.");
 				const canCreateGame = Games.canCreateGame(room, inputFormat);
 				if (canCreateGame !== true) return this.say(canCreateGame + " Please choose a different game!");
 				format = inputFormat;
@@ -934,6 +979,46 @@ export const commands: BaseCommandDefinitions = {
 				this.sayHtml(html, gameRoom);
 			} else {
 				this.say("There is no scripted game running.");
+			}
+		},
+	},
+	challenge: {
+		command(target, room, user) {
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(Tools.toRoomId(target));
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
+				gameRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'voice')) return;
+				gameRoom = room;
+			}
+
+			if (gameRoom.searchChallenge) {
+				const game = gameRoom.searchChallenge;
+				let html = game.getMascotAndNameHtml("", true);
+				html += "<br />";
+				if (game.started) {
+					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
+					const remainingPlayers = game.getRemainingPlayerCount();
+					if (remainingPlayers !== game.playerCount) {
+						html += "<b>Remaining players</b>: " + remainingPlayers + "/" + game.playerCount;
+					} else {
+						html += "<b>Players</b>: " + remainingPlayers;
+					}
+
+					if (game.getObjectiveText) {
+						const text = game.getObjectiveText();
+						if (text) html += "<br /><br /><b>Objective</b>: " + text;
+					}
+				} else {
+					html += "<b>Signups duration</b>: " + Tools.toDurationString(Date.now() - game.signupsTime) + "<br />";
+					html += "<b>" + game.playerCount + "</b> player" + (game.playerCount === 1 ? " has" : "s have") + " joined";
+				}
+				this.sayHtml(html, gameRoom);
+			} else {
+				this.say("There is no scripted challenge running.");
 			}
 		},
 	},

@@ -433,7 +433,9 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (!this.internalGame) this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNamesText());
+		if (!this.internalGame) {
+			this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNamesText().join(", "));
+		}
 
 		if (this.onStart) {
 			try {
@@ -666,6 +668,12 @@ export class ScriptedGame extends Game {
 		}
 
 		if (this.room.game === this) delete this.room.game;
+
+		// @ts-expect-error
+		if ((this.room as Room).searchChallenge === this) {
+			// @ts-expect-error
+			delete this.room.searchChallenge; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+		}
 
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
@@ -1174,6 +1182,17 @@ export class ScriptedGame extends Game {
 			const lives = this.lives!.get(player) || this.startingLives;
 			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
+	}
+
+	getBattleSlotPlayer(battleData: IBattleGameData, targetSlot: string): Player | undefined {
+		let targetPlayer;
+		battleData.slots.forEach((slot, player) => {
+			if (slot === targetSlot) {
+				targetPlayer = player;
+			}
+		});
+
+		return targetPlayer;
 	}
 
 	/**Returns an array of players who re-unlocked the achievement, if any */

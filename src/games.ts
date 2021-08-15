@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+import type { SearchChallenge } from './games/templates/search-challenge';
 
 import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
@@ -58,6 +59,7 @@ const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
 	'map': 'Map',
 	'puzzle': 'Puzzle',
 	'reaction': 'Reaction',
+	'search-challenge': 'Search Challenge',
 	'speed': 'Speed',
 	'tabletop': 'Tabletop',
 };
@@ -529,12 +531,18 @@ export class Games {
 								if (userRoom.game) {
 									const result = userRoom.game.tryCommand(target, user, user, command, timestamp);
 									if (result) returnedResult = result;
+								} else if (userRoom.searchChallenge) {
+									const result = userRoom.searchChallenge.tryCommand(target, user, user, command, timestamp);
+									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
 						if (room.game) {
 							const result = room.game.tryCommand(target, room, user, command, timestamp);
+							if (result) returnedResult = result;
+						} else if (room.searchChallenge) {
+							const result = room.searchChallenge.tryCommand(target, room, user, command, timestamp);
 							if (result) returnedResult = result;
 						}
 					}
@@ -732,7 +740,7 @@ export class Games {
 		const formats: IGameFormat[] = [];
 		for (const i in this.formats) {
 			const format = this.getExistingFormat(i);
-			if (format.disabled || format.tournamentGame || (filter && !filter(format))) continue;
+			if (format.disabled || format.tournamentGame || format.searchChallenge || (filter && !filter(format))) continue;
 			formats.push(format);
 		}
 
@@ -744,6 +752,17 @@ export class Games {
 		for (const i in this.formats) {
 			const format = this.getExistingFormat(i);
 			if (format.disabled || !format.tournamentGame) continue;
+			formats.push(format);
+		}
+
+		return formats;
+	}
+
+	getSearchChallengeList(): IGameFormat[] {
+		const formats: IGameFormat[] = [];
+		for (const i in this.formats) {
+			const format = this.getExistingFormat(i);
+			if (format.disabled || !format.searchChallenge) continue;
 			formats.push(format);
 		}
 
@@ -957,6 +976,10 @@ export class Games {
 			return CommandParser.getErrorText(['disabledTournamentGameFeatures', room.title]);
 		}
 
+		if (format.searchChallenge && (!Config.allowSearchChallenges || !Config.allowSearchChallenges.includes(room.id))) {
+			return CommandParser.getErrorText(['disabledSearchChallengeFeatures', room.title]);
+		}
+
 		const database = Storage.getDatabase(room);
 		const pastGames = database.pastGames || [];
 
@@ -1090,6 +1113,21 @@ export class Games {
 		}
 
 		return room.userHostedGame;
+	}
+
+	createSearchChallenge(room: Room, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): ScriptedGame {
+		if (format.class.loadData && !format.class.loadedData) {
+			if (format.nonTrivialLoadData) {
+				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
+			}
+			format.class.loadData(room);
+			format.class.loadedData = true;
+		}
+
+		room.searchChallenge = new format.class(room, pmRoom, initialSeed) as SearchChallenge;
+		room.searchChallenge.initialize(format);
+
+		return room.searchChallenge;
 	}
 
 	disableFormat(format: IGameFormat): void {
@@ -1886,7 +1924,7 @@ export class Games {
 			keys.sort();
 			for (const key of keys) {
 				const format = this.getExistingFormat(key);
-				if (format.disabled || format.tournamentGame) continue;
+				if (format.disabled || format.tournamentGame || format.searchChallenge) continue;
 				if (format.challengeSettings) {
 					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled) {
 						oneVsOneGames.push("* " + format.name + "\n");
@@ -1913,7 +1951,7 @@ export class Games {
 			const formats: IGameFormat[] = [];
 			for (const key of formatKeys) {
 				const format = this.getExistingFormat(key);
-				if (format.disabled || format.tournamentGame) continue;
+				if (format.disabled || format.tournamentGame || format.searchChallenge) continue;
 				formats.push(format);
 			}
 
