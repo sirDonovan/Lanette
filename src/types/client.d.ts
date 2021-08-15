@@ -341,7 +341,16 @@ export interface IClientMessageTypes {
 	poke: {
 		slot: string;
 		details: string;
-		item: boolean
+		item: boolean;
+	};
+
+	/**
+	 * Slot+name|Move|Target slot+name
+	 */
+	move: {
+		pokemon: string;
+		move: string;
+		target: string;
 	};
 
 	/**
@@ -360,6 +369,13 @@ export interface IClientMessageTypes {
 	faint: {
 		pokemon: string;
 	};
+
+	/**
+	 * Message
+	 */
+	'-message': {
+		message: string;
+	}
 
 	/**
 	 * Username of winner

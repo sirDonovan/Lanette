@@ -1246,6 +1246,10 @@ export class ScriptedGame extends Game {
 	onBattleFaint?(room: Room, slot: string): boolean;
 	onBattlePlayer?(room: Room, slot: string, username: string): void;
 	/** Return `false` to signal that the battle should be left */
+	onBattleMessage?(room: Room, message: string): boolean;
+	/** Return `false` to signal that the battle should be left */
+	onBattleMove?(room: Room, pokemon: string, move: string, target: string): boolean;
+	/** Return `false` to signal that the battle should be left */
 	onBattlePokemon?(room: Room, slot: string, details: string, item: boolean): boolean;
 	/** Return `false` to signal that the battle should be left */
 	onBattleTeamSize?(room: Room, slot: string, size: number): boolean;

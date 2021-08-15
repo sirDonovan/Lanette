@@ -2093,6 +2093,22 @@ export class Client {
 			break;
 		}
 
+		case 'move': {
+			const messageArguments: IClientMessageTypes['move'] = {
+				pokemon: messageParts[0],
+				move: messageParts[1],
+				target: messageParts[2],
+			};
+
+			if (room.game) {
+				if (room.game.onBattleMove && !room.game.onBattleMove(room, messageArguments.pokemon, messageArguments.move,
+					messageArguments.target)) {
+					room.leave();
+				}
+			}
+			break;
+		}
+
 		case 'faint': {
 			const messageArguments: IClientMessageTypes['faint'] = {
 				pokemon: messageParts[0],
@@ -2124,6 +2140,20 @@ export class Client {
 					room.leave();
 				}
 			}
+			break;
+		}
+
+		case '-message': {
+			const messageArguments: IClientMessageTypes['-message'] = {
+				message: messageParts[0],
+			};
+
+			if (room.game) {
+				if (room.game.onBattleMessage && !room.game.onBattleMessage(room, messageArguments.message)) {
+					room.leave();
+				}
+			}
+
 			break;
 		}
 
