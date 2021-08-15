@@ -1,5 +1,6 @@
 import type { Player } from "./room-activity";
 import { Activity } from "./room-activity";
+import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
 import type { IBattleGameData } from "./types/games";
 import type { IFormat } from "./types/pokemon-showdown";
@@ -52,6 +53,8 @@ export class Tournament extends Activity {
 	updates: Partial<ITournamentUpdateJson> = {};
 
 	readonly joinBattles: boolean;
+
+	battleRoomGame?: ScriptedGame;
 
 	// set in initialize()
 	format!: IFormat;
@@ -165,6 +168,12 @@ export class Tournament extends Activity {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
+
+		this.leaveBattleRooms();
+
+		delete this.battleRoomGame;
 		delete this.room.tournament;
 	}
 
@@ -173,6 +182,8 @@ export class Tournament extends Activity {
 		this.started = true;
 		this.startTime = Date.now();
 		this.setRunAutoDqTimeout();
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) this.battleRoomGame.onTournamentStart(this.players);
 	}
 
 	onEnd(): void {
@@ -387,8 +398,10 @@ export class Tournament extends Activity {
 			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
 		}
 
-		if (this.joinBattles) {
-			room.tournament = this;
+		if (this.joinBattles || this.battleRoomGame) {
+			if (this.joinBattles) room.tournament = this;
+			if (this.battleRoomGame) room.game = this.battleRoomGame;
+
 			Client.joinRoom(room.id);
 		}
 	}

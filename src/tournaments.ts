@@ -1,4 +1,5 @@
 import { EliminationNode } from "./lib/elimination-node";
+import type { ScriptedGame } from "./room-game-scripted";
 import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
@@ -23,7 +24,7 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<{format: IFormat; scheduled?: boolean}> = {};
+	createListeners: Dict<{format: IFormat; game?: ScriptedGame, scheduled?: boolean}> = {};
 	readonly delayedScheduledTournamentTime: number = 15 * 1000;
 	queuedTournamentTime: number = 5 * 60 * 1000;
 	nextScheduledTournaments: Dict<IScheduledTournament> = {};
@@ -200,6 +201,10 @@ export class Tournaments {
 				if (this.createListeners[room.id].scheduled) {
 					tournament.scheduled = true;
 					this.setScheduledTournament(room);
+				}
+
+				if (this.createListeners[room.id].game) {
+					tournament.battleRoomGame = this.createListeners[room.id].game;
 				}
 
 				tournament.format = this.createListeners[room.id].format;

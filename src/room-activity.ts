@@ -185,6 +185,7 @@ export class PlayerTeam {
 
 export abstract class Activity {
 	readonly activityType: string = '';
+	readonly battleData: Map<Room, IBattleGameData> | null = null;
 	baseHtmlPageId: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
@@ -333,6 +334,20 @@ export abstract class Activity {
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);
+	}
+
+	leaveBattleRooms(): void {
+		if (!this.battleData) return;
+
+		this.battleData.forEach((data, battleRoom) => {
+			if (battleRoom.id) {
+				const room = Rooms.get(battleRoom.id);
+				if (room) {
+					delete room.game;
+					room.leave();
+				}
+			}
+		});
 	}
 
 	getHtmlPageWithHeader(html: string): string {

@@ -48,7 +48,6 @@ export class ScriptedGame extends Game {
 
 	additionalDescription?: string;
 	allowChildGameBits?: boolean;
-	readonly battleData?: Map<Room, IBattleGameData>;
 	readonly battleRooms?: string[];
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
@@ -654,6 +653,8 @@ export class ScriptedGame extends Game {
 		if (this.startTimer) clearTimeout(this.startTimer);
 
 		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
+
+		this.leaveBattleRooms();
 
 		if (this.onDeallocate) {
 			try {
@@ -1272,6 +1273,8 @@ export class ScriptedGame extends Game {
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
+	onTournamentEnd?(): void;
+	onTournamentStart?(players: Dict<Player>): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
