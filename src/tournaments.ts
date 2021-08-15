@@ -511,7 +511,7 @@ export class Tournaments {
 		this.tournamentTimers[room.id] = setTimeout(() => {
 			if (room.tournament) return;
 			this.createListeners[room.id] = {format, scheduled: scheduled || false};
-			room.createTournament(format, cap, tournamentName);
+			room.createTournament(format, 'elimination', cap, tournamentName);
 			delete this.tournamentTimers[room.id];
 		}, timer);
 	}

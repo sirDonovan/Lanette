@@ -352,13 +352,17 @@ export class Room {
 		this.say("/roomdeauth " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-deauth', user: Tools.toId(name)});
 	}
 
-	createTournament(format: IFormat, cap: number, tournamentName?: string): void {
-		this.say("/tour new " + format.id + ", elimination," + cap + (tournamentName ? ",1," + tournamentName : ""),
+	createTournament(format: IFormat, type: 'elimination' | 'roundrobin', cap: number, tournamentName?: string): void {
+		this.say("/tour new " + format.id + ", " + type + "," + cap + (tournamentName ? ",1," + tournamentName : ""),
 			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create'});
 	}
 
 	startTournament(): void {
 		this.say("/tour start", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-start'});
+	}
+
+	endTournament(): void {
+		this.say("/tour end", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-end'});
 	}
 
 	nameTournament(name: string): void {
@@ -385,6 +389,10 @@ export class Room {
 		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepulic'});
 	}
 
+	forceTimerTournament(): void {
+		this.say("/tour forcetimer", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcetimer'});
+	}
+
 	disallowTournamentScouting(): void {
 		this.say("/tour scouting disallow", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-scouting'});
 	}
@@ -395,6 +403,11 @@ export class Room {
 
 	setTournamentRules(rules: string): void {
 		this.say("/tour rules " + rules, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-rules'});
+	}
+
+	disqualifyFromTournament(userOrPlayer: User | Player): void {
+		this.say("/tour dq " + userOrPlayer.name,
+			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-disqualify', user: userOrPlayer.id});
 	}
 
 	startHangman(answer: string, hint: string): void {

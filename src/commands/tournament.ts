@@ -62,7 +62,7 @@ export const commands: BaseCommandDefinitions = {
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
-			room.createTournament(format, playerCap);
+			room.createTournament(format, 'elimination', playerCap);
 		},
 		aliases: ['createtour', 'ct'],
 	},

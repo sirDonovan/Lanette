@@ -22,9 +22,9 @@ export interface IServerProcessingMeasurement {
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'private-html' | 'pm' | 'pm-html' | 'pm-uhtml' |
 	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
-	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-name' | 'tournament-autostart' |
+	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
-	'tournament-scouting' | 'tournament-modjoin' | 'notifyuser' | 'notifyoffuser';
+	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;

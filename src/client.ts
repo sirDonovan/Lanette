@@ -46,6 +46,8 @@ const TOURNAMENT_AUTODQ_COMMAND = "/log (The tournament auto disqualify timer wa
 const TOURNAMENT_FORCEPUBLIC_COMMAND = "/log (Tournament public battles were turned ON by ";
 const TOURNAMENT_SCOUTING_COMMAND = "/log (The tournament was set to disallow scouting by ";
 const TOURNAMENT_MODJOIN_COMMAND = "/log (The tournament was set to disallow modjoin by ";
+const TOURNAMENT_FORCE_TIMER_COMMAND = "/log (The timer was turned on for the tournament by ";
+const TOURNAMENT_END_COMMAND = "forcibly ended a tournament.)";
 const TOURNAMENT_RUNAUTODQ_COMMAND = "All available matches were checked for automatic disqualification.";
 const HANGMAN_END_RAW_MESSAGE = "The game of hangman was ended.";
 const NOTIFY_USER_MESSAGE = "Sent a notification to ";
@@ -1429,12 +1431,20 @@ export class Client {
 						if (messageArguments.message.startsWith(TOURNAMENT_FORCEPUBLIC_COMMAND + Users.self.name)) {
 							this.clearLastOutgoingMessage(now);
 						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-forcetimer') {
+						if (messageArguments.message.startsWith(TOURNAMENT_FORCE_TIMER_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
 					} else if (this.lastOutgoingMessage.type === 'tournament-scouting') {
 						if (messageArguments.message.startsWith(TOURNAMENT_SCOUTING_COMMAND + Users.self.name)) {
 							this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'tournament-modjoin') {
 						if (messageArguments.message.startsWith(TOURNAMENT_MODJOIN_COMMAND + Users.self.name)) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage.type === 'tournament-end') {
+						if (messageArguments.message.endsWith(TOURNAMENT_END_COMMAND)) {
 							this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'tournament-rules') {
@@ -1957,13 +1967,20 @@ export class Client {
 
 			case 'leave':
 			case 'disqualify': {
+				const messageArguments: ITournamentMessageTypes['leave'] = {
+					username: messageParts[0],
+				};
+
+				if (type === 'disqualify' && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
+					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.user) {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				room.addHtmlChatLog("tournament|leave");
 
 				if (!room.tournament) return;
 
-				const messageArguments: ITournamentMessageTypes['leave'] = {
-					username: messageParts[0],
-				};
 				room.tournament.destroyPlayer(messageArguments.username);
 				break;
 			}
