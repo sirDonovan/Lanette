@@ -562,7 +562,6 @@ export const commands: BaseCommandDefinitions = {
 	},
 	gametimer: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !room.userHostedGame || !room.userHostedGame.isHost(user)) return;
 			let targets: string[];
 			if (target.includes(',')) {
 				targets = target.split(',');
@@ -570,11 +569,23 @@ export const commands: BaseCommandDefinitions = {
 				targets = target.split(' ');
 			}
 
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			if (!gameRoom.userHostedGame || !gameRoom.userHostedGame.isHost(user)) return;
+
 			const offArguments = ['off', 'end', 'clear', 'cancel'];
 			if (offArguments.includes(Tools.toId(targets[0]))) {
-				if (!room.userHostedGame.gameTimer) return this.say("There is no game timer running.");
-				clearTimeout(room.userHostedGame.gameTimer);
-				room.userHostedGame.gameTimer = null;
+				if (!gameRoom.userHostedGame.gameTimer) return this.say("There is no game timer running.");
+				clearTimeout(gameRoom.userHostedGame.gameTimer);
+				gameRoom.userHostedGame.gameTimer = null;
 				return this.say("The game timer has been turned off.");
 			}
 
@@ -585,7 +596,7 @@ export const commands: BaseCommandDefinitions = {
 				const isSeconds = secondsArguments.includes(Tools.toId(targets[0]));
 				let minimumTime: number;
 				let maximumTime: number;
-				const remainingMinutes = Math.floor((room.userHostedGame.endTime - now) / 60 / 1000);
+				const remainingMinutes = Math.floor((gameRoom.userHostedGame.endTime - now) / 60 / 1000);
 				if (isSeconds && targets.length === 3) {
 					minimumTime = parseInt(targets[1]);
 					maximumTime = parseInt(targets[2]);
@@ -626,7 +637,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				while (time < minimumTime || time > maximumTime) {
-					time = room.userHostedGame.random(maximumTime) + 1;
+					time = gameRoom.userHostedGame.random(maximumTime) + 1;
 				}
 
 				if (isSeconds) {
@@ -647,24 +658,25 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (now + time > room.userHostedGame.endTime) {
-				return this.say("There are only " + Tools.toDurationString(room.userHostedGame.endTime - now) + " left in the game!");
+			if (now + time > gameRoom.userHostedGame.endTime) {
+				return this.say("There are only " + Tools.toDurationString(gameRoom.userHostedGame.endTime - now) + " left in the game!");
 			}
 
-			if (room.userHostedGame.gameTimer) clearTimeout(room.userHostedGame.gameTimer);
-			room.userHostedGame.gameTimer = setTimeout(() => {
-				room.userHostedGame!.gameTimer = null;
-				room.userHostedGame!.gameTimerEndTime = 0;
+			if (gameRoom.userHostedGame.gameTimer) clearTimeout(gameRoom.userHostedGame.gameTimer);
+			gameRoom.userHostedGame.gameTimer = setTimeout(() => {
+				gameRoom.userHostedGame!.gameTimer = null;
+				gameRoom.userHostedGame!.gameTimerEndTime = 0;
 
-				if (user.id === room.userHostedGame!.hostId || user.id === room.userHostedGame!.subHostId) {
-					room.say(room.userHostedGame!.hostName + ": time is up!");
-					room.userHostedGame!.autoRefreshControlPanel();
+				if (user.id === gameRoom.userHostedGame!.hostId || user.id === gameRoom.userHostedGame!.subHostId) {
+					gameRoom.say(gameRoom.userHostedGame!.hostName + ": time is up!");
+					gameRoom.userHostedGame!.autoRefreshControlPanel();
 				}
 			}, time);
+
 			this.say("Game timer set for: " + Tools.toDurationString(time) + ".");
 
-			room.userHostedGame.gameTimerEndTime = time + Date.now();
-			room.userHostedGame.autoRefreshControlPanel();
+			gameRoom.userHostedGame.gameTimerEndTime = time + Date.now();
+			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['gtimer', 'randomgametimer', 'randomgtimer', 'randgametimer', 'randgtimer'],
 	},
