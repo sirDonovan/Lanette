@@ -1720,7 +1720,7 @@ export class Games {
 		return html;
 	}
 
-	getHostCustomDisplay(host: string, hostDisplay: IGameHostDisplay): string {
+	getHostCustomDisplay(host: string, hostDisplay: IGameHostDisplay, randomized?: boolean): string {
 		let content = "";
 		let trainerHtml = "";
 		for (const choice of hostDisplay.trainers) {
@@ -1763,7 +1763,7 @@ export class Games {
 		if (centered) html += "<center>";
 		html += this.getCustomBoxDiv(content, hostDisplay);
 		if (centered) html += "</center>";
-		html += Client.getUserAttributionHtml(host);
+		html += Client.getUserAttributionHtml((randomized ? "Randomized by " : "") + host);
 
 		return html;
 	}

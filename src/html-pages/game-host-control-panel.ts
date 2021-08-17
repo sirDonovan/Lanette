@@ -593,7 +593,8 @@ class GameHostControlPanel extends HtmlPageBase {
 		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
 
 		const database = this.getDatabase();
-		this.room.userHostedGame.sayHostDisplayUhtml(user, database.gameHostDisplays![this.userId]);
+		this.room.userHostedGame.sayHostDisplayUhtml(user, database.gameHostDisplays![this.userId],
+			this.currentView === 'randomhostdisplay');
 		this.send();
 	}
 

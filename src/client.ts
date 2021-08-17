@@ -322,8 +322,8 @@ export class Client {
 		return this.outgoingMessageQueue;
 	}
 
-	getUserAttributionHtml(name: string): string {
-		return '<div style="float:right;color:#888;font-size:8pt">[' + name + ']</div><div style="clear:both"></div>';
+	getUserAttributionHtml(text: string): string {
+		return '<div style="float:right;color:#888;font-size:8pt">[' + text + ']</div><div style="clear:both"></div>';
 	}
 
 	getListenerHtml(html: string, inPm?: boolean): string {

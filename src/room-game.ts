@@ -286,7 +286,7 @@ export abstract class Game extends Activity {
 		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"), player);
 	}
 
-	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay): void {
+	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay, randomized?: boolean): void {
 		const uhtmlName = this.uhtmlBaseName + "-" + this.round + "-hostdisplay";
 
 		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.uhtmlName !== uhtmlName) {
@@ -316,7 +316,7 @@ export abstract class Game extends Activity {
 			this.lastHostDisplayUhtml = undefined;
 		}
 
-		const html = Games.getHostCustomDisplay(user.name, hostDisplay);
+		const html = Games.getHostCustomDisplay(user.name, hostDisplay, randomized);
 		if (this.lastHostDisplayUhtml && this.lastHostDisplayUhtml.html === html) return;
 
 		this.sayUhtmlAuto(uhtmlName, html);
