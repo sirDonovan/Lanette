@@ -107,7 +107,8 @@ export class Vote extends ScriptedGame {
 	}
 
 	isValidFormat(format: IGameFormat): boolean {
-		if (!this.bannedFormats.includes(format.name) && Games.canCreateGame(this.room, format) === true) return true;
+		if (!this.bannedFormats.includes(format.name) && !format.searchChallenge &&
+			Games.canCreateGame(this.room, format) === true) return true;
 		return false;
 	}
 
@@ -358,7 +359,7 @@ const commands: GameCommandDefinitions<Vote> = {
 			const targetId = Tools.toId(target);
 			let format: IGameFormat | undefined;
 			if (targetId === 'random' || targetId === 'randomgame') {
-				const formats = Tools.shuffle(Games.getFormatList());
+				const formats = this.shuffle(Games.getFormatList());
 				for (const randomFormat of formats) {
 					if (this.isValidFormat(randomFormat)) {
 						format = randomFormat;
