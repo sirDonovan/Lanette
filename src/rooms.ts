@@ -14,22 +14,22 @@ export class Room {
 	chatLog: IChatLogEntry[] = [];
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
-	game: ScriptedGame | undefined = undefined;
+	game: ScriptedGame | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	publicRoom: boolean = false;
-	repeatedMessages: Dict<IRepeatedMessage> | undefined = undefined;
-	searchChallenge: SearchChallenge | undefined = undefined;
+	repeatedMessages: Dict<IRepeatedMessage> | null = null;
+	searchChallenge: SearchChallenge | null = null;
 	serverBannedWords: string[] | null = null;
 	serverBannedWordsRegex: RegExp | null = null;
-	serverHangman: boolean | undefined = undefined;
+	serverHangman: boolean | null = null;
 	timers: Dict<NodeJS.Timer> | null = null;
-	tournament: Tournament | undefined = undefined;
+	tournament: Tournament | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<MessageListener>> = {};
-	userHostedGame: UserHostedGame | undefined = undefined;
+	userHostedGame: UserHostedGame | null = null;
 	readonly users = new Set<User>();
 
 	readonly id!: string;

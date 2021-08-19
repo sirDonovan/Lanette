@@ -108,7 +108,7 @@ export const commands: BaseCommandDefinitions = {
 				clearInterval(repeatRoom.repeatedMessages[messageId].timer);
 				const name = repeatRoom.repeatedMessages[messageId].name;
 				delete repeatRoom.repeatedMessages[messageId];
-				if (!Object.keys(repeatRoom.repeatedMessages).length) delete repeatRoom.repeatedMessages;
+				if (!Object.keys(repeatRoom.repeatedMessages).length) repeatRoom.repeatedMessages = null;
 				return this.say("The repeating message with the name '" + name + "' has been stopped.");
 			}
 

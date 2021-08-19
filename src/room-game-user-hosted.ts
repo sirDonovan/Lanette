@@ -503,7 +503,7 @@ export class UserHostedGame extends Game {
 		if (this.gameTimer) clearTimeout(this.gameTimer);
 		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 
-		if (this.room.userHostedGame === this) delete this.room.userHostedGame;
+		if (this.room.userHostedGame === this) this.room.userHostedGame = null;
 
 		this.clearHangman();
 		this.clearSignupsNotification();

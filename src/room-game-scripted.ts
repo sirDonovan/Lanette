@@ -667,7 +667,7 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.room.game === this) delete this.room.game;
+		if (this.room.game === this) this.room.game = null;
 
 		// @ts-expect-error
 		if ((this.room as Room).searchChallenge === this) {

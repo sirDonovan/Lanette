@@ -174,7 +174,7 @@ export class Tournament extends Activity {
 		this.leaveBattleRooms();
 
 		delete this.battleRoomGame;
-		delete this.room.tournament;
+		this.room.tournament = null;
 	}
 
 	start(): void {

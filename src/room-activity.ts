@@ -343,7 +343,7 @@ export abstract class Activity {
 			if (battleRoom.id) {
 				const room = Rooms.get(battleRoom.id);
 				if (room) {
-					delete room.game;
+					room.game = null;
 					room.leave();
 				}
 			}

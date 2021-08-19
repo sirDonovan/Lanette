@@ -8,7 +8,7 @@ const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 export class User {
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
-	game: ScriptedGame | undefined = undefined;
+	game: ScriptedGame | null = null;
 	group: string | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;

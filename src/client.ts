@@ -1382,7 +1382,7 @@ export class Client {
 						this.clearLastOutgoingMessage(now);
 					}
 				} else if (messageArguments.message.startsWith(HANGMAN_END_COMMAND)) {
-					delete room.serverHangman;
+					room.serverHangman = null;
 
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-end' &&
 						this.lastOutgoingMessage.roomid === room.id &&
@@ -1607,7 +1607,7 @@ export class Client {
 					room.serverBannedWordsRegex = null;
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
-				delete room.serverHangman;
+				room.serverHangman = null;
 			} else if (messageArguments.message === TOURNAMENT_RUNAUTODQ_COMMAND) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-runautodq' &&
 					this.lastOutgoingMessage.roomid === room.id) {
@@ -1739,10 +1739,11 @@ export class Client {
 						room.userHostedGame.useHostCommand("addgamepoint", winner);
 					}
 				}
-				delete room.serverHangman;
+
+				room.serverHangman = null;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><p style="text-align:left;font-weight:bold;' +
 				'font-size:10pt;margin:5px 0 0 15px">Too bad! The mon has been hanged.</p>')) {
-				delete room.serverHangman;
+				room.serverHangman = null;
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
 					room.tournament.format.customRules = null;
