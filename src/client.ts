@@ -11,7 +11,7 @@ import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
 	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerGroupData,
-	IUserDetailsResponse
+	IUserDetailsResponse, UserDetailsListener
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -434,6 +434,17 @@ export class Client {
 			message: '|/join ' + roomid,
 			roomid,
 			type: 'join-room',
+			measure: true,
+		});
+	}
+
+	getUserDetails(user: User, listener?: UserDetailsListener): void {
+		user.userDetailsListener = listener;
+
+		this.send({
+			message: '|/cmd userdetails ' + user.id,
+			type: 'userdetails',
+			user: user.id,
 			measure: true,
 		});
 	}
@@ -946,6 +957,7 @@ export class Client {
 				usernameText: messageParts[0],
 				loginStatus: messageParts[1],
 			};
+
 			let rank: string = '';
 			const firstCharacter = messageArguments.usernameText.charAt(0);
 			for (const i in this.serverGroups) {
@@ -980,7 +992,7 @@ export class Client {
 				if (rank) {
 					Users.self.group = rank;
 				} else {
-					this.send({message: '|/cmd userdetails ' + Users.self.id, type: 'command'});
+					this.getUserDetails(Users.self);
 				}
 
 				if (this.roomsToRejoin.length) {
@@ -1049,7 +1061,28 @@ export class Client {
 			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
-					if (response.userid === Users.self.id) Users.self.group = response.group;
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'userdetails' &&
+						this.lastOutgoingMessage.user === response.userid) {
+						this.clearLastOutgoingMessage(now);
+					}
+
+					let user: User | undefined;
+					if (response.userid === Users.self.id) {
+						user = Users.self;
+					} else {
+						user = Users.get(response.name);
+					}
+
+					if (user) {
+						user.autoconfirmed = response.autoconfirmed;
+						user.group = response.group;
+						user.status = response.status;
+
+						if (user.userDetailsListener) {
+							user.userDetailsListener(user);
+							delete user.userDetailsListener;
+						}
+					}
 				}
 			}
 			break;

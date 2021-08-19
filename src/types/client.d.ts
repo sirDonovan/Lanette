@@ -1,4 +1,5 @@
 import type { Room } from "../rooms";
+import type { User } from "../users";
 import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
@@ -24,7 +25,8 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
-	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser';
+	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' |
+	'userdetails';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;
@@ -105,8 +107,12 @@ export interface IRoomsResponse {
 }
 
 export interface IUserDetailsResponse {
+	autoconfirmed: boolean;
 	avatar: string;
+	customgroup: string | undefined;
 	group: string;
+	name: string;
+	status: string;
 	userid: string;
 }
 
@@ -120,6 +126,8 @@ export interface IChatLogEntry {
 }
 
 export type MessageListener = (timestamp: number) => void;
+
+export type UserDetailsListener = (user: User) => void;
 
 export interface IClientMessageTypes {
 	/**
