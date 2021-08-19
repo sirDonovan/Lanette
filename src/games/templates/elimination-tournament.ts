@@ -74,6 +74,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	requiredAddition: boolean = false;
 	requiredDrop: boolean = false;
 	requiredEvolution: boolean = false;
+	requiresAutoconfirmed: boolean = true;
 	rerolls = new Map<Player, boolean>();
 	requiredTier: string | null = null;
 	sharedTeams: boolean = false;
@@ -1181,6 +1182,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		this.disqualifyPlayers([player]);
+	}
+
+	sendNotAutoconfirmed(player: Player): void {
+		player.say("You must be autoconfirmed to participate in the " + this.name + " tournament.");
 	}
 
 	getTeamEvolutionScore(team: string[]): number {

@@ -99,7 +99,7 @@ export class Player {
 	sendHtmlPage(html: string, pageId?: string): void {
 		if (this.id === Users.self.id) return;
 
-		if (!this.sentHtmlPage && this.activity.started) this.sentHtmlPage = true;
+		if (!this.sentHtmlPage) this.sentHtmlPage = true;
 		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
@@ -305,14 +305,16 @@ export abstract class Activity {
 	destroyPlayer(user: User | string, forceDelete?: boolean): Player | undefined {
 		const id = Tools.toId(user);
 		if (!(id in this.players)) return;
+
 		const player = this.players[id];
 		if (this.started && !forceDelete) {
-			this.players[id].eliminated = true;
+			player.eliminated = true;
 		} else {
 			this.pastPlayers[id] = player;
 			delete this.players[id];
 			this.playerCount--;
 		}
+
 		return player;
 	}
 

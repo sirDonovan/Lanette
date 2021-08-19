@@ -62,6 +62,7 @@ export class ScriptedGame extends Game {
 	noForceEndMessage?: boolean;
 	playerInactiveRoundLimit?: number;
 	queueLateJoins?: boolean;
+	requiresAutoconfirmed?: boolean;
 	roundTime?: number;
 	shinyMascot?: boolean;
 	startingLives?: number;
@@ -761,6 +762,17 @@ export class ScriptedGame extends Game {
 			failedToJoin = true;
 		}
 
+		if (this.requiresAutoconfirmed) {
+			if (user.autoconfirmed !== null) {
+				if (!user.autoconfirmed) {
+					this.sendNotAutoconfirmed(player);
+					failedToJoin = true;
+				}
+			} else {
+				this.checkPlayerAutoconfirmed(player);
+			}
+		}
+
 		if (failedToJoin) {
 			this.destroyPlayer(user, true);
 			return;
@@ -918,6 +930,22 @@ export class ScriptedGame extends Game {
 				this.errorEnd();
 			}
 		}
+	}
+
+	sendNotAutoconfirmed(player: Player): void {
+		player.say("You must be autoconfirmed to participate in " + this.name + ".");
+	}
+
+	checkPlayerAutoconfirmed(player: Player): void {
+		const user = Users.get(player.name);
+		if (!user || user.autoconfirmed !== null) return;
+
+		Client.getUserDetails(user, (checkedUser) => {
+			if (!checkedUser.autoconfirmed) {
+				this.removePlayer(checkedUser);
+				this.sendNotAutoconfirmed(player);
+			}
+		});
 	}
 
 	sendPlayerAssistActions(player: Player, html: string, uhtmlName?: string): void {
