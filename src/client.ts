@@ -955,16 +955,12 @@ export class Client {
 					break;
 				}
 			}
-			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+
+			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
 			if (Tools.toId(username) !== Users.self.id) return;
 			if (this.loggedIn) {
-				if (status || Users.self.status) Users.self.status = status;
-				if (away) {
-					Users.self.away = true;
-				} else if (Users.self.away) {
-					Users.self.away = false;
-				}
+				Users.self.updateStatus(status);
 			} else {
 				if (messageArguments.loginStatus !== '1') {
 					console.log('Failed to log in');
@@ -1169,7 +1165,7 @@ export class Client {
 			const users = messageArguments.userlist.split(",");
 			for (let i = 1; i < users.length; i++) {
 				const rank = users[i].charAt(0);
-				const {away, status, username} = Tools.parseUsernameText(users[i].substr(1));
+				const {status, username} = Tools.parseUsernameText(users[i].substr(1));
 				const id = Tools.toId(username);
 				if (!id) continue;
 
@@ -1177,12 +1173,7 @@ export class Client {
 				addedUsers.add(user);
 
 				room.onUserJoin(user, rank);
-				if (status || user.status) user.status = status;
-				if (away) {
-					user.away = true;
-				} else if (user.away) {
-					user.away = false;
-				}
+				user.updateStatus(status);
 			}
 
 			// prune users after reconnecting
@@ -1201,13 +1192,13 @@ export class Client {
 				rank: messageParts[0].charAt(0),
 				usernameText: messageParts[0].substr(1),
 			};
-			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const id = Tools.toId(username);
 			if (!id) return;
 
 			const user = Users.add(username, id);
 			room.onUserJoin(user, messageArguments.rank);
-			user.updateStatus(status, away);
+			user.updateStatus(status);
 
 			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
@@ -1257,10 +1248,10 @@ export class Client {
 				oldId: messageParts[1],
 			};
 
-			const {away, status, username} = Tools.parseUsernameText(messageArguments.usernameText);
+			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
 			room.onUserJoin(user, messageArguments.rank, true);
-			user.updateStatus(status, away);
+			user.updateStatus(status);
 
 			if (!user.away && Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) {
 				Storage.retrieveOfflineMessages(user);

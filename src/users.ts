@@ -93,7 +93,10 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
-	updateStatus(status: string, away: boolean): void {
+	updateStatus(status: string): void {
+		if (status === this.status) return;
+
+		const away = status.charAt(0) === '!';
 		this.status = status;
 		this.away = away;
 

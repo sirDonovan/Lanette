@@ -746,20 +746,18 @@ export class Tools {
 		});
 	}
 
-	parseUsernameText(usernameText: string): {away: boolean; status: string; username: string} {
-		let away = false;
+	parseUsernameText(usernameText: string): {status: string; username: string} {
 		let status = '';
 		let username = '';
 		const atIndex = usernameText.indexOf('@');
 		if (atIndex !== -1) {
 			username = usernameText.substr(0, atIndex);
 			status = usernameText.substr(atIndex + 1);
-			away = status.startsWith('!');
 		} else {
 			username = usernameText;
 		}
 
-		return {away, status, username};
+		return {status, username};
 	}
 
 	parseSmogonLink(thread: string): IParsedSmogonLink | null {
