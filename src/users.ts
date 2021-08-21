@@ -241,6 +241,8 @@ export class Users {
 
 		user.setName(name);
 		user.id = id;
+		if (user.autoconfirmed === false) user.autoconfirmed = null;
+
 		this.users[id] = user;
 		user.rooms.forEach((value, room) => {
 			if (room.game) room.game.renamePlayer(user, oldId);
