@@ -206,7 +206,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			let longestLength = 0;
 			let longestAnswers: string[] = [];
 			for (const answer of this.answers) {
-				const answerLength = answer.length;
+				const answerLength = Tools.toId(answer).length;
 				if (answerLength > longestLength) {
 					longestLength = answerLength;
 					longestAnswers = [answer];
@@ -223,11 +223,11 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			this.answers = longestAnswers;
 			roundAnswersCount = this.answers.length;
 		} else if (this.shortestAnswersOnly && roundAnswersCount > 1) {
-			let shortestLength = this.answers[0].length;
+			let shortestLength = Tools.toId(this.answers[0]).length;
 			let shortestAnswers: string[] = [this.answers[0]];
 			for (let i = 1; i < this.answers.length; i++) {
 				const answer = this.answers[i];
-				const answerLength = answer.length;
+				const answerLength = Tools.toId(answer).length;
 				if (answerLength < shortestLength) {
 					shortestLength = answerLength;
 					shortestAnswers = [answer];
