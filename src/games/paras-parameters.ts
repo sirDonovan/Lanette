@@ -125,7 +125,11 @@ export class ParasParameters extends QuestionAndAnswer {
 	}
 
 	getAnswers(givenAnswer?: string): string[] {
-		if (!givenAnswer) givenAnswer = Tools.joinList(this.answers[0].split(','));
+		if (!givenAnswer) {
+			if (!this.answers.length) return [];
+			givenAnswer = Tools.joinList(this.answers[0].split(','));
+		}
+
 		return [givenAnswer];
 	}
 
