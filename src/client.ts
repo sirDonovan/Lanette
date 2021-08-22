@@ -461,7 +461,7 @@ export class Client {
 			return;
 		}
 
-		if (outgoingMessage.room && !outgoingMessage.room.serverBannedWords) {
+		if (outgoingMessage.room && outgoingMessage.room.type === 'chat' && !outgoingMessage.room.serverBannedWords) {
 			this.send({
 				message: outgoingMessage.room.id + '|/banword list',
 				roomid: outgoingMessage.room.id,
