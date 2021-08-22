@@ -646,7 +646,7 @@ export const commands: BaseCommandDefinitions = {
 					time *= 60 * 1000;
 				}
 			} else {
-				time = parseFloat(targets[0].trim());
+				time = parseFloat(targets[0] ? targets[0].trim() : "");
 				if (secondsArguments.includes(Tools.toId(targets[1]))) {
 					if (isNaN(time) || time > 60 || time < 3) return this.say("Please enter an amount of seconds between 3 and 60.");
 					time *= 1000;
