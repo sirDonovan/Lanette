@@ -1,7 +1,9 @@
 import type { Player } from "../../room-activity";
+import type { Room } from "../../rooms";
 import type { IGameTemplateFile } from "../../types/games";
 import { game as searchChallengeGame, SearchChallenge } from "./search-challenge";
 
+const FORFEIT_MESSAGE = " forfeited.";
 const PLAYER_CAP = 16;
 const AUTO_DQ_MINUTES = 2;
 const MIN_TARGET_POKEMON = 5;
@@ -9,6 +11,7 @@ const BASE_TARGET_POKEMON = 10;
 export const MAX_TARGET_POKEMON = 15;
 
 export abstract class SearchChallengeTournament extends SearchChallenge {
+	forfeitDisqualification: boolean = true;
 	multiplePokemon: boolean = false;
 	tournamentCreated: boolean = false;
 	tournamentEnded: boolean = false;
@@ -31,6 +34,7 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 		this.room.forceTimerTournament();
 
 		this.tournamentCreated = true;
+		if (this.forfeitDisqualification) this.announce("Forfeiting a battle in the tournament will result in disqualification!");
 	}
 
 	onDeallocate(): void {
@@ -67,6 +71,21 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 
 	onEnd(): void {
 		if (!this.winners.size) this.say("No winners this challenge!");
+	}
+
+	onBattleMessage(room: Room, message: string): boolean {
+		const battleData = this.battleData.get(room);
+		if (!battleData) return false;
+
+		if (this.forfeitDisqualification && message.endsWith(FORFEIT_MESSAGE)) {
+			const id = Tools.toId(message.substr(0, message.indexOf(FORFEIT_MESSAGE)));
+			if (id in this.players) {
+				this.room.disqualifyFromTournament(this.players[id]);
+				return false;
+			}
+		}
+
+		return true;
 	}
 }
 

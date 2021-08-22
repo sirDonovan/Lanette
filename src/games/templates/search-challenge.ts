@@ -4,8 +4,6 @@ import type { Room } from "../../rooms";
 import type { GameCategory, IBattleGameData, IGameTemplateFile } from "../../types/games";
 import type { IFormat, IMove, IPokemon } from "../../types/pokemon-showdown";
 
-const FORFEIT_MESSAGE = " forfeited.";
-
 export abstract class SearchChallenge extends ScriptedGame {
 	readonly battleData = new Map<Room, IBattleGameData>();
 	battleFormatId: string = 'challengecup1v1';
@@ -117,21 +115,6 @@ export abstract class SearchChallenge extends ScriptedGame {
 		}
 
 		return this.ended ? false : true;
-	}
-
-	onBattleMessage(room: Room, message: string): boolean {
-		const battleData = this.battleData.get(room);
-		if (!battleData) return false;
-
-		if (message.endsWith(FORFEIT_MESSAGE)) {
-			const id = Tools.toId(message.substr(0, message.indexOf(FORFEIT_MESSAGE)));
-			if (id in this.players) {
-				this.room.disqualifyFromTournament(this.players[id]);
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	getObjectiveText?(): string;
