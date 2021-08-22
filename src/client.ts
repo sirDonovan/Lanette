@@ -376,14 +376,14 @@ export class Client {
 
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
-			if (room.configBannedWords) {
+			if (room.configBannedWords && room.configBannedWords.length) {
 				if (!room.configBannedWordsRegex) {
 					room.configBannedWordsRegex = constructBannedWordRegex(room.configBannedWords);
 				}
 				if (message.match(room.configBannedWordsRegex)) return "config room banned words";
 			}
 
-			if (room.serverBannedWords) {
+			if (room.serverBannedWords && room.serverBannedWords.length) {
 				if (!room.serverBannedWordsRegex) {
 					room.serverBannedWordsRegex = constructBannedWordRegex(room.serverBannedWords);
 				}
@@ -472,7 +472,11 @@ export class Client {
 	}
 
 	updateConfigSettings(): void {
-		if (Config.bannedWords && Config.bannedWords.length) this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
+		if (Config.bannedWords && Config.bannedWords.length) {
+			this.configBannedWordsRegex = constructBannedWordRegex(Config.bannedWords);
+		} else {
+			this.configBannedWordsRegex = null;
+		}
 	}
 
 	getSendThrottle(): number {
@@ -1617,18 +1621,24 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
+
+				room.serverBannedWords = [];
+				room.serverBannedWordsRegex = null;
 			} else if (messageArguments.message.startsWith('Banned phrases in room ')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'banword-list' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
 
+				room.serverBannedWordsRegex = null;
+
 				let subMessage = messageArguments.message.split('Banned phrases in room ')[1];
 				const colonIndex = subMessage.indexOf(':');
 				subMessage = subMessage.substr(colonIndex + 2);
 				if (subMessage) {
-					room.serverBannedWords = subMessage.split(',').map(x => x.trim());
-					room.serverBannedWordsRegex = null;
+					room.serverBannedWords = subMessage.split(',').map(x => x.trim()).filter(x => x.length);
+				} else {
+					room.serverBannedWords = [];
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
 				room.serverHangman = null;

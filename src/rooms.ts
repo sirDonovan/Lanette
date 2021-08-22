@@ -97,9 +97,12 @@ export class Room {
 	}
 
 	updateConfigSettings(): void {
+		this.configBannedWordsRegex = null;
+
 		if (Config.roomBannedWords && this.id in Config.roomBannedWords) {
 			this.configBannedWords = Config.roomBannedWords[this.id];
-			this.configBannedWordsRegex = null;
+		} else {
+			this.configBannedWords = null;
 		}
 
 		this.unlinkTournamentReplays = Config.disallowTournamentBattleLinks && Config.disallowTournamentBattleLinks.includes(this.id) ?
