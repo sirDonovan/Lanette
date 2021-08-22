@@ -443,6 +443,11 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
+			if (targets.length === 1) {
+				user.say(CommandParser.getErrorText(['invalidGameFormat']));
+				return;
+			}
+
 			let options: string[] = [];
 			let challengeFormat = Games.getFormat(targets.slice(1).join(","), true);
 			if (Array.isArray(challengeFormat)) {
