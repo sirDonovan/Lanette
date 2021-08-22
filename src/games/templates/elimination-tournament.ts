@@ -1138,6 +1138,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 			return false;
 		}
 
+		if (Client.checkFilters(player.name, this.room)) {
+			player.say("You cannot participate in the tournament with your current username.");
+			return false;
+		}
+
 		player.round = 1;
 		this.tournamentPlayers.add(player);
 
