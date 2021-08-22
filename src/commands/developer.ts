@@ -6,7 +6,17 @@ export const commands: BaseCommandDefinitions = {
 	eval: {
 		command(target, room, user) { // eslint-disable-line @typescript-eslint/no-unused-vars
 			try {
-				this.say(eval(target));
+				let result = eval(target) as unknown;
+				if (result === null) {
+					result = "null";
+				} else if (result === undefined) {
+					result = "undefined";
+				} else if (typeof result === 'string' && !result) {
+					result = '""';
+				} else if (typeof result === 'number' && !result) {
+					result = '0';
+				}
+				this.say(result as string);
 			} catch (e) {
 				this.say((e as Error).message);
 				console.log((e as Error).stack);
