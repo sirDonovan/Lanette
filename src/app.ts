@@ -27,6 +27,8 @@ const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 };
 
 module.exports = (): void => {
+	console.log("Instantiating modules...");
+
 	tools.instantiate();
 	global.Config = ConfigLoader.load(config);
 	dex.instantiate();
@@ -76,8 +78,10 @@ module.exports = (): void => {
 					}
 				});
 				if (workerGameRooms.length) {
-					if (user) user.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
-						Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
+					if (user) {
+						user.say("You must wait for the game" + (workerGameRooms.length > 1 ? "s" : "") + " in " +
+							Tools.joinList(workerGameRooms.map(x => x.title)) + " to finish first.");
+					}
 					return;
 				}
 			}

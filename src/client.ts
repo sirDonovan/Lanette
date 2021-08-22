@@ -11,7 +11,7 @@ import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
 	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerGroupData,
-	IUserDetailsResponse, UserDetailsListener
+	IUserDetailsResponse, UserDetailsListener, IServerUserSettings
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -55,6 +55,9 @@ const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
+const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
+const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
+const AVATAR_COMMAND = "/text Avatar changed to:";
 
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
@@ -67,6 +70,7 @@ const FILTERS_REGEX_A = /\u0430/g;
 const FILTERS_REGEX_E_LEFT = /\u0435/g;
 const FILTERS_REGEX_E_RIGHT = /\u039d/g;
 const FILTERS_REGEX_FORMATTING = /__|\*\*|``|\[\[|\]\]/g;
+const FILTERS_REGEX_EVASION_REPLACEMENT = /[\s-_,.]+/g;
 
 const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'administrator': '&',
@@ -374,6 +378,7 @@ export class Client {
 			label, disabled, buttonStyle);
 	}
 
+	/**Returns the description of the filter triggered by the message, if any */
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
 			if (room.configBannedWords && room.configBannedWords.length) {
@@ -415,8 +420,7 @@ export class Client {
 		}
 
 		if (this.evasionFilterRegularExpressions) {
-			let evasionLowerCase = lowerCase.normalize('NFKC');
-			evasionLowerCase = evasionLowerCase.replace(/[\s-_,.]+/g, '.');
+			const evasionLowerCase = lowerCase.normalize('NFKC').replace(FILTERS_REGEX_EVASION_REPLACEMENT, '.');
 			for (const expression of this.evasionFilterRegularExpressions) {
 				if (evasionLowerCase.match(expression)) return "evasion filter";
 			}
@@ -443,7 +447,7 @@ export class Client {
 
 		this.send({
 			message: '|/cmd userdetails ' + user.id,
-			type: 'userdetails',
+			type: 'query-userdetails',
 			user: user.id,
 			measure: true,
 		});
@@ -453,6 +457,18 @@ export class Client {
 		if (!outgoingMessage.message || !this.webSocket) return;
 
 		if (this.sendTimeout || this.pauseOutgoingMessages) {
+			this.outgoingMessageQueue.push(outgoingMessage);
+			return;
+		}
+
+		if (outgoingMessage.room && !outgoingMessage.room.serverBannedWords) {
+			this.send({
+				message: outgoingMessage.room.id + '|/banword list',
+				roomid: outgoingMessage.room.id,
+				type: 'banword-list',
+				measure: true,
+			});
+
 			this.outgoingMessageQueue.push(outgoingMessage);
 			return;
 		}
@@ -855,10 +871,10 @@ export class Client {
 			return;
 		}
 
-		const lines = webSocketData.split("\n");
+		const lines = webSocketData.trim().split("\n");
 		let roomid: string;
 		if (lines[0].startsWith('>')) {
-			roomid = lines[0].substr(1);
+			roomid = lines[0].substr(1).trim();
 			lines.shift();
 		} else {
 			roomid = 'lobby';
@@ -875,23 +891,25 @@ export class Client {
 
 		for (let i = 0; i < lines.length; i++) {
 			if (!lines[i]) continue;
+
 			try {
-				this.parseMessage(room, lines[i], now);
+				this.parseMessage(room, lines[i].trim(), now);
+
 				if (lines[i].startsWith('|init|')) {
 					const page = room.type === 'html';
 					const chat = !page && room.type === 'chat';
 					for (let j = i + 1; j < lines.length; j++) {
 						if (page) {
 							if (lines[j].startsWith('|pagehtml|')) {
-								this.parseMessage(room, lines[j], now);
+								this.parseMessage(room, lines[j].trim(), now);
 								break;
 							}
 						} else if (chat) {
 							if (lines[j].startsWith('|users|')) {
-								this.parseMessage(room, lines[j], now);
+								this.parseMessage(room, lines[j].trim(), now);
 								for (let k = j + 1; k < lines.length; k++) {
 									if (lines[k].startsWith('|:|')) {
-										this.parseMessage(room, lines[k], now);
+										this.parseMessage(room, lines[k].trim(), now);
 										break;
 									}
 								}
@@ -960,6 +978,8 @@ export class Client {
 			const messageArguments: IClientMessageTypes['updateuser'] = {
 				usernameText: messageParts[0],
 				loginStatus: messageParts[1],
+				avatar: messageParts[2],
+				userSettings: messageParts[3],
 			};
 
 			let rank: string = '';
@@ -975,6 +995,13 @@ export class Client {
 			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 
 			if (Tools.toId(username) !== Users.self.id) return;
+
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'trn') {
+				this.clearLastOutgoingMessage(now);
+			}
+
+			Users.self.setName(username);
+
 			if (this.loggedIn) {
 				Users.self.updateStatus(status);
 			} else {
@@ -987,10 +1014,32 @@ export class Client {
 
 				console.log('Successfully logged in');
 				this.loggedIn = true;
-				this.send({message: '|/blockchallenges', type: 'command'});
-				this.send({message: '|/cmd rooms', type: 'command'});
-				if (Tools.toAlphaNumeric(Config.username) !== Config.username) {
-					this.send({message: '|/trn ' + Config.username, type: 'command'});
+
+				this.send({
+					message: '|/cmd rooms',
+					type: 'query-rooms',
+					measure: true,
+				});
+
+				let userSettings: IServerUserSettings | undefined;
+				if (messageArguments.userSettings) {
+					userSettings = JSON.parse(messageArguments.userSettings) as IServerUserSettings;
+				}
+
+				if (!userSettings || !userSettings.blockChallenges) {
+					this.send({
+						message: '|/blockchallenges',
+						type: 'blockchallenges',
+						measure: true,
+					});
+				}
+
+				if (Tools.toAlphaNumeric(Config.username) !== Config.username && Users.self.name !== Config.username) {
+					this.send({
+						message: '|/trn ' + Config.username,
+						type: 'trn',
+						measure: true,
+					});
 				}
 
 				if (rank) {
@@ -1011,7 +1060,13 @@ export class Client {
 					}
 				}
 
-				if (Config.avatar) this.send({message: '|/avatar ' + Config.avatar, type: 'command'});
+				if (Config.avatar && Config.avatar !== messageArguments.avatar) {
+					this.send({
+						message: '|/avatar ' + Config.avatar,
+						type: 'avatar',
+						measure: true,
+					});
+				}
 			}
 			break;
 		}
@@ -1027,7 +1082,7 @@ export class Client {
 					const response = JSON.parse(messageArguments.response) as IRoomInfoResponse;
 					const responseRoom = Rooms.get(response.id);
 					if (responseRoom) {
-						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'roominfo' &&
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'query-roominfo' &&
 							this.lastOutgoingMessage.roomid === responseRoom.id) {
 							this.clearLastOutgoingMessage(now);
 						}
@@ -1037,6 +1092,10 @@ export class Client {
 					}
 				}
 			} else if (messageArguments.type === 'rooms') {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'query-rooms') {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IRoomsResponse;
 
@@ -1065,7 +1124,7 @@ export class Client {
 			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'userdetails' &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'query-userdetails' &&
 						this.lastOutgoingMessage.user === response.userid) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1116,14 +1175,7 @@ export class Client {
 				this.send({
 					message: '|/cmd roominfo ' + room.id,
 					roomid: room.id,
-					type: 'roominfo',
-					measure: true,
-				});
-
-				this.send({
-					message: room.id + '|/banword list',
-					roomid: room.id,
-					type: 'banword-list',
+					type: 'query-roominfo',
 					measure: true,
 				});
 
@@ -1521,6 +1573,21 @@ export class Client {
 
 			const user = Users.add(messageArguments.username, userId);
 			if (user === Users.self) {
+				if (messageArguments.message === BLOCK_CHALLENGES_COMMAND ||
+					messageArguments.message === ALREADY_BLOCKING_CHALLENGES_COMMAND) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'blockchallenges') {
+						this.clearLastOutgoingMessage(now);
+					}
+					return;
+				}
+
+				if (messageArguments.message === AVATAR_COMMAND) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'avatar') {
+						this.clearLastOutgoingMessage(now);
+					}
+					return;
+				}
+
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE)) return;
 
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
@@ -1588,7 +1655,7 @@ export class Client {
 				}
 			} else {
 				if (isUhtml || isUhtmlChange) {
-					user.addUhtmlChatLog("", "html");
+					if (!isUhtmlChange) user.addUhtmlChatLog("", "html");
 				} else if (isHtml) {
 					user.addHtmlChatLog("html");
 				} else {
@@ -1718,6 +1785,11 @@ export class Client {
 			if (htmlId in room.htmlMessageListeners) {
 				room.htmlMessageListeners[htmlId](now);
 				delete room.htmlMessageListeners[htmlId];
+			}
+
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-html' &&
+				Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
+				this.clearLastOutgoingMessage(now);
 			}
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
@@ -1866,16 +1938,23 @@ export class Client {
 				html: Tools.unescapeHTML(messageParts.slice(1).join("|")),
 			};
 
-			room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
+			const uhtmlId = Tools.toId(messageArguments.name);
+			const htmlId = Tools.toId(messageArguments.html);
+			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat-uhtml' &&
+				Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
+				Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
+				this.clearLastOutgoingMessage(now);
+			}
 
-			const id = Tools.toId(messageArguments.name);
-			if (id in room.uhtmlMessageListeners) {
-				const htmlId = Tools.toId(messageArguments.html);
-				if (htmlId in room.uhtmlMessageListeners[id]) {
-					room.uhtmlMessageListeners[id][htmlId](now);
-					delete room.uhtmlMessageListeners[id][htmlId];
+			if (uhtmlId in room.uhtmlMessageListeners) {
+				if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+					room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+					delete room.uhtmlMessageListeners[uhtmlId][htmlId];
 				}
 			}
+
+			if (messageType !== 'uhtmlchange') room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
+
 			break;
 		}
 
@@ -2581,7 +2660,11 @@ export class Client {
 			}
 			return false;
 		} else {
-			this.send({message: '|/trn ' + Config.username + ',0,' + assertion, type: 'command'});
+			this.send({
+				message: '|/trn ' + Config.username + ',0,' + assertion,
+				type: 'trn',
+				measure: true,
+			});
 			return true;
 		}
 	}

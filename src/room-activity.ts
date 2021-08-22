@@ -45,73 +45,55 @@ export class Player {
 	}
 
 	say(message: string): void {
-		if (this.id === Users.self.id) return;
-
 		const user = Users.get(this.name);
 		if (user) user.say(message);
 	}
 
 	sayHtml(html: string): void {
-		if (this.id === Users.self.id) return;
-
 		this.activity.pmRoom.pmHtml(this, html);
 	}
 
 	sayUhtml(html: string, name?: string): void {
-		if (this.id === Users.self.id) return;
-
 		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html);
 	}
 
 	sayUhtmlChange(html: string, name?: string): void {
-		if (this.id === Users.self.id) return;
-
 		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
 	}
 
 	sayPrivateHtml(html: string): void {
-		if (this.id === Users.self.id) return;
-
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateHtml(this, html);
 	}
 
 	sayPrivateUhtml(html: string, name?: string): void {
-		if (this.id === Users.self.id) return;
-
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
 	sayPrivateUhtmlChange(html: string, name?: string): void {
-		if (this.id === Users.self.id) return;
-
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
 		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
 	}
 
 	clearPrivateUhtml(name: string): void {
-		if (this.id === Users.self.id || !this.sentPrivateHtml) return;
+		if (!this.sentPrivateHtml) return;
 
 		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>");
 	}
 
 	sendHtmlPage(html: string, pageId?: string): void {
-		if (this.id === Users.self.id) return;
-
 		if (!this.sentHtmlPage) this.sentHtmlPage = true;
 		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
 	}
 
 	closeHtmlPage(pageId?: string): void {
-		if (this.id === Users.self.id || !this.sentHtmlPage) return;
+		if (!this.sentHtmlPage) return;
 
 		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId);
 	}
 
 	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string): void {
-		if (this.id === Users.self.id) return;
-
 		if (this.sentHtmlPage) {
 			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
 		} else {

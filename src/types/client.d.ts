@@ -21,12 +21,12 @@ export interface IServerProcessingMeasurement {
 }
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'private-html' | 'pm' | 'pm-html' | 'pm-uhtml' |
-	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'roominfo' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
+	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
 	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' |
-	'userdetails';
+	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;
@@ -49,6 +49,7 @@ export interface IOutgoingMessageAttributes {
 export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 	message: string;
 	type: IOutgoingMessageTypes;
+	room?: Room;
 	sentTime?: number;
 }
 
@@ -129,6 +130,10 @@ export type MessageListener = (timestamp: number) => void;
 
 export type UserDetailsListener = (user: User) => void;
 
+export interface IServerUserSettings {
+	blockChallenges?: boolean;
+}
+
 export interface IClientMessageTypes {
 	/**
 	 * Global messages
@@ -147,6 +152,8 @@ export interface IClientMessageTypes {
 		usernameText: string;
 		/** '1' if logged in */
 		readonly loginStatus: string;
+		readonly avatar: string;
+		readonly userSettings: string;
 	};
 
 	/**
