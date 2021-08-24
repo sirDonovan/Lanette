@@ -65,6 +65,7 @@ export class Tools {
 	];
 	readonly typeHexCodes: typeof typeHexCodes = typeHexCodes;
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
+	readonly vowels: string = "aeiou";
 
 	lastGithubApiCall: number = 0;
 

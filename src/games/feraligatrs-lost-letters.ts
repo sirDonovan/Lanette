@@ -3,7 +3,7 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/qu
 
 type AchievementNames = "alphabetsweep";
 
-const VOWELS: string[] = ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'];
+const VOWELS: string[] = Tools.vowels.split("").concat(Tools.vowels.toUpperCase().split(""));
 
 function getLostLetters(answer: string, inverse?: boolean): string | null {
 	const lostLetters: string[] = [];
