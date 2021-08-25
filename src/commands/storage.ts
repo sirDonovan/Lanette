@@ -483,14 +483,16 @@ export const commands: BaseCommandDefinitions = {
 			const positions = 10;
 			for (let i = startPosition; i < cachedEntries.length; i++) {
 				if (!cachedEntries[i]) break;
-				output.push(Tools.toNumberOrderString(i + 1) + ": __" + leaderboard.entries[cachedEntries[i].id].name + "__ (" +
+				output.push("<b>" + Tools.toNumberOrderString(i + 1) + "</b>: " + leaderboard.entries[cachedEntries[i].id].name + " (" +
 					cachedEntries[i].points + ")");
 				if (output.length === positions) break;
 			}
+
 			let endPosition = startPosition + positions;
 			if (endPosition > cachedEntries.length) endPosition = cachedEntries.length;
-			this.say("``" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
-				cachedEntries.length + "``: " + output.join(", "));
+
+			this.sayHtml("<b>" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
+				cachedEntries.length + "</b><hr />" + output.join(", "), leaderboardRoom);
 		},
 		aliases: ['lb', 'top'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
 	},
