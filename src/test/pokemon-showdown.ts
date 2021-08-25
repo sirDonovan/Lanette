@@ -198,12 +198,7 @@ describe("pokemon-showdown", () => {
 		for (const i of moveKeys) {
 			const move = Dex.getMove(i);
 			assert(move, i);
-			if (move.realMove) {
-				assertStrictEqual(i, Tools.toId(move.name));
-				assertStrictEqual(move.id, Tools.toId(move.realMove));
-			} else {
-				assertStrictEqual(move.id, i);
-			}
+			assertStrictEqual(move.id, i);
 			assertStrictEqual(move.effectType, "Move");
 			assertStrictEqual(typeof move.name, 'string');
 			assertStrictEqual(typeof move.gen, 'number');

@@ -20,6 +20,11 @@ class MiltanksMoves extends QuestionAndAnswer {
 		const maxMoveAvailability = Games.getMaxMoveAvailability();
 		const bannedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
+			if (move.id.startsWith('hiddenpower')) {
+				bannedMoves.push(move.id);
+				continue;
+			}
+
 			const availability = Dex.getMoveAvailability(move);
 			if (availability >= maxMoveAvailability) bannedMoves.push(move.id);
 		}

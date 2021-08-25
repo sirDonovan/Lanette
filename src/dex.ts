@@ -526,8 +526,14 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.moveCache, id)) return this.moveCache[id];
 
-		const move = this.pokemonShowdownDex.moves.get(name);
+		let move = this.pokemonShowdownDex.moves.get(name);
 		if (!move.exists) return undefined;
+
+		if (move.realMove && Tools.toId(move.realMove) === 'hiddenpower') {
+			move = Tools.deepClone(move);
+			// @ts-expect-error
+			move.id = Tools.toId(move.name);
+		}
 
 		this.moveCache[id] = move;
 		return move;
@@ -1559,6 +1565,7 @@ export class Dex {
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const usableMoves: string[] = [];
 		for (const i of formatDex.getData().moveKeys) {
+			// PS move.id compatibility
 			const move = formatDex.pokemonShowdownDex.moves.get(i);
 			if (!validator.checkMove({}, move, {})) {
 				usableMoves.push(move.name);
@@ -2148,6 +2155,15 @@ export class Dex {
 			filteredItemKeys.push(key);
 		}
 
+		const typeKeys = this.pokemonShowdownDex.types.all().map(x => x.id);
+		const filteredTypeKeys: string[] = [];
+		for (const key of typeKeys) {
+			const type = this.getType(key)!;
+			if (type.id === 'fairy' && this.gen < 6) continue;
+			if ((type.id === 'dark' || type.id === 'steel') && this.gen < 2) continue;
+			filteredTypeKeys.push(key);
+		}
+
 		const validator = new this.pokemonShowdownValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
 
@@ -2161,7 +2177,7 @@ export class Dex {
 			const pokemon = this.getPokemon(key)!;
 			if (pokemon.gen > this.gen) continue;
 
-			this.cacheAllPossibleMoves(validator, pokemon);
+			this.cacheAllPossibleMoves(validator, pokemon, filteredTypeKeys);
 			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
 			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
@@ -2206,15 +2222,6 @@ export class Dex {
 			filteredNatureKeys.push(key);
 		}
 
-		const typeKeys = this.pokemonShowdownDex.types.all().map(x => x.id);
-		const filteredTypeKeys: string[] = [];
-		for (const key of typeKeys) {
-			const type = this.getType(key)!;
-			if (type.id === 'fairy' && this.gen < 6) continue;
-			if ((type.id === 'dark' || type.id === 'steel') && this.gen < 2) continue;
-			filteredTypeKeys.push(key);
-		}
-
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : dexes.base.dataCache!.formatKeys.slice(),
@@ -2241,7 +2248,7 @@ export class Dex {
 		this.dataCache = data;
 	}
 
-	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon): void {
+	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon, typeKeys: string[]): void {
 		let possibleMoves: string[] = [];
 		let learnsetParent: IPokemon | null = pokemon;
 		while (learnsetParent && learnsetParent.gen <= this.gen) {
@@ -2277,10 +2284,19 @@ export class Dex {
 			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
 		}
 
+		if (possibleMoves.includes('hiddenpower')) {
+			for (const type of typeKeys) {
+				if (type === 'fairy' || type === 'normal') continue;
+				possibleMoves.push('hiddenpower' + type);
+			}
+		}
+
 		const checkedMoves: string[] = [];
 		for (const i of possibleMoves) {
-			const move = this.getMove(i)!;
-			if (!checkedMoves.includes(move.id) && move.gen <= this.gen && !validator.checkCanLearn(move, pokemon)) {
+			const move = this.getExistingMove(i);
+			// PS move.id compatibility
+			if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
+				!validator.checkCanLearn(this.pokemonShowdownDex.moves.get(i), pokemon)) {
 				checkedMoves.push(move.id);
 			}
 		}

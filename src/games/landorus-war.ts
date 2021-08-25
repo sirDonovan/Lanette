@@ -23,7 +23,7 @@ class LandorusWar extends ScriptedGame {
 
 	static loadData(): void {
 		data.moves = Games.getMovesList(x => {
-			if (x.id === 'hiddenpower' || (!x.basePower && !x.basePowerCallback)) return false;
+			if (x.id.startsWith('hiddenpower') || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
 		}).map(x => x.id);
 

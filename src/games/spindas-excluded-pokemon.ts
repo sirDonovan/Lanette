@@ -52,8 +52,9 @@ class SpindasExcludedPokemon extends ScriptedGame {
 
 	static loadData(): void {
 		const includedMoves: string[] = [];
-		const moves = Games.getMovesList(x => !x.id.includes('hiddenpower'));
-		for (const move of moves) {
+		for (const move of Games.getMovesList()) {
+			if (move.id.startsWith('hiddenpower')) continue;
+
 			const availability = Dex.getMoveAvailability(move);
 			if (!availability || availability < minimumMoveAvailability || availability > maximumMoveAvailability) continue;
 			includedMoves.push(move.id);

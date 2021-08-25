@@ -26,6 +26,10 @@ describe("Dex", () => {
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		let allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 		assert(allPossibleMoves.length > 1);
+		assert(allPossibleMoves.includes("hiddenpower"));
+		assert(allPossibleMoves.includes("hiddenpowerice"));
+		assert(!allPossibleMoves.includes("hiddenpowernormal"));
+		assert(!allPossibleMoves.includes("hiddenpowerfairy"));
 		let learnsetData = Dex.getLearnsetData(pokemon.id);
 		assert(learnsetData && learnsetData.learnset && Object.keys(learnsetData.learnset).length > 1);
 		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
@@ -46,7 +50,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 689);
+		assertStrictEqual(allPossibleMoves.length, 705);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);

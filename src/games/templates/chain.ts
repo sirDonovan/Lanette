@@ -48,7 +48,7 @@ export abstract class Chain extends ScriptedGame {
 		if (this.linksType === 'move') {
 			for (const move of Games.getMovesList()) {
 				if (this.letterBased) {
-					if (move.id === 'hiddenpower') continue;
+					if (move.id.startsWith('hiddenpower')) continue;
 					if (!this.getLinkStarts(move).length || !this.getLinkEnds(move).length) continue;
 				}
 				pool[move.id] = move;
