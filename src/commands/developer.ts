@@ -15,6 +15,8 @@ export const commands: BaseCommandDefinitions = {
 					result = '""';
 				} else if (typeof result === 'number' && !result) {
 					result = '0';
+				} else if (typeof result === 'boolean' && !result) {
+					result = 'false';
 				}
 				this.say(result as string);
 			} catch (e) {
