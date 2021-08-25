@@ -50,7 +50,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 705);
+		assertStrictEqual(allPossibleMoves.length, 770);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -77,6 +77,8 @@ describe("Dex", () => {
 
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
+		// bypass gen 8 Sketch check
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aura Wheel")), 3);
 
 		assertStrictEqual(Dex.getExistingFormat("gen1ou").gen, 1);
 		assertStrictEqual(Dex.getExistingFormat("gen2ou").gen, 2);

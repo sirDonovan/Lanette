@@ -2164,7 +2164,8 @@ export class Dex {
 			filteredTypeKeys.push(key);
 		}
 
-		const validator = new this.pokemonShowdownValidator("gen" + this.gen + "ou", dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(this.gen === 8 ? "gen8nationaldex" : "gen" + this.gen + "ou",
+			dexes['base'].pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
 
 		const pokemonKeys = this.pokemonShowdownDex.species.all().map(x => x.id);
