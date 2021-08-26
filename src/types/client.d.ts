@@ -24,16 +24,18 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
-	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepulic' |
+	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' |
 	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' |
 	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar';
 
 export interface IOutgoingMessageAttributes {
 	announcement?: string;
+	format?: string;
 	html?: string;
 	measure?: boolean;
 	modchatLevel?: string;
 	modnote?: string;
+	name?: string;
 	notifyId?: string;
 	notifyTitle?: string;
 	notifyMessage?: string;
@@ -285,6 +287,13 @@ export interface IClientMessageTypes {
 	};
 
 	/**
+	 * Error message
+	 */
+	error: {
+		readonly error: string;
+	};
+
+	/**
 	 * HTML message
 	 */
 	html: {
@@ -429,6 +438,12 @@ export interface ITournamentMessageTypes {
 	};
 
 	forceend: null;
+
+	autodq: null;
+
+	autostart: null;
+
+	scouting: null;
 
 	start: null;
 

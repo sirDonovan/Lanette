@@ -1517,7 +1517,7 @@ export class Client {
 							messageArguments.message.endsWith(" by " + Users.self.name + ")")) {
 							this.clearLastOutgoingMessage(now);
 						}
-					} else if (this.lastOutgoingMessage.type === 'tournament-forcepulic') {
+					} else if (this.lastOutgoingMessage.type === 'tournament-forcepublic') {
 						if (messageArguments.message.startsWith(TOURNAMENT_FORCEPUBLIC_COMMAND + Users.self.name)) {
 							this.clearLastOutgoingMessage(now);
 						}
@@ -1710,6 +1710,41 @@ export class Client {
 				}
 			} else if (messageArguments.message === HANGMAN_END_RAW_MESSAGE) {
 				room.serverHangman = null;
+			} else if (messageArguments.message.startsWith('Tournament battles forced public: ON') ||
+				messageArguments.message.startsWith('Tournament battles forced public: OFF')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-forcepublic' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('Modjoining is now banned (Players cannot modjoin their tournament battles)') ||
+				messageArguments.message.startsWith('Modjoining is now allowed (Players can modjoin their tournament battles)')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-modjoin' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('Scouting is now allowed (Tournament players can watch other tournament ' +
+				'battles)') || messageArguments.message.startsWith("Scouting is now banned (Tournament players can't watch other " +
+				"tournament battles)")) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-scouting' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('Forcetimer is now on for the tournament') ||
+				messageArguments.message.startsWith('Forcetimer is now off for the tournament')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-forcetimer' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('The tournament will start once ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autostart' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith('Tournament cap set to ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-cap' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.message === TOURNAMENT_RUNAUTODQ_COMMAND) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-runautodq' &&
 					this.lastOutgoingMessage.roomid === room.id) {
@@ -1774,6 +1809,39 @@ export class Client {
 			break;
 		}
 
+		case 'error': {
+			const messageArguments: IClientMessageTypes['error'] = {
+				error: messageParts.join("|"),
+			};
+
+			if (messageArguments.error.startsWith('Tournament battles are already being forced public') ||
+				messageArguments.error.startsWith('Tournament battles are not being forced public')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-forcepublic' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('Modjoining is already not allowed for this tournament') ||
+				messageArguments.error.startsWith('Modjoining is already allowed for this tournament')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-modjoin' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('Scouting for this tournament is already set to allowed') ||
+				messageArguments.error.startsWith('Scouting for this tournament is already disabled')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-scouting' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('The tournament is already set to autostart when the player cap is reached') ||
+				messageArguments.error.startsWith('The automatic tournament start timer is already off')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autostart' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			}
+			break;
+		}
+
 		case 'raw':
 		case 'html': {
 			const messageArguments: IClientMessageTypes['html'] = {
@@ -1815,6 +1883,11 @@ export class Client {
 				room.modchat = 'off';
 			} else if (messageArguments.html.startsWith('<div class="infobox infobox-limited">This tournament includes:<br />')) {
 				if (room.tournament) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-rules' &&
+						this.lastOutgoingMessage.roomid === room.id) {
+						this.clearLastOutgoingMessage(now);
+					}
+
 					const separatedCustomRules: ISeparatedCustomRules = {
 						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
 					};
@@ -2001,8 +2074,32 @@ export class Client {
 				const messageArguments: ITournamentMessageTypes['update'] = {
 					json: JSON.parse(messageParts.join("|")) as ITournamentUpdateJson,
 				};
-				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
-				if (room.tournament) room.tournament.update(messageArguments.json);
+
+				if (!room.tournament) {
+					const tournament = Tournaments.createTournament(room, messageArguments.json);
+					if (tournament && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+						this.lastOutgoingMessage.type === 'tournament-create' &&
+						tournament.format.id === this.lastOutgoingMessage.format!) {
+						this.clearLastOutgoingMessage(now);
+					}
+				}
+
+				if (room.tournament) {
+					room.tournament.update(messageArguments.json);
+
+					if (messageArguments.json.playerCap && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+						this.lastOutgoingMessage.type === 'tournament-cap') {
+						this.clearLastOutgoingMessage(now);
+					} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+						this.lastOutgoingMessage.type === 'tournament-name' &&
+						messageArguments.json.format === this.lastOutgoingMessage.name!) {
+						this.clearLastOutgoingMessage(now);
+					} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+						this.lastOutgoingMessage.type === 'tournament-rules' &&
+						messageArguments.json.format === room.tournament.format.name + Dex.getDefaultCustomRulesName()) {
+						this.clearLastOutgoingMessage(now);
+					}
+				}
 				break;
 			}
 
@@ -2064,13 +2161,47 @@ export class Client {
 			}
 
 			case 'forceend': {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-end') {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				room.addHtmlChatLog("tournament|forceend");
 
 				if (room.tournament) room.tournament.forceEnd();
 				break;
 			}
 
+			case 'autodq': {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-autodq') {
+					this.clearLastOutgoingMessage(now);
+				}
+				break;
+			}
+
+			case 'autostart': {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-autostart') {
+					this.clearLastOutgoingMessage(now);
+				}
+				break;
+			}
+
+			case 'scouting': {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-scouting') {
+					this.clearLastOutgoingMessage(now);
+				}
+				break;
+			}
+
 			case 'start': {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-start') {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				room.addHtmlChatLog("tournament|start");
 
 				if (room.tournament) room.tournament.start();

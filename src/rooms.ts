@@ -297,7 +297,7 @@ export class Room {
 	modnote(text: string): void {
 		if (!text) return;
 
-		this.say("/modnote " + text, {type: 'modnote', modnote: text});
+		this.say("/modnote " + text, {dontMeasure: true, type: 'command'});
 	}
 
 	notifyRank(rank: GroupName | 'all', title: string, message: string, highlightPhrase?: string): void {
@@ -377,7 +377,7 @@ export class Room {
 
 	createTournament(format: IFormat, type: 'elimination' | 'roundrobin', cap: number, tournamentName?: string): void {
 		this.say("/tour new " + format.id + ", " + type + "," + cap + (tournamentName ? ",1," + tournamentName : ""),
-			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create'});
+			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create', format: format.id});
 	}
 
 	startTournament(): void {
@@ -389,7 +389,7 @@ export class Room {
 	}
 
 	nameTournament(name: string): void {
-		this.say("/tour name " + name, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-name'});
+		this.say("/tour name " + name, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-name', name});
 	}
 
 	setTournamentCap(playerCap: number): void {
@@ -409,7 +409,7 @@ export class Room {
 	}
 
 	forcePublicTournament(): void {
-		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepulic'});
+		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepublic'});
 	}
 
 	forceTimerTournament(): void {

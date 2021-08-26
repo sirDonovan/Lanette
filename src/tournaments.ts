@@ -181,7 +181,7 @@ export class Tournaments {
 		}
 	}
 
-	createTournament(room: Room, json: ITournamentCreateJson): void {
+	createTournament(room: Room, json: ITournamentCreateJson): Tournament | undefined {
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
 		if (!format) return;
 		if (room.id in this.tournamentTimers) {
@@ -247,7 +247,13 @@ export class Tournaments {
 			if (Config.tournamentStartTimers && room.id in Config.tournamentStartTimers) {
 				startMinutes = Config.tournamentStartTimers[room.id];
 				if (tournament.scheduled) startMinutes *= 2;
-				tournament.startTimer = setTimeout(() => room.startTournament(), startMinutes * 60 * 1000);
+				tournament.startTimer = setTimeout(() => {
+					if (tournament.playerCount >= 2) {
+						room.startTournament();
+					} else {
+						room.endTournament();
+					}
+				}, startMinutes * 60 * 1000);
 			}
 
 			if (Config.adjustTournamentCaps && Config.adjustTournamentCaps.includes(room.id)) {
@@ -267,6 +273,8 @@ export class Tournaments {
 				}
 			}
 		}
+
+		return tournament;
 	}
 
 	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {

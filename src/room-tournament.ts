@@ -123,7 +123,7 @@ export class Tournament extends Activity {
 
 	adjustCap(cap?: number): void {
 		if (!cap) {
-			if (this.playerCount % 8 === 0) {
+			if (this.playerCount && this.playerCount % 8 === 0) {
 				this.room.startTournament();
 				return;
 			}
