@@ -2454,6 +2454,15 @@ export class Client {
 			}
 
 			delete this.sendTimeout;
+
+			if (this.lastOutgoingMessage) {
+				if (this.lastOutgoingMessage.measure) {
+					delete this.lastOutgoingMessage.room;
+					Tools.logMessage("Last outgoing message not measured: " + JSON.stringify(this.lastOutgoingMessage));
+				}
+				this.lastOutgoingMessage = null;
+			}
+
 			if (!this.outgoingMessageQueue.length) return;
 			this.send(this.outgoingMessageQueue.shift()!);
 		}, time);

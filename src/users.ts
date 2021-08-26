@@ -132,7 +132,7 @@ export class User {
 			text: message,
 			type: options && options.type ? options.type : 'pm',
 			user: this.id,
-			measure: !(options && options.dontMeasure),
+			measure: true,
 		};
 
 		if (options && options.html) outgoingMessage.html = options.html;
