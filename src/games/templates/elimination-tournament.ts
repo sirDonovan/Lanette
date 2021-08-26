@@ -726,14 +726,15 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 				if (teamChange.additions) {
 					roundChanges += "<li>";
-					if (teamChange.choices.length <= teamChange.additions) {
+					const addAll = teamChange.choices.length <= teamChange.additions;
+					if (addAll) {
 						roundChanges += (pastTense ? "Added" : "Add") + " the following to your team:";
 					} else {
 						roundChanges += (pastTense ? "Chose" : "Choose") + " " + teamChange.additions + " of the following " +
 							"to add to your team:";
 					}
-					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined, "or") +
-						"</li>";
+					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined,
+						addAll ? "and" : "or") + "</li>";
 				}
 
 				if (teamChange.evolutions) {
