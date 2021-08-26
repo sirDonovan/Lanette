@@ -223,6 +223,7 @@ export class Client {
 	private evasionFilterRegularExpressions: RegExp[] | null = null;
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	private incomingMessageQueue: {message: Data, timestamp: number}[] = [];
+	private lastMeasuredMessage: IOutgoingMessage | null = null;
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
 	private loggedIn: boolean = false;
@@ -2421,6 +2422,7 @@ export class Client {
 					this.serverProcessingMeasurements.shift();
 				}
 
+				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
 
 				this.startSendTimeout(measurement >= this.chatQueueSendThrottle ? this.chatQueueSendThrottle : this.sendThrottleWithBuffer);
@@ -2458,7 +2460,9 @@ export class Client {
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
 					delete this.lastOutgoingMessage.room;
-					Tools.logMessage("Last outgoing message not measured: " + JSON.stringify(this.lastOutgoingMessage));
+					Tools.logMessage("Last outgoing message not measured: " + JSON.stringify(this.lastOutgoingMessage) +
+						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
+						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
 				this.lastOutgoingMessage = null;
 			}
