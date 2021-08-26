@@ -2460,7 +2460,8 @@ export class Client {
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
 					delete this.lastOutgoingMessage.room;
-					Tools.logMessage("Last outgoing message not measured: " + JSON.stringify(this.lastOutgoingMessage) +
+					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
+						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
 						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
