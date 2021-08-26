@@ -480,8 +480,9 @@ export class Client {
 
 		this.sendTimeout = true;
 
+		if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
+
 		this.webSocket.send(outgoingMessage.message, () => {
-			if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
 			this.lastOutgoingMessage = outgoingMessage;
 
 			if (this.sendTimeout === true) this.startSendTimeout();
@@ -510,7 +511,7 @@ export class Client {
 	private setSendThrottle(throttle: number): void {
 		this.sendThrottle = throttle;
 		this.sendThrottleWithBuffer = throttle + SEND_THROTTLE_BUFFER;
-		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
+		this.chatQueueSendThrottle = this.sendThrottleWithBuffer * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
