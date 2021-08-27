@@ -17,6 +17,7 @@ export class Room {
 	game: ScriptedGame | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
+	leaving: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
@@ -442,6 +443,9 @@ export class Room {
 	}
 
 	leave(): void {
+		if (this.leaving) return;
+
+		this.leaving = true;
 		this.say("/leave", {dontCheckFilter: true, dontPrepare: true, type: 'leave-room'});
 	}
 
