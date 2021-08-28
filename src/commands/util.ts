@@ -358,7 +358,15 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			if (!target) {
+			if (target) {
+				const parts = target.split(',');
+				for (const part of parts) {
+					const amount = parseInt(part);
+					if (!isNaN(amount) && (amount < 1 || amount > 30)) {
+						return this.say("You must specify a number of Pokemon between 1 and 30.");
+					}
+				}
+			} else {
 				const species = Dex.getExistingPokemon(Tools.sampleOne(Dex.getData().pokemonKeys)).name;
 				if (this.pm) {
 					this.say('Randomly generated Pokemon: **' + species + '**');
