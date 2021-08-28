@@ -2045,6 +2045,10 @@ export class Client {
 				Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 				Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 				this.clearLastOutgoingMessage(now);
+			} else if (this.lastOutgoingMessage && messageArguments.name.startsWith('hangman') &&
+				(this.lastOutgoingMessage.type === 'hangman-start' || (this.lastOutgoingMessage.type === 'hangman-end' &&
+				messageArguments.html === '<div class="infobox">(The game of hangman was ended.)</div>'))) {
+				this.clearLastOutgoingMessage(now);
 			}
 
 			if (uhtmlId in room.uhtmlMessageListeners) {
