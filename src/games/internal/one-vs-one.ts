@@ -163,7 +163,7 @@ export class OneVsOne extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		this.room.setModchat(this.originalModchat);
+		if (this.originalModchat) this.room.setModchat(this.originalModchat);
 		if (this.challengerPromotedName) this.room.roomDeAuth(this.challengerPromotedName);
 		if (this.defenderPromotedName) this.room.roomDeAuth(this.defenderPromotedName);
 	}

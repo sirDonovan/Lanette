@@ -363,7 +363,7 @@ export class Room {
 	}
 
 	setModchat(level: string): void {
-		if (this.modchat === level) return;
+		if (!level || this.modchat === level) return;
 
 		this.say("/modchat " + level, {dontCheckFilter: true, dontPrepare: true, type: 'modchat', modchatLevel: level});
 	}

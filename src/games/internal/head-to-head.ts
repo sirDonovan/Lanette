@@ -135,7 +135,7 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		this.room.setModchat(this.originalModchat);
+		if (this.originalModchat) this.room.setModchat(this.originalModchat);
 		if (this.leftPromotedName) this.room.roomDeAuth(this.leftPromotedName);
 		if (this.rightPromotedName) this.room.roomDeAuth(this.rightPromotedName);
 	}
