@@ -28,7 +28,6 @@ const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
-const SEND_THROTTLE_BUFFER = 1;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
@@ -260,7 +259,6 @@ export class Client {
 
 	private chatQueueSendThrottle!: number;
 	private sendThrottle!: number;
-	private sendThrottleWithBuffer!: number;
 
 	constructor() {
 		openListener = () => this.onConnect();
@@ -512,7 +510,6 @@ export class Client {
 
 	private setSendThrottle(throttle: number): void {
 		this.sendThrottle = throttle;
-		this.sendThrottleWithBuffer = throttle + SEND_THROTTLE_BUFFER;
 		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
@@ -2586,7 +2583,7 @@ export class Client {
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
 
-				this.startSendTimeout(measurement >= this.chatQueueSendThrottle ? this.chatQueueSendThrottle : this.sendThrottleWithBuffer);
+				this.startSendTimeout(measurement >= this.sendThrottle ? this.chatQueueSendThrottle : this.sendThrottle + measurement);
 			}
 
 			this.lastOutgoingMessage = null;
