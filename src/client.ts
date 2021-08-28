@@ -55,6 +55,9 @@ const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
+const USER_BLOCKING_PMS_MESSAGE = "/error This user is blocking private messages right now.";
+const ADMIN_BLOCKING_PMS_MESSAGE = "/error This Administrator is too busy to answer private messages right now. Please contact a " +
+	"different staff member.";
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
@@ -1598,9 +1601,23 @@ export class Client {
 					return;
 				}
 
-				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE)) return;
-
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
+
+				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
+					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
+					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE)) {
+					if (this.lastOutgoingMessage && Tools.toId(this.lastOutgoingMessage.user) === recipientId &&
+						(this.lastOutgoingMessage.type === 'pm' || this.lastOutgoingMessage.type === 'pm-html' ||
+						this.lastOutgoingMessage.type === 'pm-uhtml' || this.lastOutgoingMessage.type === 'htmlpage' ||
+						this.lastOutgoingMessage.type === 'htmlpageselector' || this.lastOutgoingMessage.type === 'closehtmlpage' ||
+						this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'notifyuser' ||
+						this.lastOutgoingMessage.type === 'notifyoffuser' || this.lastOutgoingMessage.type === 'private-html')) {
+						this.clearLastOutgoingMessage(now);
+					}
+
+					return;
+				}
+
 				if (!recipientId) return;
 
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
