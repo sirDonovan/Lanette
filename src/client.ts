@@ -514,7 +514,7 @@ export class Client {
 	private setSendThrottle(throttle: number): void {
 		this.sendThrottle = throttle;
 		this.sendThrottleWithBuffer = throttle + SEND_THROTTLE_BUFFER;
-		this.chatQueueSendThrottle = REGULAR_MESSAGE_THROTTLE * SERVER_CHAT_QUEUE_LIMIT;
+		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
