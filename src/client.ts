@@ -1761,6 +1761,11 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.message.startsWith('The automatic tournament disqualify timer is already set to ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autodq' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.message.startsWith('The tournament will start once ')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autostart' &&
 					this.lastOutgoingMessage.roomid === room.id) {
