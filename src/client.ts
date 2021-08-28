@@ -3,8 +3,8 @@ import https = require('https');
 import path = require('path');
 import querystring = require('querystring');
 import url = require('url');
+import ws = require('ws');
 
-import type { ClientOptions, Data } from 'ws';
 import type { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
@@ -204,10 +204,10 @@ function constructBannedWordRegex(bannedWords: string[]): RegExp {
 	return new RegExp('(?:\\b|(?!\\w))(?:' + bannedWords.join('|') + ')(?:\\b|\\B(?!\\w))', 'i');
 }
 
-let connectListener: (() => void) | null;
-let messageListener: ((message: Data) => void) | null;
-let errorListener: ((error: Error) => void) | null;
-let closeListener: ((code: number, reason: string) => void) | null;
+let openListener: (() => void) | null;
+let messageListener: ((event: ws.MessageEvent) => void) | null;
+let errorListener: ((event: ws.ErrorEvent) => void) | null;
+let closeListener: ((event: ws.CloseEvent) => void) | null;
 let pongListener: (() => void) | null;
 
 export class Client {
@@ -222,7 +222,7 @@ export class Client {
 	private connectionTimeout: NodeJS.Timer | undefined = undefined;
 	private evasionFilterRegularExpressions: RegExp[] | null = null;
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
-	private incomingMessageQueue: {message: Data, timestamp: number}[] = [];
+	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
@@ -260,10 +260,10 @@ export class Client {
 	private sendThrottleWithBuffer!: number;
 
 	constructor() {
-		connectListener = () => this.onConnect();
-		messageListener = (message: Data) => this.onMessage(message, Date.now());
-		errorListener = (error: Error) => this.onConnectionError(error);
-		closeListener = (code: number, description: string) => this.onConnectionClose(code, description);
+		openListener = () => this.onConnect();
+		messageListener = (event: ws.MessageEvent) => this.onMessage(event, Date.now());
+		errorListener = (event: ws.ErrorEvent) => this.onConnectionError(event);
+		closeListener = (event: ws.CloseEvent) => this.onConnectionClose(event);
 
 		this.setSendThrottle(Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE);
 
@@ -540,37 +540,39 @@ export class Client {
 	private setClientListeners(): void {
 		if (!this.webSocket) return;
 
-		this.webSocket.on('open', connectListener!);
-		this.webSocket.on('message', messageListener!);
-		this.webSocket.on('error', errorListener!);
-		this.webSocket.on('close', closeListener!);
+		this.webSocket.addEventListener('open', openListener!);
+		this.webSocket.addEventListener('message', messageListener!);
+		this.webSocket.addEventListener('error', errorListener!);
+		// @ts-expect-error
+		this.webSocket.addEventListener('close', closeListener!);
 	}
 
 	private removeClientListeners(previousClient?: boolean): void {
 		if (!this.webSocket) return;
 
-		if (connectListener) {
-			this.webSocket.removeAllListeners('open');
-			if (previousClient) connectListener = null;
+		if (openListener) {
+			this.webSocket.removeEventListener('open', openListener);
+			if (previousClient) openListener = null;
 		}
 
 		if (messageListener) {
-			this.webSocket.removeAllListeners('message');
+			this.webSocket.removeEventListener('message', messageListener);
 			if (previousClient) messageListener = null;
 		}
 
 		if (errorListener) {
-			this.webSocket.removeAllListeners('error');
+			this.webSocket.removeEventListener('error', errorListener);
 			if (previousClient) errorListener = null;
 		}
 
 		if (closeListener) {
-			this.webSocket.removeAllListeners('close');
+			// @ts-expect-error
+			this.webSocket.removeEventListener('close', closeListener);
 			if (previousClient) closeListener = null;
 		}
 
 		if (pongListener) {
-			this.webSocket.removeAllListeners('pong');
+			this.webSocket.off('pong', pongListener);
 			if (previousClient) pongListener = null;
 		}
 
@@ -586,12 +588,15 @@ export class Client {
 			return;
 		}
 
+		if (pongListener) {
+			this.webSocket.off('pong', pongListener);
+		}
+
 		pongListener = () => {
 			this.pingWsAlive = true;
 		};
 
 		this.pingWsAlive = false;
-		this.webSocket.removeAllListeners('pong');
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
@@ -626,14 +631,14 @@ export class Client {
 
 			if (previous.incomingMessageQueue) {
 				for (const item of previous.incomingMessageQueue.slice()) {
-					if (!this.incomingMessageQueue.includes(item)) this.onMessage(item.message, item.timestamp);
+					if (!this.incomingMessageQueue.includes(item)) this.onMessage(item.event, item.timestamp);
 				}
 			}
 
 			this.pauseIncomingMessages = false;
 			if (this.incomingMessageQueue.length) {
 				for (const item of this.incomingMessageQueue) {
-					this.onMessage(item.message, item.timestamp);
+					this.onMessage(item.event, item.timestamp);
 				}
 
 				this.incomingMessageQueue = [];
@@ -697,17 +702,17 @@ export class Client {
 		this.connectionTimeout = setTimeout(() => this.connect(), reconnectTime);
 	}
 
-	private onConnectionError(error: Error): void {
+	private onConnectionError(event: ws.ErrorEvent): void {
 		this.clearConnectionTimeouts();
 
-		console.log('Connection error: ' + error.stack);
+		console.log('Connection error: ' + event.message);
 		// 'close' is emitted directly after 'error' so reconnecting is handled in onConnectionClose
 	}
 
-	private onConnectionClose(code: number, reason: string): void {
+	private onConnectionClose(event: ws.CloseEvent): void {
 		this.terminateWebSocket();
 
-		console.log('Connection closed: ' + reason + ' (' + code + ')');
+		console.log('Connection closed: ' + event.reason + ' (' + event.code + ')');
 		console.log('Reconnecting in ' + SERVER_RESTART_CONNECTION_TIME / 1000 + ' seconds');
 
 		this.connectionTimeout = setTimeout(() => this.reconnect(), SERVER_RESTART_CONNECTION_TIME);
@@ -745,6 +750,9 @@ export class Client {
 			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.server, path: ''}),
 			method: 'GET',
+			headers: {
+				"Cache-Control": "no-cache",
+			},
 		};
 
 		this.pauseIncomingMessages = false;
@@ -774,16 +782,16 @@ export class Client {
 							address = 'ws://' + config.host + ':' + (config.port || 8000) + '/showdown/websocket';
 						}
 
-						const wsOptions: ClientOptions = {
+						const wsOptions: ws.ClientOptions = {
+							maxPayload: 8 * 100 * 1024 * 1024,
 							perMessageDeflate: Config.perMessageDeflate || false,
 							headers: {
+								"Cache-Control": "no-cache",
 								"User-Agent": "ws",
 							},
 						};
 
-						// eslint-disable-next-line @typescript-eslint/no-var-requires
-						const ws = require('ws') as typeof import('ws');
-						this.webSocket = new ws(address, wsOptions);
+						this.webSocket = new ws(address, [], wsOptions);
 						this.pauseOutgoingMessages = false;
 						this.setClientListeners();
 
@@ -865,15 +873,15 @@ export class Client {
 		this.connect();
 	}
 
-	private onMessage(webSocketData: Data, now: number): void {
-		if (!webSocketData || typeof webSocketData !== 'string') return;
+	private onMessage(event: ws.MessageEvent, now: number): void {
+		if (!event.data || typeof event.data !== 'string') return;
 
 		if (this.pauseIncomingMessages) {
-			this.incomingMessageQueue.push({message: webSocketData, timestamp: now});
+			this.incomingMessageQueue.push({event, timestamp: now});
 			return;
 		}
 
-		const lines = webSocketData.trim().split("\n");
+		const lines = event.data.trim().split("\n");
 		let roomid: string;
 		if (lines[0].startsWith('>')) {
 			roomid = lines[0].substr(1).trim();
