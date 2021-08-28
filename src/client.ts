@@ -1066,7 +1066,7 @@ export class Client {
 					this.roomsToRejoin = [];
 				} else if (Config.rooms) {
 					for (const roomId of Config.rooms) {
-						this.joinRoom(roomId);
+						if (roomId !== 'staff') this.joinRoom(roomId);
 					}
 				}
 
