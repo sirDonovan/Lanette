@@ -335,6 +335,15 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
+			if (target) {
+				const parts = target.toLowerCase().split("d");
+				for (const part of parts) {
+					if (isNaN(parseInt(part))) {
+						return this.say("You must specify a number of dice.");
+					}
+				}
+			}
+
 			this.say('!roll ' + (target || "2"));
 		},
 	},
