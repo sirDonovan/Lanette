@@ -484,10 +484,9 @@ export class Client {
 		this.sendTimeout = true;
 
 		if (outgoingMessage.measure) outgoingMessage.sentTime = Date.now();
+		this.lastOutgoingMessage = outgoingMessage;
 
 		this.webSocket.send(outgoingMessage.message, () => {
-			this.lastOutgoingMessage = outgoingMessage;
-
 			if (this.sendTimeout === true) this.startSendTimeout();
 		});
 	}
