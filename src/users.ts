@@ -194,10 +194,12 @@ export class Users {
 	self: User;
 
 	private users: Dict<User> = {};
+	private pruneUsersInterval: NodeJS.Timer;
 
 	constructor() {
 		const username = Config.username || "Self";
 		this.self = this.add(username, Tools.toId(username));
+		this.pruneUsersInterval = setInterval(() => this.pruneUsers(), 5 * 60 * 1000);
 	}
 
 	getNameFormattingList(): string[] {
@@ -257,6 +259,14 @@ export class Users {
 		});
 
 		return user;
+	}
+
+	pruneUsers(): void {
+		for (const i in this.users) {
+			if (!this.users[i].rooms.size && !this.users[i].game) {
+				this.remove(this.users[i]);
+			}
+		}
 	}
 }
 
