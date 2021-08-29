@@ -178,6 +178,7 @@ export class Tournament extends Activity {
 	}
 
 	start(): void {
+		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
