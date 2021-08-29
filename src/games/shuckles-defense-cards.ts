@@ -825,6 +825,13 @@ export const game: IGameFile<ShucklesDefenseCards> = Games.copyTemplatePropertie
 	tests: Object.assign({}, cardGame.tests, tests),
 	variants: [
 		{
+			name: "No Actions Shuckle's Defense Cards",
+			maxPlayers: 25,
+			startingLives: 2,
+			variantAliases: ["No Actions", "No Action", "No Action Card", "No Action Cards"],
+			usesActionCards: false,
+		},
+		{
 			name: "Hackmons Shuckle's Defense Cards",
 			variantAliases: ["Hackmons", "Hackmons Cup"],
 			hackmonsTypes: true,
