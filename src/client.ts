@@ -1595,7 +1595,9 @@ export class Client {
 
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
-					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE)) {
+					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE) ||
+					(messageArguments.message.startsWith('/error The user ') &&
+					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (this.lastOutgoingMessage && Tools.toId(this.lastOutgoingMessage.user) === recipientId &&
 						(this.lastOutgoingMessage.type === 'pm' || this.lastOutgoingMessage.type === 'pm-html' ||
 						this.lastOutgoingMessage.type === 'pm-uhtml' || this.lastOutgoingMessage.type === 'htmlpage' ||

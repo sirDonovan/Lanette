@@ -95,6 +95,11 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
+	isLocked(room: Room): boolean {
+		const roomData = this.rooms.get(room);
+		return roomData && roomData.rank === Client.getGroupSymbols().locked ? true : false;
+	}
+
 	updateStatus(status: string): void {
 		if (status === this.status) return;
 
@@ -117,6 +122,14 @@ export class User {
 
 		const user = global.Users.get(this.name);
 		if (!user || user === global.Users.self) return;
+
+		let locked = false;
+		this.rooms.forEach((data, room) => {
+			if (!locked && this.isLocked(room)) locked = true;
+		});
+
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (locked) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {

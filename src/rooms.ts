@@ -161,6 +161,16 @@ export class Room {
 		if (!user.rooms.size) Users.remove(user);
 	}
 
+	canSendToUser(user: User): boolean {
+		return user !== Users.self && user.rooms.has(this) && !user.isLocked(this);
+	}
+
+	getTargetUser(userOrPlayer: User | Player): User | undefined {
+		const user = Users.get(userOrPlayer.name);
+		if (!user || !this.canSendToUser(user)) return;
+		return user;
+	}
+
 	say(message: string, options?: IRoomMessageOptions): void {
 		if (!message || global.Rooms.get(this.id) !== this) return;
 
@@ -234,24 +244,24 @@ export class Room {
 	sayPrivateHtml(userOrPlayer: User | Player, html: string): void {
 		if (!html) return;
 
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/sendprivatehtmlbox " + user.id + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
 	sayPrivateUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/sendprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
 	}
 
 	sayPrivateUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/changeprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
 			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
@@ -260,24 +270,24 @@ export class Room {
 	pmHtml(userOrPlayer: User | Player, html: string): void {
 		if (!html) return;
 
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/pminfobox " + user.id + "," + html, {html: Client.getListenerHtml(html, true), dontCheckFilter: true, dontPrepare: true,
 			type: 'pm-html', user: user.id});
 	}
 
 	pmUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
 	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
 			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
@@ -315,31 +325,31 @@ export class Room {
 	}
 
 	notifyUser(userOrPlayer: User | Player, title: string, message?: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/notifyuser " + user.id + "," + title + (message ? "," + message : ""),
 			{dontCheckFilter: true, dontPrepare: true, type: 'notifyuser', user: user.id});
 	}
 
 	notifyOffUser(userOrPlayer: User | Player): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/notifyoffuser " + user.id, {dontCheckFilter: true, dontPrepare: true, type: 'notifyoffuser', user: user.id});
 	}
 
 	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html,
 			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
 	changeHtmlPageSelector(userOrPlayer: User | Player, pageId: string, selector: string, html: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/changehtmlpageselector " + user.id + "," + pageId + "," + selector + "," + html,
 			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpageselector', user: user.id, pageId: Users.self.id + "-" + pageId,
@@ -347,16 +357,16 @@ export class Room {
 	}
 
 	closeHtmlPage(userOrPlayer: User | Player, pageId: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/closehtmlpage " + user.id + "," + pageId,
 			{dontCheckFilter: true, dontPrepare: true, type: 'closehtmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
 	}
 
 	sendHighlightPage(userOrPlayer: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
-		const user = Users.get(userOrPlayer.name);
-		if (!user || user === Users.self || !user.rooms.has(this)) return;
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
 		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
 			{dontCheckFilter: true, dontPrepare: true, type: 'highlight-htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
