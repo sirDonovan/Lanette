@@ -10,8 +10,8 @@ import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from './rooms';
 import type {
 	GroupName, IClientMessageTypes, ILoginOptions, IMessageParserFile, IOutgoingMessage, IRoomInfoResponse, IRoomsResponse,
-	IServerConfig, IServerGroup, IServerProcessingMeasurement, ITournamentMessageTypes, QueryResponseType, ServerGroupData,
-	IUserDetailsResponse, UserDetailsListener, IServerUserSettings
+	IServerConfig, IServerGroup, ITournamentMessageTypes, QueryResponseType, ServerGroupData, IUserDetailsResponse,
+	UserDetailsListener, IServerUserSettings
 } from './types/client';
 import type { ISeparatedCustomRules } from './types/dex';
 import type { RoomType } from './types/rooms';
@@ -31,7 +31,6 @@ const SERVER_CHAT_QUEUE_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
-const MAX_PROCESSING_MEASUREMENT_GAP = 30 * 1000;
 const BOT_MESSAGE_COMMAND = '/botmsg ';
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -238,7 +237,6 @@ export class Client {
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
-	private maxProcessingMeasurementGap = MAX_PROCESSING_MEASUREMENT_GAP;
 	private publicChatRooms: string[] = [];
 	private reconnectRoomMessages: Dict<string[]> = {};
 	private reloadInProgress: boolean = false;
@@ -248,16 +246,16 @@ export class Client {
 	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
 	private sendTimeoutDuration: number = 0;
 	private server: string = Config.server || Tools.mainServer;
-	private serverChatQueueWaits: number = 0;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
+	private serverPing: number = 0;
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
-	private serverProcessingMeasurements: IServerProcessingMeasurement[] = [];
 	private webSocket: import('ws') | null = null;
 
 	private chatQueueSendThrottle!: number;
+	private chatQueueThrottleWarning!: number;
 	private sendThrottle!: number;
 
 	constructor() {
@@ -501,15 +499,9 @@ export class Client {
 		return this.sendThrottle;
 	}
 
-	getSendThrottleValues(): string[] {
-		return ["Base throttle: " + this.sendThrottle + "ms",
-			"Processing measurements: " + (this.serverProcessingMeasurements.length ?
-			"[" + this.serverProcessingMeasurements.map(x => x.measurement).join(", ") + "]" : "(none)"),
-			"Queued outgoing messages: " + this.outgoingMessageQueue.length];
-	}
-
 	private setSendThrottle(throttle: number): void {
 		this.sendThrottle = throttle;
+		this.chatQueueThrottleWarning = throttle * (SERVER_CHAT_QUEUE_LIMIT - 1);
 		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
@@ -591,13 +583,17 @@ export class Client {
 			this.webSocket.off('pong', pongListener);
 		}
 
+		let pingTime: number;
 		pongListener = () => {
+			this.serverPing = pingTime ? Date.now() - pingTime : 0;
 			this.pingWsAlive = true;
 		};
 
 		this.pingWsAlive = false;
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
+			pingTime = Date.now();
+
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 			this.serverPingTimeout = setTimeout(() => this.pingServer(), CONNECTION_CHECK_INTERVAL + 1000);
 		});
@@ -615,10 +611,8 @@ export class Client {
 
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
-
+		if (previous.serverPing) this.serverPing = previous.serverPing;
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
-		if (previous.serverChatQueueWaits) this.serverChatQueueWaits = previous.serverChatQueueWaits;
-		if (previous.serverProcessingMeasurements) this.serverProcessingMeasurements = previous.serverProcessingMeasurements.slice();
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.webSocket) {
@@ -1890,7 +1884,8 @@ export class Client {
 
 			if (messageArguments.html === '<strong class="message-throttle-notice">Your message was not sent because you\'ve been ' +
 				'typing too quickly.</strong>') {
-				Tools.logMessage("Typing too quickly;\n" + this.getSendThrottleValues().join("\n") +
+				Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
+					this.outgoingMessageQueue.length +
 					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
@@ -2575,19 +2570,12 @@ export class Client {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				const measurement = responseTime - this.lastOutgoingMessage.sentTime;
 
-				this.serverProcessingMeasurements.push({
-					measurement,
-					timestamp: responseTime,
-				});
-
-				while (responseTime - this.serverProcessingMeasurements[0].timestamp > this.maxProcessingMeasurementGap) {
-					this.serverProcessingMeasurements.shift();
-				}
-
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
 
-				this.startSendTimeout(measurement >= this.sendThrottle ? this.chatQueueSendThrottle : this.sendThrottle + measurement);
+				this.startSendTimeout(measurement >= this.chatQueueThrottleWarning ? this.chatQueueSendThrottle :
+					measurement >= this.sendThrottle + this.serverPing ? this.sendThrottle + measurement :
+					this.sendThrottle);
 			}
 
 			this.lastOutgoingMessage = null;
