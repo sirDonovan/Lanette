@@ -339,12 +339,12 @@ export class RandomHostDisplay extends HostDisplayBase {
 			const gen = targets[0].trim() as TrainerGeneration | 'random';
 			const random = gen === randomTrainerGen;
 
-			if (!random && !trainerGens.includes(gen as TrainerGeneration)) return "'" + gen + "' is not a valid trainer type.";
+			if (!random && !trainerGens.includes(gen)) return "'" + gen + "' is not a valid trainer type.";
 
 			if (random) {
 				this.clearAllTrainerGenerations();
 			} else {
-				this.setAllTrainerGenerations(gen as TrainerGeneration);
+				this.setAllTrainerGenerations(gen);
 			}
 		} else if (cmd === randomizeTrainers) {
 			const amount = parseInt(targets[0].trim());

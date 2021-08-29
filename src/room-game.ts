@@ -98,7 +98,7 @@ export abstract class Game extends Activity {
 						Config.onUserHostedGameWin(this.room as Room, this.format as IUserHostedFormat, this.players, this.winners,
 							this.points);
 					} catch (e) {
-						Tools.logError(e, this.format!.name + " Config.onUserHostedGameWin");
+						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onUserHostedGameWin");
 					}
 				}
 			} else if (!this.isPmActivity(this.room)) {
@@ -106,7 +106,7 @@ export abstract class Game extends Activity {
 					try {
 						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
 					} catch (e) {
-						Tools.logError(e, this.format!.name + " Config.onScriptedGameWin");
+						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
 					}
 				}
 			}

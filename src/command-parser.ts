@@ -210,8 +210,8 @@ export class CommandParser {
 			new CommandContext(command, target, room, user, timestamp).run();
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e, "Crash in command: " + Config.commandCharacter + command + " " + target + " (room = " + room.id + "; " +
-				"user = " + user.id + ")");
+			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
+				" (room = " + room.id + "; " + "user = " + user.id + ")");
 		}
 	}
 
@@ -309,8 +309,7 @@ export class CommandParser {
 		try {
 			commandFiles = fs.readdirSync(directory);
 		} catch (e) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (e.code === 'ENOENT' && privateDirectory) return allCommands;
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return allCommands;
 			throw e;
 		}
 

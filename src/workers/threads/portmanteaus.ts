@@ -140,7 +140,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		}
 	} catch (e) {
 		console.log(e);
-		Tools.logError(e);
+		Tools.logError(e as NodeJS.ErrnoException);
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));

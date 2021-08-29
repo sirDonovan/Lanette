@@ -173,7 +173,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e, this.format.name + " generateHint()");
+			Tools.logError(e as NodeJS.ErrnoException, this.format.name + " generateHint()");
 			this.errorEnd();
 		}
 	}

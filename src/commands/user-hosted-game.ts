@@ -1,4 +1,4 @@
-import type { Player } from "../room-activity";
+import type { Player, PlayerTeam } from "../room-activity";
 import type { ScriptedGame } from "../room-game-scripted";
 import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
@@ -1360,7 +1360,8 @@ export const commands: BaseCommandDefinitions = {
 				const usersByPoints: Dict<Player[]> = {};
 				if (room.userHostedGame.teams) {
 					for (const i in room.userHostedGame.teams) {
-						const team = room.userHostedGame.teams[i];
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+						const team = room.userHostedGame.teams[i] as PlayerTeam;
 						if (!team.points) continue;
 						if (!(team.points in usersByPoints)) usersByPoints[team.points] = [];
 						usersByPoints[team.points] = usersByPoints[team.points].concat(team.players.filter(x => !x.eliminated));
@@ -1369,7 +1370,8 @@ export const commands: BaseCommandDefinitions = {
 					for (const i in room.userHostedGame.players) {
 						const player = room.userHostedGame.players[i];
 						if (player.eliminated || !room.userHostedGame.points.has(player)) continue;
-						const points = '' + room.userHostedGame.points.get(player);
+						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+						const points = '' + room.userHostedGame.points.get(player) as string;
 						if (!(points in usersByPoints)) usersByPoints[points] = [];
 						usersByPoints[points].push(player);
 					}

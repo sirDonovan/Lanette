@@ -223,7 +223,7 @@ export class Tools {
 		return buttonStyle;
 	}
 
-	logError(error: Error, message?: string): void {
+	logError(error: NodeJS.ErrnoException, message?: string): void {
 		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
 	}
 

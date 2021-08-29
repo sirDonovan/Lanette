@@ -95,7 +95,7 @@ export class GameMap {
 }
 
 export abstract class MapGame extends ScriptedGame {
-	abstract currency: string = '';
+	abstract currency: string;
 	abstract maxDimensions: number;
 	abstract minDimensions: number;
 

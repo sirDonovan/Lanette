@@ -510,8 +510,7 @@ export class Client {
 		try {
 			messageParserFiles = fs.readdirSync(directory);
 		} catch (e) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			if (e.code === 'ENOENT' && optional) return;
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && optional) return;
 			throw e;
 		}
 
@@ -925,7 +924,7 @@ export class Client {
 				}
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e);
+				Tools.logError(e as NodeJS.ErrnoException);
 			}
 		}
 	}
@@ -2003,7 +2002,7 @@ export class Client {
 								}
 							} catch (e) {
 								console.log(e);
-								Tools.logError(e);
+								Tools.logError(e as NodeJS.ErrnoException);
 							}
 
 							if (regularExpression) {
