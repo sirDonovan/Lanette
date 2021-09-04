@@ -1838,31 +1838,76 @@ export class Client {
 				error: messageParts.join("|"),
 			};
 
-			if (messageArguments.error.startsWith('Tournament battles are already being forced public') ||
+			if (messageArguments.error.startsWith('/tour new - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-create' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour start - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-start' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour end - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-end' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour name - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-name' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour cap - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-cap' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour runautodq - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-runautodq' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour forcetimer - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-forcetimer' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour rules - Access denied')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-rules' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('/tour forcepublic - Access denied') ||
+				messageArguments.error.startsWith('Tournament battles are already being forced public') ||
 				messageArguments.error.startsWith('Tournament battles are not being forced public')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-forcepublic' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('Modjoining is already not allowed for this tournament') ||
+			} else if (messageArguments.error.startsWith('/tour modjoin - Access denied') ||
+				messageArguments.error.startsWith('Modjoining is already not allowed for this tournament') ||
 				messageArguments.error.startsWith('Modjoining is already allowed for this tournament')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-modjoin' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('Scouting for this tournament is already set to allowed') ||
+			} else if (messageArguments.error.startsWith('/tour scouting - Access denied') ||
+				messageArguments.error.startsWith('Scouting for this tournament is already set to allowed') ||
 				messageArguments.error.startsWith('Scouting for this tournament is already disabled')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-scouting' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('The tournament is already set to autostart when the player cap is reached') ||
+			} else if (messageArguments.error.startsWith('/tour autostart - Access denied') ||
+				messageArguments.error.startsWith('The tournament is already set to autostart when the player cap is reached') ||
 				messageArguments.error.startsWith('The automatic tournament start timer is already off')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autostart' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('The automatic tournament disqualify timer is already set to ')) {
+			} else if (messageArguments.error.startsWith('/tour autodq - Access denied') ||
+				messageArguments.error.startsWith('The automatic tournament disqualify timer is already set to ')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autodq' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
