@@ -1598,7 +1598,6 @@ export class Client {
 				}
 
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
-
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
 					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE) ||
@@ -1619,6 +1618,18 @@ export class Client {
 				if (!recipientId) return;
 
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
+				if (messageArguments.message.startsWith('/error ') &&
+					messageArguments.message.endsWith('could not be found in any of the search categories.')) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
+						Tools.toId(this.lastOutgoingMessage.user) === recipient.id &&
+						this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+						this.clearLastOutgoingMessage(now);
+						recipient.say(messageArguments.message.substr(7).trim());
+					}
+
+					return;
+				}
+
 				if (isUhtml || isUhtmlChange) {
 					const uhtml = messageArguments.message.substr(messageArguments.message.indexOf(" ") + 1);
 					const commaIndex = uhtml.indexOf(",");
@@ -1838,7 +1849,13 @@ export class Client {
 				error: messageParts.join("|"),
 			};
 
-			if (messageArguments.error.startsWith('/tour new - Access denied')) {
+			if (messageArguments.error.endsWith('could not be found in any of the search categories.')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
+					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+					this.clearLastOutgoingMessage(now);
+					room.say(messageArguments.error);
+				}
+			} else if (messageArguments.error.startsWith('/tour new - Access denied')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-create' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
@@ -2008,7 +2025,7 @@ export class Client {
 			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||
 				messageArguments.html.startsWith('<ul class="utilichart"><li class="result">')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					DT_RESULT_COMMANDS.includes(this.lastOutgoingMessage.text!.substr(1).split(" ")[0])) {
+					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			}
@@ -2622,6 +2639,10 @@ export class Client {
 				this.groupSymbols[Tools.toId(group.name) as GroupName] = group.symbol;
 			}
 		}
+	}
+
+	private isDtResultLastMessage(message: string): boolean {
+		return DT_RESULT_COMMANDS.includes(message.substr(1).split(" ")[0]);
 	}
 
 	private clearLastOutgoingMessage(responseTime?: number): void {
