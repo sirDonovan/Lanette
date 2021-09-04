@@ -190,6 +190,10 @@ export class Room {
 			type: options && options.type ? options.type : 'chat',
 		});
 
+		if (outgoingMessage.type === 'chat' && Client.isDataRollCommand(message)) {
+			outgoingMessage.slowerCommand = true;
+		}
+
 		if (!options || !options.dontMeasure) {
 			outgoingMessage.measure = true;
 

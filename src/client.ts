@@ -60,12 +60,13 @@ const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challe
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
 
-const DT_RESULT_COMMANDS: string[] = ['ds', 'ds1', 'ds2', 'ds3', 'ds4', 'ds5', 'ds6', 'ds7', 'ds8', 'dsearch', 'nds', 'dexsearch',
+const DATA_ROLL_COMMANDS: string[] = ['rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon'];
+const DT_RESULT_COMMANDS: string[] = DATA_ROLL_COMMANDS.concat([
+	'ds', 'ds1', 'ds2', 'ds3', 'ds4', 'ds5', 'ds6', 'ds7', 'ds8', 'dsearch', 'nds', 'dexsearch',
 	'ms', 'ms1', 'ms2', 'ms3', 'ms4', 'ms5', 'ms6', 'ms7', 'ms8', 'msearch', 'nms', 'movesearch',
 	'is', 'is2', 'is3', 'is4', 'is5', 'is6', 'is7', 'is8', 'itemsearch',
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
-	'rollmove', 'randmove', 'randommove',
-	'rollpokemon', 'randpoke', 'randompokemon'];
+]);
 
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
@@ -385,6 +386,10 @@ export class Client {
 			label, disabled, buttonStyle);
 	}
 
+	isDataRollCommand(message: string): boolean {
+		return DATA_ROLL_COMMANDS.includes(message.substr(1).split(" ")[0]);
+	}
+
 	/**Returns the description of the filter triggered by the message, if any */
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
@@ -490,7 +495,9 @@ export class Client {
 		this.lastOutgoingMessage = outgoingMessage;
 
 		this.webSocket.send(outgoingMessage.message, () => {
-			if (this.sendTimeout === true) this.startSendTimeout();
+			if (this.sendTimeout === true) {
+				this.startSendTimeout(outgoingMessage.slowerCommand ? this.chatQueueSendThrottle * 3 : this.chatQueueSendThrottle);
+			}
 		});
 	}
 
@@ -2653,9 +2660,15 @@ export class Client {
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
 
-				this.startSendTimeout(measurement >= this.chatQueueThrottleWarning ? this.chatQueueSendThrottle :
-					measurement >= this.sendThrottle + this.serverPing ? this.sendThrottle + measurement :
-					this.sendThrottle);
+				let sendTimeout: number;
+				if (this.lastOutgoingMessage.slowerCommand) {
+					sendTimeout = this.sendThrottle;
+				} else {
+					sendTimeout = measurement >= this.chatQueueThrottleWarning ? this.chatQueueSendThrottle :
+					measurement >= this.sendThrottle + this.serverPing ? this.sendThrottle + measurement : this.sendThrottle;
+				}
+
+				this.startSendTimeout(sendTimeout);
 			}
 
 			this.lastOutgoingMessage = null;
@@ -2669,14 +2682,12 @@ export class Client {
 		}
 	}
 
-	private startSendTimeout(time?: number): void {
+	private startSendTimeout(time: number): void {
 		this.clearSendTimeout();
 		if (this.reloadInProgress) {
 			this.sendTimeout = true;
 			return;
 		}
-
-		if (!time) time = this.chatQueueSendThrottle;
 
 		this.sendTimeoutDuration = time;
 		this.sendTimeout = setTimeout(() => {

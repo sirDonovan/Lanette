@@ -148,6 +148,10 @@ export class User {
 			measure: true,
 		};
 
+		if (outgoingMessage.type === 'pm' && Client.isDataRollCommand(message)) {
+			outgoingMessage.slowerCommand = true;
+		}
+
 		if (options && options.html) outgoingMessage.html = options.html;
 
 		Client.send(outgoingMessage);

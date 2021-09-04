@@ -37,6 +37,7 @@ export interface IOutgoingMessageAttributes {
 	pageId?: string;
 	roomid?: string;
 	selector?: string;
+	slowerCommand?: boolean;
 	text?: string;
 	uhtmlName?: string;
 	user?: string;
