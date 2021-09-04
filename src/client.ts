@@ -60,6 +60,13 @@ const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challe
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
 
+const DT_RESULT_COMMANDS: string[] = ['ds', 'ds1', 'ds2', 'ds3', 'ds4', 'ds5', 'ds6', 'ds7', 'ds8', 'dsearch', 'nds', 'dexsearch',
+	'ms', 'ms1', 'ms2', 'ms3', 'ms4', 'ms5', 'ms6', 'ms7', 'ms8', 'msearch', 'nms', 'movesearch',
+	'is', 'is2', 'is3', 'is4', 'is5', 'is6', 'is7', 'is8', 'itemsearch',
+	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
+	'rollmove', 'randmove', 'randommove',
+	'rollpokemon', 'randpoke', 'randompokemon'];
+
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
 const FILTERS_REGEX_N = /\u039d/g;
@@ -1952,6 +1959,12 @@ export class Client {
 					room.tournament.format.customRules = null;
 					delete room.tournament.format.separatedCustomRules;
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+				}
+			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||
+				messageArguments.html.startsWith('<ul class="utilichart"><li class="result">')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
+					DT_RESULT_COMMANDS.includes(this.lastOutgoingMessage.text!.substr(1).split(" ")[0])) {
+					this.clearLastOutgoingMessage(now);
 				}
 			}
 			break;
