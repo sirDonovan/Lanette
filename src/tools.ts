@@ -476,7 +476,8 @@ export class Tools {
 			.replace(/"/g, '&quot;')
 			.replace(/'/g, "&apos;")
 			.replace(/\//g, '&#x2f;')
-			.replace(/\\/g, '&#92;');
+			.replace(/\\/g, '&#92;')
+			.replace(/é/g, '&eacute;');
 	}
 
 	unescapeHTML(input: string): string {
@@ -488,7 +489,7 @@ export class Tools {
 			.replace(/&quot;/g, '"').replace(/&#34;/g, '"')
 			.replace(/&apos;/g, "'").replace(/&#39;/g, "'")
 			.replace(/&#x2f;/g, '/').replace(/&#47;/g, '/')
-			.replace(/&#92;/g, '\\');
+			.replace(/&#92;/g, '\\').replace(/&eacute;/g, 'é');
 	}
 
 	stripHtmlCharacters(input: string): string {
