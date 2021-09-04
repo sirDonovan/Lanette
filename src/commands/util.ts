@@ -351,6 +351,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!target || (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user)))))) return;
+			if (!target) return this.say("You must specify an ability, item, move, nature, or Pokemon.");
 			this.say('!dt ' + target);
 		},
 	},

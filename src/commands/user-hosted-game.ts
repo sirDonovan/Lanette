@@ -1200,6 +1200,10 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("You cannot store a server command.");
 			}
 
+			if (possibleCommand === '!pick' && targets.length < 2) {
+				return this.say("You must provide at least 2 options for ``!pick``.");
+			}
+
 			if (CommandParser.isCommandMessage(message) && !(Tools.toId(possibleCommand) in BaseCommands)) {
 				return this.say("'" + possibleCommand + "' is not a valid " + Users.self.name + " command for " +
 					Config.commandCharacter + "store.");
