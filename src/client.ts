@@ -1622,13 +1622,24 @@ export class Client {
 				if (!recipientId) return;
 
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
-				if (messageArguments.message.startsWith('/error ') &&
-					messageArguments.message.endsWith('could not be found in any of the search categories.')) {
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-						Tools.toId(this.lastOutgoingMessage.user) === recipient.id &&
-						this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
-						this.clearLastOutgoingMessage(now);
-						recipient.say(messageArguments.message.substr(7).trim());
+				if (messageArguments.message.startsWith('/error ')) {
+					const error = messageArguments.message.substr(7).trim();
+					if (error.endsWith('could not be found in any of the search categories.') ||
+						error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
+						error.startsWith('A search cannot both include and exclude ') ||
+						error.startsWith('A search cannot both exclude and include ') ||
+						error.startsWith('No more than 3 alternatives for each parameter may be used') ||
+						error.startsWith('No value given to compare with ') ||
+						error.endsWith(' is not a recognized egg group.') ||
+						error.endsWith(' is not a recognized stat.') ||
+						error.endsWith(' cannot have alternative parameters') ||
+						(error.startsWith('The search included ') && error.endsWith(' more than once.'))) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
+							Tools.toId(this.lastOutgoingMessage.user) === recipient.id &&
+							this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+							this.clearLastOutgoingMessage(now);
+							recipient.say(Tools.unescapeHTML(error));
+						}
 					}
 
 					return;
@@ -1853,11 +1864,20 @@ export class Client {
 				error: messageParts.join("|"),
 			};
 
-			if (messageArguments.error.endsWith('could not be found in any of the search categories.')) {
+			if (messageArguments.error.endsWith('could not be found in any of the search categories.') ||
+				messageArguments.error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
+				messageArguments.error.startsWith('A search cannot both include and exclude ') ||
+				messageArguments.error.startsWith('A search cannot both exclude and include ') ||
+				messageArguments.error.startsWith('No more than 3 alternatives for each parameter may be used') ||
+				messageArguments.error.startsWith('No value given to compare with ') ||
+				messageArguments.error.endsWith(' is not a recognized egg group.') ||
+				messageArguments.error.endsWith(' is not a recognized stat.') ||
+				messageArguments.error.endsWith(' cannot have alternative parameters') ||
+				(messageArguments.error.startsWith('The search included ') && messageArguments.error.endsWith(' more than once.'))) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
 					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
-					room.say(messageArguments.error);
+					room.say(Tools.escapeHTML(messageArguments.error));
 				}
 			} else if (messageArguments.error.startsWith('/tour new - Access denied')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-create' &&
