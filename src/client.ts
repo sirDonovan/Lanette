@@ -338,20 +338,22 @@ export class Client {
 		return '<div style="float:right;color:#888;font-size:8pt">[' + text + ']</div><div style="clear:both"></div>';
 	}
 
-	getListenerHtml(html: string, inPm?: boolean): string {
+	getListenerHtml(html: string, noAttribution?: boolean): string {
 		html = '<div class="infobox">' + html;
-		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		html += '</div>';
-		return html;
+
+		return Tools.unescapeHTML(html);
 	}
 
-	getListenerUhtml(html: string, inPm?: boolean): string {
-		if (!inPm && Users.self.group !== this.groupSymbols.bot) {
+	getListenerUhtml(html: string, noAttribution?: boolean): string {
+		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
-		return html;
+
+		return Tools.unescapeHTML(html);
 	}
 
 	getCodeListenerHtml(code: string): string {

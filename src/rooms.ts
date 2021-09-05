@@ -285,16 +285,16 @@ export class Room {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html,
-			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
+		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, {uhtmlName, html: Client.getListenerUhtml(html, true),
+			dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
 	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html,
-			{uhtmlName, html, dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
+		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, {uhtmlName, html: Client.getListenerUhtml(html, true),
+			dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
 	}
 
 	announce(text: string): void {
@@ -468,7 +468,7 @@ export class Room {
 	}
 
 	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
-		this.htmlMessageListeners[Tools.toId(serverHtml ? html : Client.getListenerHtml(html))] = listener;
+		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, serverHtml))] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: MessageListener): void {
@@ -482,7 +482,7 @@ export class Room {
 	}
 
 	offHtml(html: string, serverHtml?: boolean): void {
-		delete this.htmlMessageListeners[Tools.toId(serverHtml ? html : Client.getListenerHtml(html))];
+		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, serverHtml))];
 	}
 
 	offUhtml(name: string, html: string): void {
