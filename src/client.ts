@@ -896,13 +896,10 @@ export class Client {
 			roomid = 'lobby';
 		}
 
-		let room = Rooms.get(roomid);
-		if (!room) {
-			room = Rooms.add(roomid);
-			if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
-				this.lastOutgoingMessage.roomid === room.id) {
-				this.clearLastOutgoingMessage(now);
-			}
+		const room = Rooms.add(roomid);
+		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
+			this.lastOutgoingMessage.roomid === room.id) {
+			this.clearLastOutgoingMessage(now);
 		}
 
 		for (let i = 0; i < lines.length; i++) {
