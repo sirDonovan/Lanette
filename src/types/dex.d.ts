@@ -58,6 +58,16 @@ export interface IGetPossibleTeamsOptions {
 	usablePokemon?: string[];
 }
 
+export interface IClosestPossibleTeam {
+	incorrectSize: number;
+	incorrectPokemon: string[];
+	invalidChoices: string[];
+	extraEvolution: Dict<number>;
+	missingEvolution: Dict<number>;
+	extraDevolution: Dict<number>;
+	missingDevolution: Dict<number>;
+}
+
 type DataKeys = readonly string[];
 
 export type TrainerSpriteId = Branded<"trainer-sprite-id", string>;

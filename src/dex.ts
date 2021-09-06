@@ -8,7 +8,7 @@ import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
 	CategoryData, CharacterType, ModelGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData,
-	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName
+	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -2050,6 +2050,144 @@ export class Dex {
 		}
 
 		return isPossible;
+	}
+
+	getClosestPossibleTeam(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
+		options: IGetPossibleTeamsOptions): IClosestPossibleTeam {
+		const teamEvolutionLines: Dict<readonly string[][]> = {};
+		const names: string[] = [];
+		for (const slot of team) {
+			const pokemon = typeof slot === 'string' ? this.getExistingPokemon(slot) : slot;
+			const evolutionLines = this.getEvolutionLines(pokemon, options.allowFormes ? this.getFormes(pokemon) : undefined);
+			const filteredEvolutionLines: string[][] = [];
+			for (const evolutionLine of evolutionLines) {
+				if (evolutionLine.includes(pokemon.name)) filteredEvolutionLines.push(evolutionLine);
+			}
+			teamEvolutionLines[pokemon.name] = filteredEvolutionLines;
+
+			names.push(pokemon.name);
+		}
+
+		const teamLength = team.length;
+		const expectedEvolution = options.evolutions && options.evolutions > 0;
+		const validatedPossibleTeams = new Map<DeepImmutableArray<string>, IClosestPossibleTeam>();
+		for (const possibleTeam of possibleTeams) {
+			const incorrectPokemon: string[] = [];
+			const invalidChoices: string[] = [];
+			const extraEvolution: Dict<number> = {};
+			const missingEvolution: Dict<number> = {};
+			const extraDevolution: Dict<number> = {};
+			const missingDevolution: Dict<number> = {};
+
+			for (const name of names) {
+				if (!possibleTeam.includes(name)) {
+					incorrectPokemon.push(name);
+
+					let semiValidChoice = false;
+					for (const evolutionLine of teamEvolutionLines[name]) {
+						for (const evolution of evolutionLine) {
+							if (possibleTeam.includes(evolution)) {
+								const stagesBetween = evolutionLine.indexOf(name) - evolutionLine.indexOf(evolution);
+								if (expectedEvolution) {
+									if (stagesBetween > 0) {
+										extraEvolution[name] = stagesBetween;
+									} else {
+										missingEvolution[name] = stagesBetween * -1;
+									}
+								} else {
+									if (stagesBetween > 0) {
+										missingDevolution[name] = stagesBetween;
+									} else {
+										extraDevolution[name] = stagesBetween * -1;
+									}
+								}
+
+								semiValidChoice = true;
+								break;
+							}
+						}
+
+						if (semiValidChoice) break;
+					}
+
+					if (!semiValidChoice) invalidChoices.push(name);
+				}
+			}
+
+			validatedPossibleTeams.set(possibleTeam, {
+				incorrectSize: possibleTeam.length - teamLength,
+				incorrectPokemon,
+				invalidChoices,
+				extraEvolution,
+				missingEvolution,
+				extraDevolution,
+				missingDevolution,
+			});
+		}
+
+		let closestTeams: DeepImmutableArray<string>[] = [];
+		let leastIncorrect = teamLength;
+
+		validatedPossibleTeams.forEach((validation, possibleTeam) => {
+			const incorrect = validation.incorrectPokemon.length;
+			if (incorrect < leastIncorrect) {
+				closestTeams = [possibleTeam];
+				leastIncorrect = incorrect;
+			} else if (incorrect === leastIncorrect) {
+				closestTeams.push(possibleTeam);
+			}
+		});
+
+		for (const closestTeam of closestTeams) {
+			const validation = validatedPossibleTeams.get(closestTeam)!;
+			if (validation.incorrectSize) continue;
+
+			if (Object.keys(validation.extraEvolution).length || Object.keys(validation.missingEvolution).length ||
+				Object.keys(validation.extraDevolution).length || Object.keys(validation.missingDevolution).length) {
+				return validation;
+			}
+		}
+
+		return validatedPossibleTeams.get(closestTeams[0])!;
+	}
+
+	getClosestPossibleTeamSummary(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
+		options: IGetPossibleTeamsOptions): string {
+		const closestTeam = this.getClosestPossibleTeam(team, possibleTeams, options);
+		const summary: string[] = [];
+		if (closestTeam.incorrectSize) {
+			summary.push("Your team needed to have " + (team.length + closestTeam.incorrectSize) + " Pokemon.");
+		}
+
+		if (closestTeam.invalidChoices.length) {
+			summary.push(Tools.joinList(closestTeam.invalidChoices) + (closestTeam.invalidChoices.length > 1 ? " were" : " was") +
+				" not possible to have based on your options.");
+		}
+
+		const evolutions: string[] = [];
+		for (const name in closestTeam.extraEvolution) {
+			evolutions.push(name + " was evolved " + closestTeam.extraEvolution[name] + " extra " +
+				"stage" + (closestTeam.extraEvolution[name] > 1 ? "s" : ""));
+		}
+
+		for (const name in closestTeam.missingEvolution) {
+			evolutions.push(name + " needed to be evolved " + closestTeam.missingEvolution[name] + " more " +
+				"stage" + (closestTeam.missingEvolution[name] > 1 ? "s" : ""));
+		}
+
+		for (const name in closestTeam.extraDevolution) {
+			evolutions.push(name + " was de-volved " + closestTeam.extraDevolution[name] + " extra " +
+				"stage" + (closestTeam.extraDevolution[name] > 1 ? "s" : ""));
+		}
+
+		for (const name in closestTeam.missingDevolution) {
+			evolutions.push(name + " needed to be de-volved " + closestTeam.missingDevolution[name] + " more " +
+				"stage" + (closestTeam.missingDevolution[name] > 1 ? "s" : ""));
+		}
+
+		if (evolutions.length) summary.push(Tools.joinList(evolutions) + ".");
+
+		return summary.join(" ");
 	}
 
 	private onReload(previous: Dex): void {

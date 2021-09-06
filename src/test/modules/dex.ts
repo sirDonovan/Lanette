@@ -1112,6 +1112,30 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Mr. Mime,Rockruff'));
 		assert(possibleTeams.includes('Mr. Mime-Galar,Rockruff'));
 	});
+	it('should return proper values from getClosestPossibleTeamSummary()', () => {
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard'], [['Venusaur', 'Charizard', 'Blastoise']], {"evolutions": 1}),
+			"Your team needed to have 3 Pokemon.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Pikachu'], [['Venusaur', 'Charizard', 'Blastoise']], {"evolutions": 1}),
+			"Your team needed to have 3 Pokemon. Pikachu was not possible to have based on your options.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Bulbasaur'], [['Venusaur']], {"evolutions": 1}),
+			"Bulbasaur needed to be evolved 2 more stages.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Ivysaur'], [['Venusaur']], {"evolutions": 1}),
+			"Ivysaur needed to be evolved 1 more stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Venusaur'], [['Bulbasaur']], {"evolutions": 1}),
+			"Venusaur was evolved 2 extra stages.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Venusaur'], [['Ivysaur']], {"evolutions": 1}),
+			"Venusaur was evolved 1 extra stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Venusaur'], [['Bulbasaur']], {"evolutions": -1}),
+			"Venusaur needed to be de-volved 2 more stages.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Venusaur'], [['Ivysaur']], {"evolutions": -1}),
+			"Venusaur needed to be de-volved 1 more stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Bulbasaur'], [['Venusaur']], {"evolutions": -1}),
+			"Bulbasaur was de-volved 2 extra stages.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Bulbasaur'], [['Ivysaur']], {"evolutions": -1}),
+			"Bulbasaur was de-volved 1 extra stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Bulbasaur', 'Charmander'], [['Venusaur', 'Charizard']], {"evolutions": 1}),
+			"Bulbasaur needed to be evolved 2 more stages and Charmander needed to be evolved 2 more stages.");
+	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Dex.getAbilitiesList().map(x => x.name);
 		const items = Dex.getItemsList().map(x => x.name);

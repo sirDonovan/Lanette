@@ -3,6 +3,7 @@ import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
+import type { IGetPossibleTeamsOptions } from "../../types/dex";
 import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameTemplateFile
 } from "../../types/games";
@@ -912,8 +913,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.updatePlayerHtmlPage(player);
 	}
 
-	updatePossibleTeams(player: Player, additions: string[]): void {
-		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, additions, {
+	getPossibleTeamsOptions(): IGetPossibleTeamsOptions {
+		return {
 			additions: this.additionsPerRound,
 			drops: this.dropsPerRound,
 			evolutions: this.evolutionsPerRound,
@@ -922,7 +923,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 			requiredEvolution: this.requiredEvolution,
 			allowFormes: this.allowsFormes,
 			usablePokemon: this.battleFormat.usablePokemon,
-		}));
+		};
+	}
+
+	updatePossibleTeams(player: Player, additions: string[]): void {
+		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, additions, this.getPossibleTeamsOptions()));
 	}
 
 	getSignupsHtml(): string {
@@ -1358,7 +1363,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		let winner: Player | undefined;
 		let loser: Player | undefined;
-		let winnerIllegalTeam = false;
+		let winnerIncorrectTeam = false;
 		if (this.validateTeams) {
 			const battleData = this.battleData.get(room)!;
 			battleData.slots.forEach((slot, player) => {
@@ -1368,22 +1373,26 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 				const team = battleData.pokemon[slot];
 
-				let illegalTeam = false;
+				let incorrectTeam = false;
 				const requiredPokemon = this.playerRequiredPokemon.get(player);
 				if (requiredPokemon) {
-					illegalTeam = !Dex.includesPokemonFormes(team, requiredPokemon);
+					incorrectTeam = !Dex.includesPokemonFormes(team, requiredPokemon);
 				} else {
 					const possibleTeams = this.possibleTeams.get(player);
 					if (!possibleTeams) throw new Error(player.name + " (" + slot + ") does not have possible teams");
-					illegalTeam = !Dex.isPossibleTeam(team, possibleTeams);
+					incorrectTeam = !Dex.isPossibleTeam(team, possibleTeams);
+					if (incorrectTeam) {
+						const summary = Dex.getClosestPossibleTeamSummary(team, possibleTeams, this.getPossibleTeamsOptions());
+						if (summary) room.say(player.name + ": " + summary);
+					}
 				}
 
-				if (illegalTeam) {
+				if (incorrectTeam) {
 					if (!loser) {
 						loser = player;
 					} else {
 						winner = player;
-						winnerIllegalTeam = true;
+						winnerIncorrectTeam = true;
 					}
 				} else {
 					winner = player;
@@ -1394,9 +1403,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (!this.battleRooms.includes(room.publicId)) this.battleRooms.push(room.publicId);
 
 		if (winner && loser) {
-			loser.say("You used an illegal team and have been disqualified.");
-			if (winnerIllegalTeam) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				winner.say("You used an illegal team and have been disqualified.");
+			loser.say("You have been disqualified for using an incorrect team.");
+			if (winnerIncorrectTeam) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+				winner.say("You have been disqualified for using an incorrect team.");
 				this.disqualifyPlayers([loser, winner]);
 			} else {
 				this.disqualifyPlayers([loser]);
