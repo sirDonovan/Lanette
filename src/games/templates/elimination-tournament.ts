@@ -578,7 +578,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 			const warningTimeout = setTimeout(() => {
 				const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
-					this.room.title + "! Please send me the link to the battle or leave your pending challenge up.";
+					this.room.title + "! Please send me the link to the battle or leave your pending challenge up. Make sure you have " +
+					"challenged in the **" + this.battleFormat.name + "** format!";
 
 				player.say(reminderPM);
 				opponent.say(reminderPM);
