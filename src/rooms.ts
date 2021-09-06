@@ -468,7 +468,8 @@ export class Room {
 	}
 
 	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
-		this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, serverHtml))] = listener;
+		const listenerHtml = serverHtml ? Tools.unescapeHTML(html) : Client.getListenerHtml(html);
+		this.htmlMessageListeners[Tools.toId(listenerHtml)] = listener;
 	}
 
 	onUhtml(name: string, html: string, listener: MessageListener): void {
@@ -482,7 +483,8 @@ export class Room {
 	}
 
 	offHtml(html: string, serverHtml?: boolean): void {
-		delete this.htmlMessageListeners[Tools.toId(Client.getListenerHtml(html, serverHtml))];
+		const listenerHtml = serverHtml ? Tools.unescapeHTML(html) : Client.getListenerHtml(html);
+		delete this.htmlMessageListeners[Tools.toId(listenerHtml)];
 	}
 
 	offUhtml(name: string, html: string): void {
