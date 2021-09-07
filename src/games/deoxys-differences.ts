@@ -236,9 +236,9 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	}
 
 	filterGuess(target: string, player: Player): boolean {
-		const targets = Tools.toId(target).split("");
+		const targets = Tools.toId(target.split(",")[0]).split("");
 		if (targets.length !== 2) {
-			player.say("You must specify a letter and number corresponding to the second grid.");
+			player.say("You must specify a letter and number corresponding to the grid.");
 			return true;
 		}
 
