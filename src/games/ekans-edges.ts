@@ -4,7 +4,8 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/qu
 type AchievementNames = "livingontheedge";
 
 function getEdge(word: string): string | null {
-	if (word.length < 3) return null;
+	if (word.length < 3 || !Tools.letters.includes(word.charAt(0).toLowerCase()) ||
+		!Tools.letters.includes(word.substr(-1).toLowerCase())) return null;
 	return word.charAt(0) + " - " + word.substr(-1);
 }
 
