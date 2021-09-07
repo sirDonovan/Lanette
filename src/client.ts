@@ -27,6 +27,7 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
+const THROTTLE_BUFFER = 2;
 const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
@@ -517,9 +518,9 @@ export class Client {
 	}
 
 	private setSendThrottle(throttle: number): void {
-		this.sendThrottle = throttle;
-		this.chatQueueThrottleWarning = throttle * (SERVER_CHAT_QUEUE_LIMIT - 1);
-		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
+		this.sendThrottle = throttle + THROTTLE_BUFFER;
+		this.chatQueueThrottleWarning = this.sendThrottle * (SERVER_CHAT_QUEUE_LIMIT - 1);
+		this.chatQueueSendThrottle = this.sendThrottle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
