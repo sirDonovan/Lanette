@@ -315,7 +315,9 @@ export class Storage {
 				type: leaderboardType,
 			};
 		}
+
 		const leaderboard = database[leaderboardType]!;
+		if (!leaderboard.sources.includes(source)) leaderboard.sources.push(source);
 
 		if (!(id in leaderboard.entries)) {
 			this.createLeaderboardEntry(leaderboard, name, id);
