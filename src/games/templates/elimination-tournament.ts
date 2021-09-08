@@ -585,11 +585,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 				player.say(reminderPM);
 				opponent.say(reminderPM);
 				const dqTimeout = setTimeout(() => {
-					const inactivePlayers: Player[] = [];
-					const playerA = Users.get(player.name);
-					if (!playerA || !playerA.rooms.has(this.room)) inactivePlayers.push(player);
-					const playerB = Users.get(opponent.name);
-					if (!playerB || !playerB.rooms.has(this.room)) inactivePlayers.push(opponent);
+					const inactivePlayers = this.checkInactivePlayers(player, opponent);
 					if (inactivePlayers.length) {
 						this.eliminateInactivePlayers(player, opponent, inactivePlayers);
 					} else {
@@ -822,6 +818,17 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}, UPDATE_HTML_PAGE_DELAY);
 	}
 
+	checkInactivePlayers(player: Player, opponent: Player): Player[] {
+		const inactivePlayers: Player[] = [];
+
+		const userA = Users.get(player.name);
+		if (!userA || !userA.rooms.has(this.room)) inactivePlayers.push(player);
+		const userB = Users.get(opponent.name);
+		if (!userB || !userB.rooms.has(this.room)) inactivePlayers.push(opponent);
+
+		return inactivePlayers;
+	}
+
 	getCheckChallengesPlayerHtml(player: Player, opponent: Player): string {
 		return '<div class="infobox">' + player.name + ' is challenging ' + opponent.name + ' in ' + this.battleFormat.name + '.</div>';
 	}
@@ -884,7 +891,18 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 			this.checkChallengesTimers.set(node, timeout);
 		});
-		this.say(text);
+
+		this.say(text, {
+			filterSend: () => {
+				const inactivePlayers = this.checkInactivePlayers(player, opponent);
+				if (inactivePlayers.length) {
+					this.eliminateInactivePlayers(player, opponent, inactivePlayers);
+					return false;
+				} else {
+					return true;
+				}
+			},
+		});
 	}
 
 	getStartingTeam(): readonly string[] {
