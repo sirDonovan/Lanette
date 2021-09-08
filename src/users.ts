@@ -141,10 +141,11 @@ export class User {
 		}
 
 		const outgoingMessage: IOutgoingMessage = {
+			user: this,
 			message: "|/pm " + this.name + ", " + message,
 			text: message,
 			type: options && options.type ? options.type : 'pm',
-			user: this.id,
+			userid: this.id,
 			measure: true,
 		};
 
@@ -160,7 +161,12 @@ export class User {
 	sayCode(code: string): void {
 		if (!code) return;
 
-		this.say("!code " + code, {dontCheckFilter: true, dontPrepare: true, type: 'code', html: Client.getCodeListenerHtml(code)});
+		this.say("!code " + code, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'code',
+			html: Client.getCodeListenerHtml(code),
+		});
 	}
 
 	on(message: string, listener: MessageListener): void {
@@ -239,7 +245,7 @@ export class Users {
 		const id = user.id;
 		for (const i in user) {
 			// @ts-expect-error
-			delete user[i];
+			if (i !== 'id' && i !== 'name') delete user[i];
 		}
 
 		delete this.users[id];

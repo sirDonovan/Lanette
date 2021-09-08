@@ -1,3 +1,4 @@
+import type { User } from "../users";
 import type { IOutgoingMessageAttributes, IOutgoingMessageTypes } from "./client";
 
 export type RoomType = 'battle' | 'chat' | 'html';
@@ -15,4 +16,5 @@ export interface IRoomMessageOptions extends IOutgoingMessageAttributes {
 	dontMeasure?: boolean;
 	dontPrepare?: boolean;
 	type?: IOutgoingMessageTypes;
+	user?: User;
 }

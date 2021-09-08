@@ -3,7 +3,9 @@ import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import type { UserHostedGame } from "./room-game-user-hosted";
 import type { Tournament } from "./room-tournament";
-import type { GroupName, IChatLogEntry, IOutgoingMessage, IRoomInfoResponse, MessageListener } from "./types/client";
+import type {
+	GroupName, IChatLogEntry, IOutgoingMessage, IOutgoingMessageAttributes, IRoomInfoResponse, MessageListener
+} from "./types/client";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
 import type { IUserHostedTournament } from "./types/tournaments";
@@ -206,261 +208,555 @@ export class Room {
 	sayCode(code: string): void {
 		if (!code) return;
 
-		this.say("!code " + code, {dontCheckFilter: true, dontPrepare: true, type: 'code', html: Client.getCodeListenerHtml(code)});
+		this.say("!code " + code, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'code',
+			html: Client.getCodeListenerHtml(code),
+		});
 	}
 
-	sayHtml(html: string): void {
+	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!html) return;
 
-		this.say("/addhtmlbox " + html, {html: Client.getListenerHtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-html'});
+		const options: IRoomMessageOptions = {
+			html: Client.getListenerHtml(html),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'chat-html',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/addhtmlbox " + html, options);
 	}
 
-	sayUhtml(uhtmlName: string, html: string): void {
-		this.say("/adduhtml " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
+	sayUhtml(uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		const options: IRoomMessageOptions = {
+			uhtmlName,
+			html: Client.getListenerUhtml(html),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'chat-uhtml',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/adduhtml " + uhtmlName + ", " + html, options);
 	}
 
-	sayUhtmlChange(uhtmlName: string, html: string): void {
-		this.say("/changeuhtml " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
+	sayUhtmlChange(uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		const options: IRoomMessageOptions = {
+			uhtmlName,
+			html: Client.getListenerUhtml(html),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'chat-uhtml',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/changeuhtml " + uhtmlName + ", " + html, options);
 	}
 
 	sayAuthUhtml(uhtmlName: string, html: string): void {
-		this.say("/addrankuhtml +, " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
+		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, {
+			uhtmlName,
+			html: Client.getListenerUhtml(html),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'chat-uhtml',
+		});
 	}
 
 	sayAuthUhtmlChange(uhtmlName: string, html: string): void {
-		this.say("/changerankuhtml +, " + uhtmlName + ", " + html,
-			{uhtmlName, html: Client.getListenerUhtml(html), dontCheckFilter: true, dontPrepare: true, type: 'chat-uhtml'});
+		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, {
+			uhtmlName,
+			html: Client.getListenerUhtml(html),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'chat-uhtml',
+		});
 	}
 
 	sayModUhtml(uhtmlName: string, html: string, rank: GroupName): void {
-		this.say("/addrankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html,
-			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+		this.say("/addrankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			dontMeasure: true,
+			type: 'command',
+		});
 	}
 
 	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName): void {
-		this.say("/changerankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html,
-			{dontCheckFilter: true, dontPrepare: true, dontMeasure: true, type: 'command'});
+		this.say("/changerankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			dontMeasure: true,
+			type: 'command',
+		});
 	}
 
-	sayPrivateHtml(userOrPlayer: User | Player, html: string): void {
+	sayPrivateHtml(userOrPlayer: User | Player, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!html) return;
 
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/sendprivatehtmlbox " + user.id + ", " + html,
-			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
+		const options: IRoomMessageOptions = {
+			user,
+			userid: user.id,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'private-html',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/sendprivatehtmlbox " + user.id + ", " + html, options);
 	}
 
-	sayPrivateUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+	sayPrivateUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/sendprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
-			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
+		const options: IRoomMessageOptions = {
+			user,
+			userid: user.id,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'private-html',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/sendprivateuhtml " + user.id + ", " + uhtmlName + ", " + html, options);
 	}
 
-	sayPrivateUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+	sayPrivateUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string,
+		additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/changeprivateuhtml " + user.id + ", " + uhtmlName + ", " + html,
-			{user: user.name, dontCheckFilter: true, dontPrepare: true, type: 'private-html'});
+		const options: IRoomMessageOptions = {
+			user,
+			userid: user.id,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'private-html',
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/changeprivateuhtml " + user.id + ", " + uhtmlName + ", " + html, options);
 	}
 
-	pmHtml(userOrPlayer: User | Player, html: string): void {
+	pmHtml(userOrPlayer: User | Player, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!html) return;
 
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/pminfobox " + user.id + "," + html, {html: Client.getListenerHtml(html, true), dontCheckFilter: true, dontPrepare: true,
-			type: 'pm-html', user: user.id});
+		const options: IRoomMessageOptions = {
+			user,
+			html: Client.getListenerHtml(html, true),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'pm-html',
+			userid: user.id,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/pminfobox " + user.id + "," + html, options);
 	}
 
-	pmUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+	pmUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, {uhtmlName, html: Client.getListenerUhtml(html, true),
-			dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
+		const options: IRoomMessageOptions = {
+			user,
+			uhtmlName,
+			html: Client.getListenerUhtml(html, true),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'pm-uhtml',
+			userid: user.id,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/pmuhtml " + user.id + "," + uhtmlName + "," + html, options);
 	}
 
-	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string): void {
+	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, {uhtmlName, html: Client.getListenerUhtml(html, true),
-			dontCheckFilter: true, dontPrepare: true, type: 'pm-uhtml', user: user.id});
+		const options: IRoomMessageOptions = {
+			user,
+			uhtmlName,
+			html: Client.getListenerUhtml(html, true),
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'pm-uhtml',
+			userid: user.id,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/pmuhtmlchange " + user.id + "," + uhtmlName + "," + html, options);
 	}
 
 	announce(text: string): void {
 		if (!text) return;
 
-		this.say("/announce " + text, {type: 'announce', announcement: text});
+		this.say("/announce " + text, {
+			type: 'announce',
+			announcement: text,
+		});
 	}
 
-	warn(user: User, reason: string): void {
-		if (!Users.get(user.name) || user === Users.self || !user.rooms.has(this)) return;
+	warn(userOrPlayer: User | Player, reason: string): void {
+		const user = this.getTargetUser(userOrPlayer);
+		if (!user) return;
 
-		this.say("/warn " + user.name + ", " + reason, {type: 'warn', warnReason: reason});
+		this.say("/warn " + user.id + ", " + reason, {
+			user,
+			type: 'warn',
+			warnReason: reason,
+		});
 	}
 
 	modnote(text: string): void {
 		if (!text) return;
 
-		this.say("/modnote " + text, {dontMeasure: true, type: 'command'});
+		this.say("/modnote " + text, {
+			dontMeasure: true,
+			type: 'command',
+		});
 	}
 
 	notifyRank(rank: GroupName | 'all', title: string, message: string, highlightPhrase?: string): void {
 		const symbol = rank === 'all' ? rank : Client.getGroupSymbols()[rank];
-		this.say("/notifyrank " + symbol + "," + title + "," + message + (highlightPhrase ? ","  + highlightPhrase : ""),
-			{dontCheckFilter: true, dontPrepare: true, type: 'notifyrank', notifyId: this.id + "-rank-" + rank,
-			notifyTitle: title, notifyMessage: message});
+		this.say("/notifyrank " + symbol + "," + title + "," + message + (highlightPhrase ? ","  + highlightPhrase : ""), {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'notifyrank',
+			notifyId: this.id + "-rank-" + rank,
+			notifyTitle: title,
+			notifyMessage: message,
+		});
 	}
 
 	notifyOffRank(rank: GroupName | 'all'): void {
 		const symbol = rank === 'all' ? rank : Client.getGroupSymbols()[rank];
-		this.say("/notifyoffrank " + symbol,
-			{dontCheckFilter: true, dontPrepare: true, type: 'notifyoffrank', notifyId: this.id + "-rank-" + rank});
+		this.say("/notifyoffrank " + symbol, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'notifyoffrank',
+			notifyId: this.id + "-rank-" + rank,
+		});
 	}
 
-	notifyUser(userOrPlayer: User | Player, title: string, message?: string): void {
+	notifyUser(userOrPlayer: User | Player, title: string, message?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/notifyuser " + user.id + "," + title + (message ? "," + message : ""),
-			{dontCheckFilter: true, dontPrepare: true, type: 'notifyuser', user: user.id});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'notifyuser',
+			userid: user.id,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/notifyuser " + user.id + "," + title + (message ? "," + message : ""), options);
 	}
 
-	notifyOffUser(userOrPlayer: User | Player): void {
+	notifyOffUser(userOrPlayer: User | Player, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/notifyoffuser " + user.id, {dontCheckFilter: true, dontPrepare: true, type: 'notifyoffuser', user: user.id});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'notifyoffuser',
+			userid: user.id,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/notifyoffuser " + user.id, options);
 	}
 
-	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string): void {
+	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html,
-			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'htmlpage',
+			userid: user.id,
+			pageId: Users.self.id + "-" + pageId,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/sendhtmlpage " + user.id + "," + pageId + "," + html, options);
 	}
 
-	changeHtmlPageSelector(userOrPlayer: User | Player, pageId: string, selector: string, html: string): void {
+	changeHtmlPageSelector(userOrPlayer: User | Player, pageId: string, selector: string, html: string,
+		additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/changehtmlpageselector " + user.id + "," + pageId + "," + selector + "," + html,
-			{dontCheckFilter: true, dontPrepare: true, type: 'htmlpageselector', user: user.id, pageId: Users.self.id + "-" + pageId,
-			selector});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'htmlpageselector',
+			userid: user.id,
+			pageId: Users.self.id + "-" + pageId,
+			selector,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/changehtmlpageselector " + user.id + "," + pageId + "," + selector + "," + html, options);
 	}
 
-	closeHtmlPage(userOrPlayer: User | Player, pageId: string): void {
+	closeHtmlPage(userOrPlayer: User | Player, pageId: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/closehtmlpage " + user.id + "," + pageId,
-			{dontCheckFilter: true, dontPrepare: true, type: 'closehtmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'closehtmlpage',
+			userid: user.id,
+			pageId: Users.self.id + "-" + pageId,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/closehtmlpage " + user.id + "," + pageId, options);
 	}
 
-	sendHighlightPage(userOrPlayer: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string): void {
+	sendHighlightPage(userOrPlayer: User | Player, pageId: string, notificationTitle?: string, highlightPhrase?: string,
+		additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
-		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle + (highlightPhrase ? "," + highlightPhrase : ""),
-			{dontCheckFilter: true, dontPrepare: true, type: 'highlight-htmlpage', user: user.id, pageId: Users.self.id + "-" + pageId});
+		const options: IRoomMessageOptions = {
+			user,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'highlight-htmlpage',
+			userid: user.id,
+			pageId: Users.self.id + "-" + pageId,
+		};
+
+		if (additionalAttributes) Object.assign(options, additionalAttributes);
+
+		this.say("/highlighthtmlpage " + user.id + "," + pageId + "," + notificationTitle +
+			(highlightPhrase ? "," + highlightPhrase : ""), options);
 	}
 
 	setModchat(level: string): void {
-		if (!level || this.modchat === level) return;
+		if (!level) return;
 
-		this.say("/modchat " + level, {dontCheckFilter: true, dontPrepare: true, type: 'modchat', modchatLevel: level});
+		this.say("/modchat " + level, {
+			filterSend: () => this.modchat !== level,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'modchat',
+			modchatLevel: level,
+		});
 	}
 
 	roomVoice(name: string): void {
-		this.say("/roomvoice " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-voice', user: Tools.toId(name)});
+		this.say("/roomvoice " + name, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'room-voice',
+			userid: Tools.toId(name),
+		});
 	}
 
 	roomDeAuth(name: string): void {
-		this.say("/roomdeauth " + name, {dontCheckFilter: true, dontPrepare: true, type: 'room-deauth', user: Tools.toId(name)});
+		this.say("/roomdeauth " + name, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'room-deauth',
+			userid: Tools.toId(name),
+		});
 	}
 
 	createTournament(format: IFormat, type: 'elimination' | 'roundrobin', cap: number, tournamentName?: string): void {
-		this.say("/tour new " + format.id + ", " + type + "," + cap + (tournamentName ? ",1," + tournamentName : ""),
-			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-create', format: format.id});
+		if (this.tournament) return;
+
+		this.say("/tour new " + format.id + ", " + type + "," + cap + (tournamentName ? ",1," + tournamentName : ""), {
+			filterSend: () => !this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-create',
+			format: format.id,
+		});
 	}
 
 	startTournament(): void {
-		this.say("/tour start", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-start'});
+		this.say("/tour start", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-start',
+		});
 	}
 
 	endTournament(): void {
-		this.say("/tour end", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-end'});
+		this.say("/tour end", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-end',
+		});
 	}
 
 	nameTournament(name: string): void {
-		this.say("/tour name " + name, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-name', name});
+		this.say("/tour name " + name, {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-name',
+			name,
+		});
 	}
 
 	setTournamentCap(playerCap: number): void {
-		this.say("/tour cap " + playerCap, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-cap'});
+		this.say("/tour cap " + playerCap, {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-cap',
+		});
 	}
 
 	autoStartTournament(): void {
-		this.say("/tour autostart on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-autostart'});
+		this.say("/tour autostart on", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-autostart',
+		});
 	}
 
 	setTournamentAutoDq(minutes: number): void {
-		this.say("/tour autodq " + minutes, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-autodq'});
+		this.say("/tour autodq " + minutes, {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-autodq',
+		});
 	}
 
 	runTournamentAutoDq(): void {
-		this.say("/tour runautodq", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-runautodq'});
+		this.say("/tour runautodq", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-runautodq',
+		});
 	}
 
 	forcePublicTournament(): void {
-		this.say("/tour forcepublic on", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcepublic'});
+		this.say("/tour forcepublic on", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-forcepublic',
+		});
 	}
 
 	forceTimerTournament(): void {
-		this.say("/tour forcetimer", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-forcetimer'});
+		this.say("/tour forcetimer", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-forcetimer',
+		});
 	}
 
 	disallowTournamentScouting(): void {
-		this.say("/tour scouting disallow", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-scouting'});
+		this.say("/tour scouting disallow", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-scouting',
+		});
 	}
 
 	disallowTournamentModjoin(): void {
-		this.say("/tour modjoin disallow", {dontCheckFilter: true, dontPrepare: true, type: 'tournament-modjoin'});
+		this.say("/tour modjoin disallow", {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-modjoin',
+		});
 	}
 
 	setTournamentRules(rules: string): void {
-		this.say("/tour rules " + rules, {dontCheckFilter: true, dontPrepare: true, type: 'tournament-rules'});
+		this.say("/tour rules " + rules, {
+			filterSend: () => !!this.tournament,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-rules',
+		});
 	}
 
 	disqualifyFromTournament(userOrPlayer: User | Player): void {
-		this.say("/tour dq " + userOrPlayer.name,
-			{dontCheckFilter: true, dontPrepare: true, type: 'tournament-disqualify', user: userOrPlayer.id});
+		this.say("/tour dq " + userOrPlayer.id, {
+			filterSend: () => this.tournament && userOrPlayer.id in this.tournament.players &&
+				!this.tournament.players[userOrPlayer.id].eliminated ? true : false,
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'tournament-disqualify',
+			userid: userOrPlayer.id,
+		});
 	}
 
 	startHangman(answer: string, hint: string): void {
-		this.say("/hangman create " + answer + ", " + hint, {dontCheckFilter: true, dontPrepare: true, type: 'hangman-start'});
+		this.say("/hangman create " + answer + ", " + hint, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'hangman-start',
+		});
 	}
 
 	endHangman(): void {
-		this.say("/hangman end", {dontCheckFilter: true, dontPrepare: true, type: 'hangman-end'});
+		this.say("/hangman end", {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'hangman-end',
+		});
 	}
 
 	leave(): void {
 		if (this.leaving) return;
 
 		this.leaving = true;
-		this.say("/leave", {dontCheckFilter: true, dontPrepare: true, type: 'leave-room'});
+		this.say("/leave", {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'leave-room',
+		});
 	}
 
 	on(message: string, listener: MessageListener): void {
@@ -508,7 +804,7 @@ export class Rooms {
 		const id = room.id;
 		for (const i in room) {
 			// @ts-expect-error
-			delete room[i];
+			if (i !== 'id' && i !== 'title') delete room[i];
 		}
 
 		delete this.rooms[id];

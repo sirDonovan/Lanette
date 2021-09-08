@@ -227,7 +227,7 @@ describe("Client", () => {
 		lastOutgoingMessage = {
 			message: "",
 			type: "pm",
-			user: 'a',
+			userid: 'a',
 			text: "test",
 		};
 
@@ -242,7 +242,7 @@ describe("Client", () => {
 		lastOutgoingMessage = {
 			message: "",
 			type: "pm-html",
-			user: 'a',
+			userid: 'a',
 			html: "&<br/>",
 		};
 
@@ -273,7 +273,7 @@ describe("Client", () => {
 		lastOutgoingMessage = {
 			message: "",
 			type: "pm-uhtml",
-			user: 'a',
+			userid: 'a',
 			uhtmlName: 'test',
 			html: "&<br/>",
 		};

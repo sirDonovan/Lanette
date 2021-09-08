@@ -24,6 +24,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar';
 
 export interface IOutgoingMessageAttributes {
+	filterSend?: () => boolean;
 	announcement?: string;
 	format?: string;
 	html?: string;
@@ -40,7 +41,7 @@ export interface IOutgoingMessageAttributes {
 	slowerCommand?: boolean;
 	text?: string;
 	uhtmlName?: string;
-	user?: string;
+	userid?: string;
 	warnReason?: string;
 }
 
@@ -49,6 +50,7 @@ export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 	type: IOutgoingMessageTypes;
 	room?: Room;
 	sentTime?: number;
+	user?: User;
 }
 
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'star' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' |

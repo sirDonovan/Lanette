@@ -1,7 +1,7 @@
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Room } from "./rooms";
-import type { MessageListener } from "./types/client";
+import type { IOutgoingMessageAttributes, MessageListener } from "./types/client";
 import type { IBattleGameData, PlayerList } from "./types/games";
 import type { User } from "./users";
 
@@ -44,60 +44,63 @@ export class Player {
 		delete this.team;
 	}
 
-	say(message: string): void {
+	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = Users.get(this.name);
-		if (user) user.say(message);
+		if (user) user.say(message, additionalAttributes);
 	}
 
-	sayHtml(html: string): void {
-		this.activity.pmRoom.pmHtml(this, html);
+	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		this.activity.pmRoom.pmHtml(this, html, additionalAttributes);
 	}
 
-	sayUhtml(html: string, name?: string): void {
-		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html);
+	sayUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
-	sayUhtmlChange(html: string, name?: string): void {
-		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html);
+	sayUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
-	sayPrivateHtml(html: string): void {
+	sayPrivateHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateHtml(this, html);
+		this.activity.pmRoom.sayPrivateHtml(this, html, additionalAttributes);
 	}
 
-	sayPrivateUhtml(html: string, name?: string): void {
+	sayPrivateUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html);
+		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
 	}
 
-	sayPrivateUhtmlChange(html: string, name?: string): void {
+	sayPrivateUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html);
+		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
 	}
 
-	clearPrivateUhtml(name: string): void {
+	clearPrivateUhtml(name: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml) return;
 
-		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>");
+		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>", additionalAttributes);
 	}
 
-	sendHtmlPage(html: string, pageId?: string): void {
+	sendHtmlPage(html: string, pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) this.sentHtmlPage = true;
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html));
+		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
+			additionalAttributes);
 	}
 
-	closeHtmlPage(pageId?: string): void {
+	closeHtmlPage(pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) return;
 
-		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId);
+		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
 	}
 
-	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string): void {
+	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string,
+		additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (this.sentHtmlPage) {
-			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase);
+			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
+				additionalAttributes);
 		} else {
-			this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase);
+			this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
 		}
 	}
 
@@ -338,30 +341,30 @@ export abstract class Activity {
 		return "<div class='chat' style='margin-top: 5px;margin-left: 10px'>" + this.htmlPageHeader + html + "</div>";
 	}
 
-	say(message: string): void {
-		this.room.say(message);
+	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		this.room.say(message, additionalAttributes);
 	}
 
-	sayHtml(html: string): void {
-		if (this.isPmActivity(this.room)) return this.pmRoom.pmHtml(this.room, html);
-		this.room.sayHtml(html);
+	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmHtml(this.room, html, additionalAttributes);
+		this.room.sayHtml(html, additionalAttributes);
 	}
 
-	sayUhtml(name: string, html: string): void {
-		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtml(this.room, name, html);
-		this.room.sayUhtml(name, html);
+	sayUhtml(name: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtml(this.room, name, html, additionalAttributes);
+		this.room.sayUhtml(name, html, additionalAttributes);
 	}
 
-	sayUhtmlChange(name: string, html: string): void {
-		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html);
-		this.room.sayUhtmlChange(name, html);
+	sayUhtmlChange(name: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (this.isPmActivity(this.room)) return this.pmRoom.pmUhtmlChange(this.room, name, html, additionalAttributes);
+		this.room.sayUhtmlChange(name, html, additionalAttributes);
 	}
 
-	sayUhtmlAuto(name: string, html: string): void {
+	sayUhtmlAuto(name: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (this.room.chatLog.length && this.room.chatLog[0].uhtmlName && Tools.toId(this.room.chatLog[0].uhtmlName) === Tools.toId(name)) {
-			this.sayUhtmlChange(name, html);
+			this.sayUhtmlChange(name, html, additionalAttributes);
 		} else {
-			this.sayUhtml(name, html);
+			this.sayUhtml(name, html, additionalAttributes);
 		}
 	}
 

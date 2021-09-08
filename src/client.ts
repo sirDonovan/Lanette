@@ -464,7 +464,7 @@ export class Client {
 		this.send({
 			message: '|/cmd userdetails ' + user.id,
 			type: 'query-userdetails',
-			user: user.id,
+			userid: user.id,
 			measure: true,
 		});
 	}
@@ -477,20 +477,36 @@ export class Client {
 			return;
 		}
 
-		if (outgoingMessage.room && outgoingMessage.room.type === 'chat' && !outgoingMessage.room.serverBannedWords) {
-			this.send({
-				message: outgoingMessage.room.id + '|/banword list',
-				roomid: outgoingMessage.room.id,
-				type: 'banword-list',
-				measure: true,
-			});
+		if (outgoingMessage.room) {
+			if (Rooms.get(outgoingMessage.room.id) !== outgoingMessage.room) return;
 
-			this.outgoingMessageQueue.push(outgoingMessage);
-			return;
+			if (outgoingMessage.room.type === 'chat' && !outgoingMessage.room.serverBannedWords) {
+				this.send({
+					message: outgoingMessage.room.id + '|/banword list',
+					roomid: outgoingMessage.room.id,
+					type: 'banword-list',
+					measure: true,
+				});
+
+				this.outgoingMessageQueue.push(outgoingMessage);
+				return;
+			}
+		}
+
+		if (outgoingMessage.user) {
+			if (outgoingMessage.room) {
+				if (!outgoingMessage.room.getTargetUser(outgoingMessage.user)) return;
+			} else {
+				if (!Users.get(outgoingMessage.user.name)) return;
+			}
 		}
 
 		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
 			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		}
+
+		if (outgoingMessage.filterSend && !outgoingMessage.filterSend()) {
+			return;
 		}
 
 		this.sendTimeout = true;
@@ -1142,7 +1158,7 @@ export class Client {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'query-userdetails' &&
-						this.lastOutgoingMessage.user === response.userid) {
+						this.lastOutgoingMessage.userid === response.userid) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1490,12 +1506,12 @@ export class Client {
 					if (this.lastOutgoingMessage.type === 'room-voice') {
 						if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
 							const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
-							if (Tools.toId(promoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+							if (Tools.toId(promoted) === this.lastOutgoingMessage.userid) this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
-							if (Tools.toId(demoted) === this.lastOutgoingMessage.user) this.clearLastOutgoingMessage(now);
+							if (Tools.toId(demoted) === this.lastOutgoingMessage.userid) this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
@@ -1611,7 +1627,7 @@ export class Client {
 					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE) ||
 					(messageArguments.message.startsWith('/error The user ') &&
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
-					if (this.lastOutgoingMessage && Tools.toId(this.lastOutgoingMessage.user) === recipientId &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipientId &&
 						(this.lastOutgoingMessage.type === 'pm' || this.lastOutgoingMessage.type === 'pm-html' ||
 						this.lastOutgoingMessage.type === 'pm-uhtml' || this.lastOutgoingMessage.type === 'htmlpage' ||
 						this.lastOutgoingMessage.type === 'htmlpageselector' || this.lastOutgoingMessage.type === 'closehtmlpage' ||
@@ -1639,7 +1655,7 @@ export class Client {
 						error.endsWith(' cannot have alternative parameters') ||
 						(error.startsWith('The search included ') && error.endsWith(' more than once.'))) {
 						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-							Tools.toId(this.lastOutgoingMessage.user) === recipient.id &&
+							this.lastOutgoingMessage.userid === recipient.id &&
 							this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
 							this.clearLastOutgoingMessage(now);
 							recipient.say(Tools.unescapeHTML(error));
@@ -1658,7 +1674,7 @@ export class Client {
 					const htmlId = Tools.toId(html);
 
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm-uhtml' &&
-						this.lastOutgoingMessage.user === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
+						this.lastOutgoingMessage.userid === recipient.id && Tools.toId(this.lastOutgoingMessage.uhtmlName) === uhtmlId &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1676,7 +1692,7 @@ export class Client {
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
 					const htmlId = Tools.toId(html);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.user === recipient.id &&
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipient.id &&
 						((this.lastOutgoingMessage.type === 'pm-html' && Tools.toId(this.lastOutgoingMessage.html) === htmlId) ||
 						(this.lastOutgoingMessage.type === 'code' &&
 						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
@@ -1694,7 +1710,7 @@ export class Client {
 				} else {
 					const messageId = Tools.toId(messageArguments.message);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-						this.lastOutgoingMessage.user === recipient.id &&
+						this.lastOutgoingMessage.userid === recipient.id &&
 						Tools.toId(this.lastOutgoingMessage.text) === messageId) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1807,26 +1823,26 @@ export class Client {
 			} else if (messageArguments.message.startsWith(NOTIFY_USER_MESSAGE)) {
 				const recipient = messageArguments.message.substr(NOTIFY_USER_MESSAGE.length);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyuser' &&
-					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(NOTIFY_OFF_USER_MESSAGE)) {
 				const recipient = messageArguments.message.substr(NOTIFY_OFF_USER_MESSAGE.length);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'notifyoffuser' &&
-					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(HIGHLIGHT_HTML_PAGE_MESSAGE)) {
 				const parts = messageArguments.message.substr(HIGHLIGHT_HTML_PAGE_MESSAGE.length).split(" on the bot page ");
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'highlight-htmlpage' &&
-					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(parts[0]) &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(parts[0]) &&
 					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(PRIVATE_HTML_MESSAGE)) {
 				const recipient = messageArguments.message.substr(PRIVATE_HTML_MESSAGE.length);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'private-html' &&
-					this.lastOutgoingMessage.roomid === room.id && Tools.toId(this.lastOutgoingMessage.user) === Tools.toId(recipient)) {
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith("Sent ")) {
@@ -1837,14 +1853,14 @@ export class Client {
 					recipient = selectorParts[0];
 					const selector = selectorParts[1].split(" on")[0];
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpageselector' &&
-						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient) &&
 						Tools.toId(this.lastOutgoingMessage.selector) === Tools.toId(selector) &&
 						Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
 						this.clearLastOutgoingMessage(now);
 					}
 				} else {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'htmlpage' &&
-						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+						this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient) &&
 						Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(parts[1])) {
 						this.clearLastOutgoingMessage(now);
 					}
@@ -1855,7 +1871,7 @@ export class Client {
 				const pageId = subParts[0];
 				const recipient = subParts.slice(1).join(" for ");
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'closehtmlpage' &&
-					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.user === Tools.toId(recipient) &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient) &&
 					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
 					this.clearLastOutgoingMessage(now);
 				}
@@ -2358,7 +2374,7 @@ export class Client {
 
 				if (type === 'disqualify' && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
 					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
-					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.user) {
+					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.userid) {
 					this.clearLastOutgoingMessage(now);
 				}
 
@@ -2732,8 +2748,13 @@ export class Client {
 				this.lastOutgoingMessage = null;
 			}
 
-			if (!this.outgoingMessageQueue.length) return;
-			this.send(this.outgoingMessageQueue.shift()!);
+			// prevent infinite loop with outgoingMessageQueue
+			if (this.pauseOutgoingMessages) return;
+
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			while (!this.sendTimeout && this.outgoingMessageQueue.length) {
+				this.send(this.outgoingMessageQueue.shift()!);
+			}
 		}, time);
 	}
 
