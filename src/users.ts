@@ -49,6 +49,14 @@ export class User {
 		this.name = name;
 	}
 
+	destroy(): void {
+		if (this.game) this.game.forceEnd(this);
+
+		for (const i in this) {
+			if (i !== 'id' && i !== 'name') delete this[i];
+		}
+	}
+
 	addChatLog(log: string): void {
 		this.chatLog.unshift({log, type: 'chat'});
 		this.trimChatLog();
@@ -242,13 +250,8 @@ export class Users {
 	remove(user: User): void {
 		if (user === this.self) return;
 
-		const id = user.id;
-		for (const i in user) {
-			// @ts-expect-error
-			if (i !== 'id' && i !== 'name') delete user[i];
-		}
-
-		delete this.users[id];
+		delete this.users[user.id];
+		user.destroy();
 	}
 
 	removeAll(): void {

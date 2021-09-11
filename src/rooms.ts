@@ -79,7 +79,7 @@ export class Room {
 		this.type = type;
 	}
 
-	deInit(): void {
+	destroy(): void {
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
@@ -97,6 +97,10 @@ export class Room {
 			user.rooms.delete(this);
 			if (!user.rooms.size) Users.remove(user);
 		});
+
+		for (const i in this) {
+			if (i !== 'id' && i !== 'title') delete this[i];
+		}
 	}
 
 	updateConfigSettings(): void {
@@ -799,15 +803,8 @@ export class Rooms {
 	}
 
 	remove(room: Room): void {
-		room.deInit();
-
-		const id = room.id;
-		for (const i in room) {
-			// @ts-expect-error
-			if (i !== 'id' && i !== 'title') delete room[i];
-		}
-
-		delete this.rooms[id];
+		delete this.rooms[room.id];
+		room.destroy();
 	}
 
 	removeAll(): void {
