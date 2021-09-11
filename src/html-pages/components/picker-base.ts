@@ -150,6 +150,8 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 		targets.shift();
 
 		if (cmd === this.pickCommand) {
+			if (!targets.length) return "You must specify a choice.";
+
 			const key = targets[0].trim();
 			const cleared = key === this.noPickName;
 			if (!cleared && (!(key in this.choices) || (this.validateChoice && !this.validateChoice(this.choices[key])))) {
