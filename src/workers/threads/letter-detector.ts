@@ -10,8 +10,8 @@ import type {
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 const data = worker_threads.workerData as DeepImmutable<ILetterDetectorWorkerData>;
-const MAX_OUTER_ATTEMPTS = 1000;
-const MAX_INNER_ATTEMPTS = 64;
+const MAX_OUTER_ATTEMPTS = 1500;
+const MAX_INNER_ATTEMPTS = 100;
 
 function search(options: ILetterDetectorOptions, prng: PRNG): ILetterDetectorResponse {
 	let index = -1;

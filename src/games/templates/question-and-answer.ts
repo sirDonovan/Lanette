@@ -698,6 +698,8 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
+			if (game.usesWorkers) return;
+
 			this.timeout(15000);
 
 			const name = getBasePlayerName() + " 1";

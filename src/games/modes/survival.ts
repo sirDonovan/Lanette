@@ -147,7 +147,7 @@ const tests: GameFileTests<SurvivalThis> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(15000);
 
 			addPlayers(game);
 			game.start();
