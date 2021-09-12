@@ -301,18 +301,18 @@ export class Vote extends ScriptedGame {
 		this.canVote = false;
 		this.updateVotesHtml(() => {
 			this.timeout = setTimeout(() => {
-				const votes: {format: string, anonymous: boolean, player: Player}[] = [];
+				const votes: {formatid: string, anonymous: boolean, player: Player}[] = [];
 				this.votes.forEach((vote, player) => {
-					votes.push({format: vote.format, anonymous: vote.anonymous, player});
+					votes.push({formatid: vote.format, anonymous: vote.anonymous, player});
 				});
 
 				let anonymous = false;
 				let voter: string = '';
-				let format: string;
+				let formatid: string;
 				if (votes.length) {
 					const chosen = this.sampleOne(votes);
 					anonymous = chosen.anonymous;
-					format = chosen.format;
+					formatid = chosen.formatid;
 					voter = chosen.player.name;
 				} else {
 					if (!this.botSuggestions.length) {
@@ -320,11 +320,21 @@ export class Vote extends ScriptedGame {
 						this.forceEnd(Users.self);
 						return;
 					}
-					format = this.sampleOne(this.botSuggestions);
+					formatid = this.sampleOne(this.botSuggestions);
 				}
 
-				this.chosenFormat = format;
+				this.chosenFormat = formatid;
 				if (!anonymous) this.chosenVoter = voter;
+
+				const chosenFormat = Games.getExistingFormat(formatid);
+				for (const i in this.players) {
+					const player = this.players[i];
+					const vote = this.votes.get(player);
+					if (vote && Games.getExistingFormat(vote.format).id === chosenFormat.id) {
+						player.sendRoomHighlight("The game you voted for won!");
+					}
+				}
+
 				this.end();
 			}, 3000);
 		});
