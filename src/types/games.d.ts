@@ -6,11 +6,13 @@ import type { ScriptedGame } from "../room-game-scripted";
 import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
 import type { User } from "../users";
+import type { LetterDetectorWorker } from "../workers/letter-detector";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
 
 export interface IGamesWorkers {
+	letterDetector: LetterDetectorWorker;
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
 }
