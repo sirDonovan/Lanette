@@ -419,11 +419,15 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		return this.answers;
 	}
 
+	getAnswersHtml(answers: readonly string[]): string {
+		return "<div class='infobox-limited' style='max-height: 60px'><b>Answer" +
+			(answers.length > 1 ? "s" : "") + "</b>: <i>" + Tools.joinList(answers) + "</i></div>";
+	}
+
 	displayAnswers(givenAnswer?: string, finalAnswer?: boolean): void {
 		const answers = this.getAnswers(givenAnswer, finalAnswer);
 		if (answers.length) {
-			this.sayUhtml(this.answerUhtmlName, "<div class='infobox-limited' style='max-height: 60px'><b>Answer" +
-				(answers.length > 1 ? "s" : "") + "</b>: <i>" + Tools.joinList(answers) + "</i></div>");
+			this.sayUhtml(this.answerUhtmlName, this.getAnswersHtml(answers));
 		}
 	}
 
