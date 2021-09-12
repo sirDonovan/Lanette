@@ -100,8 +100,12 @@ export class Player {
 			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
 				additionalAttributes);
 		} else {
-			this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
+			this.sendRoomHighlight(notificationTitle, highlightPhrase, additionalAttributes);
 		}
+	}
+
+	sendRoomHighlight(notificationTitle: string, highlightPhrase?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
 	}
 
 	useCommand(command: string, target?: string): void {

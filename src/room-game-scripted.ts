@@ -435,7 +435,9 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!this.internalGame) {
-			this.say(this.name + " is starting! **Players (" + this.playerCount + ")**: " + this.getPlayerNamesText().join(", "));
+			for (const i in this.players) {
+				this.players[i].sendRoomHighlight(this.name + " is starting!");
+			}
 		}
 
 		if (this.onStart) {
