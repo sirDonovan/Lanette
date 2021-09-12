@@ -2575,6 +2575,15 @@ export class Client {
 			break;
 		}
 
+		case 'tie': {
+			if (room.game) {
+				if (room.game.onBattleTie) room.game.onBattleTie(room);
+				room.leave();
+			}
+
+			break;
+		}
+
 		case 'expire': {
 			if (room.game && room.game.onBattleExpire) room.game.onBattleExpire(room);
 			break;

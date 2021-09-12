@@ -1543,6 +1543,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (players) this.disqualifyPlayers(players);
 	}
 
+	onBattleTie(room: Room): void {
+		this.checkedBattleRooms.push(room.publicId);
+	}
+
 	clearNodeTimers(node: EliminationNode<Player>): void {
 		const activityTimer = this.activityTimers.get(node);
 		if (activityTimer) clearTimeout(activityTimer);

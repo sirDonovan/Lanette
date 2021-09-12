@@ -1310,6 +1310,7 @@ export class ScriptedGame extends Game {
 	onBattleStart?(room: Room): boolean;
 	/** Return `false` to signal that the battle should be left */
 	onBattleSwitch?(room: Room, pokemon: string, details: string, hpStatus: [string, string]): boolean;
+	onBattleTie?(room: Room): void;
 	onBattleWin?(room: Room, winner: string): void;
 	onChildEnd?(winners: Map<Player, number>): void;
 	onChildHint?(hint: string, answers: readonly string[], newAnswer: boolean): void;

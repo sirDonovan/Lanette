@@ -406,6 +406,8 @@ export interface IClientMessageTypes {
 		username: string
 	};
 
+	tie: null;
+
 	expire: null;
 }
 
