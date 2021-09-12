@@ -106,7 +106,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		this.lastEndPokemon = endPokemon;
 		this.answers = answers;
 		this.hint = "<b>Randomly generated start and end</b>: <i>" + startPokemon + " and " + endPokemon +
-			" (" + middleEggGroups + " connections)</i>";
+			" (" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "") + ")</i>";
 	}
 }
 
