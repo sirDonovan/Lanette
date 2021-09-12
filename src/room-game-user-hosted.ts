@@ -383,6 +383,7 @@ export class UserHostedGame extends Game {
 		this.room.notifyOffRank("all");
 		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, this.getSignupsEndMessage());
 
+		this.say(this.name + " is starting!");
 		for (const i in this.players) {
 			this.players[i].sendRoomHighlight(this.name + " is starting!");
 		}
