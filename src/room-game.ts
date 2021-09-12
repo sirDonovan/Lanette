@@ -61,6 +61,10 @@ export abstract class Game extends Activity {
 	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
 
+	exceedsMessageSizeLimit(message: string): boolean {
+		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
+	}
+
 	getSignupsEndMessage(): string {
 		return "<center>(signups have closed)</center>";
 	}

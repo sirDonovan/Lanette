@@ -125,6 +125,10 @@ export class User {
 		});
 	}
 
+	getMessageWithClientPrefix(message: string): string {
+		return "|/pm " + this.name + ", " + message;
+	}
+
 	say(message: string, options?: IUserMessageOptions): void {
 		if (!message) return;
 
@@ -150,7 +154,7 @@ export class User {
 
 		const outgoingMessage: IOutgoingMessage = {
 			user: this,
-			message: "|/pm " + this.name + ", " + message,
+			message: this.getMessageWithClientPrefix(message),
 			text: message,
 			type: options && options.type ? options.type : 'pm',
 			userid: this.id,

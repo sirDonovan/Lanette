@@ -177,6 +177,10 @@ export class Room {
 		return user;
 	}
 
+	getMessageWithClientPrefix(message: string): string {
+		return this.id + "|" + message;
+	}
+
 	say(message: string, options?: IRoomMessageOptions): void {
 		if (!message || global.Rooms.get(this.id) !== this) return;
 
@@ -192,7 +196,7 @@ export class Room {
 		const outgoingMessage: IOutgoingMessage = Object.assign(options || {}, {
 			room: this,
 			roomid: this.id,
-			message: this.id + "|" + message,
+			message: this.getMessageWithClientPrefix(message),
 			type: options && options.type ? options.type : 'chat',
 		});
 

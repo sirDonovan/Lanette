@@ -469,6 +469,10 @@ export class Client {
 		});
 	}
 
+	exceedsMessageSizeLimit(message: string): boolean {
+		return message.length >= MAX_MESSAGE_SIZE;
+	}
+
 	send(outgoingMessage: IOutgoingMessage): void {
 		if (!outgoingMessage.message || !this.webSocket) return;
 
@@ -501,7 +505,7 @@ export class Client {
 			}
 		}
 
-		if (outgoingMessage.message.length > MAX_MESSAGE_SIZE) {
+		if (this.exceedsMessageSizeLimit(outgoingMessage.message)) {
 			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
 		}
 
