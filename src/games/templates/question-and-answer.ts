@@ -353,7 +353,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	canGuessAnswer(player: Player | undefined): boolean {
-		if (!player || this.ended || !this.canGuess || !this.answers.length || this.correctPlayers.includes(player)) return false;
+		if (!player || player.frozen || this.ended || !this.canGuess || !this.answers.length ||
+			this.correctPlayers.includes(player)) return false;
 		return true;
 	}
 

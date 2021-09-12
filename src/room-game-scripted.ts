@@ -814,7 +814,7 @@ export class ScriptedGame extends Game {
 
 				for (const queuedPlayer of presentPlayers) {
 					queuedPlayer.frozen = false;
-					queuedPlayer.say("You are now in the game!");
+					queuedPlayer.sendRoomHighlight("You are now in the game!");
 					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
 				}
 

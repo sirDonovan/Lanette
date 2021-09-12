@@ -67,6 +67,7 @@ export class CollectiveTeam {
 		if (equalTeams) return false;
 
 		this.addLateJoinPlayerToTeam(player, this.getSmallestTeam());
+		this.say(player.name + " has late-joined the game on Team " + player.team!.name + ".");
 		return true;
 	}
 
