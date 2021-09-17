@@ -27,7 +27,7 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
-const THROTTLE_BUFFER = 2;
+const THROTTLE_BUFFER = 10;
 const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
@@ -2749,11 +2749,16 @@ export class Client {
 
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
+					delete this.lastOutgoingMessage.user;
 					delete this.lastOutgoingMessage.room;
-					if (this.lastMeasuredMessage) delete this.lastMeasuredMessage.room;
+					if (this.lastMeasuredMessage) {
+						delete this.lastMeasuredMessage.user;
+						delete this.lastMeasuredMessage.room;
+					}
 
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
+						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
 						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
 						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
