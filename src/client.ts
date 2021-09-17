@@ -27,7 +27,7 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
-const THROTTLE_BUFFER = 10;
+const THROTTLE_BUFFER = 2;
 const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
@@ -235,6 +235,7 @@ export class Client {
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
+	private lastSendTimeoutAfterMeasure: number = 0;
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
 	private loggedIn: boolean = false;
@@ -259,11 +260,11 @@ export class Client {
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
-	private serverPing: number = 0;
 	private serverPingTimeout: NodeJS.Timer | null = null;
 	private serverTimeOffset: number = 0;
 	private webSocket: import('ws') | null = null;
 
+	private baseSendThrottle!: number;
 	private chatQueueSendThrottle!: number;
 	private chatQueueThrottleWarning!: number;
 	private sendThrottle!: number;
@@ -538,9 +539,10 @@ export class Client {
 	}
 
 	private setSendThrottle(throttle: number): void {
+		this.baseSendThrottle = throttle;
 		this.sendThrottle = throttle + THROTTLE_BUFFER;
-		this.chatQueueThrottleWarning = this.sendThrottle * (SERVER_CHAT_QUEUE_LIMIT - 1);
-		this.chatQueueSendThrottle = this.sendThrottle * SERVER_CHAT_QUEUE_LIMIT;
+		this.chatQueueThrottleWarning = throttle * (SERVER_CHAT_QUEUE_LIMIT - 1);
+		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
 	private loadMessageParsersDirectory(directory: string, optional?: boolean): void {
@@ -620,17 +622,13 @@ export class Client {
 			this.webSocket.off('pong', pongListener);
 		}
 
-		let pingTime: number;
 		pongListener = () => {
-			this.serverPing = pingTime ? Date.now() - pingTime : 0;
 			this.pingWsAlive = true;
 		};
 
 		this.pingWsAlive = false;
 		this.webSocket.once('pong', pongListener);
 		this.webSocket.ping('', undefined, () => {
-			pingTime = Date.now();
-
 			if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
 			this.serverPingTimeout = setTimeout(() => this.pingServer(), CONNECTION_CHECK_INTERVAL + 1000);
 		});
@@ -646,9 +644,9 @@ export class Client {
 		if (previous.challstrTimeout) clearTimeout(previous.challstrTimeout);
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
 
+		if (previous.lastSendTimeoutAfterMeasure) this.lastSendTimeoutAfterMeasure = previous.lastSendTimeoutAfterMeasure;
 		if (previous.lastProcessingTimeCheck) this.lastProcessingTimeCheck = previous.lastProcessingTimeCheck;
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
-		if (previous.serverPing) this.serverPing = previous.serverPing;
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
@@ -685,7 +683,7 @@ export class Client {
 		if (previous.groupSymbols) Object.assign(this.groupSymbols, previous.groupSymbols);
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
 		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms.slice();
-		if (previous.sendThrottle) this.setSendThrottle(previous.sendThrottle);
+		if (previous.sendThrottle) this.setSendThrottle(previous.baseSendThrottle);
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
@@ -2712,12 +2710,13 @@ export class Client {
 
 				let sendTimeout: number;
 				if (this.lastOutgoingMessage.slowerCommand) {
-					sendTimeout = this.sendThrottle;
+					sendTimeout = this.lastSendTimeoutAfterMeasure || this.sendThrottle;
 				} else {
 					sendTimeout = measurement >= this.chatQueueThrottleWarning ? this.chatQueueSendThrottle :
-					measurement >= this.sendThrottle + this.serverPing ? this.sendThrottle + measurement : this.sendThrottle;
+						measurement >= this.baseSendThrottle ? this.sendThrottle + measurement : this.sendThrottle;
 				}
 
+				this.lastSendTimeoutAfterMeasure = sendTimeout;
 				this.startSendTimeout(sendTimeout);
 			}
 
