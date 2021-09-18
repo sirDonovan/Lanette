@@ -1301,10 +1301,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	onUserJoinRoom(room: Room, user: User): void {
 		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
-		const battleData = this.battleData.get(room);
-		if (!battleData) return;
-
-		if (battleData.slots.size === 2 && !battleData.slots.has(this.players[user.id])) {
+		const players = this.getPlayersFromBattleData(room);
+		if (players && !players.includes(this.players[user.id])) {
 			this.players[user.id].say("You have been disqualified for scouting another " + this.name + " battle.");
 			this.removePlayer(user, true);
 		}
