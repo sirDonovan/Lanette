@@ -1111,6 +1111,13 @@ describe("Dex", () => {
 		assert(possibleTeams.includes('Lycanroc-Midnight,Mime Jr.'));
 		assert(possibleTeams.includes('Mr. Mime,Rockruff'));
 		assert(possibleTeams.includes('Mr. Mime-Galar,Rockruff'));
+
+		// species clause
+		possibleTeams = Dex.getPossibleTeams([["Meowth"]], ["Perrserker"],
+			{additions: 1, evolutions: -1, allowFormes: true, speciesClause: true}).map(x => x.join(','));
+		assertStrictEqual(possibleTeams.length, 2);
+		assert(possibleTeams.includes('Meowth'));
+		assert(possibleTeams.includes('Meowth,Perrserker'));
 	});
 	it('should return proper values from getClosestPossibleTeamSummary()', () => {
 		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard'], [['Venusaur', 'Charizard', 'Blastoise']], {"evolutions": 1}),

@@ -55,6 +55,7 @@ export interface IGetPossibleTeamsOptions {
 	requiredAddition?: boolean;
 	requiredDrop?: boolean;
 	requiredEvolution?: boolean;
+	speciesClause?: boolean;
 	usablePokemon?: string[];
 }
 

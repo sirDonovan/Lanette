@@ -61,6 +61,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	fullyEvolved: boolean = false;
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
+	hasSpeciesClause: boolean = false;
 	internalGame = true;
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
@@ -105,6 +106,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	afterInitialize(): void {
 		this.battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
+		this.hasSpeciesClause = Dex.getRuleTable(this.battleFormat).has('speciesclause');
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
@@ -933,13 +935,14 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	getPossibleTeamsOptions(): IGetPossibleTeamsOptions {
 		return {
+			allowFormes: this.allowsFormes,
 			additions: this.additionsPerRound,
 			drops: this.dropsPerRound,
 			evolutions: this.evolutionsPerRound,
 			requiredAddition: this.requiredAddition,
 			requiredDrop: this.requiredDrop,
 			requiredEvolution: this.requiredEvolution,
-			allowFormes: this.allowsFormes,
+			speciesClause: this.hasSpeciesClause,
 			usablePokemon: this.battleFormat.usablePokemon,
 		};
 	}

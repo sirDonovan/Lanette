@@ -2003,6 +2003,23 @@ export class Dex {
 			}
 		}
 
+		if (options.speciesClause) {
+			const uniqueSpeciesTeams: string[][] = [];
+			outer:
+			for (const teamAfterEvolutions of teamsAfterEvolutions) {
+				const includedSpecies: string[] = [];
+				for (const pokemon of teamAfterEvolutions) {
+					const baseSpecies = this.getExistingPokemon(pokemon).baseSpecies;
+					if (includedSpecies.includes(baseSpecies)) continue outer;
+					includedSpecies.push(baseSpecies);
+				}
+
+				uniqueSpeciesTeams.push(teamAfterEvolutions);
+			}
+
+			teamsAfterEvolutions = uniqueSpeciesTeams;
+		}
+
 		for (const teamAfterEvolutions of teamsAfterEvolutions) {
 			teamAfterEvolutions.sort();
 		}
