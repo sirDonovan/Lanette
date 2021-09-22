@@ -92,8 +92,8 @@ const DEFAULT_GROUP_SYMBOLS: KeyedDict<GroupName, string> = {
 	'bot': '*',
 	'player': '\u2606',
 	'voice': '+',
-	'prizewinner': '^',
 	'star': '\u2729',
+	'prizewinner': '^',
 	'regularuser': ' ',
 	'muted': '!',
 	'locked': '\u203d',
@@ -141,13 +141,13 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 		"type": "normal",
 	},
 	{
-		"symbol": DEFAULT_GROUP_SYMBOLS.prizewinner,
-		"name": "Prize Winner",
+		"symbol": DEFAULT_GROUP_SYMBOLS.star,
+		"name": "Star",
 		"type": "normal",
 	},
 	{
-		"symbol": DEFAULT_GROUP_SYMBOLS.star,
-		"name": "Star",
+		"symbol": DEFAULT_GROUP_SYMBOLS.prizewinner,
+		"name": "Prize Winner",
 		"type": "normal",
 	},
 	{

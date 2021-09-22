@@ -20,7 +20,7 @@ export const commands: BaseCommandDefinitions = {
 					this.run('createtournament');
 					return;
 				}
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -117,7 +117,7 @@ export const commands: BaseCommandDefinitions = {
 				targets.shift();
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				tournamentRoom = room;
 			}
 
@@ -166,7 +166,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -413,7 +413,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -475,7 +475,7 @@ export const commands: BaseCommandDefinitions = {
 				tournamentRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -519,7 +519,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -544,7 +544,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	usercreatedformats: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
 		},
 		aliases: ['userhostedformats', 'userformats'],

@@ -25,7 +25,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
 					return this.sayError(['disabledUserHostedGameFeatures', room.title]);
 				}
@@ -68,7 +68,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowUserHostedGames || !Config.allowUserHostedGames.includes(room.id)) {
 					return this.sayError(['disabledUserHostedGameFeatures', room.title]);
 				}
@@ -325,7 +325,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				gameRoom = room;
 			}
 			const database = Storage.getDatabase(gameRoom);
@@ -402,7 +402,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				gameRoom = room;
 			}
 			let hostName = targets.length ? targets[0].trim() : "";
@@ -477,7 +477,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				gameRoom = room;
 			}
 
@@ -905,7 +905,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 

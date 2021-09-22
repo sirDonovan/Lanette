@@ -405,7 +405,7 @@ export const commands: BaseCommandDefinitions = {
 				targets.shift();
 				leaderboardRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				leaderboardRoom = room;
 			}
 
@@ -771,7 +771,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				eventRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				eventRoom = room;
 			}
 
@@ -835,7 +835,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				eventRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				eventRoom = room;
 			}
 			const database = Storage.getDatabase(eventRoom);

@@ -10,7 +10,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	jointournament: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const targetUser = Users.get(target);
 			this.say((targetUser ? targetUser.name + ": you" : "You") + " can join a scripted tournament by clicking the ``Join`` button " +
 				"at the top of the chat or using the command ``/tour join``. | Guide to joining user-hosted tournaments: " +
@@ -20,7 +20,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	autodq: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice')) return;
+			if (this.isPm(room) || !user.hasRank(room, 'star')) return;
 			if (!Config.tournamentAutoDQTimers || !(room.id in Config.tournamentAutoDQTimers)) {
 				return this.say("The automatic disqualification timer is not set for " + room.title + ".");
 			}
@@ -31,7 +31,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	sampleteams: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
 			if (!format) return this.sayError(['invalidFormat', target]);
 
@@ -53,7 +53,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				samplesRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				samplesRoom = room;
 			}
 
@@ -65,7 +65,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	viabilityranking: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
 			if (!format) return this.sayError(['invalidFormat', target]);
 			if (!format.viability) return this.say("No viability ranking link found for " + format.name + ".");
@@ -82,7 +82,7 @@ export const commands: BaseCommandDefinitions = {
 				});
 				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has Bot rank.");
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				pmRoom = room;
 			}
 			const format = Dex.getFormat(target);
@@ -95,7 +95,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	randombattle: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomBattleMoves) return this.say("No Random Battle data found for " + pokemon.name + ".");
@@ -109,7 +109,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	randomdoublesbattle: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'voice')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const pokemon = Dex.getPokemon(target);
 			if (!pokemon) return this.sayError(['invalidPokemon', target]);
 			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.name + ".");

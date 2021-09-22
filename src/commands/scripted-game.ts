@@ -19,7 +19,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -44,7 +44,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -76,7 +76,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -947,7 +947,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -996,7 +996,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				gameRoom = room;
 			}
 
@@ -1040,7 +1040,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 					return this.sayError(['disabledGameFeatures', room.title]);
 				}
@@ -1082,7 +1082,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'star')) return;
 				if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) &&
 					(!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id))) {
 					return this.sayError(['disabledGameFeatures', room.title]);
