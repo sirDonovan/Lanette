@@ -1178,7 +1178,7 @@ export class Dex {
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
 			'image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v5) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v6) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
