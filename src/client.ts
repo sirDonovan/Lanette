@@ -2694,6 +2694,13 @@ export class Client {
 				this.groupSymbols[Tools.toId(group.name) as GroupName] = group.symbol;
 			}
 		}
+
+		if (this.server === Tools.mainServer &&
+			this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking < this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking) {
+			const prizeWinner = this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking;
+			this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking = this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking;
+			this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking = prizeWinner;
+		}
 	}
 
 	private isDtResultLastMessage(message: string): boolean {
