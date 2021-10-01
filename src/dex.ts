@@ -849,6 +849,7 @@ export class Dex {
 		}
 
 		if (Array.isArray(targetType)) {
+			targetType = targetType as readonly string[];
 			const cacheKey = targetType.join(',');
 			if (!Object.prototype.hasOwnProperty.call(this.immunityCache, sourceType)) {
 				this.immunityCache[sourceType] = {};
@@ -905,6 +906,7 @@ export class Dex {
 		}
 
 		if (Array.isArray(targetType)) {
+			targetType = targetType as readonly string[];
 			const cacheKey = targetType.join(',');
 			if (!Object.prototype.hasOwnProperty.call(this.effectivenessCache, sourceType)) {
 				this.effectivenessCache[sourceType] = {};

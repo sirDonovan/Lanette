@@ -45,7 +45,7 @@ class PanchamPairs extends ScriptedGame {
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error
-				abilities.push(pokemon.abilities[i]);
+				abilities.push(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
 			}
 			data.pokemon[pokemon.name] = {
 				type: pokemon.types,
@@ -284,7 +284,7 @@ class PanchamPairs extends ScriptedGame {
 		// @ts-expect-error
 		for (const thing of usedData[nameA][paramName]) {
 			// @ts-expect-error
-			if ((usedData[nameB][paramName] as string[]).includes(thing)) {
+			if ((usedData[nameB][paramName] as string[]).includes(thing)) { // eslint-disable-line @typescript-eslint/no-unsafe-argument
 				return [nameA, nameB];
 			}
 		}

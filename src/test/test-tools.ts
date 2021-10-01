@@ -33,7 +33,7 @@ function getAdditionalInformation(message: string): string {
 	return message + "\n\nAdditional information:\n" + roomInformation.join("\n") + "\n";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function assert(condition: any, message?: string | Error | undefined): asserts condition {
 	if (!message) message = '';
 

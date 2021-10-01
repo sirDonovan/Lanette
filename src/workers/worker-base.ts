@@ -73,6 +73,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 							// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 							let result = JSON.parse(parts.slice(2).join("|"));
 							if (result === "") result = null;
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 							request.resolve(result);
 							break;
 						}

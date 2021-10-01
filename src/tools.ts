@@ -431,6 +431,7 @@ export class Tools {
 		if (input === null) return 'null';
 		if (typeof input === 'string') return input;
 		if (typeof input === 'number' || typeof input === 'boolean') return '' + input;
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		if (Array.isArray(input)) return '[' + input.map(x => this.toString(x)).join(', ') + ']';
 		if (input instanceof TimeoutConstructor) return '[Timeout]';
 
@@ -447,7 +448,7 @@ export class Tools {
 			const properties: string[] = [];
 			for (const i in input) {
 				// @ts-expect-error
-				properties.push(i + ": " + this.toString(input[i]));
+				properties.push(i + ": " + this.toString(input[i])); // eslint-disable-line @typescript-eslint/no-unsafe-argument
 			}
 			return "{" + properties.join(", ") + "}";
 		}
@@ -641,6 +642,7 @@ export class Tools {
 			return clone;
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 		const clone = Object.create(Object.getPrototypeOf(obj)) as DeepMutable<T>;
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (const key of keys) {

@@ -20,7 +20,7 @@ class KirliasTracingShow extends QuestionAndAnswer {
 			const abilities: string[] = [];
 			for (const ability in pokemon.abilities) {
 				// @ts-expect-error
-				abilities.push(pokemon.abilities[ability]);
+				abilities.push(pokemon.abilities[ability]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
 			}
 			hints[pokemon.name] = abilities;
 			hintKeys.push(pokemon.name);

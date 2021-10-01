@@ -70,7 +70,6 @@ export class BoardRentSpace extends BoardSpace {
 export class BoardActionSpace extends BoardSpace {}
 
 const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
@@ -79,7 +78,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const getOutOfJailCards = this.escapeFromJailCards.get(player) || 0;
 		this.escapeFromJailCards.set(player, getOutOfJailCards + 1);
@@ -89,7 +87,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		const spaces = -1 * (this.random(3) + 1);
@@ -103,7 +100,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
@@ -142,7 +138,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		let currency = this.playerCurrency.get(player)!;
 		currency += this.rafflePrize;
@@ -158,7 +153,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length +
 			this.board.bottomRow.length;
@@ -174,7 +168,6 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		});
 		this.say(text);
 	},
-	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 	function(this: BoardPropertyGame, player): void {
 		this.playerLocations.set(player, this.getSpaceLocation(this.jailSpace)!);
 		this.playersInJail.push(player);
