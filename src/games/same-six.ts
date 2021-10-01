@@ -44,6 +44,7 @@ export const game: IGameFile<SameSix> = Games.copyTemplateProperties(elimination
 		},
 		{
 			name: "Same Six Ubers",
+			requiredTier: "Uber",
 			battleFormatId: "ubers",
 			variantAliases: ["ubers"],
 		},
