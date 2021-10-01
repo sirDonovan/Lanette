@@ -702,7 +702,6 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			let game: ScriptedGame | UserHostedGame | undefined;
-			const cap = parseInt(target);
 			if (room.game) {
 				if (!user.hasRank(room, 'voice')) return;
 				game = room.game;
@@ -710,12 +709,17 @@ export const commands: BaseCommandDefinitions = {
 				if (!room.userHostedGame.isHost(user)) return;
 				game = room.userHostedGame;
 			}
+
 			if (!game) return;
-			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
+
+			const cap = parseInt(target);
+			if (isNaN(cap) || cap < game.minPlayers) return this.say("You must specify a valid player cap.");
 			if (game.playerCount >= cap) {
 				this.run('startgame');
 				return;
 			}
+
+			if (game.maxPlayers && cap > game.maxPlayers) return this.say("The game only supports up to " + game.maxPlayers + " players.");
 			game.playerCap = cap;
 			this.say("The game's player cap has been set to **" + cap + "**.");
 		},
