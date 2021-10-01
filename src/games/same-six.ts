@@ -15,6 +15,7 @@ class SameSix extends EliminationTournament {
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;
+	requiredTier = "OU";
 
 	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
@@ -50,26 +51,31 @@ export const game: IGameFile<SameSix> = Games.copyTemplateProperties(elimination
 		},
 		{
 			name: "Same Six UU",
+			requiredTier: "UU",
 			battleFormatId: "uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Same Six RU",
+			requiredTier: "RU",
 			battleFormatId: "ru",
 			variantAliases: ["ru"],
 		},
 		{
 			name: "Same Six NU",
+			requiredTier: "NU",
 			battleFormatId: "nu",
 			variantAliases: ["nu"],
 		},
 		{
 			name: "Same Six PU",
+			requiredTier: "PU",
 			battleFormatId: "pu",
 			variantAliases: ["pu"],
 		},
 		{
 			name: "Same Six ZU",
+			requiredTier: "ZU",
 			battleFormatId: "zu",
 			variantAliases: ["zu"],
 		},
