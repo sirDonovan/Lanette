@@ -30,6 +30,7 @@ module.exports = (): void => {
 	console.log("Instantiating modules...");
 
 	tools.instantiate();
+	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 	global.Config = ConfigLoader.load(config);
 	dex.instantiate();
 	users.instantiate();
