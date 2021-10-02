@@ -29,9 +29,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Register tsc problem matcher
-      run: echo "##[add-matcher].github/problem-matchers/tsc.json"
-
     - name: Lint project
       run: npm run lint
 
