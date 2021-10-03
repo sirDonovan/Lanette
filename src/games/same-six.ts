@@ -5,7 +5,7 @@ const name = "Same Six";
 const description = "Every player battles with the same randomly generated team!";
 
 class SameSix extends EliminationTournament {
-	firstRoundExtraTime = 3 * 60 * 1000;
+	firstRoundExtraTime = 5 * 60 * 1000;
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
 	startingTeamsLength = 6;
