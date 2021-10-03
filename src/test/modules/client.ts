@@ -330,10 +330,11 @@ describe("Client", () => {
 		const password = 'password';
 
 		const badReplayLinks: string[] = ["", "/"];
-		const goodReplayLinks: string[] = ["/" + battleId, "/" + battleId + "-" + password, "/" + format + "-12345"];
+		const goodReplayLinks: string[] = ["/" + battleId, "/" + battleId + "-" + password, "/" + format + "-12345",
+			"/" + format + "-12345-" + password];
 		const badBattleLinks: string[] = ["", "/", "/" + format + "-12345"];
 		const goodBattleLinks: string[] = ["/" + battleId, "/" + battleId + "-" + password];
-		const badBattleRooms: string[] = ["", "" + format + "-12345"];
+		const badBattleRooms: string[] = ["", format + "-12345"];
 		const goodBattleRooms: string[] = [battleId, battleId + "-" + password];
 
 		for (const badReplayLink of badReplayLinks) {

@@ -2604,7 +2604,7 @@ export class Client {
 		}
 
 		// unlink game battles
-		if (room.game && room.game.battleData && room.game.battleRooms && (lowerCaseMessage.includes(this.replayServerAddress) ||
+		if (room.game && room.game.battleRooms && (lowerCaseMessage.includes(this.replayServerAddress) ||
 			lowerCaseMessage.includes(this.server)) && !user.hasRank(room, 'voice')) {
 			const battle = this.extractBattleId(lowerCaseMessage);
 			if (battle && room.game.battleRooms.includes(battle.publicId)) {
