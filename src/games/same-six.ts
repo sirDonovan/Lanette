@@ -83,5 +83,12 @@ export const game: IGameFile<SameSix> = Games.copyTemplateProperties(elimination
 			battleFormatId: "zu",
 			variantAliases: ["zu"],
 		},
+		{
+			name: "Same Six LC",
+			requiredTier: "LC",
+			fullyEvolved: false,
+			battleFormatId: "lc",
+			variantAliases: ["lc", "little cup"],
+		},
 	],
 });
