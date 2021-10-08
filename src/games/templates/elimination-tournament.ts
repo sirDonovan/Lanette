@@ -51,7 +51,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
 	disqualifiedOpponents = new Map<Player, Player>();
-	disqualifiedPlayers = new Set<Player>();
+	disqualifiedPlayers = new Map<Player, string>();
 	dontAutoCloseHtmlPages: boolean = true;
 	dropsPerRound: number = 0;
 	evolutionsPerRound: number = 0;
@@ -367,12 +367,17 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return matchesByRound;
 	}
 
-	disqualifyPlayers(players: Player[]): void {
+	getDisqualifyReasonText(reason: string): string {
+		return "You have been disqualified from the " + this.name + " tournament " + reason + ".";
+	}
+
+	disqualifyPlayers(playersAndReasons: Map<Player, string>): void {
 		if (!this.treeRoot) throw new Error("disqualifyPlayers() called before bracket generated");
 
+		const players = Array.from(playersAndReasons.keys());
 		for (const player of players) {
 			player.eliminated = true;
-			this.disqualifiedPlayers.add(player);
+			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
 
 			/**
 			 * The user either has a single available battle or no available battles
@@ -425,21 +430,21 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const node = this.findAvailableMatchNode(player, opponent);
 		if (node) this.clearNodeTimers(node);
 
-		if (inactivePlayers.includes(player) && inactivePlayers.includes(opponent)) {
-			player.say("You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + opponent.name + " in time.");
-			opponent.say("You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + player.name + " in time.");
-			this.disqualifyPlayers([player, opponent]);
-		} else if (inactivePlayers.includes(player)) {
-			player.say("You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + opponent.name + " in time.");
-			this.disqualifyPlayers([player]);
-		} else if (inactivePlayers.includes(opponent)) {
-			opponent.say("You have been disqualified from the " + this.name + " tournament for failing " +
-				"to battle " + player.name + " in time.");
-			this.disqualifyPlayers([opponent]);
+		const playerReason = this.getDisqualifyReasonText("for failing to battle " + opponent.name + " in time");
+		const opponentReason = this.getDisqualifyReasonText("for failing to battle " + player.name + " in time");
+
+		const playersAndReasons = new Map<Player, string>();
+		if (inactivePlayers.includes(player)) {
+			player.say(playerReason);
+			playersAndReasons.set(player, playerReason);
 		}
+
+		if (inactivePlayers.includes(opponent)) {
+			opponent.say(opponentReason);
+			playersAndReasons.set(opponent, opponentReason);
+		}
+
+		this.disqualifyPlayers(playersAndReasons);
 	}
 
 	getAvailableMatchNodes(): EliminationNode<Player>[] {
@@ -659,7 +664,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (this.started && !this.tournamentEnded) {
 			if (player.eliminated) {
 				html += "<h3><u>Updates</u></h3>";
-				html += "You were eliminated! ";
+
+				if (this.disqualifiedPlayers.has(player)) {
+					html += this.disqualifiedPlayers.get(player) + "<br /><br />";
+				} else {
+					html += "You were eliminated! ";
+				}
+
 				if (this.spectatorPlayers.has(player)) {
 					html += "You are currently still receiving updates for this tournament. " +
 						Client.getPmSelfButton(Config.commandCharacter + "stoptournamentupdates", "Stop updates");
@@ -1214,7 +1225,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 			return;
 		}
 
-		this.disqualifyPlayers([player]);
+		const playerAndReason = new Map<Player, string>();
+		playerAndReason.set(player, "You left the " + this.name + " tournament.");
+
+		this.disqualifyPlayers(playerAndReason);
 	}
 
 	sendNotAutoconfirmed(player: Player): void {
@@ -1338,8 +1352,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 				});
 
 				if (originalPlayer && originalPlayer.id !== id) {
-					originalPlayer.say("You have been disqualified for leaving your battle!");
-					this.disqualifyPlayers([originalPlayer]);
+					const reason = this.getDisqualifyReasonText("for leaving your battle");
+					originalPlayer.say(reason);
+
+					const playerAndReason = new Map<Player, string>();
+					playerAndReason.set(originalPlayer, reason);
+
+					this.disqualifyPlayers(playerAndReason);
 					room.leave();
 				}
 			}
@@ -1380,6 +1399,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
+		const playersAndReasons = new Map<Player, string>();
+		const reason = this.getDisqualifyReasonText("for using an incorrect team");
+
 		let winner: Player | undefined;
 		let loser: Player | undefined;
 		let winnerIncorrectTeam = false;
@@ -1402,7 +1424,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 					incorrectTeam = !Dex.isPossibleTeam(team, possibleTeams);
 					if (incorrectTeam) {
 						const summary = Dex.getClosestPossibleTeamSummary(team, possibleTeams, this.getPossibleTeamsOptions());
-						if (summary) room.say(player.name + ": " + summary);
+						if (summary) {
+							room.say(player.name + ": " + summary);
+							playersAndReasons.set(player, reason + " " + summary);
+						}
 					}
 				}
 
@@ -1422,13 +1447,15 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (!this.battleRooms.includes(room.publicId)) this.battleRooms.push(room.publicId);
 
 		if (winner && loser) {
-			loser.say("You have been disqualified for using an incorrect team.");
+			loser.say(reason);
+			if (!playersAndReasons.has(loser)) playersAndReasons.set(loser, reason);
+
 			if (winnerIncorrectTeam) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				winner.say("You have been disqualified for using an incorrect team.");
-				this.disqualifyPlayers([loser, winner]);
-			} else {
-				this.disqualifyPlayers([loser]);
+				winner.say(reason);
+				if (!playersAndReasons.has(winner)) playersAndReasons.set(winner, reason);
 			}
+
+			this.disqualifyPlayers(playersAndReasons);
 			return false;
 		}
 
@@ -1541,7 +1568,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.checkedBattleRooms.push(room.publicId);
 
 		const players = this.getPlayersFromBattleData(room);
-		if (players) this.disqualifyPlayers(players);
+		if (players) {
+			const reason = this.getDisqualifyReasonText("for letting your battle expire");
+			const playersAndReasons = new Map<Player, string>();
+			playersAndReasons.set(players[0], reason);
+			playersAndReasons.set(players[1], reason);
+			this.disqualifyPlayers(playersAndReasons);
+		}
 	}
 
 	onBattleTie(room: Room): void {
