@@ -647,15 +647,13 @@ export class Dex {
 
 		if (baseSpecies.otherFormes) {
 			for (const otherForme of baseSpecies.otherFormes) {
-				const forme = this.getExistingPokemon(otherForme);
-				if (!forme.battleOnly) formes.push(forme.name);
+				formes.push(this.getExistingPokemon(otherForme).name);
 			}
 		}
 
 		if (baseSpecies.cosmeticFormes) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
-				const forme = this.getExistingPokemon(cosmeticForme);
-				if (!forme.battleOnly) formes.push(forme.name);
+				formes.push(this.getExistingPokemon(cosmeticForme).name);
 			}
 		}
 
@@ -1537,6 +1535,10 @@ export class Dex {
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		const ruleTable = this.getRuleTable(format);
 
+		const usableAbilities = this.getUsableAbilities(format);
+		const usableItems = this.getUsableItems(format);
+		const usableMoves = this.getUsableMoves(format);
+
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const littleCup = ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
@@ -1545,8 +1547,38 @@ export class Dex {
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
 				const pokemon = formatDex.pokemonShowdownDex.species.get(forme);
-				if (pokemon.requiredAbility || pokemon.requiredItem || pokemon.requiredItems || pokemon.requiredMove ||
-					validator.checkSpecies({}, pokemon, pokemon, {})) continue;
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const set: Dict<any> = {};
+
+				if (pokemon.requiredAbility) {
+					if (!usableAbilities.includes(pokemon.requiredAbility)) continue;
+					set.ability = pokemon.requiredAbility;
+				}
+
+				if (pokemon.requiredItem) {
+					if (!usableItems.includes(pokemon.requiredItem)) continue;
+					set.item = pokemon.requiredItem;
+				}
+
+				if (pokemon.requiredItems) {
+					let usableItem = "";
+					for (const item of pokemon.requiredItems) {
+						if (usableItems.includes(item)) {
+							usableItem = item;
+							break;
+						}
+					}
+
+					if (!usableItem) continue;
+					set.item = usableItem;
+				}
+
+				if (pokemon.requiredMove) {
+					if (!usableMoves.includes(pokemon.requiredMove)) continue;
+					set.moves = [pokemon.requiredMove];
+				}
+
+				if (validator.checkSpecies(set, pokemon, pokemon, {})) continue;
 
 				if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
 
@@ -1556,6 +1588,46 @@ export class Dex {
 
 		format.usablePokemon = usablePokemon;
 		return usablePokemon;
+	}
+
+	getUsableAbilities(format: IFormat): string[] {
+		if (format.usableAbilities) return format.usableAbilities;
+
+		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+
+		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const usableAbilities: string[] = [];
+		for (const i of formatDex.getData().abilityKeys) {
+			// PS move.id compatibility
+			const ability = formatDex.pokemonShowdownDex.abilities.get(i);
+			if (!validator.checkAbility({}, ability, {})) {
+				usableAbilities.push(ability.name);
+			}
+		}
+
+		format.usableAbilities = usableAbilities;
+		return usableAbilities;
+	}
+
+	getUsableItems(format: IFormat): string[] {
+		if (format.usableItems) return format.usableItems;
+
+		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+
+		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const usableItems: string[] = [];
+		for (const i of formatDex.getData().itemKeys) {
+			// PS move.id compatibility
+			const item = formatDex.pokemonShowdownDex.items.get(i);
+			if (!validator.checkItem({}, item, {})) {
+				usableItems.push(item.name);
+			}
+		}
+
+		format.usableItems = usableItems;
+		return usableItems;
 	}
 
 	getUsableMoves(format: IFormat): string[] {

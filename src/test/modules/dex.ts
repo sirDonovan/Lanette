@@ -239,6 +239,9 @@ describe("Dex", () => {
 			const format = Dex.getExistingFormat(i);
 			Dex.getFormatInfoDisplay(format);
 			Dex.validateFormat(format.name);
+			Dex.getUsableAbilities(format);
+			Dex.getUsableItems(format);
+			Dex.getUsableMoves(format);
 			Dex.getUsablePokemon(format);
 		}
 
@@ -625,14 +628,17 @@ describe("Dex", () => {
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth-Alola').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Meowth-Galar').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Darmanitan-Zen').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("uber"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ubers"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
-		assert(usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Giratina').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Giratina-Origin').name));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Keldeo-Resolute').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
@@ -648,6 +654,9 @@ describe("Dex", () => {
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pawniard').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pichu').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
+
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("nationaldexag"));
+		assert(usablePokemon.includes(Dex.getExistingPokemon('Arceus-Bug').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
 		let teams = [['Charmander', 'Squirtle']];
