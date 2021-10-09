@@ -261,6 +261,21 @@ export const commands: BaseCommandDefinitions = {
 				const newFormat = Games.getUserHostedFormat(target);
 				if (Array.isArray(newFormat)) return this.sayError(newFormat);
 				format = newFormat;
+
+				const database = Storage.getDatabase(room);
+				const approvedHost = database.userHostStatuses && user.id in database.userHostStatuses &&
+					database.userHostStatuses[user.id].status === 'approved' ? true : false;
+
+				if (format.approvedHostOnly && !approvedHost && !user.hasRank(room, 'voice')) {
+					return this.say(format.name + " can only be hosted by approved hosts or room auth.");
+				}
+
+				const formatCooldown = Games.getRemainingUserHostFormatCooldown(room, format.id);
+				if (formatCooldown > 1000) {
+					const durationString = Tools.toDurationString(formatCooldown);
+					return this.say("There " + (durationString.endsWith('s') ? "are" : "is") + " still " + durationString + " of the " +
+						format.name + " user-host cooldown remaining.");
+				}
 			}
 
 			room.userHostedGame.restart(format);
