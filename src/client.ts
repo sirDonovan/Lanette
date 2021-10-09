@@ -2695,11 +2695,21 @@ export class Client {
 			}
 		}
 
-		if (this.server === Tools.mainServer &&
-			this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking < this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking) {
-			const prizeWinner = this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking;
-			this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking = this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking;
-			this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking = prizeWinner;
+		if (this.server === Tools.mainServer) {
+			if (this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking < this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking) {
+				const prizeWinner = this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking;
+				this.serverGroups[DEFAULT_GROUP_SYMBOLS.prizewinner].ranking = this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking;
+				this.serverGroups[DEFAULT_GROUP_SYMBOLS.star].ranking = prizeWinner;
+			}
+		} else {
+			if (!(DEFAULT_GROUP_SYMBOLS.star in this.serverGroups)) {
+				this.serverGroups[DEFAULT_GROUP_SYMBOLS.star] = {
+					name: 'Star',
+					ranking: this.serverGroups[DEFAULT_GROUP_SYMBOLS.voice].ranking - 1,
+					symbol: DEFAULT_GROUP_SYMBOLS.star,
+					type: 'normal',
+				};
+			}
 		}
 	}
 
