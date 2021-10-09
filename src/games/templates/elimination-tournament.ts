@@ -647,8 +647,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 			(this.bracketHtml || "The bracket will be created once the tournament starts.");
 	}
 
-	getPlayerHtmlPage(player: Player): string {
+	getPlayerHtmlPage(player: Player, staffView?: boolean): string {
 		let html = "";
+
+		if (staffView) html += "<b>" + player.name + "'s view of the tournament:</b><br /><br />";
 
 		if (this.tournamentEnded) {
 			if (player === this.getFinalPlayer()) {
@@ -1746,7 +1748,22 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	},
 	tournamentpage: {
 		command(target, room, user) {
-			if (user.id in this.players) {
+			const id = Tools.toId(target);
+			if (id) {
+				if (!user.isDeveloper() && !user.hasRank(this.room, 'driver')) return false;
+				if (user.id in this.players) {
+					user.say("You cannot use this command while participating in the tournament.");
+					return false;
+				}
+
+				if (!(id in this.players)) {
+					user.say("'" + target.trim() + "' is not a player in the current tournament.");
+					return false;
+				}
+
+				this.room.sendHtmlPage(user, this.baseHtmlPageId + "-" + id,
+					this.getHtmlPageWithHeader(this.getPlayerHtmlPage(this.players[id], true)));
+			} else if (user.id in this.players) {
 				this.updatePlayerHtmlPage(this.players[user.id]);
 			} else {
 				this.spectatorUsers.add(user.id);
