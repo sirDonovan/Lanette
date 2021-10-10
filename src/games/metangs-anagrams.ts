@@ -28,14 +28,17 @@ class MetangsAnagrams extends QuestionAndAnswer {
 		};
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
-		const id = Tools.toId(hintKey);
+	onSetGeneratedHint(baseHintKey: string): string {
+		const id = Tools.toId(baseHintKey);
 		const letters = id.split("");
 		let hint = this.shuffle(letters);
 		while (hint.join("") === id) {
 			hint = this.shuffle(letters);
 		}
-		this.hint = '<b>' + this.currentCategory + '</b>: <i>' + hint.join(", ") + '</i>';
+
+		const hintKey = hint.join(", ");
+		this.hint = '<b>' + this.currentCategory + '</b>: <i>' + hintKey + '</i>';
+		return hintKey;
 	}
 }
 

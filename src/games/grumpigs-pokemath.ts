@@ -89,7 +89,7 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async customGenerateHint(): Promise<void> {
+	async customGenerateHint(): Promise<string> {
 		let operation = this.sampleOne(OPERATIONS);
 		while (operation === this.lastOperation) {
 			operation = this.sampleOne(OPERATIONS);
@@ -115,6 +115,7 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 
 		this.hint = "<b>" + operandsAndResult.operands.map(x => GrumpigsPokemath.pokemonByNumber[x][0]).join(" " +
 			OPERATION_SYMBOLS[operation] + " ") + " = ?</b>";
+		return "";
 	}
 
 	increaseDifficulty(): void {

@@ -61,10 +61,11 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 		this.cachedData.hintKeys = hintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): void {
+	onSetGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): string {
 		this.hints = this.shuffle(hintAnswers![hintKey]);
 		this.answers = [hintKey];
 		this.mysteryRound = -1;
+		return hintKey;
 	}
 
 	updateHint(): void {

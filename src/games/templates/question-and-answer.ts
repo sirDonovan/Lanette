@@ -105,7 +105,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		this.nextRound();
 	}
 
-	async generateHint(): Promise<void> {
+	async generateHint(): Promise<string> {
 		try {
 			if (this.format.class.cachedData) {
 				let categories: readonly string[] | undefined;
@@ -140,7 +140,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 						categoryHintAnswers = this.format.class.cachedData.categoryHintAnswers;
 					}
 
-					this.setGeneratedHint(hintKey, categoryHintAnswers ? categoryHintAnswers[category] : undefined);
+					return await this.setGeneratedHint(hintKey, categoryHintAnswers ? categoryHintAnswers[category] : undefined);
 				} else {
 					let hintKeys: readonly string[] | undefined;
 					if (this.inverse && this.format.class.cachedData.inverseHintKeys) {
@@ -165,20 +165,21 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 						hintAnswers = this.format.class.cachedData.hintAnswers;
 					}
 
-					this.setGeneratedHint(hintKey, hintAnswers);
+					return await this.setGeneratedHint(hintKey, hintAnswers);
 				}
 			} else {
 				if (!this.customGenerateHint) throw new Error("No customGenerateHint() method defined");
-				await this.customGenerateHint();
+				return await this.customGenerateHint();
 			}
 		} catch (e) {
 			console.log(e);
 			Tools.logError(e as NodeJS.ErrnoException, this.format.name + " generateHint()");
 			this.errorEnd();
+			return "";
 		}
 	}
 
-	setGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): void {
+	async setGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): Promise<string> {
 		if (hintAnswers) {
 			this.answers = hintKey in hintAnswers ? hintAnswers[hintKey] : [];
 			const hintPrefix = this.hintPrefix || this.currentCategory;
@@ -188,15 +189,20 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			this.answers = [hintKey];
 		}
 
-		if (this.onSetGeneratedHint) this.onSetGeneratedHint(hintKey, hintAnswers);
+		if (this.onSetGeneratedHint) {
+			hintKey = await this.onSetGeneratedHint(hintKey, hintAnswers);
+		}
+
+		return hintKey;
 	}
 
 	async setNextAnswer(): Promise<void> {
-		await this.generateHint();
+		let hintKey = await this.generateHint();
 		if (this.ended) return;
 
-		while (this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint) {
-			await this.generateHint();
+		while ((hintKey && Client.checkFilters(hintKey, !this.isPmActivity(this.room) ? this.room : undefined)) ||
+			(this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint)) {
+			hintKey = await this.generateHint();
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this.ended) return;
 		}
@@ -502,12 +508,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	beforeNextRound?(newAnswer: boolean): boolean | string;
 	filterGuess?(guess: string, player?: Player): boolean;
-	customGenerateHint?(): Promise<void> | void;
+	customGenerateHint?(): Promise<string> | string;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
-	onSetGeneratedHint?(hintKey: string, hintAnswers?: Dict<readonly string[]>): void;
+	onSetGeneratedHint?(hintKey: string, hintAnswers?: Dict<readonly string[]>): Promise<string> | string;
 	updateHint?(): void;
 }
 

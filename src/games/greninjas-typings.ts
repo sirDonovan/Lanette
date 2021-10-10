@@ -44,10 +44,12 @@ class GreninjasTypings extends QuestionAndAnswer {
 		this.cachedData.inverseHintAnswers = inverseHints;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	onSetGeneratedHint(hintKey: string): string {
 		if (this.inverse) {
 			this.answers = this.answers.concat(GreninjasTypings.cachedData.hintAnswers![hintKey]);
 		}
+
+		return hintKey;
 	}
 }
 

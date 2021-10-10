@@ -31,7 +31,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "";
 	}
 
-	onSetGeneratedHint(): void {
+	onSetGeneratedHint(): string {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
 			numberOfElements = this.format.options.names;
@@ -93,15 +93,11 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			lastIndex = index;
 		}
 
-		if (Client.checkFilters(mashup, !this.isPmActivity(this.room) ? this.room : undefined)) {
-			void this.generateHint();
-			return;
-		}
-
 		this.answers = [Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&")].concat(
 			Tools.getPermutations(elements).map(x => x.join("")));
 		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + mashup + "</i>";
 		this.additionalHintHeader = "- " + numberOfElements + " names";
+		return mashup;
 	}
 }
 

@@ -56,13 +56,13 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 		this.cachedData.inverseHintKeys = inverseHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	async onSetGeneratedHint(baseHintKey: string): Promise<string> {
 		const typeWeaknesses: Dict<readonly string[]> = this.inverse ? MagcargosWeakSpot.cachedData.inverseHintAnswers! :
 			MagcargosWeakSpot.cachedData.hintAnswers!;
-		const pokemonList = this.sampleMany(typeWeaknesses[hintKey], 3).sort();
-		const answers: string[] = [hintKey];
+		const pokemonList = this.sampleMany(typeWeaknesses[baseHintKey], 3).sort();
+		const answers: string[] = [baseHintKey];
 		for (const i in typeWeaknesses) {
-			if (i === hintKey) continue;
+			if (i === baseHintKey) continue;
 			let containsPokemon = true;
 			for (const pokemon of pokemonList) {
 				if (!typeWeaknesses[i].includes(pokemon)) {
@@ -81,12 +81,13 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 			}
 		}
 		if (containsPreviousAnswer) {
-			void this.generateHint();
-			return;
+			return await this.generateHint();
 		}
 
 		this.answers = answers;
-		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + pokemonList.join(", ") + "</i>";
+		const hintKey = pokemonList.join(", ");
+		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + hintKey + "</i>";
+		return hintKey;
 	}
 }
 

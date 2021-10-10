@@ -68,7 +68,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		return names.sort();
 	}
 
-	async customGenerateHint(): Promise<void> {
+	async customGenerateHint(): Promise<string> {
 		let numberOfParams: number;
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
@@ -92,12 +92,12 @@ export class ParasParameters extends QuestionAndAnswer {
 			searchType: 'pokemon',
 		});
 
-		if (this.ended) return;
+		if (this.ended) return "";
 
 		if (result === null) {
 			this.say("An error occurred while generating parameters.");
 			this.deallocate(true);
-			return;
+			return "";
 		}
 
 		if (!result.pokemon.length) {
@@ -122,6 +122,8 @@ export class ParasParameters extends QuestionAndAnswer {
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
+
+		return "";
 	}
 
 	getAnswers(givenAnswer?: string): string[] {

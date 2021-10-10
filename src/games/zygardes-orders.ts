@@ -42,7 +42,11 @@ class ZygardesOrders extends QuestionAndAnswer {
 		};
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	getHintKey(): string {
+		return this.hints.join(" ");
+	}
+
+	onSetGeneratedHint(hintKey: string): string {
 		this.hintUpdates = 0;
 		this.ordersRound = 0;
 		this.roundGuesses.clear();
@@ -59,6 +63,8 @@ class ZygardesOrders extends QuestionAndAnswer {
 		const firstLetter = this.random(this.letters.length);
 		this.hints[firstLetter] = this.letters[firstLetter];
 		this.revealedLetters = 1;
+
+		return this.getHintKey();
 	}
 
 	updateHint(): void {
@@ -90,7 +96,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 			}
 		}
 
-		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join("");
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey();
 	}
 
 	onHintHtml(): void {

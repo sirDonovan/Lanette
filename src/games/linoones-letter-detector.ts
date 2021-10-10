@@ -15,25 +15,27 @@ class LinoonesLetterDetector extends QuestionAndAnswer {
 		Games.getWorkers().letterDetector.init();
 	}
 
-	async customGenerateHint(): Promise<void> {
+	async customGenerateHint(): Promise<string> {
 		const result = await Games.getWorkers().letterDetector.search({
 			basePokemon: BASE_POKEMON,
 			maxAdditionalPokemon: MAX_ADDITIONAL_POKEMON,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 		});
 
-		if (this.ended) return;
+		if (this.ended) return "";
 
 		if (result === null || !result.hiddenName) {
 			this.say("An error occurred while generating an answer.");
 			this.deallocate(true);
-			return;
+			return "";
 		}
 
 		this.prng = new PRNG(result.prngSeed);
 		this.answers = [result.hiddenName];
-		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + result.names.join(", ") + (this.showLetter ?
-			" (" + Tools.toNumberOrderString(result.index + 1) + " letter)" : "") + "</i>";
+		const hintKey = result.names.join(", ") + (this.showLetter ?
+			" (" + Tools.toNumberOrderString(result.index + 1) + " letter)" : "");
+		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + hintKey + "</i>";
+		return hintKey;
 	}
 }
 

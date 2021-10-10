@@ -69,7 +69,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	onSetGeneratedHint(hintKey: string): string {
 		this.letters = hintKey.split("");
 
 		const indices: number[] = [];
@@ -82,6 +82,8 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 		this.lastIlluminatedletters = '';
 		this.hintUpdateLimit = hintKey.length * this.hintUpdateLimitMultiplier;
 		this.updateHint();
+
+		return hintKey;
 	}
 
 	updateHint(): void {

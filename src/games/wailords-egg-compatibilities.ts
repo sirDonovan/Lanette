@@ -33,7 +33,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		}
 	}
 
-	async customGenerateHint(): Promise<void> {
+	async customGenerateHint(): Promise<string> {
 		let eggGroups = this.shuffle(WailordsEggCompatibilities.eggGroupKeys);
 		let startEggGroup = eggGroups[0];
 		while (startEggGroup === this.lastStartEggGroup) {
@@ -96,8 +96,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 
 		const answers = finalValidChains.map(x => x.slice(1).join(" > "));
 		if (!finalValidChains.length || this.exceedsMessageSizeLimit(this.getAnswersHtml(answers))) {
-			await this.customGenerateHint();
-			return;
+			return await this.customGenerateHint();
 		}
 
 		this.lastStartEggGroup = startEggGroup;
@@ -105,8 +104,11 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		this.lastStartPokemon = startPokemon;
 		this.lastEndPokemon = endPokemon;
 		this.answers = answers;
-		this.hint = "<b>Randomly generated start and end</b>: <i>" + startPokemon + " and " + endPokemon +
-			" (" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "") + ")</i>";
+
+		const hintKey = startPokemon + " and " + endPokemon +
+			" (" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "");
+		this.hint = "<b>Randomly generated start and end</b>: <i>" +  + ")</i>";
+		return hintKey;
 	}
 }
 

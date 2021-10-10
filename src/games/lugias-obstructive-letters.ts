@@ -81,9 +81,9 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
-		const unavailableLetters = this.sampleMany(LugiasObstructiveLetters.availableLetters[hintKey],
-			Math.floor(LugiasObstructiveLetters.availableLetters[hintKey].length / 2)).sort();
+	async onSetGeneratedHint(baseHintKey: string): Promise<string> {
+		const unavailableLetters = this.sampleMany(LugiasObstructiveLetters.availableLetters[baseHintKey],
+			Math.floor(LugiasObstructiveLetters.availableLetters[baseHintKey].length / 2)).sort();
 		const answers: string[] = [];
 		for (const answer of LugiasObstructiveLetters.cachedData.categoryHintKeys![this.currentCategory]) {
 			const id = Tools.toId(answer);
@@ -101,12 +101,13 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		}
 
 		if (answers.length > MAX_ANSWERS) {
-			void this.generateHint();
-			return;
+			return await this.generateHint();
 		}
 
 		this.answers = answers;
-		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + unavailableLetters.join(", ").toUpperCase() + "</i>";
+		const hintKey = unavailableLetters.join(", ").toUpperCase();
+		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + hintKey + "</i>";
+		return hintKey;
 	}
 
 	getPointsForAnswer(answer: string): number {

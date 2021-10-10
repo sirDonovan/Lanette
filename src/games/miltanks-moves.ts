@@ -76,8 +76,9 @@ class MiltanksMoves extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	onSetGeneratedHint(hintKey: string): string {
 		this.hint = "<b>Randomly generated Pokemon and type</b>: <i>" + this.currentCategory + " - " + hintKey + " type</i>";
+		return hintKey;
 	}
 }
 

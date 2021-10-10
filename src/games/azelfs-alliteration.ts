@@ -65,7 +65,7 @@ class AzelfsAlliteration extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string, hintAnswers: Dict<readonly string[]>): void {
+	onSetGeneratedHint(baseHintKey: string, hintAnswers: Dict<readonly string[]>): string {
 		let pokemon = this.sampleOne(AzelfsAlliteration.cachedData.hintKeys!);
 		let letter = pokemon.charAt(0).toLowerCase();
 		while (!(letter in hintAnswers) || !hintAnswers[letter].length) {
@@ -74,7 +74,9 @@ class AzelfsAlliteration extends QuestionAndAnswer {
 		}
 
 		this.answers = hintAnswers[letter];
-		this.hint = "<b>Randomly generated Pokemon and category</b>: <i>" + pokemon + " - " + this.currentCategory + "</i>";
+		const hintKey = pokemon + " - " + this.currentCategory;
+		this.hint = "<b>Randomly generated Pokemon and category</b>: <i>" + hintKey + "</i>";
+		return hintKey;
 	}
 }
 

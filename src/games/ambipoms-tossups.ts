@@ -39,7 +39,11 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		if (this.scaleMaxRevealedLetters) this.minHintKeyLength = 7;
 	}
 
-	onSetGeneratedHint(hintKey: string): void {
+	getHintKey(): string {
+		return this.hints.join(" ");
+	}
+
+	onSetGeneratedHint(hintKey: string): string {
 		this.revealedLetters = 0;
 		this.hintUpdates = 0;
 		this.roundGuesses.clear();
@@ -52,6 +56,8 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		for (let i = 0; i < this.hints.length; i++) {
 			this.hints[i] = Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i];
 		}
+
+		return this.getHintKey();
 	}
 
 	updateHint(): void {
@@ -67,7 +73,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 			this.revealedLetters++;
 		}
 
-		this.hint = "<b>" + this.currentCategory + "</b> | " + this.hints.join(" ");
+		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey();
 	}
 
 	onHintHtml(): void {

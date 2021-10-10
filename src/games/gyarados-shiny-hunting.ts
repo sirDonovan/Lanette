@@ -82,7 +82,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async customGenerateHint(): Promise<void> {
+	async customGenerateHint(): Promise<string> {
 		let species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
 		while (species === this.lastPokemon) {
 			species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
@@ -129,6 +129,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 			this.getCurrentGif(pokemon) + "&nbsp;" + this.getShinyCurrentGif(pokemon) + "</center>");
 
 		this.answers = this.shinyCoordinates.map(x => Tools.toId(LETTERS[x[0]] + x[1]));
+		return "";
 	}
 
 	generateShinyCoordinates(pokemonInRow: number, rowsInGrid: number): [number, number] {
