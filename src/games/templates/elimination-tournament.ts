@@ -23,9 +23,11 @@ interface ITeamChange {
 	evolutions: number;
 }
 
+const REROLL_COMMAND = "reroll";
+const REROLL_START_DELAY = 30 * 1000;
 const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
-const ADVERTISEMENT_TIME = 20 * 60 * 1000;
+const ADVERTISEMENT_TIME = 10 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
 export abstract class EliminationTournament extends ScriptedGame {
@@ -1118,59 +1120,67 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	onStart(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
-		this.canReroll = false;
-		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
-		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-
-		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
-			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
-			"tournament page on the left for your opponents.";
-		html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy the " +
-			"link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
-		this.sayHtml(html);
-
-		this.generateBracket();
-
-		const matchesByRound = this.getMatchesByRound();
-		const matchRounds = Object.keys(matchesByRound).sort();
-		for (let i = 1; i < matchRounds.length; i++) {
-			const round = matchRounds[i];
-			for (const match of matchesByRound[round]) {
-				for (const child of match.children!) {
-					if (child.user) this.firstRoundByes.add(child.user);
-				}
-			}
+		if (this.canReroll) {
+			this.say("The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
+				" left to use ``" + Config.commandCharacter + REROLL_COMMAND + "``.");
 		}
 
-		this.firstRoundByes.forEach(player => {
-			player.round!++;
-			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
-				const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
-				const additionsThisRound = Math.min(this.additionsPerRound, 6 - (this.startingTeamsLength - dropsThisRound));
+		this.timeout = setTimeout(() => {
+			this.canReroll = false;
+			this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
-				const pokemon: string[] = [];
-				for (let i = 0; i < additionsThisRound; i++) {
-					const mon = this.pokedex.shift();
-					if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
-					pokemon.push(mon);
+			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+
+			let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
+				Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
+				"tournament page on the left for your opponents.";
+			html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
+				"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
+			this.sayHtml(html);
+
+			this.generateBracket();
+
+			const matchesByRound = this.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			for (let i = 1; i < matchRounds.length; i++) {
+				const round = matchRounds[i];
+				for (const match of matchesByRound[round]) {
+					for (const child of match.children!) {
+						if (child.user) this.firstRoundByes.add(child.user);
+					}
 				}
-
-				const teamChange: ITeamChange = {
-					additions: additionsThisRound,
-					choices: pokemon,
-					drops: dropsThisRound,
-					evolutions: this.evolutionsPerRound,
-				};
-				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
-
-				this.updatePossibleTeams(player, pokemon);
-
-				player.say("You were given a first round bye so check the tournament page for additional team changes!");
 			}
-		});
 
-		this.updateMatches(true);
+			this.firstRoundByes.forEach(player => {
+				player.round!++;
+				if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
+					const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
+					const additionsThisRound = Math.min(this.additionsPerRound, 6 - (this.startingTeamsLength - dropsThisRound));
+
+					const pokemon: string[] = [];
+					for (let i = 0; i < additionsThisRound; i++) {
+						const mon = this.pokedex.shift();
+						if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
+						pokemon.push(mon);
+					}
+
+					const teamChange: ITeamChange = {
+						additions: additionsThisRound,
+						choices: pokemon,
+						drops: dropsThisRound,
+						evolutions: this.evolutionsPerRound,
+					};
+					this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
+
+					this.updatePossibleTeams(player, pokemon);
+
+					player.say("You were given a first round bye so check the tournament page for additional team changes!");
+				}
+			});
+
+			this.updateMatches(true);
+		}, this.canReroll ? REROLL_START_DELAY : 0);
 	}
 
 	onAddPlayer(player: Player): boolean {
@@ -1201,6 +1211,12 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		this.giveStartingTeam(player);
+
+		if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
+			player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
+				Config.commandCharacter + REROLL_COMMAND + "`` or keep your team!");
+		}
+
 		return true;
 	}
 
@@ -1777,7 +1793,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 		spectatorGameCommand: true,
 		signupsGameCommand: true,
 	},
-	reroll: {
+	[REROLL_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canReroll || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
