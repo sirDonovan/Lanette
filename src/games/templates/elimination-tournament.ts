@@ -1124,63 +1124,66 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (this.canReroll) {
 			this.say("The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
 				" left to use ``" + Config.commandCharacter + REROLL_COMMAND + "``.");
+			this.timeout = setTimeout(() => this.startTournament(), REROLL_START_DELAY);
+		} else {
+			this.startTournament();
 		}
+	}
 
-		this.timeout = setTimeout(() => {
-			this.canReroll = false;
-			this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
+	startTournament(): void {
+		this.canReroll = false;
+		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
-			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 
-			let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
-				Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
-				"tournament page on the left for your opponents.";
-			html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
-				"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
-			this.sayHtml(html);
+		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
+			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
+			"tournament page on the left for your opponents.";
+		html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
+			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
+		this.sayHtml(html);
 
-			this.generateBracket();
+		this.generateBracket();
 
-			const matchesByRound = this.getMatchesByRound();
-			const matchRounds = Object.keys(matchesByRound).sort();
-			for (let i = 1; i < matchRounds.length; i++) {
-				const round = matchRounds[i];
-				for (const match of matchesByRound[round]) {
-					for (const child of match.children!) {
-						if (child.user) this.firstRoundByes.add(child.user);
-					}
+		const matchesByRound = this.getMatchesByRound();
+		const matchRounds = Object.keys(matchesByRound).sort();
+		for (let i = 1; i < matchRounds.length; i++) {
+			const round = matchRounds[i];
+			for (const match of matchesByRound[round]) {
+				for (const child of match.children!) {
+					if (child.user) this.firstRoundByes.add(child.user);
 				}
 			}
+		}
 
-			this.firstRoundByes.forEach(player => {
-				player.round!++;
-				if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
-					const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
-					const additionsThisRound = Math.min(this.additionsPerRound, 6 - (this.startingTeamsLength - dropsThisRound));
+		this.firstRoundByes.forEach(player => {
+			player.round!++;
+			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
+				const dropsThisRound = Math.min(this.dropsPerRound, this.startingTeamsLength - (this.additionsPerRound ? 0 : 1));
+				const additionsThisRound = Math.min(this.additionsPerRound, 6 - (this.startingTeamsLength - dropsThisRound));
 
-					const pokemon: string[] = [];
-					for (let i = 0; i < additionsThisRound; i++) {
-						const mon = this.pokedex.shift();
-						if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
-						pokemon.push(mon);
-					}
-
-					const teamChange: ITeamChange = {
-						additions: additionsThisRound,
-						choices: pokemon,
-						drops: dropsThisRound,
-						evolutions: this.evolutionsPerRound,
-					};
-					this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
-
-					this.updatePossibleTeams(player, pokemon);
-
-					player.say("You were given a first round bye so check the tournament page for additional team changes!");
+				const pokemon: string[] = [];
+				for (let i = 0; i < additionsThisRound; i++) {
+					const mon = this.pokedex.shift();
+					if (!mon) throw new Error("Not enough Pokemon for first round bye (" + player.name + ")");
+					pokemon.push(mon);
 				}
-			});
 
-			this.updateMatches(true);
-		}, this.canReroll ? REROLL_START_DELAY : 0);
+				const teamChange: ITeamChange = {
+					additions: additionsThisRound,
+					choices: pokemon,
+					drops: dropsThisRound,
+					evolutions: this.evolutionsPerRound,
+				};
+				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
+
+				this.updatePossibleTeams(player, pokemon);
+
+				player.say("You were given a first round bye so check the tournament page for additional team changes!");
+			}
+		});
+
+		this.updateMatches(true);
 	}
 
 	onAddPlayer(player: Player): boolean {
@@ -1858,6 +1861,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should properly list matches by round - 4 players': {
 		test(game) {
+			game.canReroll = false;
 			addPlayers(game, 4);
 			game.start();
 
@@ -1882,6 +1886,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should properly list matches by round - 5 players': {
 		test(game) {
+			game.canReroll = false;
 			addPlayers(game, 5);
 			game.start();
 
@@ -1918,6 +1923,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should properly list matches by round - 6 players': {
 		test(game) {
+			game.canReroll = false;
 			addPlayers(game, 6);
 			game.start();
 
@@ -1958,6 +1964,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should properly list matches by round - 7 players': {
 		test(game) {
+			game.canReroll = false;
 			addPlayers(game, 7);
 			game.start();
 
@@ -1998,6 +2005,7 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 	'should properly list matches by round - 8 players': {
 		test(game) {
+			game.canReroll = false;
 			addPlayers(game, 8);
 			if (!game.started) game.start();
 
@@ -2035,6 +2043,7 @@ const tests: GameFileTests<EliminationTournament> = {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
 
+			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();
 
@@ -2064,6 +2073,7 @@ const tests: GameFileTests<EliminationTournament> = {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
 
+			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();
 
