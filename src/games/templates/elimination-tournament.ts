@@ -1121,6 +1121,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 	onStart(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
 
+		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
+
+		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.generateBracket();
+
 		if (this.canReroll) {
 			this.say("The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
 				" left to use ``" + Config.commandCharacter + REROLL_COMMAND + "``.");
@@ -1132,9 +1137,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	startTournament(): void {
 		this.canReroll = false;
-		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
-
-		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 
 		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
 			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
@@ -1142,8 +1144,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 		html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
 			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
 		this.sayHtml(html);
-
-		this.generateBracket();
 
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
@@ -1179,7 +1179,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 				this.updatePossibleTeams(player, pokemon);
 
-				player.say("You were given a first round bye so check the tournament page for additional team changes!");
+				if (!player.eliminated) {
+					player.say("You were given a first round bye so check the tournament page for additional team changes!");
+				}
 			}
 		});
 
