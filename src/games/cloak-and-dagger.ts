@@ -57,5 +57,11 @@ export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(elim
 			requiredTier: "ZU",
 			variantAliases: ["zu"],
 		},
+		{
+			name: "Cloak and Dagger LC",
+			battleFormatId: "lc",
+			requiredTier: "LC",
+			variantAliases: ["lc", "little cup"],
+		},
 	],
 });
