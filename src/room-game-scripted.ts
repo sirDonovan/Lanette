@@ -596,6 +596,10 @@ export class ScriptedGame extends Game {
 
 			if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
 			database.lastGameFormatTimes[this.format.id] = now;
+			const idWithOptions = Tools.toId(this.format.nameWithOptions);
+			if (idWithOptions !== this.format.id) {
+				database.lastGameFormatTimes[idWithOptions] = now;
+			}
 
 			if (!database.pastGames) database.pastGames = [];
 			database.pastGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});

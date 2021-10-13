@@ -1630,9 +1630,14 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.updateBracketHtml();
 		this.updateHtmlPages();
 
+		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
 		if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
-		database.lastGameFormatTimes[this.format.id] = Date.now();
+		database.lastGameFormatTimes[this.format.id] = now;
+		const idWithOptions = Tools.toId(this.format.nameWithOptions);
+		if (idWithOptions !== this.format.id) {
+			database.lastGameFormatTimes[idWithOptions] = now;
+		}
 
 		const places = Tournaments.getPlacesFromTree(this.treeRoot!);
 		if (places.winner && places.runnerup && places.semifinalists) {

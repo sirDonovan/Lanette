@@ -1091,20 +1091,23 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const database = Storage.getDatabase(gameRoom);
-			if (!targets[0]) {
+			const formatId = targets.join(',');
+			if (!formatId) {
 				if (!database.lastGameTime) return this.say("No scripted games have been played in " + gameRoom.title + ".");
 				return this.say("The last scripted game in " + gameRoom.title + " ended **" +
 					Tools.toDurationString(Date.now() - database.lastGameTime) + "** ago.");
 			}
 
-			const format = Games.getFormat(targets[0]);
+			const format = Games.getFormat(formatId);
 			if (Array.isArray(format)) return this.sayError(format);
-			if (!database.lastGameFormatTimes || !(format.id in database.lastGameFormatTimes)) {
-				return this.say(format.name + " has not been played in " + gameRoom.title + ".");
+
+			const id = Tools.toId(format.nameWithOptions);
+			if (!database.lastGameFormatTimes || !(id in database.lastGameFormatTimes)) {
+				return this.say(format.nameWithOptions + " has not been played in " + gameRoom.title + ".");
 			}
 
-			this.say("The last game of " + format.name + " in " + gameRoom.title + " ended **" +
-				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[format.id]) + "** ago.");
+			this.say("The last game of " + format.nameWithOptions + " in " + gameRoom.title + " ended **" +
+				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[id]) + "** ago.");
 		},
 	},
 	setscriptedgameoption: {
