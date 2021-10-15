@@ -93,6 +93,11 @@ export class User {
 		return this.rooms.get(room)!.rank === groupSymbols.bot;
 	}
 
+	isGlobalStaff(): boolean {
+		const groupSymbols = Client.getGroupSymbols();
+		return this.group === groupSymbols.driver || this.group === groupSymbols.moderator || this.group === groupSymbols.administrator;
+	}
+
 	isDeveloper(): boolean {
 		return Config.developers && Config.developers.includes(this.id) ? true : false;
 	}

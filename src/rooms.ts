@@ -17,6 +17,7 @@ export class Room {
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
 	game: ScriptedGame | null = null;
+	groupchat: boolean | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
@@ -47,7 +48,6 @@ export class Room {
 	constructor(id: string) {
 		this.setId(id);
 		this.setTitle(id);
-		this.setPublicRoom(Client.getPublicRooms().includes(id));
 
 		this.updateConfigSettings();
 	}
@@ -55,6 +55,9 @@ export class Room {
 	setId(id: string): void {
 		// @ts-expect-error
 		this.id = id;
+
+		this.setPublicRoom(Client.getPublicRooms().includes(id));
+		this.groupchat = id.startsWith(Tools.groupchatPrefix);
 
 		let publicId = id;
 		const extractedBattleId = Client.extractBattleId(id);
@@ -225,7 +228,7 @@ export class Room {
 	}
 
 	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		if (!html) return;
+		if (!Tools.checkHtml(this, html)) return;
 
 		const options: IRoomMessageOptions = {
 			html: Client.getListenerHtml(html),
@@ -240,6 +243,8 @@ export class Room {
 	}
 
 	sayUhtml(uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
@@ -254,6 +259,8 @@ export class Room {
 	}
 
 	sayUhtmlChange(uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
@@ -268,6 +275,8 @@ export class Room {
 	}
 
 	sayAuthUhtml(uhtmlName: string, html: string): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
@@ -278,6 +287,8 @@ export class Room {
 	}
 
 	sayAuthUhtmlChange(uhtmlName: string, html: string): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
@@ -288,6 +299,8 @@ export class Room {
 	}
 
 	sayModUhtml(uhtmlName: string, html: string, rank: GroupName): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		this.say("/addrankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -297,6 +310,8 @@ export class Room {
 	}
 
 	sayModUhtmlChange(uhtmlName: string, html: string, rank: GroupName): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		this.say("/changerankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -306,7 +321,7 @@ export class Room {
 	}
 
 	sayPrivateHtml(userOrPlayer: User | Player, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		if (!html) return;
+		if (!Tools.checkHtml(this, html)) return;
 
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
@@ -325,6 +340,8 @@ export class Room {
 	}
 
 	sayPrivateUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
@@ -343,6 +360,8 @@ export class Room {
 
 	sayPrivateUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string,
 		additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
@@ -360,7 +379,7 @@ export class Room {
 	}
 
 	pmHtml(userOrPlayer: User | Player, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		if (!html) return;
+		if (!Tools.checkHtml(this, html)) return;
 
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
@@ -380,6 +399,8 @@ export class Room {
 	}
 
 	pmUhtml(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
@@ -399,6 +420,8 @@ export class Room {
 	}
 
 	pmUhtmlChange(userOrPlayer: User | Player, uhtmlName: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
@@ -503,6 +526,8 @@ export class Room {
 	}
 
 	sendHtmlPage(userOrPlayer: User | Player, pageId: string, html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 
@@ -522,6 +547,8 @@ export class Room {
 
 	changeHtmlPageSelector(userOrPlayer: User | Player, pageId: string, selector: string, html: string,
 		additionalAttributes?: IOutgoingMessageAttributes): void {
+		if (!Tools.checkHtml(this, html)) return;
+
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
 

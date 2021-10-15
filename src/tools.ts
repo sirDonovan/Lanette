@@ -4,6 +4,7 @@ import path = require('path');
 import url = require('url');
 
 import type { PRNG } from './lib/prng';
+import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
 import type { BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
@@ -76,6 +77,107 @@ export class Tools {
 			// @ts-expect-error
 			delete previous[i];
 		}
+	}
+
+	checkHtml(room: Room, htmlContent: string): boolean {
+		htmlContent = htmlContent.trim();
+		if (!htmlContent) return false;
+		if (/>here.?</i.test(htmlContent) || /click here/i.test(htmlContent)) {
+			throw new Error('Cannot use "click here"');
+		}
+
+		// check for mismatched tags
+		const tags = htmlContent.match(/<!--.*?-->|<\/?[^<>]*/g);
+		if (tags) {
+			const ILLEGAL_TAGS = ['script', 'head', 'body', 'html', 'canvas', 'base', 'meta', 'link', 'iframe'];
+			const LEGAL_AUTOCLOSE_TAGS = [
+				// void elements (no-close tags)
+				'br', 'area', 'embed', 'hr', 'img', 'source', 'track', 'input', 'wbr', 'col',
+				// autoclose tags
+				'p', 'li', 'dt', 'dd', 'option', 'tr', 'th', 'td', 'thead', 'tbody', 'tfoot', 'colgroup',
+				// PS custom element
+				'psicon', 'youtube',
+			];
+
+			const stack: string[] = [];
+			for (const tag of tags) {
+				const isClosingTag = tag.charAt(1) === '/';
+				const contentEndLoc = tag.endsWith('/') ? -1 : undefined;
+				const tagContent = tag.slice(isClosingTag ? 2 : 1, contentEndLoc).replace(/\s+/, ' ').trim();
+				const tagNameEndIndex = tagContent.indexOf(' ');
+				const tagName = tagContent.slice(0, tagNameEndIndex >= 0 ? tagNameEndIndex : undefined).toLowerCase();
+				if (tagName === '!--') continue;
+				if (isClosingTag) {
+					if (LEGAL_AUTOCLOSE_TAGS.includes(tagName)) continue;
+					if (!stack.length) {
+						throw new Error("Extraneous </" + tagName + "> without an opening tag.");
+					}
+					const expectedTagName = stack.pop();
+					if (tagName !== expectedTagName) {
+						throw new Error("Extraneous </" + tagName + "> where </" + expectedTagName + "> was expected.");
+					}
+					continue;
+				}
+
+				if (ILLEGAL_TAGS.includes(tagName) || !/^[a-z]+[0-9]?$/.test(tagName)) {
+					throw new Error("Illegal tag <" + tagName + "> can't be used here.");
+				}
+
+				if (!LEGAL_AUTOCLOSE_TAGS.includes(tagName)) {
+					stack.push(tagName);
+				}
+
+				if (tagName === 'img') {
+					if (room.groupchat) {
+						throw new Error("This tag is not allowed: <" + tagContent + ">. Images are not allowed outside of chatrooms.");
+					}
+					if (!/width ?= ?(?:[0-9]+|"[0-9]+")/i.test(tagContent) || !/height ?= ?(?:[0-9]+|"[0-9]+")/i.test(tagContent)) {
+						// Width and height are required because most browsers insert the
+						// <img> element before width and height are known, and when the
+						// image is loaded, this changes the height of the chat area, which
+						// messes up autoscrolling.
+						throw new Error("Images without predefined width/height cause problems with scrolling because loading them " +
+							"changes their height.");
+					}
+
+					const srcMatch = / src ?= ?(?:"|')?([^ "']+)(?: ?(?:"|'))?/i.exec(tagContent);
+					if (srcMatch) {
+						if (!srcMatch[1].startsWith('https://') && !srcMatch[1].startsWith('//') && !srcMatch[1].startsWith('data:')) {
+							throw new Error("Image URLs must begin with 'https://' or 'data:'; 'http://' cannot be used.");
+						}
+					} else {
+						throw new Error("The src attribute must exist and have no spaces in the URL");
+					}
+				}
+
+				if (tagName === 'button') {
+					if ((room.groupchat || !room.publicRoom) && !Users.self.isGlobalStaff()) {
+						const buttonName = / name ?= ?"([^"]*)"/i.exec(tagContent)?.[1];
+						const buttonValue = / value ?= ?"([^"]*)"/i.exec(tagContent)?.[1];
+						const msgCommandRegex = /^\/(?:msg|pm|w|whisper|botmsg) /;
+						const botmsgCommandRegex = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
+						if (buttonName === 'send' && buttonValue && msgCommandRegex.test(buttonValue)) {
+							const [pmTarget] = buttonValue.replace(msgCommandRegex, '').split(',');
+							const targetUser = Users.get(pmTarget);
+							if ((!targetUser || !targetUser.isBot(room)) && this.toId(pmTarget) !== Users.self.id) {
+								throw new Error("Your scripted button can't send PMs to " + pmTarget + ", because that user is not a " +
+									"Room Bot.");
+							}
+						} else if (buttonName === 'send' && buttonValue && botmsgCommandRegex.test(buttonValue)) {
+							// no need to validate the bot being an actual bot; `/botmsg` will do it for us and is not abusable
+						} else if (buttonName) {
+							throw new Error("This button is not allowed: <" + tagContent + ">");
+						}
+					}
+				}
+			}
+
+			if (stack.length) {
+				throw new Error("Missing </" + stack.pop() + ">.");
+			}
+		}
+
+		return true;
 	}
 
 	getMaxTableWidth(borderSpacing: number): number {

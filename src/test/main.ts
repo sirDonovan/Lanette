@@ -41,7 +41,11 @@ module.exports = (inputOptions: Dict<string>): void => {
 		// @ts-expect-error
 		Client.pauseOutgoingMessages = true;
 
+		// @ts-expect-error
+		Client.publicChatRooms = ['mocha'];
+
 		const mochaRoom = Rooms.add('mocha');
+		mochaRoom.setPublicRoom(true);
 		mochaRoom.setTitle('Mocha');
 
 		let modulesToTest: string[];
