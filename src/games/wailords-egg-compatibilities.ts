@@ -107,7 +107,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 
 		const hintKey = startPokemon + " and " + endPokemon +
 			" (" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "");
-		this.hint = "<b>Randomly generated start and end</b>: <i>" +  + ")</i>";
+		this.hint = "<b>Randomly generated start and end</b>: <i>" + hintKey + ")</i>";
 		return hintKey;
 	}
 }
