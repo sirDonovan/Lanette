@@ -152,8 +152,10 @@ export class Tools {
 
 				if (tagName === 'button') {
 					if ((room.groupchat || !room.publicRoom) && !Users.self.isGlobalStaff()) {
-						const buttonName = / name ?= ?"([^"]*)"/i.exec(tagContent)?.[1];
-						const buttonValue = / value ?= ?"([^"]*)"/i.exec(tagContent)?.[1];
+						const buttonNameExec = / name ?= ?"([^"]*)"/i.exec(tagContent);
+						const buttonValueExec = / value ?= ?"([^"]*)"/i.exec(tagContent);
+						const buttonName = buttonNameExec ? buttonNameExec[1] : "";
+						const buttonValue = buttonValueExec ? buttonValueExec[1] : "";
 						const msgCommandRegex = /^\/(?:msg|pm|w|whisper|botmsg) /;
 						const botmsgCommandRegex = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 						if (buttonName === 'send' && buttonValue && msgCommandRegex.test(buttonValue)) {
