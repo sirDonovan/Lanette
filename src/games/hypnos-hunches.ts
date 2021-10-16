@@ -34,7 +34,7 @@ class HypnosHunches extends QuestionAndAnswer {
 	}
 
 	getHintKey(): string {
-		return this.hints.join(" ");
+		return this.hints.join("");
 	}
 
 	onSetGeneratedHint(hintKey: string): string {
