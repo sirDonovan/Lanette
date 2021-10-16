@@ -12,7 +12,7 @@ import type {
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData, RuleTable
+	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData, RuleTable, ValidatedRule
 } from './types/pokemon-showdown';
 import type { IParsedSmogonLink } from './types/tools';
 
@@ -70,7 +70,6 @@ const clauseNicknames: Dict<string> = {
 	'Same Type Clause': 'Monotype',
 	'STABmons Move Legality': 'STABmons',
 	'Inverse Mod': 'Inverse',
-	'Allow One Sketch': 'Sketchmons',
 	'Allow CAP': 'CAP',
 	'Allow Tradeback': 'Tradeback',
 	'Ignore Illegal Abilities': 'Almost Any Ability',
@@ -79,7 +78,8 @@ const clauseNicknames: Dict<string> = {
 	'Old Unova Pokedex': 'Unova BW',
 	'New Unova Pokedex': 'Unova BW2',
 	'Kalos Pokedex': 'Kalos',
-	'Alola Pokedex': 'Alola',
+	'Old Alola Pokedex': 'Alola SuMo',
+	'New Alola Pokedex': 'Alola USUM',
 	'Galar Pokedex': 'Galar',
 	'Isle of Armor Pokedex': 'Isle of Armor',
 	'Crown Tundra Pokedex': 'Crown Tundra',
@@ -94,35 +94,10 @@ const clauseNicknames: Dict<string> = {
 	'Flipped Mod': 'Flipped',
 	'Scalemons Mod': 'Scalemons',
 	'Alphabet Cup Move Legality': 'Alphabet Cup',
-	'Adjust Level = 5': 'Level 5',
-	'Adjust Level = 50': 'Level 50',
-	'Max Move Count = 1': '1 Move',
-	'Max Move Count = 2': '2 Move',
-	'Max Move Count = 3': '3 Move',
-	'Max Move Count = 4': '4 Move',
-	'Max Move Count = 5': '5 Move',
-	'Max Move Count = 6': '6 Move',
-	'Max Move Count = 7': '7 Move',
-	'Max Move Count = 8': '8 Move',
-	'Max Team Size = 1': 'Bring 1',
-	'Max Team Size = 2': 'Bring 2',
-	'Max Team Size = 3': 'Bring 3',
-	'Max Team Size = 4': 'Bring 4',
-	'Max Team Size = 5': 'Bring 5',
-	'Max Team Size = 6': 'Bring 6',
-	'Max Team Size = 7': 'Bring 7',
-	'Max Team Size = 8': 'Bring 8',
-	'Max Team Size = 9': 'Bring 9',
-	'Max Team Size = 10': 'Bring 10',
-	'Picked Team Size = 1': 'Pick 1',
-	'Picked Team Size = 2': 'Pick 2',
-	'Picked Team Size = 3': 'Pick 3',
-	'Picked Team Size = 4': 'Pick 4',
-	'Picked Team Size = 5': 'Pick 5',
-	'Picked Team Size = 6': 'Pick 6',
-	'Picked Team Size = 7': 'Pick 7',
-	'Picked Team Size = 8': 'Pick 8',
-	'Picked Team Size = 9': 'Pick 9',
+	'Sketchmons Move Legality': 'Sketchmons',
+	'Chimera 1v1 Rule': 'Chimera 1v1',
+	'Bonus Type Rule': 'Bonus Type',
+	'First Blood Rule': 'First Blood',
 	'Force Monotype = Bug': 'Mono-Bug',
 	'Force Monotype = Dark': 'Mono-Dark',
 	'Force Monotype = Dragon': 'Mono-Dragon',
@@ -148,23 +123,42 @@ const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry'
 
 type CustomRuleFormats = Dict<{banlist: string, format: string}>;
 const customRuleFormats: CustomRuleFormats = {
+	oubl: {banlist: '+Uber', format: 'OU'},
 	uubl: {banlist: '+UUBL', format: 'UU'},
 	rubl: {banlist: '+RUBL', format: 'RU'},
 	nubl: {banlist: '+NUBL', format: 'NU'},
 	publ: {banlist: '+PUBL', format: 'PU'},
 };
 
+const nonClauseCustomRuleAliases: Dict<string> = {
+	uber: "Uber",
+	ou: "OU",
+	uu: "UU",
+	ru: "RU",
+	nu: "NU",
+	pu: "PU",
+	zu: "ZU",
+	nfe: "NFE",
+	lc: "LC",
+	cap: "CAP",
+	aaa: "AAA",
+	inverse: "Inverse",
+};
+
 const customRuleAliases: Dict<string[]> = {
+	uber: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU', '+UUBL', '+OU', '+Uber'],
+	ou: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU', '+UUBL', '+OU'],
 	uu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU', '+RUBL', '+UU'],
 	ru: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU', '+NUBL', '+RU'],
 	nu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU', '+PUBL', '+NU'],
 	pu: ['-All Pokemon', '+LC', '+NFE', '+ZU', '+PU'],
+	zu: ['-All Pokemon', '+LC', '+NFE', '+ZU'],
+	nfe: ['-All Pokemon', '+LC', '+NFE'],
+	lc: ['-All Pokemon', '+LC'],
 	cap: ['+CAP', '+CAP NFE', '+CAP LC'],
 	monotype: ['Same Type Clause'],
-	aaa: ['!Obtainable Abilities', '-Wonder Guard', '-Shadow Tag'],
 	stabmons: ['STABmons Move Legality'],
 	camomons: ['[Gen 8] Camomons'],
-	inverse: ['Inverse Mod'],
 	'350cup': ['350 Cup Mod'],
 	flipped: ['Flipped Mod'],
 	scalemons: ['Scalemons Mod'],
@@ -186,36 +180,9 @@ const customRuleAliases: Dict<string[]> = {
 	monorock: ['Force Monotype = Rock'],
 	monosteel: ['Force Monotype = Steel'],
 	monowater: ['Force Monotype = Water'],
-	'level5': ['Adjust Level = 5'],
-	'level50': ['Adjust Level = 50'],
-	'1move': ['Max Move Count = 1'],
-	'2move': ['Max Move Count = 2'],
-	'3move': ['Max Move Count = 3'],
-	'4move': ['Max Move Count = 4'],
-	'5move': ['Max Move Count = 5'],
-	'6move': ['Max Move Count = 6'],
-	'7move': ['Max Move Count = 7'],
-	'8move': ['Max Move Count = 8'],
-	'bring1': ['Max Team Size = 1'],
-	'bring2': ['Max Team Size = 2'],
-	'bring3': ['Max Team Size = 3'],
-	'bring4': ['Max Team Size = 4'],
-	'bring5': ['Max Team Size = 5'],
-	'bring6': ['Max Team Size = 6'],
-	'bring7': ['Max Team Size = 7'],
-	'bring8': ['Max Team Size = 8'],
-	'bring9': ['Max Team Size = 9'],
-	'bring10': ['Max Team Size = 10'],
-	'pick1': ['Picked Team Size = 1'],
-	'pick2': ['Picked Team Size = 2'],
-	'pick3': ['Picked Team Size = 3'],
-	'pick4': ['Picked Team Size = 4'],
-	'pick5': ['Picked Team Size = 5'],
-	'pick6': ['Picked Team Size = 6'],
-	'pick7': ['Picked Team Size = 7'],
-	'pick8': ['Picked Team Size = 8'],
-	'pick9': ['Picked Team Size = 9'],
 };
+
+let customRuleAliasesByLength: string[] = [];
 
 interface IInheritedFormatOptions {
 	customRuleAlias: string;
@@ -1287,10 +1254,12 @@ export class Dex {
 		name = name.trim();
 		const inputTarget = name;
 
+		const split = this.splitNameAndCustomRules(name);
+		let allCustomRules = this.resolveCustomRuleAliases(split[1]);
+		name = this.joinNameAndCustomRules(split[0], allCustomRules);
+
 		let format = this.pokemonShowdownDex.formats.get(name, isValidated);
 		if (!format.exists) {
-			const split = this.splitNameAndCustomRules(name);
-			let allCustomRules = this.resolveCustomRuleAliases(split[1]);
 			const parts = split[0].split(" ");
 			if (parts.length > 1) {
 				let formatNameIndex = parts.length - 1;
@@ -1319,29 +1288,18 @@ export class Dex {
 				allCustomRules = allCustomRules.concat(customRuleSplit[1]);
 			}
 
-			const uniqueCustomRules: string[] = [];
-			for (const rule of allCustomRules) {
-				const id = Tools.toId(rule);
-				if (id in customRuleAliases) {
-					for (const aliasRule of customRuleAliases[id]) {
-						const trimmed = aliasRule.trim();
-						if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
-					}
-				} else {
-					const trimmed = rule.trim();
-					if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+			let baseFormat = this.pokemonShowdownDex.formats.get(name);
+			if (!baseFormat.exists) {
+				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
+					baseFormat = this.pokemonShowdownDex.formats.get('gen' + i + name);
+					if (baseFormat.exists) break;
 				}
 			}
 
-			name = this.joinNameAndCustomRules(name, uniqueCustomRules);
-
-			format = this.pokemonShowdownDex.formats.get(name, isValidated);
-
-			if (!format.exists) {
-				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
-					format = this.pokemonShowdownDex.formats.get('gen' + i + name, isValidated);
-					if (format.exists) break;
-				}
+			if (baseFormat.exists) {
+				allCustomRules = this.resolveCustomRuleAliases(allCustomRules);
+				name = this.joinNameAndCustomRules(baseFormat.name, allCustomRules);
+				format = this.pokemonShowdownDex.formats.get(name, isValidated);
 			}
 		}
 
@@ -1508,7 +1466,7 @@ export class Dex {
 	/**
 	 * Validates a custom rule (throws if invalid).
 	 */
-	validateRule(rule: string): [string, string, string, number, string[]] | string {
+	validateRule(rule: string): ValidatedRule {
 		return this.pokemonShowdownDex.formats.validateRule(rule);
 	}
 
@@ -1525,8 +1483,12 @@ export class Dex {
 		let ruleName = rule.trim();
 
 		const index = ruleName.indexOf(':');
-		const tag = ruleName.substr(0, index);
-		ruleName = ruleName.substr(index + 1);
+		let tag = "";
+		if (index !== -1) {
+			tag = ruleName.substr(0, index);
+			ruleName = ruleName.substr(index + 1);
+		}
+
 		if (tag === 'ability') {
 			ruleName = dexes['base'].getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
@@ -1697,7 +1659,7 @@ export class Dex {
 		const addedrules: string[] = [];
 		const removedrules: string[] = [];
 		for (const ruleString of customRules) {
-			const rule = this.pokemonShowdownDex.formats.validateRule(ruleString);
+			const rule = this.validateRule(ruleString);
 			if (typeof rule === 'string') {
 				const type = rule.charAt(0);
 				const ruleName = this.getValidatedRuleName(rule);
@@ -1730,6 +1692,50 @@ export class Dex {
 		return ["-All Pokemon"].concat(pokemon.map(x => "+" + x));
 	}
 
+	checkValidatedRuleInTable(ruleTable: RuleTable, validatedRule: ValidatedRule): boolean {
+		if (typeof validatedRule === 'string') {
+			return ruleTable.has(validatedRule);
+		} else {
+			if (validatedRule[0] === 'complexBan') {
+				return ruleTable.getComplexBanIndex(ruleTable.complexBans, validatedRule[1]) !== -1;
+			} else {
+				return ruleTable.getComplexBanIndex(ruleTable.complexTeamBans, validatedRule[1]) !== -1;
+			}
+		}
+	}
+
+	formatContainsRuleSubset(format: IFormat, baseSeparatedRules: ISeparatedCustomRules,
+		subsetSeparatedRules: ISeparatedCustomRules): boolean {
+		const ruleTable = this.getRuleTable(format);
+
+		for (const ban of subsetSeparatedRules.addedbans) {
+			if (!baseSeparatedRules.addedbans.includes(ban) &&
+				!this.checkValidatedRuleInTable(ruleTable, this.validateRule('-' + ban))) return false;
+		}
+
+		for (const ban of subsetSeparatedRules.removedbans) {
+			if (!baseSeparatedRules.removedbans.includes(ban) &&
+				!this.checkValidatedRuleInTable(ruleTable, this.validateRule('+' + ban))) return false;
+		}
+
+		for (const restriction of subsetSeparatedRules.addedrestrictions) {
+			if (!baseSeparatedRules.addedrestrictions.includes(restriction) &&
+				!this.checkValidatedRuleInTable(ruleTable, this.validateRule('*' + restriction))) return false;
+		}
+
+		for (const rule of subsetSeparatedRules.addedrules) {
+			if (!baseSeparatedRules.addedrules.includes(rule) &&
+				!this.checkValidatedRuleInTable(ruleTable, this.validateRule(rule))) return false;
+		}
+
+		for (const rule of subsetSeparatedRules.removedrules) {
+			if (!baseSeparatedRules.removedrules.includes(rule) &&
+				!this.checkValidatedRuleInTable(ruleTable, this.validateRule('!' + rule))) return false;
+		}
+
+		return true;
+	}
+
 	getCustomFormatName(format: IFormat, fullName?: boolean): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 
@@ -1744,36 +1750,80 @@ export class Dex {
 		let prefixesRemoved: string[] = [];
 		let suffixes: string[] = [];
 
-		const removedBansLength = format.separatedCustomRules.removedbans.length;
-		const addedRestrictionsLength = format.separatedCustomRules.addedrestrictions.length;
-
 		const addedBans = format.separatedCustomRules.addedbans.slice();
+		const removedBans = format.separatedCustomRules.removedbans.slice();
+		const addedRestrictions = format.separatedCustomRules.addedrestrictions.slice();
+		const addedRules = format.separatedCustomRules.addedrules.slice();
+		const removedRules = format.separatedCustomRules.removedrules.slice();
+
+		const baseFormat = this.getExistingFormat(format.name);
+		for (const id of customRuleAliasesByLength) {
+			if (!(id in nonClauseCustomRuleAliases)) continue;
+
+			const aliasRuleset = customRuleAliases[id];
+			const separatedAliasRules = this.separateCustomRules(aliasRuleset);
+			if (!this.formatContainsRuleSubset(baseFormat, {
+				addedbans: addedBans,
+				removedbans: removedBans,
+				addedrestrictions: addedRestrictions,
+				addedrules: addedRules,
+				removedrules: removedRules,
+			}, separatedAliasRules)) continue;
+
+			for (const ban of separatedAliasRules.addedbans) {
+				const index = addedBans.indexOf(ban);
+				if (index !== -1) addedBans.splice(index, 1);
+			}
+
+			for (const ban of separatedAliasRules.removedbans) {
+				const index = removedBans.indexOf(ban);
+				if (index !== -1) removedBans.splice(index, 1);
+			}
+
+			for (const restriction of separatedAliasRules.addedrestrictions) {
+				const index = addedRestrictions.indexOf(restriction);
+				if (index !== -1) addedRestrictions.splice(index, 1);
+			}
+
+			for (const rule of separatedAliasRules.addedrules) {
+				const index = addedRules.indexOf(rule);
+				if (index !== -1) addedRules.splice(index, 1);
+			}
+
+			for (const rule of separatedAliasRules.removedrules) {
+				const index = removedRules.indexOf(rule);
+				if (index !== -1) removedRules.splice(index, 1);
+			}
+
+			prefixesAdded.push(nonClauseCustomRuleAliases[id]);
+		}
+
 		let onlySuffix = false;
-		if (addedBans.length && removedBansLength && !addedRestrictionsLength) {
+		if (addedBans.length && removedBans.length && !addedRestrictions.length) {
 			if (addedBans.includes(tagNames.allabilities) && !addedBans.map(x => this.getAbility(x)).filter(x => !!x).length) {
 				const abilities = format.separatedCustomRules.removedbans.map(x => this.getAbility(x)).filter(x => !!x);
-				if (abilities.length === removedBansLength) {
+				if (abilities.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allabilities), 1);
 					suffixes.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allitems) && !addedBans.map(x => this.getItem(x)).filter(x => !!x).length) {
 				const items = format.separatedCustomRules.removedbans.map(x => this.getItem(x)).filter(x => !!x);
-				if (items.length === removedBansLength) {
+				if (items.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allitems), 1);
 					suffixes.push("Only " + Tools.joinList(items.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allmoves) && !addedBans.map(x => this.getMove(x)).filter(x => !!x).length) {
 				const moves = format.separatedCustomRules.removedbans.map(x => this.getMove(x)).filter(x => !!x);
-				if (moves.length === removedBansLength) {
+				if (moves.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allmoves), 1);
 					suffixes.push("Only " + Tools.joinList(moves.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allpokemon) && !addedBans.map(x => this.getPokemon(x)).filter(x => !!x).length) {
 				const pokemon = format.separatedCustomRules.removedbans.map(x => this.getPokemon(x)).filter(x => !!x);
-				if (pokemon.length === removedBansLength) {
+				if (pokemon.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allpokemon), 1);
 					suffixes.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
@@ -1782,19 +1832,19 @@ export class Dex {
 		}
 
 		if (addedBans.length) {
-			prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.addedbans);
+			prefixesRemoved = prefixesRemoved.concat(addedBans);
 		}
 
-		if (removedBansLength && !onlySuffix) {
-			suffixes = suffixes.concat(format.separatedCustomRules.removedbans);
+		if (removedBans.length && !onlySuffix) {
+			suffixes = suffixes.concat(removedBans);
 		}
 
-		if (addedRestrictionsLength) {
-			suffixes = suffixes.concat(format.separatedCustomRules.addedrestrictions);
+		if (addedRestrictions.length) {
+			suffixes = suffixes.concat(addedRestrictions);
 		}
 
-		if (format.separatedCustomRules.addedrules.length) {
-			for (const addedRule of format.separatedCustomRules.addedrules) {
+		if (addedRules.length) {
+			for (const addedRule of addedRules) {
 				let rule = addedRule;
 				const subFormat = this.getFormat(rule);
 				if (subFormat && subFormat.effectType === 'Format' && subFormat.name.startsWith('[Gen')) {
@@ -1806,8 +1856,8 @@ export class Dex {
 			}
 		}
 
-		if (format.separatedCustomRules.removedrules.length) {
-			prefixesRemoved = prefixesRemoved.concat(format.separatedCustomRules.removedrules.map(x => clauseNicknames[x] || x));
+		if (removedRules.length) {
+			prefixesRemoved = prefixesRemoved.concat(removedRules.map(x => clauseNicknames[x] || x));
 		}
 
 		let name = '';
@@ -2528,6 +2578,33 @@ export class Dex {
 
 			customRuleAliases[customRuleInheritedFormats[id].customRuleAlias] = rules;
 		}
+
+		for (let i = 1; i <= 100; i++) {
+			clauseNicknames['Adjust Level = ' + i] = 'Level ' + i;
+			clauseNicknames['Adjust Level Down = ' + i] = 'Forced Level ' + i;
+
+			customRuleAliases['level' + i] = ['Adjust Level = ' + i];
+			customRuleAliases['forcedlevel' + i] = ['Adjust Level Down = ' + i];
+		}
+
+		for (let i = 1; i <= 24; i++) {
+			clauseNicknames['Max Team Size = ' + i] = 'Bring ' + i;
+			clauseNicknames['Min Team Size = ' + i] = 'Bring At Least ' + i;
+			clauseNicknames['Picked Team Size = ' + i] = 'Pick ' + i;
+			clauseNicknames['Max Move Count = ' + i] = i + ' Move';
+
+			customRuleAliases[i + 'move'] = ['Max Move Count = ' + i];
+			customRuleAliases['bring' + i] = ['Max Team Size = ' + i];
+			customRuleAliases['bringatleast' + i] = ['Min Team Size = ' + i];
+			customRuleAliases['pick' + i] = ['Picked Team Size = ' + i];
+		}
+
+		for (let i = 1; i <= CURRENT_GEN; i++) {
+			clauseNicknames['Min Source Gen = ' + i] = 'Gen ' + i + '+';
+		}
+
+		customRuleAliasesByLength = Object.keys(customRuleAliases)
+			.sort((a, b) => customRuleAliases[b].length - customRuleAliases[a].length);
 	}
 
 	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon, typeKeys: string[]): void {

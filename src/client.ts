@@ -2045,8 +2045,8 @@ export class Client {
 						separatedCustomRules[currentCategory] = line.split(",").map(x => x.trim());
 					}
 
-					room.tournament.format.customRules = Dex.combineCustomRules(separatedCustomRules);
-					delete room.tournament.format.separatedCustomRules;
+					room.tournament.format = Dex.getExistingFormat(Dex.joinNameAndCustomRules(room.tournament.format.name,
+						Dex.combineCustomRules(separatedCustomRules)));
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
@@ -2064,8 +2064,7 @@ export class Client {
 				room.serverHangman = null;
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
-					room.tournament.format.customRules = null;
-					delete room.tournament.format.separatedCustomRules;
+					room.tournament.format = Dex.getExistingFormat(room.tournament.format.name);
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||

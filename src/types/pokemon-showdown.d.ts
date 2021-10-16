@@ -8,6 +8,7 @@ import type { IFormatDataLinks, ISeparatedCustomRules } from "./dex";
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
 export type ComplexTeamBan = ComplexBan;
+export type ValidatedRule = string | [string, string, string, number, string[]];
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatIDExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
