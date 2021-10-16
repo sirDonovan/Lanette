@@ -217,6 +217,25 @@ const customRuleAliases: Dict<string[]> = {
 	'pick9': ['Picked Team Size = 9'],
 };
 
+interface IInheritedFormatOptions {
+	customRuleAlias: string;
+	abilities?: boolean;
+	items?: boolean;
+	moves?: boolean;
+	pokemon?: boolean;
+}
+
+const customRuleInheritedFormats: Dict<IInheritedFormatOptions> = {
+	almostanyability: {
+		customRuleAlias: 'aaa',
+		abilities: true,
+	},
+	inverse: {
+		customRuleAlias: 'inverse',
+		pokemon: true,
+	},
+};
+
 type Dexes = Dict<Dex>;
 const dexes: Dexes = {};
 
@@ -2476,6 +2495,39 @@ export class Dex {
 
 		// @ts-expect-error
 		this.dataCache = data;
+
+		for (const id in customRuleInheritedFormats) {
+			const format = this.getFormat(id);
+			if (!format) continue;
+
+			const options = customRuleInheritedFormats[id];
+			const rules = format.ruleset.slice();
+			for (const ban of format.banlist) {
+				if (this.getAbility(ban)) {
+					if (options.abilities) rules.push("-" + ban);
+				} else if (this.getItem(ban)) {
+					if (options.items) rules.push("-" + ban);
+				} else if (this.getMove(ban)) {
+					if (options.moves) rules.push("-" + ban);
+				} else if (this.getPokemon(ban)) {
+					if (options.pokemon) rules.push("-" + ban);
+				}
+			}
+
+			for (const unban of format.unbanlist) {
+				if (this.getAbility(unban)) {
+					if (options.abilities) rules.push("+" + unban);
+				} else if (this.getItem(unban)) {
+					if (options.items) rules.push("+" + unban);
+				} else if (this.getMove(unban)) {
+					if (options.moves) rules.push("+" + unban);
+				} else if (this.getPokemon(unban)) {
+					if (options.pokemon) rules.push("+" + unban);
+				}
+			}
+
+			customRuleAliases[customRuleInheritedFormats[id].customRuleAlias] = rules;
+		}
 	}
 
 	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon, typeKeys: string[]): void {
