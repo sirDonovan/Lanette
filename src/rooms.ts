@@ -96,10 +96,10 @@ export class Room {
 			clearTimeout(this.timers[i]);
 		}
 
-		this.users.forEach(user => {
-			user.rooms.delete(this);
-			if (!user.rooms.size) Users.remove(user);
-		});
+		const users = Array.from(this.users.keys());
+		for (const user of users) {
+			this.onUserLeave(user);
+		}
 
 		for (const i in this) {
 			if (i !== 'id' && i !== 'title') delete this[i];
@@ -161,6 +161,7 @@ export class Room {
 	onUserLeave(user: User): void {
 		this.users.delete(user);
 		user.rooms.delete(this);
+		if (user.timers && this.id in user.timers) clearTimeout(user.timers[this.id]);
 
 		if (this.game && this.game.onUserLeaveRoom) this.game.onUserLeaveRoom(this, user);
 		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);

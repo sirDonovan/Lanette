@@ -34,16 +34,31 @@ export const commands: BaseCommandDefinitions = {
 	},
 	timer: {
 		command(target, room, user) {
-			if (this.isPm(room)) return;
-			if (!user.hasRank(room, 'voice')) {
+			if (!this.isPm(room) && !user.hasRank(room, 'voice')) {
 				if (room.userHostedGame && room.userHostedGame.isHost(user)) this.run('gametimer');
 				return;
 			}
-			const id = Tools.toId(target);
+
+			const targets = target.split(',');
+			let timerId = "";
+			let timerName = "";
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+
+				targets.shift();
+				timerId = targetRoom.id;
+				timerName = targetRoom.title;
+			} else {
+				timerId = user.id;
+				timerName = user.name;
+			}
+
+			const id = Tools.toId(targets[0]);
 			if (id === 'off' || id === 'end') {
-				if (!room.timers || !(user.id in room.timers)) return this.say("You do not have a timer running.");
-				clearTimeout(room.timers[user.id]);
-				delete room.timers[user.id];
+				if (!room.timers || !(timerId in room.timers)) return this.say("You do not have a timer running.");
+				clearTimeout(room.timers[timerId]);
+				delete room.timers[timerId];
 				return this.say("Your timer has been turned off.");
 			}
 
@@ -57,12 +72,11 @@ export const commands: BaseCommandDefinitions = {
 			time *= 1000;
 
 			if (!room.timers) room.timers = {};
-			if (user.id in room.timers) clearTimeout(room.timers[user.id]);
+			if (timerId in room.timers) clearTimeout(room.timers[timerId]);
 
-			const name = user.name;
-			room.timers[user.id] = setTimeout(() => {
-				room.say(name + ": time is up!");
-				delete room.timers![user.id];
+			room.timers[timerId] = setTimeout(() => {
+				room.say(timerName + ": time is up!");
+				delete room.timers![timerId];
 			}, time);
 
 			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");

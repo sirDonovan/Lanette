@@ -13,6 +13,7 @@ export class User {
 	group: string | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
+	timers: Dict<NodeJS.Timer> | null = null;
 
 	id: string;
 	name!: string;
@@ -50,6 +51,10 @@ export class User {
 	}
 
 	destroy(): void {
+		for (const i in this.timers) {
+			clearTimeout(this.timers[i]);
+		}
+
 		if (this.game) this.game.forceEnd(this);
 
 		for (const i in this) {
