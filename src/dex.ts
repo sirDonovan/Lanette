@@ -2589,18 +2589,21 @@ export class Dex {
 
 		for (let i = 1; i <= 24; i++) {
 			clauseNicknames['Max Team Size = ' + i] = 'Bring ' + i;
-			clauseNicknames['Min Team Size = ' + i] = 'Bring At Least ' + i;
+			clauseNicknames['Min Team Size = ' + i] = 'Bring ' + i + '+';
 			clauseNicknames['Picked Team Size = ' + i] = 'Pick ' + i;
 			clauseNicknames['Max Move Count = ' + i] = i + ' Move';
 
 			customRuleAliases[i + 'move'] = ['Max Move Count = ' + i];
+			customRuleAliases[i + 'moves'] = ['Max Move Count = ' + i];
 			customRuleAliases['bring' + i] = ['Max Team Size = ' + i];
-			customRuleAliases['bringatleast' + i] = ['Min Team Size = ' + i];
+			customRuleAliases['minbring' + i] = ['Min Team Size = ' + i];
 			customRuleAliases['pick' + i] = ['Picked Team Size = ' + i];
 		}
 
 		for (let i = 1; i <= CURRENT_GEN; i++) {
 			clauseNicknames['Min Source Gen = ' + i] = 'Gen ' + i + '+';
+
+			customRuleAliases['mingen' + i] = ['Min Source Gen = ' + i];
 		}
 
 		customRuleAliasesByLength = Object.keys(customRuleAliases)
