@@ -8,41 +8,6 @@ import type { IRoomTournamentSchedule } from "./types/tournaments";
 export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 	'tournaments': {
 		months: {
-			'9': {
-				formats: {
-					'1': 'uu',
-					'2': 'pu',
-					'3': 'ru',
-					'4': 'nu',
-					'5': 'monotype',
-					'6': 'randombattle',
-					'7': 'doublesou',
-					'8': 'ubers',
-					'9': 'lc',
-					'10': 'ou',
-					'11': 'zu',
-					'12': 'uu',
-					'13': 'pu',
-					'14': 'ru',
-					'15': 'nu',
-					'16': 'monotype',
-					'17': 'ru',
-					'18': 'doublesou',
-					'19': 'ubers',
-					'20': 'lc',
-					'21': 'ou',
-					'22': 'pu',
-					'23': 'uu',
-					'24': 'nu',
-					'25': 'monotype',
-					'26': 'ru',
-					'27': 'doublesou',
-					'28': 'ubers',
-					'29': 'lc',
-					'30': 'ou',
-				},
-				times: [[2, 30], [9, 30], [15, 30], [20, 30]],
-			},
 			'10': {
 				formats: {
 					'1': 'pu',
@@ -151,6 +116,59 @@ export const tournamentSchedules: Dict<IRoomTournamentSchedule> = {
 					'29': 'Gen 5 OU, -Sand Stream, -Drizzle, -Drought, -Snow Warning',
 					'30': 'Natdex UU, gen8camomons',
 					'31': 'ag, blitz',
+				},
+				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+			},
+			'11': {
+				formats: {
+					'1': 'randombattle, maxteamsize = 10, pickedteamsize  = 6, teampreview',
+					'2': 'omotm',
+					'3': 'Stabmons, !Obtainable Abilities, -Arena Trap, -Comatose, -Contrary, -Fluffy, -Fur Coat, -Gorilla Tactics,' +
+						'-Huge Power, -Ice Scales, -Illusion, -Imposter, -Innards Out, -Intrepid Sword, -Libero, -Moody,' +
+						'-Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout, -Speed Boost,' +
+						'-Water Bubble, -Wonder Guard, -Shedinja, 2 Ability Clause, *Transform, *No Retreat, *V-create, -Hypnosis,' +
+						'-Sing, -Sleep Powder, +Darmanitan, +Darmanitan-Galar, +Dracovish, +Gengar, +Porygon-Z, -Keldeo, -Terrakion,' +
+						'*Wicked Blow, -Zeraora, -Chandelure, -Melmetal, -Electrify, -Volcarona, -Blacephalon, -Tapu Koko,' +
+						'-Thundurus, -Archeops, -Zygarde, -Regigigas, +Zygarde-10%, -Tinted Lens, *Glacial Lance, +Landorus-Base,' +
+						'-Urshifu, +Mamoswine, +Urshifu-Rapid-Strike, -Landorus-Therian, -Latios, -Magearna, *Oblivion Wing,' +
+						'+Clangorous Soul, +Precipice Blades, *Dragon Ascent, -Poison Heal',
+					'4': 'gen7battlefactory, inversemod, gen8sharedpower, !moody clause',
+					'5': 'lc, camomons, +arena trap, +shadow tag',
+					'6': 'uu, firstbloodrule, -heavy-duty boots',
+					'7': 'doublesou, +jirachi, +melmetal, +marshadow',
+					'8': 'gen5ubers',
+					'9': 'camomons, !teampreview, teamtypepreview',
+					'10': 'uu, !dynamax clause, maxteamsize = 6, pickedteamsize = 3',
+					'11': 'gen7ou',
+					'12': 'sharedpower, maxteamsize = 9',
+					'13': 'nationaldexmonotype, -tapu lele',
+					'14': 'doublesuu, -DUU',
+					'15': 'omotm',
+					'16': 'nintendocup1997, inverse',
+					'17': 'Mix and Mega, STABmons Move Legality,*Acupressure,*Belly Drum,*Bolt Beak,*Boomburst,*Double Iron Bash,' +
+						'*Extreme Speed,*Fishious Rend,*Geomancy,*Lovely Kiss,*Shell Smash,*Shift Gear,*Spore,*Thousand Arrows,' +
+						'*Transform,*V-create,*Wicked Blow,*Astral Barrage,*Glacial Lance,*Dragapult,*Dragonite,*Kartana,' +
+						'*Landorus-Therian,*Tapu Koko,*Zygarde-Base,*Spectrier,*Precipice Blades,*Urshifu-Rapid-Strike, *Genesect',
+					'18': 'rubl, +light clay',
+					'19': 'gen7pu',
+					'20': 'National Dex AG, !Obtainable Formes, OHKO Clause, Evasion Moves Clause, Species Clause, Dynamax Clause,' +
+						'Sleep Clause Mod, -Zacian-Crowned, -Gengar-Mega, -Baton Pass',
+					'21': 'doublesubers, !Obtainable Abilities, !Obtainable Moves, !Obtainable Misc, !EV Limit, Forme Clause,' +
+						'!Species Clause, -Shedinja, -Comatose + Sleep Talk, -Double Iron Bash, -Octolock, -Arena Trap, -Contrary,' +
+						'-Gorilla Tactics, -Huge Power, -Illusion, -Innards Out, -Libero, -Moody, -Neutralizing Gas, -Parental Bond,' +
+						'-Protean, -Pure Power, -Shadow Tag, -Stakeout, -Water Bubble, -Wonder Guard, -Justified, -Anger Point,' +
+						'-Steam Engine, -Stamina, -Rattled, -Wandering Spirit, -Soul-Heart',
+					'22': 'monotype, -melmetal, -moltres-galar',
+					'23': 'gen3ou, -tauros, -snorlax, -chansey',
+					'24': 'pu, -volt switch, -u-turn, -flip turn, -teleport, -parting shot',
+					'25': 'zu',
+					'26': 'Ubers, Tier Shift, ![Gen 8] OU',
+					'27': 'gen4randombattle, inversemod, gen8camomons, gen8sharedpower, scalemonsmod',
+					'28': 'nationaldexag',
+					'29': 'LC, STABmons Move Legality, *Acupressure, *Belly Drum, *Bolt Beak, *Double Iron Bash, *Electrify,' +
+						'*Extreme Speed, *Fishious Rend, *Geomancy, *Glacial Lance, *Lovely Kiss, *Shell Smash, *Shift Gear,' +
+						'*Spore, *Thousand Arrows, *V-create, *Wicked Blow, -Porygon',
+					'30': 'gen7pu, +publ',
 				},
 				times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 			},

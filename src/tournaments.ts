@@ -115,7 +115,12 @@ export class Tournaments {
 						}
 					}
 
-					this.schedules[room].months[month].formats[day] = Dex.validateFormat(this.schedules[room].months[month].formats[day]);
+					try {
+						this.schedules[room].months[month].formats[day] = Dex
+							.validateFormat(this.schedules[room].months[month].formats[day]);
+					} catch (e) {
+						throw new Error(month + "/" + day + " in " + room + ": " + (e as Error).message);
+					}
 				}
 			}
 
