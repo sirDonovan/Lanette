@@ -325,6 +325,7 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.threadId, threadId);
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 			assert(!parsedThread.postId);
 		}
 
@@ -336,11 +337,12 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.description);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 			assert(!parsedThread.postId);
 		}
 
 		const postPermaId = '456';
-		smogonLink = Tools.smogonThreadsPrefix + threadId + '/' + Tools.smogonPostPermalinkPrefix + postPermaId;
+		smogonLink = Tools.smogonThreadsPrefix + threadId + '/' + Tools.smogonPermalinkPostPrefix + postPermaId;
 		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
 			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
 		for (const link of links) {
@@ -351,6 +353,7 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.postId, postPermaId);
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 		}
 
 		links = [smogonLink, smogonLink + '/'];
@@ -362,9 +365,10 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.description);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 		}
 
-		smogonLink = Tools.smogonThreadsPrefix + threadId + '/#' + Tools.smogonPostPermalinkPrefix + postPermaId;
+		smogonLink = Tools.smogonThreadsPrefix + threadId + '/#' + Tools.smogonPermalinkPostPrefix + postPermaId;
 		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
 			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
 		for (const link of links) {
@@ -375,6 +379,7 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.postId, postPermaId);
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 		}
 
 		links = [smogonLink, smogonLink + '/'];
@@ -386,6 +391,7 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.description);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 		}
 
 		const postId = '789';
@@ -399,6 +405,7 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.postId, postId);
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 			assert(!parsedThread.threadId);
 		}
 
@@ -410,7 +417,36 @@ describe("Tools", () => {
 			assertStrictEqual(parsedThread.link, smogonLink);
 			assert(!parsedThread.description);
 			assert(!parsedThread.dexPage);
+			assert(!parsedThread.pageNumber);
 			assert(!parsedThread.threadId);
+		}
+
+		const pageNumber = '2';
+		smogonLink = Tools.smogonThreadsPrefix + threadId + '/' + Tools.smogonPermalinkPagePrefix + pageNumber +
+			'#' + Tools.smogonPermalinkPostPrefix + postPermaId;
+		links = ['&bullet; <a href="' + smogonLink + '">' + description + '</a>',
+			'&bullet; <a href="' + smogonLink + '/">' + description + '</a>'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.description, description);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.pageNumber, pageNumber);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.dexPage);
+		}
+
+		links = [smogonLink, smogonLink + '/'];
+		for (const link of links) {
+			parsedThread = Tools.parseSmogonLink(link);
+			assert(parsedThread);
+			assertStrictEqual(parsedThread.threadId, threadId);
+			assertStrictEqual(parsedThread.pageNumber, pageNumber);
+			assertStrictEqual(parsedThread.postId, postPermaId);
+			assertStrictEqual(parsedThread.link, smogonLink);
+			assert(!parsedThread.description);
+			assert(!parsedThread.dexPage);
 		}
 
 		smogonLink = Tools.smogonDexPrefix + 'ss/formats/ou';
@@ -449,8 +485,8 @@ describe("Tools", () => {
 		assertStrictEqual(newerForumLink, newThread);
 
 		// old vs new thread post
-		let oldPostId = Tools.smogonPostPermalinkPrefix + "123";
-		let newPostId = Tools.smogonPostPermalinkPrefix + "456";
+		let oldPostId = Tools.smogonPermalinkPostPrefix + "123";
+		let newPostId = Tools.smogonPermalinkPostPrefix + "456";
 		let oldThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + oldPostId)!;
 		let newThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + newPostId)!;
 
@@ -461,8 +497,8 @@ describe("Tools", () => {
 		assertStrictEqual(newerForumLink, newThreadPost);
 
 		// old vs new alternate thread post
-		oldPostId = '#' + Tools.smogonPostPermalinkPrefix + "123";
-		newPostId = '#' + Tools.smogonPostPermalinkPrefix + "456";
+		oldPostId = '#' + Tools.smogonPermalinkPostPrefix + "123";
+		newPostId = '#' + Tools.smogonPermalinkPostPrefix + "456";
 		oldThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + oldPostId)!;
 		newThreadPost = Tools.parseSmogonLink(Tools.smogonThreadsPrefix + oldThreadId + '/' + newPostId)!;
 

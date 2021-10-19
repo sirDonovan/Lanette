@@ -27,7 +27,8 @@ const GROUPCHAT_PREFIX = 'groupchat-';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
 const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
 const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
-const SMOGON_POST_PERMALINK_PREFIX = "post-";
+const SMOGON_PERMALINK_PAGE_PREFIX = "page-";
+const SMOGON_PERMALINK_POST_PREFIX = "post-";
 const maxMessageLength = 300;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
@@ -55,7 +56,8 @@ export class Tools {
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
-	readonly smogonPostPermalinkPrefix: string = SMOGON_POST_PERMALINK_PREFIX;
+	readonly smogonPermalinkPagePrefix: string = SMOGON_PERMALINK_PAGE_PREFIX;
+	readonly smogonPermalinkPostPrefix: string = SMOGON_PERMALINK_POST_PREFIX;
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
 	readonly timezones: TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
@@ -882,19 +884,32 @@ export class Tools {
 		if (id.endsWith('/')) id = id.substr(0, id.length - 1);
 		parsedThread.link = id;
 		const parts = id.split('/');
-		const lastPart = parts[parts.length - 1];
 		if (id.startsWith(SMOGON_DEX_PREFIX)) {
 			parsedThread.dexPage = id;
 			return parsedThread;
 		} else if (id.startsWith(SMOGON_POSTS_PREFIX)) {
-			parsedThread.postId = lastPart;
+			parsedThread.postId = parts[parts.length - 1];
 			return parsedThread;
 		} else if (id.startsWith(SMOGON_THREADS_PREFIX)) {
-			if (lastPart.startsWith(SMOGON_POST_PERMALINK_PREFIX)) {
-				parsedThread.postId = lastPart.substr(SMOGON_POST_PERMALINK_PREFIX.length);
+			let lastPart = parts[parts.length - 1];
+			if (lastPart.startsWith(SMOGON_PERMALINK_PAGE_PREFIX)) {
+				lastPart = lastPart.substr(SMOGON_PERMALINK_PAGE_PREFIX.length);
+				const hashIndex = lastPart.indexOf('#');
+				let pageNumber: string;
+				if (hashIndex !== -1) {
+					pageNumber = lastPart.substr(0, hashIndex);
+					lastPart = lastPart.substr(hashIndex);
+				} else {
+					pageNumber = lastPart;
+				}
+				parsedThread.pageNumber = pageNumber;
+			}
+
+			if (lastPart.startsWith(SMOGON_PERMALINK_POST_PREFIX)) {
+				parsedThread.postId = lastPart.substr(SMOGON_PERMALINK_POST_PREFIX.length);
 				parsedThread.threadId = parts[parts.length - 2];
-			} else if (lastPart.startsWith("#" + SMOGON_POST_PERMALINK_PREFIX)) {
-				parsedThread.postId = lastPart.substr(SMOGON_POST_PERMALINK_PREFIX.length + 1);
+			} else if (lastPart.startsWith("#" + SMOGON_PERMALINK_POST_PREFIX)) {
+				parsedThread.postId = lastPart.substr(SMOGON_PERMALINK_POST_PREFIX.length + 1);
 				parsedThread.threadId = parts[parts.length - 2];
 			} else {
 				parsedThread.threadId = lastPart;

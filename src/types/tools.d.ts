@@ -26,6 +26,7 @@ export interface IParsedSmogonLink {
 	description: string;
 	link: string;
 	dexPage?: string;
+	pageNumber?: string;
 	postId?: string;
 	threadId?: string;
 }
