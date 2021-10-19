@@ -1239,9 +1239,20 @@ export class Dex {
 		return [name, customRules];
 	}
 
-	joinNameAndCustomRules(name: string, customRules: string[] | null): string {
-		if (customRules && customRules.length) return name + "@@@" + customRules.join(',');
-		return name;
+	joinNameAndCustomRules(format: string | IFormat, customRules: string[] | null): string {
+		let compatibleRules: string[] = [];
+		if (customRules) {
+			if (typeof format !== 'string' && format.team) {
+				for (const rule of customRules) {
+					const type = rule.charAt(0);
+					if (type !== '-' && type !== '+') compatibleRules.push(rule);
+				}
+			} else {
+				compatibleRules = customRules;
+			}
+		}
+
+		return (typeof format === 'string' ? format : format.name) + (compatibleRules.length ? "@@@" + compatibleRules.join(',') : "");
 	}
 
 	resolveCustomRuleAliases(customRules: string[]): string[] {
@@ -1313,7 +1324,7 @@ export class Dex {
 
 			if (baseFormat.exists) {
 				allCustomRules = this.resolveCustomRuleAliases(allCustomRules);
-				name = this.joinNameAndCustomRules(baseFormat.name, allCustomRules);
+				name = this.joinNameAndCustomRules(baseFormat, allCustomRules);
 				format = this.pokemonShowdownDex.formats.get(name, isValidated);
 			}
 		}
@@ -1527,7 +1538,7 @@ export class Dex {
 	getUsablePokemon(format: IFormat): string[] {
 		if (format.usablePokemon) return format.usablePokemon;
 
-		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		const ruleTable = this.getRuleTable(format);
 
@@ -1589,7 +1600,7 @@ export class Dex {
 	getUsableAbilities(format: IFormat): string[] {
 		if (format.usableAbilities) return format.usableAbilities;
 
-		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
@@ -1609,7 +1620,7 @@ export class Dex {
 	getUsableItems(format: IFormat): string[] {
 		if (format.usableItems) return format.usableItems;
 
-		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
@@ -1629,7 +1640,7 @@ export class Dex {
 	getUsableMoves(format: IFormat): string[] {
 		if (format.usableMoves) return format.usableMoves;
 
-		const formatid = this.joinNameAndCustomRules(format.name, format.customRules);
+		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;

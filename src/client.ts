@@ -2045,7 +2045,7 @@ export class Client {
 						separatedCustomRules[currentCategory] = line.split(",").map(x => x.trim());
 					}
 
-					room.tournament.format = Dex.getExistingFormat(Dex.joinNameAndCustomRules(room.tournament.format.name,
+					room.tournament.format = Dex.getExistingFormat(Dex.joinNameAndCustomRules(room.tournament.format,
 						Dex.combineCustomRules(separatedCustomRules)));
 					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
 				}

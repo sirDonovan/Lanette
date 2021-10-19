@@ -383,7 +383,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			database.queuedTournament = {
-				formatid: Dex.joinNameAndCustomRules(format.name, format.customRules),
+				formatid: Dex.joinNameAndCustomRules(format, format.customRules),
 				playerCap,
 				scheduled,
 				time,

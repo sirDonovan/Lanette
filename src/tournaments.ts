@@ -110,7 +110,7 @@ export class Tournaments {
 								const part = parts[i].trim();
 								if (part && part !== '0') customRules.push(part);
 							}
-							this.schedules[room].months[month].formats[day] = Dex.joinNameAndCustomRules(Dex.getExistingFormat(parts[0]).id,
+							this.schedules[room].months[month].formats[day] = Dex.joinNameAndCustomRules(Dex.getExistingFormat(parts[0]),
 								customRules);
 						}
 					}
