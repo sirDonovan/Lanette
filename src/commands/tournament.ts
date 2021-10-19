@@ -217,6 +217,16 @@ export const commands: BaseCommandDefinitions = {
 		},
 		aliases: ['gettourschedule'],
 	},
+	validateformat: {
+		command(target, room, user) {
+			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
+
+			const resolved = Tournaments.resolveFormatFromInput(target.split(","));
+			if (typeof resolved === 'string') return this.say(resolved);
+			return this.say("The specified format is valid (" + Dex.getCustomFormatName(resolved) + ").");
+		},
+		aliases: ['vformat'],
+	},
 	queuetournament: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
@@ -241,12 +251,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const targets = target.split(',');
-			let tournamentName: string | undefined;
-			let formatName = targets[0];
-			let id = Tools.toId(formatName);
-			targets.shift();
+			const id = Tools.toId(targets[0]);
 
-			const samePokemon: string[] = [];
 			let scheduled = false;
 			let format: IFormat | undefined;
 			if (id === 'scheduled' || id === 'official') {
@@ -258,107 +264,15 @@ export const commands: BaseCommandDefinitions = {
 					return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				}
 
-				if (id === 'samesolo') {
-					format = Dex.getFormat('1v1');
-					const pokemon = Dex.getPokemon(targets[0]);
-					if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
-					if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
-					samePokemon.push(pokemon.name);
-					targets.shift();
-				} else if (id === 'sameduo') {
-					if (targets.length < 2) return this.say("You must specify the 2 Pokemon of the duo.");
-					format = Dex.getFormat('2v2 Doubles');
-					for (let i = 0; i < 2; i++) {
-						const pokemon = Dex.getPokemon(targets[0]);
-						if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
-						if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
-						if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
-							return this.say("The duo already includes " + pokemon.name + "!");
-						}
-						samePokemon.push(pokemon.name);
-						targets.shift();
-					}
-				} else if (id === 'samesix') {
-					format = Dex.getFormat(targets[0]);
-					if (!format || !format.tournamentPlayable) {
-						return this.say("You must specify a valid format for the Same Six tournament.");
-					}
-					targets.shift();
+				const resolved = Tournaments.resolveFormatFromInput(targets, room);
+				if (typeof resolved === 'string') return this.say(resolved);
 
-					if (targets.length < 6) return this.say("You must specify the 6 Pokemon of the team.");
-
-					for (let i = 0; i < 6; i++) {
-						const pokemon = Dex.getPokemon(targets[0]);
-						if (!pokemon) return this.sayError(['invalidPokemon', targets[0]]);
-						if (pokemon.battleOnly) return this.say("You cannot specify battle-only formes.");
-						if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
-							return this.say("The team already includes " + pokemon.name + "!");
-						}
-						samePokemon.push(pokemon.name);
-						targets.shift();
-					}
-				} else {
-					format = Dex.getFormat(formatName);
-					if (!format && targets.length) {
-						tournamentName = formatName;
-						formatName = targets[0];
-						id = Tools.toId(formatName);
-						targets.shift();
-
-						format = Dex.getFormat(formatName);
-					}
-				}
-
-				if (!format || !format.tournamentPlayable) {
-					return this.sayError(['invalidTournamentFormat', format ? format.name : formatName]);
-				}
-				if (Tournaments.isInPastTournaments(room, format.inputTarget)) {
-					return this.say(format.name + " is on the past tournaments list and cannot be queued.");
-				}
+				format = resolved;
 			}
 
 			let playerCap: number = Tournaments.maxPlayerCap;
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			}
-
-			if (targets.length || samePokemon.length) {
-				if (scheduled) {
-					return this.say("You cannot alter the player cap or custom rules of scheduled tournaments.");
-				}
-
-				const customRules = format.customRules ? format.customRules.slice() : [];
-				const existingCustomRules = customRules.length;
-				if (samePokemon.length) {
-					const customRulesForPokemonList = Dex.getCustomRulesForPokemonList(samePokemon);
-					for (const rule of customRulesForPokemonList) {
-						if (!customRules.includes(rule)) customRules.push(rule);
-					}
-				}
-
-				for (const option of targets) {
-					const trimmed = option.trim();
-					if (Tools.isInteger(trimmed)) {
-						playerCap = parseInt(trimmed);
-						if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
-							return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
-								Tournaments.maxPlayerCap + ".");
-						}
-					} else {
-						if (!customRules.includes(trimmed)) customRules.push(trimmed);
-					}
-				}
-
-				if (customRules.length > existingCustomRules) {
-					let formatid = Dex.joinNameAndCustomRules(format.name, Dex.resolveCustomRuleAliases(customRules));
-					try {
-						formatid = Dex.validateFormat(formatid);
-					} catch (e) {
-						return this.say((e as Error).message);
-					}
-
-					format = Dex.getExistingFormat(formatid, true);
-				}
 			}
 
 			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
@@ -387,13 +301,13 @@ export const commands: BaseCommandDefinitions = {
 				playerCap,
 				scheduled,
 				time,
-				tournamentName,
+				tournamentName: format.tournamentName,
 			};
 
 			if (scheduled) {
 				Tournaments.setScheduledTournamentTimer(room);
 			} else if (time) {
-				Tournaments.setTournamentTimer(room, time, format, playerCap, false, tournamentName);
+				Tournaments.setTournamentTimer(room, time, format, playerCap, false, format.tournamentName);
 			}
 			this.run('queuedtournament', '');
 

@@ -282,6 +282,108 @@ export class Tournaments {
 		return tournament;
 	}
 
+	resolveFormatFromInput(originalTargets: readonly string[], room?: Room): string | IFormat {
+		const targets = originalTargets.slice();
+		let tournamentName: string | undefined;
+		let formatName = targets[0];
+		let id = Tools.toId(formatName);
+		targets.shift();
+
+		const samePokemon: string[] = [];
+		let format: IFormat | undefined;
+
+		if (id === 'samesolo') {
+			format = Dex.getFormat('1v1');
+			const pokemon = Dex.getPokemon(targets[0]);
+			if (!pokemon) return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
+			if (pokemon.battleOnly) return "You cannot specify battle-only formes.";
+			samePokemon.push(pokemon.name);
+			targets.shift();
+		} else if (id === 'sameduo') {
+			if (targets.length < 2) return "You must specify the 2 Pokemon of the duo.";
+			format = Dex.getFormat('2v2 Doubles');
+			for (let i = 0; i < 2; i++) {
+				const pokemon = Dex.getPokemon(targets[0]);
+				if (!pokemon) return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
+				if (pokemon.battleOnly) return "You cannot specify battle-only formes.";
+				if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
+					return "The duo already includes " + pokemon.name + "!";
+				}
+				samePokemon.push(pokemon.name);
+				targets.shift();
+			}
+		} else if (id === 'samesix') {
+			format = Dex.getFormat(targets[0]);
+			if (!format || !format.tournamentPlayable) {
+				return "You must specify a valid format for the Same Six tournament.";
+			}
+			targets.shift();
+
+			if (targets.length < 6) return "You must specify the 6 Pokemon of the team.";
+
+			for (let i = 0; i < 6; i++) {
+				const pokemon = Dex.getPokemon(targets[0]);
+				if (!pokemon) return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
+				if (pokemon.battleOnly) return "You cannot specify battle-only formes.";
+				if (samePokemon.includes(pokemon.name) || (pokemon.forme && samePokemon.includes(pokemon.baseSpecies))) {
+					return "The team already includes " + pokemon.name + "!";
+				}
+				samePokemon.push(pokemon.name);
+				targets.shift();
+			}
+		} else {
+			format = Dex.getFormat(formatName);
+			if (!format && targets.length) {
+				tournamentName = formatName;
+				formatName = targets[0];
+				id = Tools.toId(formatName);
+				targets.shift();
+
+				format = Dex.getFormat(formatName);
+			}
+		}
+
+		if (!format || !format.tournamentPlayable) {
+			return CommandParser.getErrorText(['invalidTournamentFormat', format ? format.name : formatName]);
+		}
+
+		if (room && this.isInPastTournaments(room, format.inputTarget)) {
+			return format.name + " is on the past tournaments list and cannot be queued.";
+		}
+
+		if (targets.length || samePokemon.length) {
+			const customRules = format.customRules ? format.customRules.slice() : [];
+			const existingCustomRules = customRules.length;
+			if (samePokemon.length) {
+				const customRulesForPokemonList = Dex.getCustomRulesForPokemonList(samePokemon);
+				for (const rule of customRulesForPokemonList) {
+					if (!customRules.includes(rule)) customRules.push(rule);
+				}
+			}
+
+			for (const option of targets) {
+				const trimmed = option.trim();
+				if (!Tools.isInteger(trimmed)) {
+					if (!customRules.includes(trimmed)) customRules.push(trimmed);
+				}
+			}
+
+			if (customRules.length > existingCustomRules) {
+				let formatid = Dex.joinNameAndCustomRules(format, Dex.resolveCustomRuleAliases(customRules));
+				try {
+					formatid = Dex.validateFormat(formatid);
+				} catch (e) {
+					return (e as Error).message;
+				}
+
+				format = Dex.getExistingFormat(formatid, true);
+			}
+		}
+
+		if (tournamentName) format.tournamentName = tournamentName;
+		return format;
+	}
+
 	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
 		const eliminationNode = new EliminationNode({user: clientNode.team});
 

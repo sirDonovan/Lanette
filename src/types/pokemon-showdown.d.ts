@@ -847,6 +847,7 @@ export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLink
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;
+	tournamentName?: string;
 	usableAbilities?: string[];
 	usableItems?: string[];
 	usableMoves?: string[];
