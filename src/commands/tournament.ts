@@ -275,6 +275,17 @@ export const commands: BaseCommandDefinitions = {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
 
+			for (const option of targets) {
+				const trimmed = option.trim();
+				if (Tools.isInteger(trimmed)) {
+					playerCap = parseInt(trimmed);
+					if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
+						return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
+							Tournaments.maxPlayerCap + ".");
+					}
+				}
+			}
+
 			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 				playerCap = Config.defaultTournamentPlayerCaps[room.id];
 			}
