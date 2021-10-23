@@ -925,6 +925,97 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 	},
+	tournamentgameban: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				gameRoom = room;
+			}
+
+			let playerName = targets.length ? targets[0].trim() : "";
+			let playerId: string;
+			const targetUser = Users.get(playerName);
+			if (targetUser) {
+				playerName = targetUser.name;
+				playerId = targetUser.id;
+			} else {
+				playerId = Tools.toId(playerName);
+			}
+
+			if (!playerId) return this.say("Please specify a user and optionally a ban duration.");
+
+			const database = Storage.getDatabase(gameRoom);
+			if (targets.length > 1) {
+				if (!user.hasRank(gameRoom, 'moderator')) return;
+				const days = parseInt(targets[1]);
+				if (isNaN(days) || days < 1 || days > 365) {
+					return this.say("Please specify a number of days between 1 and 365.");
+				}
+
+				const banDuration = days * 24 * 60 * 60 * 1000;
+				const expirationTime = Date.now() + banDuration;
+
+				if (!database.tournamentGameBanlist) database.tournamentGameBanlist = {};
+
+				database.tournamentGameBanlist[playerId] = {
+					name: playerName,
+					expirationTime,
+				};
+
+				this.say(playerName + " has been banned from participating in tournament games for " +
+					Tools.toDurationString(banDuration) + ".");
+			} else {
+				const now = Date.now();
+				if (!database.tournamentGameBanlist || !(playerId in database.tournamentGameBanlist) ||
+					database.tournamentGameBanlist[playerId].expirationTime <= now) {
+					return this.say(playerName + " is not banned from participating in tournament games.");
+				}
+
+				this.say(playerName + " is still banned from participating in tournament games for " +
+					Tools.toDurationString(database.tournamentGameBanlist[playerId].expirationTime - now) + ".");
+			}
+		},
+		aliases: ['tourgameban'],
+	},
+	tournamentgamebanlist: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				gameRoom = room;
+			}
+
+			const list: string[] = [];
+			const database = Storage.getDatabase(gameRoom);
+			if (database.tournamentGameBanlist) {
+				const now = Date.now();
+				for (const i in database.tournamentGameBanlist) {
+					if (database.tournamentGameBanlist[i].expirationTime > now) {
+						const player = Users.get(i);
+						list.push((player ? player.name : database.tournamentGameBanlist[i].name) + " (" +
+							Tools.toDurationString(database.tournamentGameBanlist[i].expirationTime - now) + " remaining)");
+					}
+				}
+			}
+
+			if (!list.length) return this.say("There are no players on the tournament game banlist.");
+			this.sayHtml("<b>Tournament game banlist</b>: " + list.join(", "), gameRoom);
+		},
+		aliases: ['tourgamebanlist'],
+	},
 	dqplayer: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'driver') || !room.game) return;

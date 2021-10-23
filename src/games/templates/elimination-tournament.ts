@@ -1189,6 +1189,16 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onAddPlayer(player: Player): boolean {
+		const database = Storage.getDatabase(this.room);
+		if (database.tournamentGameBanlist && player.id in database.tournamentGameBanlist) {
+			if (database.tournamentGameBanlist[player.id].expirationTime <= Date.now()) {
+				delete database.tournamentGameBanlist[player.id];
+			} else {
+				player.say("You are currently banned from participating in tournament games.");
+				return false;
+			}
+		}
+
 		if (this.tournamentPlayers.has(player) && !this.canRejoin) {
 			player.say("You cannot re-join the tournament after leaving it.");
 			return false;

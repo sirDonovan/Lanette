@@ -138,6 +138,11 @@ interface IQueuedTournament {
 	tournamentName?: string;
 }
 
+interface ITournamentGameBan {
+	name: string;
+	expirationTime: number;
+}
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
 	eventInformation?: Dict<IEventInformation>;
@@ -167,6 +172,7 @@ export interface IDatabase {
 	scriptedGameStats?: IGameStat[];
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
+	tournamentGameBanlist?: Dict<ITournamentGameBan>;
 	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IGameStat[]>;

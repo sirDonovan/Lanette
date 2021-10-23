@@ -501,11 +501,13 @@ export const commands: BaseCommandDefinitions = {
 				const list: string[] = [];
 				const database = Storage.getDatabase(gameRoom);
 				if (database.userHostStatuses) {
+					const now = Date.now();
 					for (const i in database.userHostStatuses) {
-						if (database.userHostStatuses[i].status === status) {
+						if (database.userHostStatuses[i].status === status &&
+							!(database.userHostStatuses[i].expirationTime && database.userHostStatuses[i].expirationTime < now)) {
 							const host = Users.get(i);
 							list.push((host ? host.name : i) + (database.userHostStatuses[i].expirationTime ? " (" +
-								Tools.toDurationString(database.userHostStatuses[i].expirationTime - Date.now()) + " remaining)" : ""));
+								Tools.toDurationString(database.userHostStatuses[i].expirationTime - now) + " remaining)" : ""));
 						}
 					}
 				}
