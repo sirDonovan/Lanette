@@ -573,7 +573,6 @@ export class Client {
 		this.webSocket.addEventListener('open', openListener!);
 		this.webSocket.addEventListener('message', messageListener!);
 		this.webSocket.addEventListener('error', errorListener!);
-		// @ts-expect-error
 		this.webSocket.addEventListener('close', closeListener!);
 	}
 
@@ -596,7 +595,6 @@ export class Client {
 		}
 
 		if (closeListener) {
-			// @ts-expect-error
 			this.webSocket.removeEventListener('close', closeListener);
 			if (previousClient) closeListener = null;
 		}
