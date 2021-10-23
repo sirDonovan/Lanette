@@ -91,6 +91,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	totalRounds: number = 0;
 	tournamentDescription: string = '';
 	tournamentEnded: boolean = false;
+	tournamentStarted: boolean = false;
 	tournamentName: string = '';
 	tournamentPlayers = new Set<Player>();
 	treeRoot: EliminationNode<Player> | null = null;
@@ -116,7 +117,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return Math.ceil(Math.log(players) / Math.log(2));
 	}
 
-	getMinimumPokemonForPlayers(players: number): number {
+	getMinimumPokedexSizeForPlayers(players: number): number {
 		if (this.sharedTeams) {
 			return this.startingTeamsLength;
 		} else if (this.additionsPerRound) {
@@ -130,10 +131,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		return players * this.startingTeamsLength;
 	}
 
-	getMaxPlayers(pokemon: number): number {
+	getMaxPlayers(availablePokemon: number): number {
 		let maxPlayers = 0;
 		for (const players of POTENTIAL_MAX_PLAYERS) {
-			if (this.getMinimumPokemonForPlayers(players - 1) > pokemon || this.getMinimumPokemonForPlayers(players) > pokemon) {
+			if (this.getMinimumPokedexSizeForPlayers(players - 1) > availablePokemon ||
+				this.getMinimumPokedexSizeForPlayers(players) > availablePokemon) {
 				break;
 			}
 			maxPlayers = players;
@@ -987,8 +989,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	onSignups(): void {
 		const minimumPlayers = POTENTIAL_MAX_PLAYERS[0];
-		const minimumPokemon = Math.max(this.getMinimumPokemonForPlayers(minimumPlayers - 1),
-			this.getMinimumPokemonForPlayers(minimumPlayers));
+		const minimumPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(minimumPlayers - 1),
+			this.getMinimumPokedexSizeForPlayers(minimumPlayers));
 
 		let pokedex: string[];
 		if (this.monoColor) {
@@ -1124,11 +1126,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
 		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-		this.generateBracket();
 
 		if (this.canReroll) {
 			this.say("The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
-				" left to use ``" + Config.commandCharacter + REROLL_COMMAND + "``.");
+				" left to PM me the command ``" + Config.commandCharacter + REROLL_COMMAND + "`` to get a new " +
+				(this.startingTeamsLength === 1 ? "starter" : "team") + " (cannot be undone).");
 			this.timeout = setTimeout(() => this.startTournament(), REROLL_START_DELAY);
 		} else {
 			this.startTournament();
@@ -1137,6 +1139,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	startTournament(): void {
 		this.canReroll = false;
+		this.tournamentStarted = true;
 
 		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
 			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle. Please refer to the " +
@@ -1144,6 +1147,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 		html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
 			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
 		this.sayHtml(html);
+
+		this.generateBracket();
 
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
@@ -1261,7 +1266,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const playerAndReason = new Map<Player, string>();
 		playerAndReason.set(player, "You left the " + this.name + " tournament.");
 
-		this.disqualifyPlayers(playerAndReason);
+		if (this.tournamentStarted) this.disqualifyPlayers(playerAndReason);
 	}
 
 	sendNotAutoconfirmed(player: Player): void {
