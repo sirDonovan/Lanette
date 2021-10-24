@@ -5,6 +5,9 @@ import type { GameCommandDefinitions, IGameAchievement, IGameFile } from "../typ
 
 type AchievementNames = "privateinvestigator";
 
+const SUSPECT_WARNING_TIMER = 20 * 1000;
+const SUSPECT_DISQUALIFY_TIMER = 30 * 1000;
+
 class EmpoleonsEmpires extends ScriptedGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"privateinvestigator": {name: "Private Investigator", type: 'special', bits: 1000, description: 'successfully guess 5 aliases'},
@@ -61,14 +64,19 @@ class EmpoleonsEmpires extends ScriptedGame {
 			this.on(text, () => {
 				this.canGuess = true;
 				this.timeout = setTimeout(() => {
-					if (this.currentPlayer === currentPlayer) {
-						this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") did not " +
-							"suspect anyone and was eliminated from the game!");
-						this.eliminatePlayer(this.currentPlayer);
-						this.currentPlayer = null;
-					}
-					this.nextRound();
-				}, 30 * 1000);
+					const disqualifyTimeout = SUSPECT_DISQUALIFY_TIMER - SUSPECT_WARNING_TIMER;
+					currentPlayer.say("You have " + Tools.toDurationString(disqualifyTimeout) + " left to suspect another player!");
+
+					this.timeout = setTimeout(() => {
+						if (this.currentPlayer === currentPlayer) {
+							this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") " +
+								"did not suspect anyone and was eliminated from the game!");
+							this.eliminatePlayer(this.currentPlayer);
+							this.currentPlayer = null;
+						}
+						this.nextRound();
+					}, disqualifyTimeout);
+				}, SUSPECT_WARNING_TIMER);
 			});
 			this.say(text);
 		});
