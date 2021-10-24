@@ -4,6 +4,9 @@ import { assert } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 
+const SELECT_WARNING_TIMER = 45 * 1000;
+const SELECT_ROUND_TIMER = 60 * 1000;
+
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
 	"pokemon": [],
@@ -92,8 +95,20 @@ class SkittysSeekAndHide extends ScriptedGame {
 			const text = "Select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 			this.on(text, () => {
 				this.canSelect = true;
-				this.timeout = setTimeout(() => this.tallySelectedPokemon(), 60 * 1000);
+				this.timeout = setTimeout(() => {
+					const roundTimeout = SELECT_ROUND_TIMER - SELECT_WARNING_TIMER;
+					const timeoutString = Tools.toDurationString(roundTimeout);
+					for (const i in this.players) {
+						const player = this.players[i];
+						if (!player.eliminated && !this.pokemonChoices.has(player)) {
+							player.say("You have " + timeoutString + " left to select a Pokemon!");
+						}
+					}
+
+					this.timeout = setTimeout(() => this.tallySelectedPokemon(), roundTimeout);
+				}, SELECT_WARNING_TIMER);
 			});
+
 			this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
 				() => this.tallySelectedPokemon());
 
