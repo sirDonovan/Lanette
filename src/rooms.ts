@@ -18,6 +18,7 @@ export class Room {
 	configBannedWordsRegex: RegExp | null = null;
 	game: ScriptedGame | null = null;
 	groupchat: boolean | null = null;
+	hiddenRoom: boolean | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
@@ -27,6 +28,7 @@ export class Room {
 	publicRoom: boolean = false;
 	repeatedMessages: Dict<IRepeatedMessage> | null = null;
 	searchChallenge: SearchChallenge | null = null;
+	secretRoom: boolean | null = null;
 	serverBannedWords: string[] | null = null;
 	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | null = null;
@@ -144,6 +146,10 @@ export class Room {
 	onRoomInfoResponse(response: IRoomInfoResponse): void {
 		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.setTitle(response.title);
+
+		this.hiddenRoom = response.visibility === 'hidden';
+		this.publicRoom = response.visibility === 'public';
+		this.secretRoom = response.visibility === 'secret';
 	}
 
 	onUserJoin(user: User, rank: string, onRename?: boolean): void {

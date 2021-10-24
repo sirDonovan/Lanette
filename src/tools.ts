@@ -22,6 +22,19 @@ const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
+const HERE_REGEX = />here.?</i;
+const CLICK_HERE_REGEX = /click here/i;
+const HTML_TAGS_REGEX = /<!--.*?-->|<\/?[^<>]*/g;
+const ONE_OR_MORE_SPACE_REGEX = /\s+/;
+const TAG_NAME_REGEX = /^[a-z]+[0-9]?$/;
+const IMAGE_WIDTH_REGEX = /width ?= ?(?:[0-9]+|"[0-9]+")/i;
+const IMAGE_HEIGHT_REGEX = /height ?= ?(?:[0-9]+|"[0-9]+")/i;
+const IMAGE_SRC_REGEX = / src ?= ?(?:"|')?([^ "']+)(?: ?(?:"|'))?/i;
+const BUTTON_NAME_REGEX = / name ?= ?"([^"]*)"/i;
+const BUTTON_VALUE_REGEX = / value ?= ?"([^"]*)"/i;
+const MSG_COMMAND_REGEX = /^\/(?:msg|pm|w|whisper|botmsg) /;
+const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
+
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
@@ -84,12 +97,12 @@ export class Tools {
 	checkHtml(room: Room, htmlContent: string): boolean {
 		htmlContent = htmlContent.trim();
 		if (!htmlContent) return false;
-		if (/>here.?</i.test(htmlContent) || /click here/i.test(htmlContent)) {
+		if (HERE_REGEX.test(htmlContent) || CLICK_HERE_REGEX.test(htmlContent)) {
 			throw new Error('Cannot use "click here"');
 		}
 
 		// check for mismatched tags
-		const tags = htmlContent.match(/<!--.*?-->|<\/?[^<>]*/g);
+		const tags = htmlContent.match(HTML_TAGS_REGEX);
 		if (tags) {
 			const ILLEGAL_TAGS = ['script', 'head', 'body', 'html', 'canvas', 'base', 'meta', 'link', 'iframe'];
 			const LEGAL_AUTOCLOSE_TAGS = [
@@ -105,7 +118,7 @@ export class Tools {
 			for (const tag of tags) {
 				const isClosingTag = tag.charAt(1) === '/';
 				const contentEndLoc = tag.endsWith('/') ? -1 : undefined;
-				const tagContent = tag.slice(isClosingTag ? 2 : 1, contentEndLoc).replace(/\s+/, ' ').trim();
+				const tagContent = tag.slice(isClosingTag ? 2 : 1, contentEndLoc).replace(ONE_OR_MORE_SPACE_REGEX, ' ').trim();
 				const tagNameEndIndex = tagContent.indexOf(' ');
 				const tagName = tagContent.slice(0, tagNameEndIndex >= 0 ? tagNameEndIndex : undefined).toLowerCase();
 				if (tagName === '!--') continue;
@@ -121,7 +134,7 @@ export class Tools {
 					continue;
 				}
 
-				if (ILLEGAL_TAGS.includes(tagName) || !/^[a-z]+[0-9]?$/.test(tagName)) {
+				if (ILLEGAL_TAGS.includes(tagName) || !TAG_NAME_REGEX.test(tagName)) {
 					throw new Error("Illegal tag <" + tagName + "> can't be used here.");
 				}
 
@@ -133,7 +146,7 @@ export class Tools {
 					if (room.groupchat) {
 						throw new Error("This tag is not allowed: <" + tagContent + ">. Images are not allowed outside of chatrooms.");
 					}
-					if (!/width ?= ?(?:[0-9]+|"[0-9]+")/i.test(tagContent) || !/height ?= ?(?:[0-9]+|"[0-9]+")/i.test(tagContent)) {
+					if (!IMAGE_WIDTH_REGEX.test(tagContent) || !IMAGE_HEIGHT_REGEX.test(tagContent)) {
 						// Width and height are required because most browsers insert the
 						// <img> element before width and height are known, and when the
 						// image is loaded, this changes the height of the chat area, which
@@ -142,7 +155,7 @@ export class Tools {
 							"changes their height.");
 					}
 
-					const srcMatch = / src ?= ?(?:"|')?([^ "']+)(?: ?(?:"|'))?/i.exec(tagContent);
+					const srcMatch = IMAGE_SRC_REGEX.exec(tagContent);
 					if (srcMatch) {
 						if (!srcMatch[1].startsWith('https://') && !srcMatch[1].startsWith('//') && !srcMatch[1].startsWith('data:')) {
 							throw new Error("Image URLs must begin with 'https://' or 'data:'; 'http://' cannot be used.");
@@ -153,21 +166,19 @@ export class Tools {
 				}
 
 				if (tagName === 'button') {
-					if ((room.groupchat || !room.publicRoom) && !Users.self.isGlobalStaff()) {
-						const buttonNameExec = / name ?= ?"([^"]*)"/i.exec(tagContent);
-						const buttonValueExec = / value ?= ?"([^"]*)"/i.exec(tagContent);
+					if ((room.groupchat || room.secretRoom) && !Users.self.isGlobalStaff()) {
+						const buttonNameExec = BUTTON_NAME_REGEX.exec(tagContent);
+						const buttonValueExec = BUTTON_VALUE_REGEX.exec(tagContent);
 						const buttonName = buttonNameExec ? buttonNameExec[1] : "";
 						const buttonValue = buttonValueExec ? buttonValueExec[1] : "";
-						const msgCommandRegex = /^\/(?:msg|pm|w|whisper|botmsg) /;
-						const botmsgCommandRegex = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
-						if (buttonName === 'send' && buttonValue && msgCommandRegex.test(buttonValue)) {
-							const [pmTarget] = buttonValue.replace(msgCommandRegex, '').split(',');
+						if (buttonName === 'send' && buttonValue && MSG_COMMAND_REGEX.test(buttonValue)) {
+							const [pmTarget] = buttonValue.replace(MSG_COMMAND_REGEX, '').split(',');
 							const targetUser = Users.get(pmTarget);
 							if ((!targetUser || !targetUser.isBot(room)) && this.toId(pmTarget) !== Users.self.id) {
 								throw new Error("Your scripted button can't send PMs to " + pmTarget + ", because that user is not a " +
 									"Room Bot.");
 							}
-						} else if (buttonName === 'send' && buttonValue && botmsgCommandRegex.test(buttonValue)) {
+						} else if (buttonName === 'send' && buttonValue && BOT_MSG_COMMAND_REGEX.test(buttonValue)) {
 							// no need to validate the bot being an actual bot; `/botmsg` will do it for us and is not abusable
 						} else if (buttonName) {
 							throw new Error("This button is not allowed: <" + tagContent + ">");

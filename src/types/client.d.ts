@@ -85,7 +85,7 @@ export interface IRoomInfoResponse {
 	id: string;
 	title: string;
 	type: string;
-	visibility: string;
+	visibility: 'public' | 'hidden' | 'secret';
 	modchat: string | false;
 	modjoin: string | boolean;
 	auth: Dict<string[]>;
