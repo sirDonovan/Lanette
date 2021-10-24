@@ -11,6 +11,8 @@ const data: {'parameters': Dict<string[]>; 'parameterLengths': Dict<number>; 'po
 };
 
 const MINIMUM_PARAMETERS = 2;
+const CHARM_WARNING_TIMER = 45 * 1000;
+const CHARM_ROUND_TIMER = 60 * 1000;
 
 class DelcattysHideAndSeek extends ScriptedGame {
 	canCharm: boolean = false;
@@ -137,11 +139,16 @@ class DelcattysHideAndSeek extends ScriptedGame {
 		this.on(text, () => {
 			this.canCharm = true;
 			this.timeout = setTimeout(() => {
-				this.canCharm = false;
-				this.say("**" + this.charmer.name + "** did not choose a Pokemon to charm and has been eliminated from the game!");
-				this.eliminatePlayer(this.charmer);
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-			}, 60 * 1000);
+				const roundTimeout = CHARM_ROUND_TIMER - CHARM_WARNING_TIMER;
+				this.charmer.say("You have " + Tools.toDurationString(roundTimeout) + " left to charm a Pokemon!");
+
+				this.timeout = setTimeout(() => {
+					this.canCharm = false;
+					this.say("**" + this.charmer.name + "** did not charm a Pokemon and has been eliminated from the game!");
+					this.eliminatePlayer(this.charmer);
+					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				}, roundTimeout);
+			}, CHARM_WARNING_TIMER);
 		});
 		this.say(text);
 	}
