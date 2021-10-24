@@ -383,7 +383,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			html += "</div>";
-			this.sayUhtml(room.id + "-queued-tournament", html, tournamentRoom);
+			this.sayUhtml(room.id + "-queued-tournament-" + format.id, html, tournamentRoom);
 		},
 		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
 	},
