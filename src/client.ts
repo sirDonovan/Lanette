@@ -459,6 +459,15 @@ export class Client {
 		});
 	}
 
+	getRoomInfo(room: Room): void {
+		this.send({
+			message: '|/cmd roominfo ' + room.id,
+			roomid: room.id,
+			type: 'query-roominfo',
+			measure: true,
+		});
+	}
+
 	getUserDetails(user: User, listener?: UserDetailsListener): void {
 		user.userDetailsListener = listener;
 
@@ -1205,12 +1214,7 @@ export class Client {
 					});
 				}
 
-				this.send({
-					message: '|/cmd roominfo ' + room.id,
-					roomid: room.id,
-					type: 'query-roominfo',
-					measure: true,
-				});
+				this.getRoomInfo(room);
 
 				if (room.id in this.reconnectRoomMessages) {
 					for (const reconnectMessage of this.reconnectRoomMessages[room.id]) {
@@ -1247,6 +1251,8 @@ export class Client {
 				const oldId = room.id;
 				Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
 				Storage.renameRoom(room, oldId);
+
+				if (room.type === 'chat') this.getRoomInfo(room);
 			} else {
 				Rooms.remove(room);
 			}
