@@ -971,6 +971,7 @@ export const commands: BaseCommandDefinitions = {
 
 				this.say(playerName + " has been banned from participating in tournament games for " +
 					Tools.toDurationString(banDuration) + ".");
+				Storage.exportDatabase(gameRoom.id);
 			} else {
 				const now = Date.now();
 				if (!database.tournamentGameBanlist || !(playerId in database.tournamentGameBanlist) ||
@@ -983,6 +984,36 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['tourgameban'],
+	},
+	tournamentgameunban: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				gameRoom = room;
+			}
+
+			if (!user.hasRank(gameRoom, 'moderator')) return;
+
+			const playerName = targets.length ? targets[0].trim() : "";
+			const playerId = Tools.toId(playerName);
+			if (!playerId) return this.say("Please specify a user to unban.");
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.tournamentGameBanlist || !(playerId in database.tournamentGameBanlist)) {
+				return this.say(playerName + " is not banned from participating in tournament games.");
+			}
+
+			delete database.tournamentGameBanlist[playerId];
+			this.say(playerName + " has been unbanned from participating in tournament games.");
+			Storage.exportDatabase(gameRoom.id);
+		},
+		aliases: ['tourgameunban'],
 	},
 	tournamentgamebanlist: {
 		command(target, room, user) {
