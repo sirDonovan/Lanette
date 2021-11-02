@@ -100,9 +100,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8metronomebattle': {
 		teams: 'https://www.smogon.com/forums/threads/3632075/',
 	},
-	'gen8stabmonsmixandmega': {
-		teams: 'https://www.smogon.com/forums/threads/3657159/page-25#post-8933563',
-	},
+	// 'gen8stabmonsmixandmega': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3657159/page-25#post-8933563',
+	// },
 
 	// Gen 7
 	'gen7letsgoou': {

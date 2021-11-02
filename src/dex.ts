@@ -92,6 +92,7 @@ const clauseNicknames: Dict<string> = {
 	'350 Cup Mod': '350 Cup',
 	'Flipped Mod': 'Flipped',
 	'Scalemons Mod': 'Scalemons',
+	'Tier Shift Mod': 'Tier Shift',
 	'Alphabet Cup Move Legality': 'Alphabet Cup',
 	'Sketchmons Move Legality': 'Sketchmons',
 	'Chimera 1v1 Rule': 'Chimera 1v1',
