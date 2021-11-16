@@ -10,6 +10,7 @@ import type {
 	IClientTournamentNode, IScheduledTournament, ITournamentCreateJson, ITreeRootPlaces,
 	TournamentPlace
 } from "./types/tournaments";
+import type { User } from "./users";
 
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 const SCHEDULED_TOURNAMENT_QUICK_BUFFER_TIME = 30 * 60 * 1000;
@@ -184,6 +185,12 @@ export class Tournaments {
 				if (!rolledOverDay) rolloverDay();
 			}
 		}
+	}
+
+	canCreateTournament(room: Room, user: User): boolean {
+		const database = Storage.getDatabase(room);
+		if (database.tournamentManagers && database.tournamentManagers.includes(user.id)) return true;
+		return user.hasRank(room, 'driver');
 	}
 
 	createTournament(room: Room, json: ITournamentCreateJson): Tournament | undefined {

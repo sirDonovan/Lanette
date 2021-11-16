@@ -20,7 +20,7 @@ export const commands: BaseCommandDefinitions = {
 					this.run('createtournament');
 					return;
 				}
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -50,7 +50,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	createtournament: {
 		command(target, room, user) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (this.isPm(room) || !Tournaments.canCreateTournament(room, user)) return;
 			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 				return this.sayError(['disabledTournamentFeatures', room.title]);
 			}
@@ -68,7 +68,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	tournamentcap: {
 		command(target, room, user) {
-			if (this.isPm(room) || !room.tournament || room.tournament.started || !user.hasRank(room, 'driver')) return;
+			if (this.isPm(room) || !room.tournament || room.tournament.started || !Tournaments.canCreateTournament(room, user)) return;
 			const cap = parseInt(target);
 			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
 			if (cap < Tournaments.minPlayerCap || cap > Tournaments.maxPlayerCap) {
@@ -81,7 +81,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	tournamentenablepoints: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !room.tournament || !user.hasRank(room, 'driver')) return;
+			if (this.isPm(room) || !room.tournament || !Tournaments.canCreateTournament(room, user)) return;
 			if (!(Config.rankedTournaments && Config.rankedTournaments.includes(room.id) && !(Config.rankedCustomTournaments &&
 				Config.rankedCustomTournaments.includes(room.id)))) {
 				return this.say("A tournament leaderboard is not enabled for this room.");
@@ -117,7 +117,7 @@ export const commands: BaseCommandDefinitions = {
 				targets.shift();
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				tournamentRoom = room;
 			}
 
@@ -166,7 +166,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -197,13 +197,14 @@ export const commands: BaseCommandDefinitions = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!user.hasRank(targetRoom, 'moderator') && !user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'moderator') && !Tournaments.canCreateTournament(targetRoom, user) &&
+					!user.isDeveloper()) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
 					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				}
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'moderator')) return;
+				if (!user.hasRank(room, 'moderator') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -219,7 +220,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	validateformat: {
 		command(target, room, user) {
-			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
+			if (!this.isPm(room) && !user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 
 			const resolved = Tournaments.resolveFormatFromInput(target.split(","));
 			if (typeof resolved === 'string') return this.say(resolved);
@@ -229,7 +230,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	queuetournament: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+			if (this.isPm(room) || !Tournaments.canCreateTournament(room, user)) return;
 			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 				return this.sayError(['disabledTournamentFeatures', room.title]);
 			}
@@ -338,7 +339,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -400,7 +401,7 @@ export const commands: BaseCommandDefinitions = {
 				tournamentRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -444,7 +445,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				tournamentRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!user.hasRank(room, 'star') && !Tournaments.canCreateTournament(room, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
@@ -657,5 +658,107 @@ export const commands: BaseCommandDefinitions = {
 			this.sayUhtml('userhosted-tournament-approvals-' + targetRoom.id, html, targetRoom);
 		},
 		aliases: ['viewuserhostedtours'],
+	},
+	addtournamentmanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				tournamentRoom = targetRoom;
+			} else {
+				tournamentRoom = room;
+			}
+
+			if (!user.hasRank(tournamentRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(tournamentRoom);
+			if (!database.tournamentManagers) database.tournamentManagers = [];
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (database.tournamentManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is already a tournament manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			database.tournamentManagers = database.tournamentManagers.concat(ids);
+			this.say("The specified user(s) can now use tournament commands in " + tournamentRoom.title + ".");
+			Storage.exportDatabase(tournamentRoom.id);
+		},
+		aliases: ['addtournamentmanagers', 'addtourmanager', 'addtourmanagers'],
+	},
+	removetournamentmanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let leaderboardRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				leaderboardRoom = targetRoom;
+			} else {
+				leaderboardRoom = room;
+			}
+
+			if (!user.hasRank(leaderboardRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(leaderboardRoom);
+			if (!database.tournamentManagers || !database.tournamentManagers.length) {
+				return this.say("There are no tournament managers for " + leaderboardRoom.title + ".");
+			}
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (!database.tournamentManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is not a tournament manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			for (const id of ids) {
+				database.tournamentManagers.splice(database.tournamentManagers.indexOf(id), 1);
+			}
+
+			this.say("The specified user(s) can no longer use tournament commands for " + leaderboardRoom.title + ".");
+			Storage.exportDatabase(leaderboardRoom.id);
+		},
+		aliases: ['removetournamentmanagers', 'removetourmanager', 'removetourmanagers'],
+	},
+	tournamentmanagers: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+
+			const targetRoom = Rooms.search(target);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+			if (!user.hasRank(targetRoom, 'voice')) return;
+
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.tournamentManagers || !database.tournamentManagers.length) {
+				return this.say("There are no tournament managers for " + targetRoom.title + ".");
+			}
+
+			const names: string[] = [];
+			for (const id of database.tournamentManagers) {
+				let name = id;
+				const manager = Users.get(id);
+				if (manager) name = manager.name;
+				names.push(name);
+			}
+
+			this.sayHtml("<b>" + targetRoom.title + "</b> tournament managers:<br /><br />" + names.join(", "), targetRoom);
+		},
+		aliases: ['tourmanagers'],
 	},
 };

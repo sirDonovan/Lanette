@@ -172,6 +172,7 @@ export interface IDatabase {
 	scriptedGameStats?: IGameStat[];
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
+	tournamentManagers?: string[];
 	tournamentGameBanlist?: Dict<ITournamentGameBan>;
 	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;
