@@ -578,11 +578,26 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Hall of Games",
+			aliases: ['HOG'],
+			description: "Players guess commands that are used in the given games!" +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/hall-of-games-t800.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Hunger Games",
 			description: "This is a game of storytelling, decision-making, swift responses, and chance! The host will create a scenario " +
 				"in which players have to choose their paths and overcome obstacles to be the last one standing.",
 			aliases: ['hg'],
 			approvedHostOnly: true,
+		},
+		{
+			name: "Jirachi's Coloring Adventure",
+			mascot: "Jirachi",
+			aliases: ['JCA', 'Jirachis'],
+			description: "Players guess Pokemon that match the given color-based parameters!" +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/jirachis-coloring-adventure-t1042.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Jynx's Klutzy Kissing",
@@ -666,6 +681,21 @@ export const game: IUserHostedFile = {
 				"Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended " +
 				"it win a point and vice-versa!",
 			freejoin: true,
+		},
+		{
+			name: "Pikachu's Contest Spectacular",
+			mascot: "Pikachu-Cosplay",
+			aliases: ['PCS'],
+			description: "Players will be given 6 random Pokemon in PMs. The host will choose a category, and each player will PM " +
+				"the host the Pokemon they think best fits the category. The player(s) with the most votes will earn points!" +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/pikachu-s-contest-spectacular-t382.html'>More info</a>",
+		},
+		{
+			name: "Play Your Cards Right",
+			aliases: ['PYCR'],
+			description: "Each round, a random Pokemon and a numerical statistic of a Pokemon is selected. Players try to predict " +
+				"if the next Pokemon will have a statistic that is higher or lower than the previous Pokemon. " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/play-your-cards-right-t823.html'>More info</a>",
 		},
 		{
 			name: "Precise Timing",
