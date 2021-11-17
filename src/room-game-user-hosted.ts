@@ -580,7 +580,7 @@ export const game: IUserHostedFile = {
 		{
 			name: "Hall of Games",
 			aliases: ['HOG'],
-			description: "Players guess commands that are used in the given games!" +
+			description: "Players guess commands that are used in the given games! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/hall-of-games-t800.html'>More info</a>",
 			freejoin: true,
 		},
@@ -595,7 +595,7 @@ export const game: IUserHostedFile = {
 			name: "Jirachi's Coloring Adventure",
 			mascot: "Jirachi",
 			aliases: ['JCA', 'Jirachis'],
-			description: "Players guess Pokemon that match the given color-based parameters!" +
+			description: "Players guess Pokemon that match the given color-based parameters! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/jirachis-coloring-adventure-t1042.html'>More info</a>",
 			freejoin: true,
 		},
@@ -683,11 +683,11 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Pikachu's Contest Spectacular",
+			name: "Pikachu-Cosplay's Contest Spectacular",
 			mascot: "Pikachu-Cosplay",
-			aliases: ['PCS'],
+			aliases: ['PCS', 'PCCS'],
 			description: "Players will be given 6 random Pokemon in PMs. The host will choose a category, and each player will PM " +
-				"the host the Pokemon they think best fits the category. The player(s) with the most votes will earn points!" +
+				"the host the Pokemon they think best fits the category. The player(s) with the most votes will earn points! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/pikachu-s-contest-spectacular-t382.html'>More info</a>",
 		},
 		{
