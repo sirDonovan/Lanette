@@ -39,23 +39,14 @@ export class Tournaments {
 		if (previous.createListeners) Object.assign(this.createListeners, previous.createListeners);
 		if (previous.nextScheduledTournaments) Object.assign(this.nextScheduledTournaments, previous.nextScheduledTournaments);
 
-		if (previous.tournamentTimerData) {
-			for (const i in previous.tournamentTimerData) {
-				const room = Rooms.get(i);
-				if (room) {
-					const data = previous.tournamentTimerData[i];
-					const format = Dex.getFormat(data.formatid);
-					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
-				}
-			}
-		}
-
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
 				delete previous.tournamentTimers[i];
 			}
 		}
+
+		this.loadSchedules();
 
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
@@ -67,13 +58,6 @@ export class Tournaments {
 			}
 		}
 
-		for (const i in previous) {
-			// @ts-expect-error
-			delete previous[i];
-		}
-
-		this.loadSchedules();
-
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
 			if (room.id in this.schedules && (!(room.id in this.nextScheduledTournaments) ||
@@ -81,6 +65,22 @@ export class Tournaments {
 				this.setScheduledTournament(room);
 			}
 		});
+
+		if (previous.tournamentTimerData) {
+			for (const i in previous.tournamentTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.tournamentTimerData[i];
+					const format = Dex.getFormat(data.formatid);
+					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
+				}
+			}
+		}
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	loadSchedules(): void {
