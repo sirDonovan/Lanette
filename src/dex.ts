@@ -23,6 +23,10 @@ const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 const POKEMON_ICON_HEIGHT = 30;
 const POKEMON_ICON_WIDTH = 40;
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
+const OM_OF_THE_MONTH = 'OM of the Month';
+const ROA_SPOTLIGHT = 'RoA Spotlight';
+const OM_OF_THE_MONTH_PREFIX = 'omotm';
+const ROA_SPOTLIGHT_PREFIX = 'roas';
 
 const mechanicsDifferences: Dict<string> = {
 	'gen1': '3668073/post-8553244',
@@ -223,6 +227,9 @@ const customRuleInheritedFormatFallbacks: Dict<string[]> = {
 	almostanyability: ['Ignore Illegal Abilities'],
 	inverse: ['Inverse Mod'],
 };
+
+const omotms: string[] = [];
+const roaSpotlights: string[] = [];
 
 type Dexes = Dict<Dex>;
 const dexes: Dexes = {};
@@ -1318,6 +1325,20 @@ export class Dex {
 					customRuleFormats[formatId].banlist);
 				name = customRuleSplit[0];
 				allCustomRules = allCustomRules.concat(customRuleSplit[1]);
+			} else {
+				if (formatId.startsWith(OM_OF_THE_MONTH_PREFIX)) {
+					const index = parseInt(formatId.substr(OM_OF_THE_MONTH_PREFIX.length) || '1');
+					if (!isNaN(index)) {
+						const omotm = omotms[index - 1];
+						if (omotm) name = omotm;
+					}
+				} else if (formatId.startsWith(ROA_SPOTLIGHT_PREFIX)) {
+					const index = parseInt(formatId.substr(ROA_SPOTLIGHT_PREFIX.length) || '1');
+					if (!isNaN(index)) {
+						const roas = roaSpotlights[index - 1];
+						if (roas) name = roas;
+					}
+				}
 			}
 
 			let baseFormat = this.pokemonShowdownDex.formats.get(name);
@@ -2577,6 +2598,17 @@ export class Dex {
 
 		// @ts-expect-error
 		this.dataCache = data;
+
+		if (this.isBase) {
+			for (const key of data.formatKeys) {
+				const format = this.getExistingFormat(key);
+				if (format.section === OM_OF_THE_MONTH) {
+					omotms.push(format.id);
+				} else if (format.section === ROA_SPOTLIGHT) {
+					roaSpotlights.push(format.id);
+				}
+			}
+		}
 
 		for (const id in customRuleInheritedFormats) {
 			const format = this.getFormat(id);
