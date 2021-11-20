@@ -62,9 +62,11 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8stabmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
 	},
+	/*
 	'gen8purehackmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656851/post-8293471',
 	},
+	*/
 	'gen8nfe': {
 		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
 	},
