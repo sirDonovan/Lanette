@@ -219,6 +219,11 @@ const customRuleInheritedFormats: Dict<IInheritedFormatOptions> = {
 	},
 };
 
+const customRuleInheritedFormatFallbacks: Dict<string[]> = {
+	almostanyability: ['Ignore Illegal Abilities'],
+	inverse: ['Inverse Mod'],
+};
+
 type Dexes = Dict<Dex>;
 const dexes: Dexes = {};
 
@@ -2575,7 +2580,12 @@ export class Dex {
 
 		for (const id in customRuleInheritedFormats) {
 			const format = this.getFormat(id);
-			if (!format) continue;
+			if (!format) {
+				if (id in customRuleInheritedFormatFallbacks) {
+					customRuleAliases[customRuleInheritedFormats[id].customRuleAlias] = customRuleInheritedFormatFallbacks[id];
+				}
+				continue;
+			}
 
 			const options = customRuleInheritedFormats[id];
 			const rules = format.ruleset.slice();
