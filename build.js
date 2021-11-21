@@ -157,7 +157,7 @@ module.exports = async (options) => {
 	if (!options.offline) {
 		console.log("Checking pokemon-showdown remote...");
 		const remoteDirectories = [path.join(__dirname, 'Pokemon-Showdown'), pokemonShowdown];
-		const lanetteRemote = fs.readFileSync(path.join(__dirname, "pokemon-showdown-remote.txt")).toString();
+		const lanetteRemote = fs.readFileSync(path.join(__dirname, "pokemon-showdown-remote.txt")).toString().trim();
 		let needsClone = true;
 		for (let i = 0; i < remoteDirectories.length; i++) {
 			if (!fs.existsSync(remoteDirectories[i])) continue;
@@ -212,7 +212,7 @@ module.exports = async (options) => {
 			path.join(pokemonShowdown, ".translations-dist")];
 
 		const currentSha = revParseOutput.stdout.replace("\n", "");
-		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString();
+		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString().trim();
 		let buildPokemonShowdown = false;
 		if (currentSha !== lanetteSha) {
 			buildPokemonShowdown = true;
