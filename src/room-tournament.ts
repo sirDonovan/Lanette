@@ -290,7 +290,7 @@ export class Tournament extends Activity {
 			} else {
 				if (this.updates.bracketData.users) {
 					for (const user of this.updates.bracketData.users) {
-						this.createPlayer(user);
+						this.createPlayer(Tools.stripHtmlCharacters(user));
 					}
 				}
 			}
@@ -327,10 +327,12 @@ export class Tournament extends Activity {
 
 				if (node.children[0] && node.children[0].team) {
 					const userA = Tools.toId(node.children[0].team);
-					if (!players[userA]) players[userA] = node.children[0].team;
+					if (!players[userA]) players[userA] = Tools.stripHtmlCharacters(node.children[0].team);
+
 					if (node.children[1] && node.children[1].team) {
 						const userB = Tools.toId(node.children[1].team);
-						if (!players[userB]) players[userB] = node.children[1].team;
+						if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+
 						if (node.state === 'finished') {
 							if (node.result === 'win') {
 								if (!losses[userB]) losses[userB] = 0;
@@ -351,7 +353,7 @@ export class Tournament extends Activity {
 			if (!this.info.bracketData.tableHeaders || !('cols' in this.info.bracketData.tableHeaders)) return;
 			for (const name of this.info.bracketData.tableHeaders.cols) {
 				const id = Tools.toId(name);
-				if (!players[id]) players[id] = name;
+				if (!players[id]) players[id] = Tools.stripHtmlCharacters(name);
 			}
 		}
 

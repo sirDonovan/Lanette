@@ -392,7 +392,7 @@ export class Tournaments {
 	}
 
 	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
-		const eliminationNode = new EliminationNode({user: clientNode.team});
+		const eliminationNode = new EliminationNode({user: Tools.stripHtmlCharacters(clientNode.team)});
 
 		if (clientNode.children) {
 			const children: EliminationNode<string>[] = [];
