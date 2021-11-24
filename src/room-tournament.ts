@@ -211,9 +211,9 @@ export class Tournament extends Activity {
 				if (places.semifinalists) semiFinalists = places.semifinalists;
 			}
 		} else {
-			if (this.info.results[0]) winners = this.info.results[0];
-			if (this.info.results[1]) runnersUp = this.info.results[1];
-			if (this.info.results[2]) semiFinalists = this.info.results[2];
+			if (this.info.results[0]) winners = this.info.results[0].map(x => Tools.stripHtmlCharacters(x));
+			if (this.info.results[1]) runnersUp = this.info.results[1].map(x => Tools.stripHtmlCharacters(x));
+			if (this.info.results[2]) semiFinalists = this.info.results[2].map(x => Tools.stripHtmlCharacters(x));
 		}
 
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
