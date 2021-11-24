@@ -22,6 +22,35 @@ const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
+const AMPERSAND_REGEX = /&/g;
+const LESS_THAN_REGEX = /</g;
+const GREATER_THAN_REGEX = />/g;
+const DOUBLE_QUOTE_REGEX = /"/g;
+const SINGLE_QUOTE_REGEX = /'/g;
+const FORWARD_SLASH_REGEX = /\//g;
+const BACK_SLASH_REGEX = /\\/g;
+const E_ACUTE_REGEX = /é/g;
+const BULLET_POINT_REGEX = /•/g;
+
+const ESCAPED_AMPERSAND_REGEX = /&amp;/g;
+const ESCAPED_LESS_THAN_REGEX = /&lt;/g;
+const ESCAPED_GREATER_THAN_REGEX = /&gt;/g;
+const ESCAPED_DOUBLE_QUOTE_REGEX = /&quot;/g;
+const ESCAPED_SINGLE_QUOTE_REGEX = /&apos;/g;
+const ESCAPED_FORWARD_SLASH_REGEX = /&#x2f;/g;
+const ESCAPED_BACK_SLASH_REGEX = /&#92;/g;
+const ESCAPED_E_ACUTE_REGEX = /&eacute;/g;
+const ESCAPED_BULLET_POINT_REGEX = /&bull;/g;
+const ESCAPED_SPACE_REGEX = /&nbsp;/g;
+const ESCAPED_HYPHEN_REGEX = /&#8209;/g;
+
+const ESCAPED_NUMBER_AMPERSAND_REGEX = /&#38;/g;
+const ESCAPED_NUMBER_LESS_THAN_REGEX = /&#60;/g;
+const ESCAPED_NUMBER_GREATER_THAN_REGEX = /&#62;/g;
+const ESCAPED_NUMBER_DOUBLE_QUOTE_REGEX = /&#34;/g;
+const ESCAPED_NUMBER_SINGLE_QUOTE_REGEX = /&#39;/g;
+const ESCAPED_NUMBER_FORWARD_SLASH_REGEX = /&#47;/g;
+
 const HERE_REGEX = />here.?</i;
 const CLICK_HERE_REGEX = /click here/i;
 const HTML_TAGS_REGEX = /<!--.*?-->|<\/?[^<>]*/g;
@@ -588,29 +617,31 @@ export class Tools {
 	escapeHTML(input: string): string {
 		if (!input) return '';
 		return input
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, "&apos;")
-			.replace(/\//g, '&#x2f;')
-			.replace(/\\/g, '&#92;')
-			.replace(/é/g, '&eacute;')
-			.replace(/•/g, '&bull;');
+			.replace(AMPERSAND_REGEX, '&amp;')
+			.replace(LESS_THAN_REGEX, '&lt;')
+			.replace(GREATER_THAN_REGEX, '&gt;')
+			.replace(DOUBLE_QUOTE_REGEX, '&quot;')
+			.replace(SINGLE_QUOTE_REGEX, "&apos;")
+			.replace(FORWARD_SLASH_REGEX, '&#x2f;')
+			.replace(BACK_SLASH_REGEX, '&#92;')
+			.replace(E_ACUTE_REGEX, '&eacute;')
+			.replace(BULLET_POINT_REGEX, '&bull;');
 	}
 
 	unescapeHTML(input: string): string {
 		if (!input) return '';
 		return input
-			.replace(/&amp;/g, '&').replace(/&#38;/g, '&')
-			.replace(/&lt;/g, '<').replace(/&#60;/g, '<')
-			.replace(/&gt;/g, '>').replace(/&#62;/g, '>')
-			.replace(/&quot;/g, '"').replace(/&#34;/g, '"')
-			.replace(/&apos;/g, "'").replace(/&#39;/g, "'")
-			.replace(/&#x2f;/g, '/').replace(/&#47;/g, '/')
-			.replace(/&#92;/g, '\\').replace(/&eacute;/g, 'é')
-			.replace(/&bull;/g, '•').replace(/&nbsp;/g, ' ')
-			.replace(/&#8209;/g, '-');
+			.replace(ESCAPED_AMPERSAND_REGEX, '&').replace(ESCAPED_NUMBER_AMPERSAND_REGEX, '&')
+			.replace(ESCAPED_LESS_THAN_REGEX, '<').replace(ESCAPED_NUMBER_LESS_THAN_REGEX, '<')
+			.replace(ESCAPED_GREATER_THAN_REGEX, '>').replace(ESCAPED_NUMBER_GREATER_THAN_REGEX, '>')
+			.replace(ESCAPED_DOUBLE_QUOTE_REGEX, '"').replace(ESCAPED_NUMBER_DOUBLE_QUOTE_REGEX, '"')
+			.replace(ESCAPED_SINGLE_QUOTE_REGEX, "'").replace(ESCAPED_NUMBER_SINGLE_QUOTE_REGEX, "'")
+			.replace(ESCAPED_FORWARD_SLASH_REGEX, '/').replace(ESCAPED_NUMBER_FORWARD_SLASH_REGEX, '/')
+			.replace(ESCAPED_BACK_SLASH_REGEX, '\\')
+			.replace(ESCAPED_E_ACUTE_REGEX, 'é')
+			.replace(ESCAPED_BULLET_POINT_REGEX, '•')
+			.replace(ESCAPED_SPACE_REGEX, ' ')
+			.replace(ESCAPED_HYPHEN_REGEX, '-');
 	}
 
 	stripHtmlCharacters(input: string): string {
