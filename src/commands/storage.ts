@@ -150,9 +150,9 @@ export const commands: BaseCommandDefinitions = {
 				const targetUser = Users.get(users[i]);
 				if (targetUser) users[i] = targetUser.name;
 				if (remove) {
-					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, 'manual');
+					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
 				} else {
-					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, 'manual');
+					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
 					if (targetUser && targetUser.rooms.has(leaderboardRoom)) {
 						targetUser.say("You were awarded " + points + " " + pointsName + "! To see your total amount, use this command: " +
 							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + leaderboardRoom.title + "``");
@@ -457,15 +457,15 @@ export const commands: BaseCommandDefinitions = {
 			let cachedEntries: ICachedLeaderboardEntry[] | undefined;
 			if (annual) {
 				if (source) {
-					cachedEntries = Storage.getAnnualSourcePointsCache(leaderboardRoom, leaderboardType, source.id);
+					cachedEntries = Storage.getAnnualSourcePointsCache(leaderboardRoom, leaderboardType, [source.id]);
 				} else {
 					cachedEntries = Storage.getAnnualPointsCache(leaderboardRoom, leaderboardType);
 				}
 			} else {
 				if (source) {
-					cachedEntries = Storage.getCurrentSourcePointsCache(leaderboardRoom, leaderboardType, source.id);
+					cachedEntries = Storage.getSourcePointsCache(leaderboardRoom, leaderboardType, [source.id]);
 				} else {
-					cachedEntries = Storage.getCurrentPointsCache(leaderboardRoom, leaderboardType);
+					cachedEntries = Storage.getPointsCache(leaderboardRoom, leaderboardType);
 				}
 			}
 
@@ -556,10 +556,10 @@ export const commands: BaseCommandDefinitions = {
 			let currentCache: ICachedLeaderboardEntry[] | undefined;
 			let annualCache: ICachedLeaderboardEntry[] | undefined;
 			if (source) {
-				currentCache = Storage.getCurrentSourcePointsCache(targetRoom, leaderboardType, source.id);
-				annualCache = Storage.getAnnualSourcePointsCache(targetRoom, leaderboardType, source.id);
+				currentCache = Storage.getSourcePointsCache(targetRoom, leaderboardType, [source.id]);
+				annualCache = Storage.getAnnualSourcePointsCache(targetRoom, leaderboardType, [source.id]);
 			} else {
-				currentCache = Storage.getCurrentPointsCache(targetRoom, leaderboardType);
+				currentCache = Storage.getPointsCache(targetRoom, leaderboardType);
 				annualCache = Storage.getAnnualPointsCache(targetRoom, leaderboardType);
 			}
 
@@ -568,7 +568,7 @@ export const commands: BaseCommandDefinitions = {
 			if (position) {
 				const index = position - 1;
 
-				if (currentCache && currentCache[index]) {
+				if (currentCache[index]) {
 					results.push("#" + position + " on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " +
 						leaderboardName + " is " + leaderboard.entries[currentCache[index].id].name + " with " +
 						currentCache[index].points + " " + pointsName + (currentCache[index].points !== 1 ? "s" : "") + ".");
@@ -588,21 +588,19 @@ export const commands: BaseCommandDefinitions = {
 				if (!targetUser) targetUser = user.id;
 				const self = targetUser === user.id;
 
-				if (currentCache) {
-					let currentIndex = -1;
-					for (let i = 0; i < currentCache.length; i++) {
-						if (currentCache[i].id === targetUser) {
-							currentIndex = i;
-							break;
-						}
+				let currentIndex = -1;
+				for (let i = 0; i < currentCache.length; i++) {
+					if (currentCache[i].id === targetUser) {
+						currentIndex = i;
+						break;
 					}
+				}
 
-					if (currentIndex !== -1) {
-						results.push((self ? "You are" : leaderboard.entries[targetUser].name + " is") + " #" + (currentIndex + 1) + " " +
-							"on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
-							currentCache[currentIndex].points + " " + pointsName + (currentCache[currentIndex].points !== 1 ? "s" : "") +
-							".");
-					}
+				if (currentIndex !== -1) {
+					results.push((self ? "You are" : leaderboard.entries[targetUser].name + " is") + " #" + (currentIndex + 1) + " " +
+						"on the " + targetRoom.title + " " + (source ? source.name + " " : "") + " " + leaderboardName + " with " +
+						currentCache[currentIndex].points + " " + pointsName + (currentCache[currentIndex].points !== 1 ? "s" : "") +
+						".");
 				}
 
 				if (annualCache) {

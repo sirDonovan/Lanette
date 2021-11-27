@@ -5,7 +5,7 @@ import { assert, assertStrictEqual } from "../test-tools";
 /* eslint-env mocha */
 
 // eslint-disable-next-line max-len
-const tournamentEndJson = '{"results":[["Player 1"]],"format":"gen8randombattle","generator":"Single Elimination","bracketData":{"type":"tree","rootNode":{"children":[{"children":[{"team":"Player 2"},{"team":"Player 1"}],"state":"finished","team":"Player 1","result":"loss","score":[0,1]},{"children":[{"team":"Player 3"},{"team":"Player 4"}],"state":"finished","team":"Player 4","result":"loss","score":[0,1]}],"state":"finished","team":"Player 1","result":"win","score":[1,0]}}}';
+const tournamentEndJson = '{"results":[["<Player 1>"]],"format":"gen8randombattle","generator":"Single Elimination","bracketData":{"type":"tree","rootNode":{"children":[{"children":[{"team":"<Player 2>"},{"team":"<Player 1>"}],"state":"finished","team":"<Player 1>","result":"loss","score":[0,1]},{"children":[{"team":"<Player 3>"},{"team":"<Player 4>"}],"state":"finished","team":"<Player 4>","result":"loss","score":[0,1]}],"state":"finished","team":"<Player 1>","result":"win","score":[1,0]}}}';
 
 describe("Tournaments", () => {
 	it('should return proper values from isInPastTournaments()', () => {

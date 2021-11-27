@@ -62,9 +62,11 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8stabmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
 	},
+	/*
 	'gen8purehackmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656851/post-8293471',
 	},
+	*/
 	'gen8nfe': {
 		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
 	},
@@ -103,6 +105,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	// 'gen8stabmonsmixandmega': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3657159/page-25#post-8933563',
 	// },
+	'gen8bdspou': {
+		teams: 'https://www.smogon.com/forums/threads/3693721/',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {

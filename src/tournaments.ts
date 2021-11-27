@@ -39,23 +39,14 @@ export class Tournaments {
 		if (previous.createListeners) Object.assign(this.createListeners, previous.createListeners);
 		if (previous.nextScheduledTournaments) Object.assign(this.nextScheduledTournaments, previous.nextScheduledTournaments);
 
-		if (previous.tournamentTimerData) {
-			for (const i in previous.tournamentTimerData) {
-				const room = Rooms.get(i);
-				if (room) {
-					const data = previous.tournamentTimerData[i];
-					const format = Dex.getFormat(data.formatid);
-					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
-				}
-			}
-		}
-
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
 				delete previous.tournamentTimers[i];
 			}
 		}
+
+		this.loadSchedules();
 
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
@@ -67,13 +58,6 @@ export class Tournaments {
 			}
 		}
 
-		for (const i in previous) {
-			// @ts-expect-error
-			delete previous[i];
-		}
-
-		this.loadSchedules();
-
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
 			if (room.id in this.schedules && (!(room.id in this.nextScheduledTournaments) ||
@@ -81,6 +65,22 @@ export class Tournaments {
 				this.setScheduledTournament(room);
 			}
 		});
+
+		if (previous.tournamentTimerData) {
+			for (const i in previous.tournamentTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.tournamentTimerData[i];
+					const format = Dex.getFormat(data.formatid);
+					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
+				}
+			}
+		}
+
+		for (const i in previous) {
+			// @ts-expect-error
+			delete previous[i];
+		}
 	}
 
 	loadSchedules(): void {
@@ -99,26 +99,26 @@ export class Tournaments {
 
 			for (const month in this.schedules[room].months) {
 				for (const day in this.schedules[room].months[month].formats) {
-					const formatid = this.schedules[room].months[month].formats[day];
-					if (formatid.includes('@@@')) {
-						const parts = formatid.split('@@@');
-						this.schedules[room].months[month].formats[day] = Dex.getExistingFormat(parts[0]).id + '@@@' + parts[1];
-					} else {
-						if (formatid.includes(',')) {
-							const parts = formatid.split(',');
-							const customRules: string[] = [];
-							for (let i = 1; i < parts.length; i++) {
-								const part = parts[i].trim();
-								if (part && part !== '0') customRules.push(part);
-							}
-							this.schedules[room].months[month].formats[day] = Dex.joinNameAndCustomRules(Dex.getExistingFormat(parts[0]),
-								customRules);
+					const scheduled = this.schedules[room].months[month].formats[day];
+					let formatId = scheduled;
+					let customRules: string[] = [];
+					if (scheduled.includes('@@@')) {
+						const parts = scheduled.split('@@@');
+						formatId = parts[0];
+						customRules = parts[1].split(',');
+					} else if (scheduled.includes(',')) {
+						const parts = scheduled.split(',');
+						formatId = parts[0];
+						for (let i = 1; i < parts.length; i++) {
+							const part = parts[i].trim();
+							if (part && part !== '0') customRules.push(part);
 						}
 					}
 
 					try {
+						const format = Dex.getExistingFormat(formatId + (customRules.length ? "@@@" + customRules.join(",") : ""));
 						this.schedules[room].months[month].formats[day] = Dex
-							.validateFormat(this.schedules[room].months[month].formats[day]);
+							.validateFormat(Dex.joinNameAndCustomRules(format, format.customRules));
 					} catch (e) {
 						throw new Error(month + "/" + day + " in " + room + ": " + (e as Error).message);
 					}
@@ -392,7 +392,7 @@ export class Tournaments {
 	}
 
 	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
-		const eliminationNode = new EliminationNode({user: clientNode.team});
+		const eliminationNode = new EliminationNode({user: Tools.stripHtmlCharacters(clientNode.team)});
 
 		if (clientNode.children) {
 			const children: EliminationNode<string>[] = [];

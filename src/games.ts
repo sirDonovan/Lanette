@@ -1486,19 +1486,17 @@ export class Games {
 		html += "</span>";
 
 		if (format) {
-			const currentCache = Storage.getCurrentSourcePointsCache(room, Storage.gameLeaderboard, format.id);
-			if (currentCache) {
-				let index = -1;
-				for (let i = 0; i < currentCache.length; i++) {
-					if (currentCache[i].id === id) {
-						index = i;
-						break;
-					}
+			const currentCache = Storage.getSourcePointsCache(room, Storage.gameLeaderboard, [format.id]);
+			let index = -1;
+			for (let i = 0; i < currentCache.length; i++) {
+				if (currentCache[i].id === id) {
+					index = i;
+					break;
 				}
+			}
 
-				if (index !== -1) {
-					html += "<hr /><b>" + Tools.toNumberOrderString(index + 1) + "</b> in " + format.name;
-				}
+			if (index !== -1) {
+				html += "<hr /><b>" + Tools.toNumberOrderString(index + 1) + "</b> in " + format.name;
 			}
 		}
 

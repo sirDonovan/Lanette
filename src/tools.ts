@@ -22,6 +22,35 @@ const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 
+const AMPERSAND_REGEX = /&/g;
+const LESS_THAN_REGEX = /</g;
+const GREATER_THAN_REGEX = />/g;
+const DOUBLE_QUOTE_REGEX = /"/g;
+const SINGLE_QUOTE_REGEX = /'/g;
+const FORWARD_SLASH_REGEX = /\//g;
+const BACK_SLASH_REGEX = /\\/g;
+const E_ACUTE_REGEX = /é/g;
+const BULLET_POINT_REGEX = /•/g;
+
+const ESCAPED_AMPERSAND_REGEX = /&amp;/g;
+const ESCAPED_LESS_THAN_REGEX = /&lt;/g;
+const ESCAPED_GREATER_THAN_REGEX = /&gt;/g;
+const ESCAPED_DOUBLE_QUOTE_REGEX = /&quot;/g;
+const ESCAPED_SINGLE_QUOTE_REGEX = /&apos;/g;
+const ESCAPED_FORWARD_SLASH_REGEX = /&#x2f;/g;
+const ESCAPED_BACK_SLASH_REGEX = /&#92;/g;
+const ESCAPED_E_ACUTE_REGEX = /&eacute;/g;
+const ESCAPED_BULLET_POINT_REGEX = /&bull;/g;
+const ESCAPED_SPACE_REGEX = /&nbsp;/g;
+const ESCAPED_HYPHEN_REGEX = /&#8209;/g;
+
+const ESCAPED_NUMBER_AMPERSAND_REGEX = /&#38;/g;
+const ESCAPED_NUMBER_LESS_THAN_REGEX = /&#60;/g;
+const ESCAPED_NUMBER_GREATER_THAN_REGEX = /&#62;/g;
+const ESCAPED_NUMBER_DOUBLE_QUOTE_REGEX = /&#34;/g;
+const ESCAPED_NUMBER_SINGLE_QUOTE_REGEX = /&#39;/g;
+const ESCAPED_NUMBER_FORWARD_SLASH_REGEX = /&#47;/g;
+
 const HERE_REGEX = />here.?</i;
 const CLICK_HERE_REGEX = /click here/i;
 const HTML_TAGS_REGEX = /<!--.*?-->|<\/?[^<>]*/g;
@@ -97,8 +126,10 @@ export class Tools {
 	checkHtml(room: Room, htmlContent: string): boolean {
 		htmlContent = htmlContent.trim();
 		if (!htmlContent) return false;
+
+		const additionalInfo = "\nRoom: " + room.title + "\nHTML: " + htmlContent;
 		if (HERE_REGEX.test(htmlContent) || CLICK_HERE_REGEX.test(htmlContent)) {
-			throw new Error('Cannot use "click here"');
+			throw new Error('Cannot use "click here"' + additionalInfo);
 		}
 
 		// check for mismatched tags
@@ -125,17 +156,17 @@ export class Tools {
 				if (isClosingTag) {
 					if (LEGAL_AUTOCLOSE_TAGS.includes(tagName)) continue;
 					if (!stack.length) {
-						throw new Error("Extraneous </" + tagName + "> without an opening tag.");
+						throw new Error("Extraneous </" + tagName + "> without an opening tag." + additionalInfo);
 					}
 					const expectedTagName = stack.pop();
 					if (tagName !== expectedTagName) {
-						throw new Error("Extraneous </" + tagName + "> where </" + expectedTagName + "> was expected.");
+						throw new Error("Extraneous </" + tagName + "> where </" + expectedTagName + "> was expected." + additionalInfo);
 					}
 					continue;
 				}
 
 				if (ILLEGAL_TAGS.includes(tagName) || !TAG_NAME_REGEX.test(tagName)) {
-					throw new Error("Illegal tag <" + tagName + "> can't be used here.");
+					throw new Error("Illegal tag <" + tagName + "> can't be used here." + additionalInfo);
 				}
 
 				if (!LEGAL_AUTOCLOSE_TAGS.includes(tagName)) {
@@ -152,16 +183,16 @@ export class Tools {
 						// image is loaded, this changes the height of the chat area, which
 						// messes up autoscrolling.
 						throw new Error("Images without predefined width/height cause problems with scrolling because loading them " +
-							"changes their height.");
+							"changes their height." + additionalInfo);
 					}
 
 					const srcMatch = IMAGE_SRC_REGEX.exec(tagContent);
 					if (srcMatch) {
 						if (!srcMatch[1].startsWith('https://') && !srcMatch[1].startsWith('//') && !srcMatch[1].startsWith('data:')) {
-							throw new Error("Image URLs must begin with 'https://' or 'data:'; 'http://' cannot be used.");
+							throw new Error("Image URLs must begin with 'https://' or 'data:'; 'http://' cannot be used." + additionalInfo);
 						}
 					} else {
-						throw new Error("The src attribute must exist and have no spaces in the URL");
+						throw new Error("The src attribute must exist and have no spaces in the URL" + additionalInfo);
 					}
 				}
 
@@ -176,19 +207,19 @@ export class Tools {
 							const targetUser = Users.get(pmTarget);
 							if ((!targetUser || !targetUser.isBot(room)) && this.toId(pmTarget) !== Users.self.id) {
 								throw new Error("Your scripted button can't send PMs to " + pmTarget + ", because that user is not a " +
-									"Room Bot.");
+									"Room Bot." + additionalInfo);
 							}
 						} else if (buttonName === 'send' && buttonValue && BOT_MSG_COMMAND_REGEX.test(buttonValue)) {
 							// no need to validate the bot being an actual bot; `/botmsg` will do it for us and is not abusable
 						} else if (buttonName) {
-							throw new Error("This button is not allowed: <" + tagContent + ">");
+							throw new Error("This button is not allowed: <" + tagContent + ">" + additionalInfo);
 						}
 					}
 				}
 			}
 
 			if (stack.length) {
-				throw new Error("Missing </" + stack.pop() + ">.");
+				throw new Error("Missing </" + stack.pop() + ">." + additionalInfo);
 			}
 		}
 
@@ -437,6 +468,7 @@ export class Tools {
 		return copy;
 	}
 
+	/**Returns `true` if the arrays contain the same values in the same order */
 	compareArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): boolean {
 		const arrayALen = arrayA.length;
 		if (arrayALen !== arrayB.length) return false;
@@ -588,29 +620,31 @@ export class Tools {
 	escapeHTML(input: string): string {
 		if (!input) return '';
 		return input
-			.replace(/&/g, '&amp;')
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, "&apos;")
-			.replace(/\//g, '&#x2f;')
-			.replace(/\\/g, '&#92;')
-			.replace(/é/g, '&eacute;')
-			.replace(/•/g, '&bull;');
+			.replace(AMPERSAND_REGEX, '&amp;')
+			.replace(LESS_THAN_REGEX, '&lt;')
+			.replace(GREATER_THAN_REGEX, '&gt;')
+			.replace(DOUBLE_QUOTE_REGEX, '&quot;')
+			.replace(SINGLE_QUOTE_REGEX, "&apos;")
+			.replace(FORWARD_SLASH_REGEX, '&#x2f;')
+			.replace(BACK_SLASH_REGEX, '&#92;')
+			.replace(E_ACUTE_REGEX, '&eacute;')
+			.replace(BULLET_POINT_REGEX, '&bull;');
 	}
 
 	unescapeHTML(input: string): string {
 		if (!input) return '';
 		return input
-			.replace(/&amp;/g, '&').replace(/&#38;/g, '&')
-			.replace(/&lt;/g, '<').replace(/&#60;/g, '<')
-			.replace(/&gt;/g, '>').replace(/&#62;/g, '>')
-			.replace(/&quot;/g, '"').replace(/&#34;/g, '"')
-			.replace(/&apos;/g, "'").replace(/&#39;/g, "'")
-			.replace(/&#x2f;/g, '/').replace(/&#47;/g, '/')
-			.replace(/&#92;/g, '\\').replace(/&eacute;/g, 'é')
-			.replace(/&bull;/g, '•').replace(/&nbsp;/g, ' ')
-			.replace(/&#8209;/g, '-');
+			.replace(ESCAPED_AMPERSAND_REGEX, '&').replace(ESCAPED_NUMBER_AMPERSAND_REGEX, '&')
+			.replace(ESCAPED_LESS_THAN_REGEX, '<').replace(ESCAPED_NUMBER_LESS_THAN_REGEX, '<')
+			.replace(ESCAPED_GREATER_THAN_REGEX, '>').replace(ESCAPED_NUMBER_GREATER_THAN_REGEX, '>')
+			.replace(ESCAPED_DOUBLE_QUOTE_REGEX, '"').replace(ESCAPED_NUMBER_DOUBLE_QUOTE_REGEX, '"')
+			.replace(ESCAPED_SINGLE_QUOTE_REGEX, "'").replace(ESCAPED_NUMBER_SINGLE_QUOTE_REGEX, "'")
+			.replace(ESCAPED_FORWARD_SLASH_REGEX, '/').replace(ESCAPED_NUMBER_FORWARD_SLASH_REGEX, '/')
+			.replace(ESCAPED_BACK_SLASH_REGEX, '\\')
+			.replace(ESCAPED_E_ACUTE_REGEX, 'é')
+			.replace(ESCAPED_BULLET_POINT_REGEX, '•')
+			.replace(ESCAPED_SPACE_REGEX, ' ')
+			.replace(ESCAPED_HYPHEN_REGEX, '-');
 	}
 
 	stripHtmlCharacters(input: string): string {

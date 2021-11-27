@@ -110,9 +110,36 @@ export interface ILeaderboard {
 	type: LeaderboardType;
 }
 
+export interface IPointTotalsByType {
+	annual: Dict<number>;
+	current: Dict<number>;
+}
+
 export interface ICachedLeaderboardEntry {
 	id: string;
+	name: string;
 	points: number;
+}
+
+export interface IPointBreakdownsByType {
+	annual: Dict<IUserPointBreakdowns>;
+	current: Dict<IUserPointBreakdowns>;
+}
+
+export interface IUserPointBreakdowns {
+	total: number;
+	breakdowns: Dict<IPointBreakdown>;
+}
+
+export interface IPointBreakdown {
+	points: number;
+	percentage: number;
+}
+
+export interface ICachedPointsBreakdown {
+	id: string;
+	name: string;
+	breakdown: IUserPointBreakdowns;
 }
 
 export interface IGameStat {
@@ -123,11 +150,6 @@ export interface IGameStat {
 	startTime: number;
 	endTime: number;
 	winners: string[];
-}
-
-interface ILastCycleData {
-	scriptedGameStats?: IGameStat[];
-	userHostedGameStats?: Dict<IGameStat[]>;
 }
 
 interface IQueuedTournament {
@@ -143,8 +165,22 @@ interface ITournamentGameBan {
 	expirationTime: number;
 }
 
+export interface IPreviousCycle {
+	cycleStartDate: string;
+	cycleEndDate: string;
+	gameHostingLeaderbaord?: ILeaderboard;
+	gameLeaderboard?: ILeaderboard;
+	scriptedGameCounts?: Dict<number>;
+	scriptedGameStats?: IGameStat[];
+	tournamentLeaderboard?: ILeaderboard;
+	unsortedLeaderboard?: ILeaderboard;
+	userHostedGameCounts?: Dict<number>;
+	userHostedGameStats?: Dict<IGameStat[]>;
+}
+
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
+	cycleStartDate?: string;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
 	gameLeaderboard?: ILeaderboard;
@@ -154,7 +190,6 @@ export interface IDatabase {
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
-	lastCycleData?: ILastCycleData;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
@@ -166,6 +201,7 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
+	previousCycles?: IPreviousCycle[];
 	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
