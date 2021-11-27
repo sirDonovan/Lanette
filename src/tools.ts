@@ -468,6 +468,7 @@ export class Tools {
 		return copy;
 	}
 
+	/**Returns `true` if the arrays contain the same values in the same order */
 	compareArrays<T>(arrayA: readonly T[], arrayB: readonly T[]): boolean {
 		const arrayALen = arrayA.length;
 		if (arrayALen !== arrayB.length) return false;

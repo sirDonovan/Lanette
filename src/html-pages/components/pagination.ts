@@ -13,6 +13,7 @@ interface IPaginationProps extends IComponentProps {
 	rowsPerPage: number;
 	currentPage?: number;
 	pagesLabel?: string;
+	noElementsLabel?: string;
 	onSelectPage: (selectedPage: number) => void;
 }
 
@@ -71,7 +72,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 		let endIndex = (this.currentPage + 1) * this.elementsIncrement;
 		if (endIndex > totalElements) endIndex = totalElements;
 
-		let html = this.pagesLabel + " (" + (startIndex + 1) + "-" + endIndex + "/" + totalElements + "):&nbsp;";
+		let html = this.pagesLabel + " (" + (totalElements ? startIndex + 1 : 0) + "-" + endIndex + "/" + totalElements + "):&nbsp;";
 
 		if (this.totalPages > 1) {
 			for (let i = 0; i < this.totalPages; i++) {
@@ -83,15 +84,19 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 
 		html += "<br /><br />";
 
-		let elementsInRow = 0;
-		for (let i = startIndex; i < endIndex; i++) {
-			html += this.props.elements[i].html;
+		if (totalElements) {
+			let elementsInRow = 0;
+			for (let i = startIndex; i < endIndex; i++) {
+				html += this.props.elements[i].html;
 
-			elementsInRow++;
-			if (elementsInRow === this.props.elementsPerRow) {
-				html += "<br />";
-				elementsInRow = 0;
+				elementsInRow++;
+				if (elementsInRow === this.props.elementsPerRow) {
+					html += "<br />";
+					elementsInRow = 0;
+				}
 			}
+		} else {
+			html += this.props.noElementsLabel || "There are no results.";
 		}
 
 		return html;

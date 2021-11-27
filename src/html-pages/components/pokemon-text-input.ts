@@ -44,8 +44,6 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 	}
 
 	onSubmit(input: string): void {
-		this.errors = [];
-
 		const targets = input.split(',');
 		const pokemonChoices: PokemonChoices = [];
 

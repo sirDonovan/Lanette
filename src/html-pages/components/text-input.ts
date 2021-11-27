@@ -60,6 +60,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	submit(input: string): void {
 		this.currentInput = input;
+		this.errors = [];
 
 		this.onSubmit(input);
 
@@ -72,8 +73,6 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	/**Set `currentOutput` and any validation errors */
 	onSubmit(input: string): void {
-		this.errors = [];
-
 		// @ts-expect-error - re-implement submit() if OutputType !== string
 		this.currentOutput = input;
 	}

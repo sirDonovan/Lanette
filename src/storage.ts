@@ -3,7 +3,8 @@ import path = require('path');
 
 import type { Room } from './rooms';
 import type {
-	ICachedLeaderboardEntry, IDatabase, IGlobalDatabase, ILeaderboard, ILeaderboardEntry, LeaderboardType
+	ICachedLeaderboardEntry, ICachedPointsBreakdown, IDatabase, IGlobalDatabase, ILeaderboard, ILeaderboardEntry, IPreviousCycle,
+	IPointTotalsByType, LeaderboardType, IPointBreakdownsByType, IUserPointBreakdowns, IPointBreakdown
 } from './types/storage';
 import type { User } from './users';
 
@@ -18,13 +19,18 @@ export class Storage {
 	tournamentLeaderboard = 'tournamentLeaderboard' as const;
 	unsortedLeaderboard = 'unsortedLeaderboard' as const;
 
+	currentCycle = 'Current' as const;
+	manualSource = 'manual' as const;
+
 	databasesDir: string = path.join(Tools.rootFolder, 'databases');
 	lastExportedDatabaseContents: Dict<string> = {};
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	leaderboardsAnnualPointsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedLeaderboardEntry[]>> = {};
 	leaderboardsAnnualSourcePointsCache: Dict<PartialKeyedDict<LeaderboardType, Dict<ICachedLeaderboardEntry[]>>> = {};
-	leaderboardsCurrentPointsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedLeaderboardEntry[]>> = {};
-	leaderboardsCurrentSourcePointsCache: Dict<PartialKeyedDict<LeaderboardType, Dict<ICachedLeaderboardEntry[]>>> = {};
+	leaderboardsPointsCache: Dict<Dict<PartialKeyedDict<LeaderboardType, ICachedLeaderboardEntry[]>>> = {};
+	leaderboardsSourcePointsCache: Dict<Dict<PartialKeyedDict<LeaderboardType, Dict<ICachedLeaderboardEntry[]>>>> = {};
+	leaderboardsAnnualPointBreakdownsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedPointsBreakdown[]>> = {};
+	leaderboardsPointBreakdownsCache: Dict<Dict<PartialKeyedDict<LeaderboardType, ICachedPointsBreakdown[]>>> = {};
 	loadedDatabases: boolean = false;
 	reloadInProgress: boolean = false;
 
@@ -189,6 +195,44 @@ export class Storage {
 		this.archiveDatabase(roomid);
 
 		const database = this.databases[roomid];
+		if (!database.previousCycles) database.previousCycles = [];
+
+		const cycleTime = this.formatCycleTime(Date.now());
+		const previousCycle: IPreviousCycle = {
+			cycleStartDate: database.cycleStartDate || cycleTime,
+			cycleEndDate: cycleTime,
+		};
+
+		database.cycleStartDate = cycleTime;
+
+		for (const type of this.allLeaderboardTypes) {
+			if (!database[type]) continue;
+			previousCycle[type] = Tools.deepClone(database[type]);
+		}
+
+		if (database.scriptedGameCounts) {
+			previousCycle.scriptedGameCounts = Tools.deepClone(database.scriptedGameCounts);
+			database.scriptedGameCounts = {};
+		}
+
+		if (database.userHostedGameCounts) {
+			previousCycle.userHostedGameCounts = Tools.deepClone(database.userHostedGameCounts);
+			database.userHostedGameCounts = {};
+		}
+
+		if (database.scriptedGameStats) {
+			previousCycle.scriptedGameStats = Tools.deepClone(database.scriptedGameStats);
+			database.scriptedGameStats = [];
+		}
+
+		if (database.userHostedGameStats) {
+			previousCycle.userHostedGameStats = Tools.deepClone(database.userHostedGameStats);
+			database.userHostedGameStats = {};
+		}
+
+		if (database.previousCycles.length === 26) database.previousCycles.pop();
+		database.previousCycles.unshift(previousCycle);
+
 		const date = new Date();
 		const month = date.getMonth() + 1;
 		const day = date.getDate();
@@ -219,19 +263,14 @@ export class Storage {
 			}
 		}
 
-		database.lastCycleData = {
-			scriptedGameStats: database.scriptedGameStats,
-			userHostedGameStats: database.userHostedGameStats,
-		};
-
-		if (database.scriptedGameCounts) database.scriptedGameCounts = {};
-		if (database.userHostedGameCounts) database.userHostedGameCounts = {};
-		if (database.scriptedGameStats) database.scriptedGameStats = [];
-		if (database.userHostedGameStats) database.userHostedGameStats = {};
-
 		this.updateLeaderboardCaches(roomid, database);
 		this.exportDatabase(roomid);
 		return true;
+	}
+
+	formatCycleTime(time: number): string {
+		const date = new Date(time);
+		return (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
 	}
 
 	createLeaderboardEntry(leaderboard: ILeaderboard, name: string, id: string): void {
@@ -332,7 +371,7 @@ export class Storage {
 		if (leaderboard.entries[id].sources[source] <= 0) delete leaderboard.entries[id].sources[source];
 
 		this.updateLeaderboardPointsCaches(room.id, leaderboard);
-		this.updateLeaderboardSourcePointsCaches(room.id, leaderboard, source);
+		this.updateLeaderboardCachesForSource(room.id, leaderboard, source);
 	}
 
 	removePoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
@@ -354,12 +393,169 @@ export class Storage {
 		return database[leaderboardType]!.entries[id].annual + database[leaderboardType]!.entries[id].current;
 	}
 
+	sortPointsCache(users: string[], leaderboard: ILeaderboard, points: Dict<number>): ICachedLeaderboardEntry[] {
+		return users.filter(x => points[x] !== 0)
+			.sort((a, b) => {
+				if (points[b] === points[a]) {
+					if (b > a) return -1;
+					return 1;
+				}
+				return points[b] - points[a];
+			}).map(x => {
+				return {
+					id: x,
+					name: leaderboard.entries[x].name,
+					points: points[x],
+				};
+			});
+	}
+
+	sortPointBreakdownsCache(users: string[], leaderboard: ILeaderboard, breakdowns: Dict<IUserPointBreakdowns>):
+		ICachedPointsBreakdown[] {
+		return users.filter(x => breakdowns[x].total !== 0)
+			.sort((a, b) => {
+				if (breakdowns[b].total === breakdowns[a].total) {
+					if (b > a) return -1;
+					return 1;
+				}
+				return breakdowns[b].total - breakdowns[a].total;
+			}).map(x => {
+				return {
+					id: x,
+					name: leaderboard.entries[x].name,
+					breakdown: breakdowns[x],
+				};
+			});
+	}
+
+	getAllPoints(leaderboard: ILeaderboard): IPointTotalsByType {
+		const annual: Dict<number> = {};
+		const current: Dict<number> = {};
+
+		for (const id in leaderboard.entries) {
+			annual[id] = leaderboard.entries[id].annual + leaderboard.entries[id].current;
+			current[id] = leaderboard.entries[id].current;
+		}
+
+		return {
+			annual,
+			current,
+		};
+	}
+
+	getAllPointBreakdowns(leaderboard: ILeaderboard, sources?: string[]): IPointBreakdownsByType {
+		if (!sources) sources = leaderboard.sources;
+		const annualBreakdowns: Dict<IUserPointBreakdowns> = {};
+		const currentBreakdowns: Dict<IUserPointBreakdowns> = {};
+
+		for (const id in leaderboard.entries) {
+			const annualBreakdown: Dict<IPointBreakdown> = {};
+			const currentBreakdown: Dict<IPointBreakdown> = {};
+
+			const annualTotal = leaderboard.entries[id].annual + leaderboard.entries[id].current;
+			const currentTotal = leaderboard.entries[id].current;
+			for (const source of sources) {
+				let annualSource = 0;
+				let currentSource = 0;
+				if (leaderboard.entries[id].annualSources[source]) annualSource += leaderboard.entries[id].annualSources[source];
+				if (leaderboard.entries[id].sources[source]) {
+					annualSource += leaderboard.entries[id].sources[source];
+					currentSource = leaderboard.entries[id].sources[source];
+				}
+
+				if (annualSource && annualTotal) {
+					annualBreakdown[source] = {
+						points: annualSource,
+						percentage: 100 * (annualSource / annualTotal),
+					};
+				}
+
+				if (currentSource && currentTotal) {
+					currentBreakdown[source] = {
+						points: currentSource,
+						percentage: 100 * (currentSource / currentTotal),
+					};
+				}
+			}
+
+			const sortedAnnualBreakdown: Dict<IPointBreakdown> = {};
+			const sortedCurrentBreakdown: Dict<IPointBreakdown> = {};
+
+			const sortedAnnualKeys = Object.keys(annualBreakdown).sort((a, b) => annualBreakdown[b].points - annualBreakdown[a].points);
+			for (const key of sortedAnnualKeys) {
+				sortedAnnualBreakdown[key] = annualBreakdown[key];
+			}
+
+			const sortedCurrentKeys = Object.keys(currentBreakdown).sort((a, b) => currentBreakdown[b].points - currentBreakdown[a].points);
+			for (const key of sortedCurrentKeys) {
+				sortedCurrentBreakdown[key] = currentBreakdown[key];
+			}
+
+			annualBreakdowns[id] = {
+				total: annualTotal,
+				breakdowns: sortedAnnualBreakdown,
+			};
+			currentBreakdowns[id] = {
+				total: currentTotal,
+				breakdowns: sortedCurrentBreakdown,
+			};
+		}
+
+		return {
+			annual: annualBreakdowns,
+			current: currentBreakdowns,
+		};
+	}
+
+	getSourcePoints(leaderboard: ILeaderboard, sources: string[]): IPointTotalsByType {
+		const annual: Dict<number> = {};
+		const current: Dict<number> = {};
+
+		const users = Object.keys(leaderboard.entries);
+		for (const source of sources) {
+			for (const id of users) {
+				let annualSourcePoints = 0;
+				if (leaderboard.entries[id].sources[source]) annualSourcePoints += leaderboard.entries[id].sources[source];
+				if (leaderboard.entries[id].annualSources[source]) {
+					annualSourcePoints += leaderboard.entries[id].annualSources[source];
+				}
+
+				if (!annual[id]) annual[id] = 0;
+				if (!current[id]) current[id] = 0;
+
+				annual[id] += annualSourcePoints;
+				current[id] += leaderboard.entries[id].sources[source] || 0;
+			}
+		}
+
+		return {
+			annual,
+			current,
+		};
+	}
+
 	updateLeaderboardCaches(roomid: string, database: IDatabase): void {
 		for (const type of this.allLeaderboardTypes) {
 			if (!database[type]) continue;
 			this.updateLeaderboardPointsCaches(roomid, database[type]!);
+			this.updateLeaderboardPointsBreakdownCaches(roomid, database[type]!);
 			for (const source of database[type]!.sources) {
 				this.updateLeaderboardSourcePointsCaches(roomid, database[type]!, source);
+			}
+		}
+	}
+
+	getSourceCacheKey(sources: readonly string[]): string {
+		return sources.slice().sort().join(',');
+	}
+
+	updateLeaderboardCachesForSource(roomid: string, leaderboard: ILeaderboard, sourceKey: string): void {
+		this.updateLeaderboardSourcePointsCaches(roomid, leaderboard, sourceKey);
+
+		for (const key in this.leaderboardsSourcePointsCache[roomid][this.currentCycle][leaderboard.type]) {
+			if (key === sourceKey) continue;
+			if (key.includes(sourceKey)) {
+				this.updateLeaderboardSourcePointsCaches(roomid, leaderboard, key);
 			}
 		}
 	}
@@ -367,65 +563,53 @@ export class Storage {
 	updateLeaderboardPointsCaches(roomid: string, leaderboard: ILeaderboard): void {
 		const users = Object.keys(leaderboard.entries);
 
-		const annualPointsCache: Dict<number> = {};
-		const currentPointsCache: Dict<number> = {};
-
-		for (const id of users) {
-			annualPointsCache[id] = leaderboard.entries[id].annual + leaderboard.entries[id].current;
-			currentPointsCache[id] = leaderboard.entries[id].current;
-		}
+		const allPoints = this.getAllPoints(leaderboard);
 
 		if (!(roomid in this.leaderboardsAnnualPointsCache)) {
 			this.leaderboardsAnnualPointsCache[roomid] = {};
 		}
 
-		if (!(roomid in this.leaderboardsCurrentPointsCache)) {
-			this.leaderboardsCurrentPointsCache[roomid] = {};
+		if (!(roomid in this.leaderboardsPointsCache)) {
+			this.leaderboardsPointsCache[roomid] = {};
 		}
 
-		this.leaderboardsAnnualPointsCache[roomid][leaderboard.type] = users.filter(x => annualPointsCache[x] !== 0)
-			.sort((a, b) => {
-				if (annualPointsCache[b] === annualPointsCache[a]) {
-					if (b > a) return -1;
-					return 1;
-				}
-				return annualPointsCache[b] - annualPointsCache[a];
-			}).map(x => {
-				return {
-					id: x,
-					points: annualPointsCache[x],
-				};
-			});
-		this.leaderboardsCurrentPointsCache[roomid][leaderboard.type] = users.filter(x => currentPointsCache[x] !== 0)
-			.sort((a, b) => {
-				if (currentPointsCache[b] === currentPointsCache[a]) {
-					if (b > a) return -1;
-					return 1;
-				}
-				return currentPointsCache[b] - currentPointsCache[a];
-			}).map(x => {
-				return {
-					id: x,
-					points: currentPointsCache[x],
-				};
-			});
+		if (!(this.currentCycle in this.leaderboardsPointsCache[roomid])) {
+			this.leaderboardsPointsCache[roomid][this.currentCycle] = {};
+		}
+
+		this.leaderboardsAnnualPointsCache[roomid][leaderboard.type] = this.sortPointsCache(users, leaderboard, allPoints.annual);
+		this.leaderboardsPointsCache[roomid][this.currentCycle][leaderboard.type] = this.sortPointsCache(users, leaderboard,
+			allPoints.current);
 	}
 
-	updateLeaderboardSourcePointsCaches(roomid: string, leaderboard: ILeaderboard, source: string): void {
+	updateLeaderboardPointsBreakdownCaches(roomid: string, leaderboard: ILeaderboard): void {
 		const users = Object.keys(leaderboard.entries);
 
-		const annualSourcePointsCache: Dict<number> = {};
-		const currentSourcePointsCache: Dict<number> = {};
+		const allBreakdowns = this.getAllPointBreakdowns(leaderboard);
 
-		for (const id of users) {
-			let annualSourcePoints = 0;
-			if (leaderboard.entries[id].sources[source]) annualSourcePoints += leaderboard.entries[id].sources[source];
-			if (leaderboard.entries[id].annualSources[source]) {
-				annualSourcePoints += leaderboard.entries[id].annualSources[source];
-			}
-			annualSourcePointsCache[id] = annualSourcePoints;
-			currentSourcePointsCache[id] = leaderboard.entries[id].sources[source] || 0;
+		if (!(roomid in this.leaderboardsAnnualPointBreakdownsCache)) {
+			this.leaderboardsAnnualPointBreakdownsCache[roomid] = {};
 		}
+
+		if (!(roomid in this.leaderboardsPointBreakdownsCache)) {
+			this.leaderboardsPointBreakdownsCache[roomid] = {};
+		}
+
+		if (!(this.currentCycle in this.leaderboardsPointBreakdownsCache[roomid])) {
+			this.leaderboardsPointBreakdownsCache[roomid][this.currentCycle] = {};
+		}
+
+		this.leaderboardsAnnualPointBreakdownsCache[roomid][leaderboard.type] = this.sortPointBreakdownsCache(users, leaderboard,
+			allBreakdowns.annual);
+		this.leaderboardsPointBreakdownsCache[roomid][this.currentCycle][leaderboard.type] = this.sortPointBreakdownsCache(users,
+			leaderboard, allBreakdowns.current);
+	}
+
+	updateLeaderboardSourcePointsCaches(roomid: string, leaderboard: ILeaderboard, sourceKey: string): void {
+		const users = Object.keys(leaderboard.entries);
+
+		const sources = sourceKey.split(",");
+		const sourcePoints = this.getSourcePoints(leaderboard, sources);
 
 		if (!(roomid in this.leaderboardsAnnualSourcePointsCache)) {
 			this.leaderboardsAnnualSourcePointsCache[roomid] = {};
@@ -434,39 +618,22 @@ export class Storage {
 			this.leaderboardsAnnualSourcePointsCache[roomid][leaderboard.type] = {};
 		}
 
-		if (!(roomid in this.leaderboardsCurrentSourcePointsCache)) {
-			this.leaderboardsCurrentSourcePointsCache[roomid] = {};
-		}
-		if (!this.leaderboardsCurrentSourcePointsCache[roomid][leaderboard.type]) {
-			this.leaderboardsCurrentSourcePointsCache[roomid][leaderboard.type] = {};
+		if (!(roomid in this.leaderboardsSourcePointsCache)) {
+			this.leaderboardsSourcePointsCache[roomid] = {};
 		}
 
-		this.leaderboardsAnnualSourcePointsCache[roomid][leaderboard.type]![source] = users.filter(x => annualSourcePointsCache[x] !== 0)
-			.sort((a, b) => {
-				if (annualSourcePointsCache[b] === annualSourcePointsCache[a]) {
-					if (b > a) return -1;
-					return 1;
-				}
-				return annualSourcePointsCache[b] - annualSourcePointsCache[a];
-			}).map(x => {
-				return {
-					id: x,
-					points: annualSourcePointsCache[x],
-				};
-			});
-		this.leaderboardsCurrentSourcePointsCache[roomid][leaderboard.type]![source] = users.filter(x => currentSourcePointsCache[x] !== 0)
-			.sort((a, b) => {
-				if (currentSourcePointsCache[b] === currentSourcePointsCache[a]) {
-					if (b > a) return -1;
-					return 1;
-				}
-				return currentSourcePointsCache[b] - currentSourcePointsCache[a];
-			}).map(x => {
-				return {
-					id: x,
-					points: currentSourcePointsCache[x],
-				};
-			});
+		if (!(this.currentCycle in this.leaderboardsSourcePointsCache[roomid])) {
+			this.leaderboardsSourcePointsCache[roomid][this.currentCycle] = {};
+		}
+
+		if (!(leaderboard.type in this.leaderboardsSourcePointsCache[roomid][this.currentCycle])) {
+			this.leaderboardsSourcePointsCache[roomid][this.currentCycle][leaderboard.type] = {};
+		}
+
+		this.leaderboardsAnnualSourcePointsCache[roomid][leaderboard.type]![sourceKey] = this.sortPointsCache(users,
+			leaderboard, sourcePoints.annual);
+		this.leaderboardsSourcePointsCache[roomid][this.currentCycle][leaderboard.type]![sourceKey] = this.sortPointsCache(users,
+			leaderboard, sourcePoints.current);
 	}
 
 	getAnnualPointsCache(room: Room, leaderboardType: LeaderboardType): ICachedLeaderboardEntry[] | undefined {
@@ -474,23 +641,97 @@ export class Storage {
 		return this.leaderboardsAnnualPointsCache[room.id][leaderboardType];
 	}
 
-	getAnnualSourcePointsCache(room: Room, leaderboardType: LeaderboardType, source: string): ICachedLeaderboardEntry[] | undefined {
+	getAnnualSourcePointsCache(room: Room, leaderboardType: LeaderboardType, sources: readonly string[]): ICachedLeaderboardEntry[] {
 		if (!(room.id in this.leaderboardsAnnualSourcePointsCache) ||
-			!this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType] ||
-			!(source in this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType]!)) return;
-		return this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType]![source];
+			!this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType]) return [];
+
+		const key = this.getSourceCacheKey(sources);
+		if (!(key in this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType]!)) {
+			this.updateLeaderboardSourcePointsCaches(room.id, this.getDatabase(room)[leaderboardType]!, key);
+		}
+
+		return this.leaderboardsAnnualSourcePointsCache[room.id][leaderboardType]![key];
 	}
 
-	getCurrentPointsCache(room: Room, leaderboardType: LeaderboardType): ICachedLeaderboardEntry[] | undefined {
-		if (!(room.id in this.leaderboardsCurrentPointsCache) || !this.leaderboardsCurrentPointsCache[room.id][leaderboardType]) return;
-		return this.leaderboardsCurrentPointsCache[room.id][leaderboardType];
+	getPointsCache(room: Room, leaderboardType: LeaderboardType): ICachedLeaderboardEntry[] {
+		if (!(room.id in this.leaderboardsPointsCache) || !(this.currentCycle in this.leaderboardsPointsCache[room.id]) ||
+			!(leaderboardType in this.leaderboardsPointsCache[room.id][this.currentCycle])) return [];
+		return this.leaderboardsPointsCache[room.id][this.currentCycle][leaderboardType]!;
 	}
 
-	getCurrentSourcePointsCache(room: Room, leaderboardType: LeaderboardType, source: string): ICachedLeaderboardEntry[] | undefined {
-		if (!(room.id in this.leaderboardsCurrentSourcePointsCache) ||
-			!this.leaderboardsCurrentSourcePointsCache[room.id][leaderboardType] ||
-			!(source in this.leaderboardsCurrentSourcePointsCache[room.id][leaderboardType]!)) return;
-		return this.leaderboardsCurrentSourcePointsCache[room.id][leaderboardType]![source];
+	getSourcePointsCache(room: Room, leaderboardType: LeaderboardType, sources: readonly string[]): ICachedLeaderboardEntry[] {
+		if (!(room.id in this.leaderboardsSourcePointsCache) || !(this.currentCycle in this.leaderboardsSourcePointsCache[room.id]) ||
+			!(leaderboardType in this.leaderboardsSourcePointsCache[room.id][this.currentCycle])) return [];
+
+		const key = this.getSourceCacheKey(sources);
+		if (!(key in this.leaderboardsSourcePointsCache[room.id][this.currentCycle][leaderboardType]!)) {
+			this.updateLeaderboardSourcePointsCaches(room.id, this.getDatabase(room)[leaderboardType]!, key);
+		}
+
+		return this.leaderboardsSourcePointsCache[room.id][this.currentCycle][leaderboardType]![key];
+	}
+
+	getPointsBreakdownCache(room: Room, leaderboardType: LeaderboardType): ICachedPointsBreakdown[] {
+		if (!(room.id in this.leaderboardsPointBreakdownsCache) || !(this.currentCycle in this.leaderboardsPointBreakdownsCache[room.id]) ||
+			!(leaderboardType in this.leaderboardsPointBreakdownsCache[room.id][this.currentCycle])) return [];
+		return this.leaderboardsPointBreakdownsCache[room.id][this.currentCycle][leaderboardType]!;
+	}
+
+	getPreviousCyclePointsCache(room: Room, leaderboard: ILeaderboard, cycle: string): ICachedLeaderboardEntry[] {
+		if (!(room.id in this.leaderboardsPointsCache)) {
+			this.leaderboardsPointsCache[room.id] = {};
+		}
+
+		if (!(cycle in this.leaderboardsPointsCache[room.id])) {
+			this.leaderboardsPointsCache[room.id][cycle] = {};
+		}
+
+		if (!(leaderboard.type in this.leaderboardsPointsCache[room.id][cycle])) {
+			this.leaderboardsPointsCache[room.id][cycle][leaderboard.type] = this.sortPointsCache(Object.keys(leaderboard.entries),
+				leaderboard, this.getAllPoints(leaderboard).current);
+		}
+
+		return this.leaderboardsPointsCache[room.id][cycle][leaderboard.type]!;
+	}
+
+	getPreviousCycleSourcePointsCache(room: Room, leaderboard: ILeaderboard, sources: string[], cycle: string): ICachedLeaderboardEntry[] {
+		if (!(room.id in this.leaderboardsSourcePointsCache)) {
+			this.leaderboardsSourcePointsCache[room.id] = {};
+		}
+
+		if (!(cycle in this.leaderboardsSourcePointsCache[room.id])) {
+			this.leaderboardsSourcePointsCache[room.id][cycle] = {};
+		}
+
+		if (!(leaderboard.type in this.leaderboardsSourcePointsCache[room.id][cycle])) {
+			this.leaderboardsSourcePointsCache[room.id][cycle][leaderboard.type] = {};
+		}
+
+		const key = this.getSourceCacheKey(sources);
+		if (!(key in this.leaderboardsSourcePointsCache[room.id][cycle][leaderboard.type]!)) {
+			this.leaderboardsSourcePointsCache[room.id][cycle][leaderboard.type]![key] =
+				this.sortPointsCache(Object.keys(leaderboard.entries), leaderboard, this.getSourcePoints(leaderboard, sources).current);
+		}
+
+		return this.leaderboardsSourcePointsCache[room.id][cycle][leaderboard.type]![key];
+	}
+
+	getPreviousCyclePointsBreakdownCache(room: Room, leaderboard: ILeaderboard, cycle: string): ICachedPointsBreakdown[] {
+		if (!(room.id in this.leaderboardsPointBreakdownsCache)) {
+			this.leaderboardsPointBreakdownsCache[room.id] = {};
+		}
+
+		if (!(cycle in this.leaderboardsPointBreakdownsCache[room.id])) {
+			this.leaderboardsPointBreakdownsCache[room.id][cycle] = {};
+		}
+
+		if (!(leaderboard.type in this.leaderboardsPointBreakdownsCache[room.id][cycle])) {
+			this.leaderboardsPointBreakdownsCache[room.id][cycle][leaderboard.type] =
+				this.sortPointBreakdownsCache(Object.keys(leaderboard.entries), leaderboard,
+					this.getAllPointBreakdowns(leaderboard).current);
+		}
+
+		return this.leaderboardsPointBreakdownsCache[room.id][cycle][leaderboard.type]!;
 	}
 
 	transferData(roomid: string, sourceName: string, destinationName: string): boolean {
