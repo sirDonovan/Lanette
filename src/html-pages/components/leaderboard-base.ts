@@ -15,6 +15,7 @@ export interface ILeaderboardProps extends IComponentProps {
 export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 	cachedLeaderboardEntries: ICachedLeaderboardEntry[] = [];
 	cycleCommand: string = 'selectcycle';
+	displayedPercentagePlaces: number = 2;
 	formatsInputCommand: string = 'selectformats';
 	formatsInput: TextInput | null = null;
 	leaderboardPageCommand: string = 'leaderboardpage';
@@ -76,6 +77,10 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 
 	getFormatId(input: string): string {
 		return input;
+	}
+
+	getMaxPercentageLength(): number {
+		return 3 + this.displayedPercentagePlaces;
 	}
 
 	setFormats(input: string): void {

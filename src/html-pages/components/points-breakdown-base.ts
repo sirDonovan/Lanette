@@ -6,7 +6,6 @@ import type { IPageElement } from "./pagination";
 
 export abstract class PointsBreakdownBase extends LeaderboardBase {
 	cachedPointBreakdowns: ICachedPointsBreakdown[] = [];
-	displayedPercentagePlaces: number = 2;
 	rowsPerPage: number = 10;
 
 	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
@@ -14,10 +13,6 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 	}
 
 	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string;
-
-	getPercentageLength(): number {
-		return 2 + this.displayedPercentagePlaces;
-	}
 
 	onUpdateLeaderboardParameters(): void {
 		this.updateCachedPointBreakdowns();

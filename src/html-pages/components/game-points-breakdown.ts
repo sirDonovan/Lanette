@@ -15,7 +15,7 @@ export class GamePointsBreakdown extends PointsBreakdownBase {
 	}
 
 	renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string {
-		const percentageLength = this.getPercentageLength();
+		const maxPercentageLength = this.getMaxPercentageLength();
 
 		let html = "";
 		for (const source in breakdown) {
@@ -28,7 +28,7 @@ export class GamePointsBreakdown extends PointsBreakdownBase {
 			}
 
 			let percentage = "" + breakdown[source].percentage;
-			if (percentage.length > percentageLength) percentage = percentage.substr(0, percentageLength);
+			if (percentage.length > maxPercentageLength) percentage = percentage.substr(0, maxPercentageLength);
 
 			html += "&bull;&nbsp;<b>" + name + "</b> - " + percentage + "% (" + breakdown[source].points + " " + this.pointsName +
 				(breakdown[source].points > 1 ? "s" : "") + ")<br />";
