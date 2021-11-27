@@ -21,7 +21,8 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 	leaderboardPageCommand: string = 'leaderboardpage';
 	rowsPerPage: number = 20;
 	selectedCycle: string = Storage.currentCycle;
-	selectedFormats: string[] = [];
+	selectedFormatNames: string[] = [];
+	selectedFormatIds: string[] = [];
 
 	cycleLeaderboard: ILeaderboard | undefined;
 	cycleOptions: string[];
@@ -58,7 +59,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 
 		this.components = [this.leaderboardPagination];
 
-		this.onUpdateLeaderboardParameters(undefined, true);
+		this.onUpdateLeaderboardParameters(true);
 	}
 
 	setCycle(cycle: string): boolean {
@@ -78,7 +79,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			}
 
 			this.selectedCycle = cycle;
-			this.onUpdateLeaderboardParameters(undefined, true);
+			this.onUpdateLeaderboardParameters(true);
 
 			this.leaderboardPagination.parentSelectPage(0);
 			this.props.reRender();
@@ -97,23 +98,25 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 
 	setFormats(input: string): void {
 		const names: string[] = input.split(',');
-		if (names.length && !Tools.compareArrays(this.selectedFormats, names)) {
-			this.selectedFormats = names;
+		if (names.length && !Tools.compareArrays(this.selectedFormatNames, names)) {
+			this.selectedFormatNames = names;
 
 			const ids: string[] = [];
 			for (const name of names) {
 				ids.push(this.getFormatId(name));
 			}
+			this.selectedFormatIds = ids;
 
-			this.onUpdateLeaderboardParameters(ids);
+			this.onUpdateLeaderboardParameters();
 			this.props.reRender();
 		}
 	}
 
 	clearFormats(): void {
-		if (!this.selectedFormats.length) return;
+		if (!this.selectedFormatNames.length) return;
 
-		this.selectedFormats = [];
+		this.selectedFormatNames = [];
+		this.selectedFormatIds = [];
 		this.onUpdateLeaderboardParameters();
 		this.props.reRender();
 	}
@@ -122,23 +125,23 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
         return previousCycle.cycleStartDate + " - " + previousCycle.cycleEndDate;
     }
 
-	onUpdateLeaderboardParameters(sources?: string[], noPageUpdate?: boolean): void {
-		this.updateCachedLeaderboardEntries(sources);
+	onUpdateLeaderboardParameters(noPageUpdate?: boolean): void {
+		this.updateCachedLeaderboardEntries();
 		this.updateLeaderboardPagination(noPageUpdate);
 	}
 
-	updateCachedLeaderboardEntries(sources?: string[]): void {
+	updateCachedLeaderboardEntries(): void {
 		if (this.selectedCycle === Storage.currentCycle) {
-			if (sources) {
-				this.cachedLeaderboardEntries = Storage.getSourcePointsCache(this.room, this.leaderboardType, sources);
+			if (this.selectedFormatIds.length) {
+				this.cachedLeaderboardEntries = Storage.getSourcePointsCache(this.room, this.leaderboardType, this.selectedFormatIds);
 			} else {
 				this.cachedLeaderboardEntries = Storage.getPointsCache(this.room, this.leaderboardType);
 			}
 		} else {
 			if (this.cycleLeaderboard) {
-				if (sources) {
-					this.cachedLeaderboardEntries = Storage.getPreviousCycleSourcePointsCache(this.room, this.cycleLeaderboard, sources,
-						this.selectedCycle);
+				if (this.selectedFormatIds.length) {
+					this.cachedLeaderboardEntries = Storage.getPreviousCycleSourcePointsCache(this.room, this.cycleLeaderboard,
+						this.selectedFormatIds, this.selectedCycle);
 				} else {
 					this.cachedLeaderboardEntries = Storage.getPreviousCyclePointsCache(this.room, this.cycleLeaderboard,
 						this.selectedCycle);
@@ -194,8 +197,8 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			html += this.selectedCycle + " ";
 		}
 
-		if (this.selectedFormats.length) {
-			html += "Sub-leaderboard (" + Tools.joinList(this.selectedFormats) + ")";
+		if (this.selectedFormatNames.length) {
+			html += "Sub-leaderboard (" + Tools.joinList(this.selectedFormatNames) + ")";
 		} else {
 			html += "Leaderboard";
 		}

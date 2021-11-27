@@ -14,7 +14,7 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 
 	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string;
 
-	onUpdateLeaderboardParameters(sources?: string[], noPageUpdate?: boolean): void {
+	onUpdateLeaderboardParameters(noPageUpdate?: boolean): void {
 		this.updateCachedPointBreakdowns();
 		this.updateLeaderboardPagination(noPageUpdate);
 	}
@@ -51,8 +51,8 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 			html += this.selectedCycle + " ";
 		}
 
-		if (this.selectedFormats.length) {
-			html += "Sub-points breakdown (" + Tools.joinList(this.selectedFormats) + ")";
+		if (this.selectedFormatNames.length) {
+			html += "Sub-points breakdown (" + Tools.joinList(this.selectedFormatNames) + ")";
 		} else {
 			html += "Points breakdown";
 		}
