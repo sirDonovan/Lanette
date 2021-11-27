@@ -74,7 +74,7 @@ class ScriptedGameStats extends HtmlPageBase {
         const leaderboardView = this.currentView === 'leaderboard';
 		const pointsBreakdownView = this.currentView === 'pointsbreakdown';
 
-		html += "<b>Options>/b>:";
+		html += "<b>Options</b>:";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLeaderboard, "Leaderboard", leaderboardView);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePointsBreakdown, "Points breakdown",
 			pointsBreakdownView);
