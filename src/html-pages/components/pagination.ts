@@ -23,6 +23,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 	componentId: string = 'pagination';
 
 	currentPage: number;
+	elements!: IPageElement[];
 	elementsIncrement: number;
 	pagesLabel: string;
 	totalPages!: number;
@@ -33,25 +34,35 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 		this.currentPage = props.currentPage || 0;
 		this.elementsIncrement = props.elementsPerRow * props.rowsPerPage;
 		this.pagesLabel = props.pagesLabel || "Pages";
-		this.totalPages = Math.ceil(props.elements.length / this.elementsIncrement);
-
-		this.autoSelectPage();
+		this.updateElements(props.elements, true);
 	}
 
 	autoSelectPage(): void {
-		for (let i = 0; i < this.props.elements.length; i++) {
-			if (this.props.elements[i].selected) {
+		for (let i = 0; i < this.elements.length; i++) {
+			if (this.elements[i].selected) {
 				this.currentPage = Math.ceil((i + 1) / this.elementsIncrement) - 1;
 				break;
 			}
 		}
 	}
 
-	selectPage(page: number): void {
+	selectPage(page: number, parent?: boolean): void {
 		if (this.currentPage === page) return;
 
 		this.currentPage = page;
-		this.props.onSelectPage(page);
+		if (!parent) this.props.onSelectPage(page);
+	}
+
+	parentSelectPage(page: number): void {
+		this.selectPage(page, true);
+	}
+
+	updateElements(elements: IPageElement[], onOpen?: boolean): void {
+		this.elements = elements;
+		this.totalPages = Math.ceil(elements.length / this.elementsIncrement);
+		this.autoSelectPage();
+
+		if (!onOpen) this.props.onSelectPage(this.currentPage);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -67,7 +78,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 	}
 
 	render(): string {
-		const totalElements = this.props.elements.length;
+		const totalElements = this.elements.length;
 		const startIndex = this.currentPage * this.elementsIncrement;
 		let endIndex = (this.currentPage + 1) * this.elementsIncrement;
 		if (endIndex > totalElements) endIndex = totalElements;
@@ -87,7 +98,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 		if (totalElements) {
 			let elementsInRow = 0;
 			for (let i = startIndex; i < endIndex; i++) {
-				html += this.props.elements[i].html;
+				html += this.elements[i].html;
 
 				elementsInRow++;
 				if (elementsInRow === this.props.elementsPerRow) {

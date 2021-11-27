@@ -14,9 +14,9 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 
 	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string;
 
-	onUpdateLeaderboardParameters(): void {
+	onUpdateLeaderboardParameters(sources?: string[], noPageUpdate?: boolean): void {
 		this.updateCachedPointBreakdowns();
-		this.updateLeaderboardPagination();
+		this.updateLeaderboardPagination(noPageUpdate);
 	}
 
 	updateCachedPointBreakdowns(): void {

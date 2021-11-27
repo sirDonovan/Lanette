@@ -46,9 +46,19 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			}
 		}
 
-		this.onUpdateLeaderboardParameters();
+		this.leaderboardPagination = new Pagination(this.room, this.commandPrefix, this.leaderboardPageCommand, {
+			elements: [],
+			elementsPerRow: 1,
+			rowsPerPage: this.rowsPerPage,
+			pagesLabel: "Users",
+			noElementsLabel: "The leaderboard is empty",
+			onSelectPage: () => this.props.reRender(),
+			reRender: () => this.props.reRender(),
+		});
 
 		this.components = [this.leaderboardPagination];
+
+		this.onUpdateLeaderboardParameters(undefined, true);
 	}
 
 	setCycle(cycle: string): boolean {
@@ -68,7 +78,9 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			}
 
 			this.selectedCycle = cycle;
-			this.onUpdateLeaderboardParameters();
+			this.onUpdateLeaderboardParameters(undefined, true);
+
+			this.leaderboardPagination.parentSelectPage(0);
 			this.props.reRender();
 		}
 
@@ -110,9 +122,9 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
         return previousCycle.cycleStartDate + " - " + previousCycle.cycleEndDate;
     }
 
-	onUpdateLeaderboardParameters(sources?: string[]): void {
+	onUpdateLeaderboardParameters(sources?: string[], noPageUpdate?: boolean): void {
 		this.updateCachedLeaderboardEntries(sources);
-		this.updateLeaderboardPagination();
+		this.updateLeaderboardPagination(noPageUpdate);
 	}
 
 	updateCachedLeaderboardEntries(sources?: string[]): void {
@@ -149,16 +161,8 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		return elements;
 	}
 
-	updateLeaderboardPagination(): void {
-		this.leaderboardPagination = new Pagination(this.room, this.commandPrefix, this.leaderboardPageCommand, {
-			elements: this.getLeaderboardPaginationElements(),
-			elementsPerRow: 1,
-			rowsPerPage: this.rowsPerPage,
-			pagesLabel: "Users",
-			noElementsLabel: "The leaderboard is empty",
-			onSelectPage: () => this.props.reRender(),
-			reRender: () => this.props.reRender(),
-		});
+	updateLeaderboardPagination(noPageUpdate?: boolean): void {
+		this.leaderboardPagination.updateElements(this.getLeaderboardPaginationElements(), noPageUpdate);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
