@@ -102,24 +102,6 @@ const clauseNicknames: Dict<string> = {
 	'Chimera 1v1 Rule': 'Chimera 1v1',
 	'Bonus Type Rule': 'Bonus Type',
 	'First Blood Rule': 'First Blood',
-	'Force Monotype = Bug': 'Mono-Bug',
-	'Force Monotype = Dark': 'Mono-Dark',
-	'Force Monotype = Dragon': 'Mono-Dragon',
-	'Force Monotype = Electric': 'Mono-Electric',
-	'Force Monotype = Fairy': 'Mono-Fairy',
-	'Force Monotype = Fighting': 'Mono-Fighting',
-	'Force Monotype = Fire': 'Mono-Fire',
-	'Force Monotype = Flying': 'Mono-Flying',
-	'Force Monotype = Ghost': 'Mono-Ghost',
-	'Force Monotype = Grass': 'Mono-Grass',
-	'Force Monotype = Ground': 'Mono-Ground',
-	'Force Monotype = Ice': 'Mono-Ice',
-	'Force Monotype = Normal': 'Mono-Normal',
-	'Force Monotype = Poison': 'Mono-Poison',
-	'Force Monotype = Psychic': 'Mono-Psychic',
-	'Force Monotype = Rock': 'Mono-Rock',
-	'Force Monotype = Steel': 'Mono-Steel',
-	'Force Monotype = Water': 'Mono-Water',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
@@ -182,24 +164,6 @@ const customRuleAliases: Dict<string[]> = {
 	'350cup': ['350 Cup Mod'],
 	flipped: ['Flipped Mod'],
 	scalemons: ['Scalemons Mod'],
-	monobug: ['Force Monotype = Bug'],
-	monodark: ['Force Monotype = Dark'],
-	monodragon: ['Force Monotype = Dragon'],
-	monoelectric: ['Force Monotype = Electric'],
-	monofairy: ['Force Monotype = Fairy'],
-	monofighting: ['Force Monotype = Fighting'],
-	monofire: ['Force Monotype = Fire'],
-	monoflying: ['Force Monotype = Flying'],
-	monoghost: ['Force Monotype = Ghost'],
-	monograss: ['Force Monotype = Grass'],
-	monoground: ['Force Monotype = Ground'],
-	monoice: ['Force Monotype = Ice'],
-	mononormal: ['Force Monotype = Normal'],
-	monopoison: ['Force Monotype = Poison'],
-	monopsychic: ['Force Monotype = Psychic'],
-	monorock: ['Force Monotype = Rock'],
-	monosteel: ['Force Monotype = Steel'],
-	monowater: ['Force Monotype = Water'],
 };
 
 let customRuleAliasesByLength: string[] = [];
@@ -2673,6 +2637,14 @@ export class Dex {
 			clauseNicknames['Min Source Gen = ' + i] = 'Gen ' + i + '+';
 
 			customRuleAliases['mingen' + i] = ['Min Source Gen = ' + i];
+		}
+
+		for (const key of filteredTypeKeys) {
+			const type = this.getExistingType(key);
+			clauseNicknames['Force Monotype = ' + type.name] = 'Mono-' + type.name;
+			clauseNicknames['Force Monotype = ' + type.id] = 'Mono-' + type.name;
+
+			customRuleAliases['mono' + type.id] = ['Force Monotype = ' + type.name];
 		}
 
 		customRuleAliasesByLength = Object.keys(customRuleAliases)
