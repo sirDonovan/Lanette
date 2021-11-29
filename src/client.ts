@@ -2004,6 +2004,7 @@ export class Client {
 				'typing too quickly.</strong>') {
 				Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
 					this.outgoingMessageQueue.length +
+					"\nOutgoing message measurements: [" + this.outgoingMessageMeasurements.join(", ") + "]" +
 					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
@@ -2783,10 +2784,14 @@ export class Client {
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
+						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurements.join(", ") + "]" +
 						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
 						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
 				this.lastOutgoingMessage = null;
+
+				this.startSendTimeout(this.chatQueueSendThrottle);
+				return;
 			}
 
 			// prevent infinite loop with outgoingMessageQueue
