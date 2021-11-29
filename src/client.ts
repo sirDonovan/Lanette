@@ -244,7 +244,7 @@ export class Client {
 	private messageParsers: IMessageParserFile[] = [];
 	private messageParsersExist: boolean = false;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
-	private outgoingMessageMeasurements: number[] = [];
+	private outgoingMessageMeasurements: string[] = [];
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
@@ -2726,7 +2726,8 @@ export class Client {
 				if (this.outgoingMessageMeasurements.length > 30) {
 					this.outgoingMessageMeasurements.pop();
 				}
-				this.outgoingMessageMeasurements.unshift(measurement);
+				this.outgoingMessageMeasurements.unshift(measurement + " (" +
+					(this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid) + ")");
 
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
