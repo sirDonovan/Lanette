@@ -244,7 +244,8 @@ export class Client {
 	private messageParsers: IMessageParserFile[] = [];
 	private messageParsersExist: boolean = false;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
-	private outgoingMessageMeasurements: string[] = [];
+	private outgoingMessageMeasurements: number[] = [];
+	private outgoingMessageMeasurementsInfo: string[] = [];
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
@@ -654,6 +655,9 @@ export class Client {
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.outgoingMessageMeasurements) this.outgoingMessageMeasurements = previous.outgoingMessageMeasurements.slice();
+		if (previous.outgoingMessageMeasurementsInfo) {
+			this.outgoingMessageMeasurementsInfo = previous.outgoingMessageMeasurementsInfo.slice();
+		}
 
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
@@ -2004,7 +2008,7 @@ export class Client {
 				'typing too quickly.</strong>') {
 				Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
 					this.outgoingMessageQueue.length +
-					"\nOutgoing message measurements: [" + this.outgoingMessageMeasurements.join(", ") + "]" +
+					"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
 					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
@@ -2726,7 +2730,13 @@ export class Client {
 				if (this.outgoingMessageMeasurements.length > 30) {
 					this.outgoingMessageMeasurements.pop();
 				}
-				this.outgoingMessageMeasurements.unshift(measurement + " (" +
+
+				if (this.outgoingMessageMeasurementsInfo.length > 30) {
+					this.outgoingMessageMeasurementsInfo.pop();
+				}
+
+				this.outgoingMessageMeasurements.unshift(measurement);
+				this.outgoingMessageMeasurementsInfo.unshift(measurement + " (" + this.lastOutgoingMessage.type + " in " +
 					(this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid) + ")");
 
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
@@ -2785,7 +2795,7 @@ export class Client {
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
-						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurements.join(", ") + "]" +
+						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
 						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
 						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
