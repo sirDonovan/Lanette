@@ -769,7 +769,7 @@ export class Client {
 
 	private connect(): void {
 		if (Config.username) {
-			const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
+			const action = new url.URL('https://' + Tools.mainServer + '/action.php');
 			if (!action.hostname || !action.pathname) {
 				console.log("Failed to parse login server URL");
 				process.exit();
@@ -2894,6 +2894,7 @@ export class Client {
 		if (Config.password) {
 			options.method = 'POST';
 			postData = querystring.stringify({
+				'serverid': this.serverId,
 				'act': 'login',
 				'name': Config.username,
 				'pass': Config.password,
@@ -2906,6 +2907,7 @@ export class Client {
 		} else {
 			options.method = 'GET';
 			options.path += '?' + querystring.stringify({
+				'serverid': this.serverId,
 				'act': 'getassertion',
 				'userid': Tools.toId(Config.username),
 				'challstr': this.challstr,
