@@ -13,6 +13,7 @@ import type { User } from "./users";
 
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	battle: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
@@ -59,6 +60,7 @@ export class Room {
 		this.id = id;
 
 		this.setPublicRoom(Client.getPublicRooms().includes(id));
+		this.battle = id.startsWith(Tools.battleRoomPrefix);
 		this.groupchat = id.startsWith(Tools.groupchatPrefix);
 
 		let publicId = id;
