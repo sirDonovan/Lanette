@@ -663,6 +663,7 @@ export const game: IUserHostedFile = {
 		},
 		{
 			name: "Necturna's Move Tutor",
+			aliases: ['NMT', 'Necturnas'],
 			description: "Each round, players create a move of a type chosen by the host. Entries are judged on creativity and " +
 				"viability based on base power, PP, and secondary effects.",
 			freejoin: true,
