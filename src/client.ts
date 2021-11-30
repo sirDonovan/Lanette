@@ -27,7 +27,6 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
-const THROTTLE_BUFFER = 10;
 const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
 const MAX_MESSAGE_SIZE = 100 * 1024;
@@ -245,6 +244,8 @@ export class Client {
 	private messageParsers: IMessageParserFile[] = [];
 	private messageParsersExist: boolean = false;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
+	private outgoingMessageMeasurements: number[] = [];
+	private outgoingMessageMeasurementsInfo: string[] = [];
 	private pauseIncomingMessages: boolean = true;
 	private pauseOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
@@ -264,9 +265,7 @@ export class Client {
 	private serverTimeOffset: number = 0;
 	private webSocket: import('ws') | null = null;
 
-	private baseSendThrottle!: number;
 	private chatQueueSendThrottle!: number;
-	private chatQueueThrottleWarning!: number;
 	private sendThrottle!: number;
 
 	constructor() {
@@ -548,9 +547,7 @@ export class Client {
 	}
 
 	private setSendThrottle(throttle: number): void {
-		this.baseSendThrottle = throttle;
-		this.sendThrottle = throttle + THROTTLE_BUFFER;
-		this.chatQueueThrottleWarning = throttle * (SERVER_CHAT_QUEUE_LIMIT - 1);
+		this.sendThrottle = throttle;
 		this.chatQueueSendThrottle = throttle * SERVER_CHAT_QUEUE_LIMIT;
 	}
 
@@ -657,6 +654,11 @@ export class Client {
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
 
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
+		if (previous.outgoingMessageMeasurements) this.outgoingMessageMeasurements = previous.outgoingMessageMeasurements.slice();
+		if (previous.outgoingMessageMeasurementsInfo) {
+			this.outgoingMessageMeasurementsInfo = previous.outgoingMessageMeasurementsInfo.slice();
+		}
+
 		if (previous.webSocket) {
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
 
@@ -690,7 +692,7 @@ export class Client {
 		if (previous.groupSymbols) Object.assign(this.groupSymbols, previous.groupSymbols);
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
 		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms.slice();
-		if (previous.sendThrottle) this.setSendThrottle(previous.baseSendThrottle);
+		if (previous.sendThrottle) this.setSendThrottle(previous.sendThrottle);
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
@@ -771,7 +773,7 @@ export class Client {
 
 	private connect(): void {
 		if (Config.username) {
-			const action = new url.URL('https://' + Tools.mainServer + '/~~' + this.serverId + '/action.php');
+			const action = new url.URL('https://' + Tools.mainServer + '/action.php');
 			if (!action.hostname || !action.pathname) {
 				console.log("Failed to parse login server URL");
 				process.exit();
@@ -2006,6 +2008,7 @@ export class Client {
 				'typing too quickly.</strong>') {
 				Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
 					this.outgoingMessageQueue.length +
+					"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
 					(this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
 					"\n\nMessage sent at: " + new Date(this.lastOutgoingMessage.sentTime).toTimeString() + "; " +
 					"Processing time last measured at: " + new Date(this.lastProcessingTimeCheck).toTimeString() + "; " +
@@ -2724,6 +2727,17 @@ export class Client {
 		if (this.lastOutgoingMessage) {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				const measurement = responseTime - this.lastOutgoingMessage.sentTime;
+				if (this.outgoingMessageMeasurements.length > 30) {
+					this.outgoingMessageMeasurements.pop();
+				}
+
+				if (this.outgoingMessageMeasurementsInfo.length > 30) {
+					this.outgoingMessageMeasurementsInfo.pop();
+				}
+
+				this.outgoingMessageMeasurements.unshift(measurement);
+				this.outgoingMessageMeasurementsInfo.unshift(measurement + " (" + this.lastOutgoingMessage.type + " in " +
+					(this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid) + ")");
 
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
@@ -2731,9 +2745,11 @@ export class Client {
 				let sendTimeout: number;
 				if (this.lastOutgoingMessage.slowerCommand) {
 					sendTimeout = this.lastSendTimeoutAfterMeasure || this.sendThrottle;
+				} else if (measurement >= this.sendThrottle) {
+					const serverQueue = Math.ceil(measurement / this.sendThrottle);
+					sendTimeout = this.sendThrottle + (this.sendThrottle * serverQueue);
 				} else {
-					sendTimeout = measurement >= this.chatQueueThrottleWarning ? this.chatQueueSendThrottle :
-						measurement >= this.baseSendThrottle ? this.sendThrottle + measurement : this.sendThrottle;
+					sendTimeout = this.sendThrottle;
 				}
 
 				this.lastSendTimeoutAfterMeasure = sendTimeout;
@@ -2779,10 +2795,14 @@ export class Client {
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
+						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
 						(this.lastMeasuredMessage ? "\n\nLast measured message (" + this.lastProcessingTimeCheck + "): " +
 						JSON.stringify(this.lastMeasuredMessage) : ""));
 				}
 				this.lastOutgoingMessage = null;
+
+				this.startSendTimeout(this.chatQueueSendThrottle);
+				return;
 			}
 
 			// prevent infinite loop with outgoingMessageQueue
@@ -2884,6 +2904,7 @@ export class Client {
 		if (Config.password) {
 			options.method = 'POST';
 			postData = querystring.stringify({
+				'serverid': this.serverId,
 				'act': 'login',
 				'name': Config.username,
 				'pass': Config.password,
@@ -2896,6 +2917,7 @@ export class Client {
 		} else {
 			options.method = 'GET';
 			options.path += '?' + querystring.stringify({
+				'serverid': this.serverId,
 				'act': 'getassertion',
 				'userid': Tools.toId(Config.username),
 				'challstr': this.challstr,
