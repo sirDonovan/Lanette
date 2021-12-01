@@ -56,6 +56,8 @@ describe("Tournaments", () => {
 	it('should properly set scheduled formats according to configured times', () => {
 		const room = Rooms.get('mocha')!;
 		const date = new Date();
+		if (date.getMonth() === 11) date.setFullYear(date.getFullYear() + 1);
+
 		const month = 0;
 		date.setMonth(month);
 		const scheduleMonth = month + 1;
