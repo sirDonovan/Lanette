@@ -27,9 +27,9 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
-const BATTLE_MESSAGE_THROTTLE = 3000;
-const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
+const STANDARD_MESSAGE_THROTTLE = REGULAR_MESSAGE_THROTTLE * SERVER_CHAT_QUEUE_LIMIT;
+const SLOWER_COMMAND_MESSAGE_THROTTLE = STANDARD_MESSAGE_THROTTLE * 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
@@ -530,16 +530,7 @@ export class Client {
 
 		this.webSocket.send(outgoingMessage.message, () => {
 			if (this.sendTimeout === true) {
-				let timeout: number;
-				if (outgoingMessage.slowerCommand) {
-					timeout = SLOWER_COMMAND_MESSAGE_THROTTLE;
-				} else if (outgoingMessage.room && outgoingMessage.room.battle) {
-					timeout = BATTLE_MESSAGE_THROTTLE;
-				} else {
-					timeout = this.chatQueueSendThrottle;
-				}
-
-				this.startSendTimeout(timeout);
+				this.startSendTimeout(outgoingMessage.slowerCommand ? SLOWER_COMMAND_MESSAGE_THROTTLE : STANDARD_MESSAGE_THROTTLE);
 			}
 		});
 	}
