@@ -508,6 +508,8 @@ export class Client {
 					measure: true,
 				});
 
+				outgoingMessage.room.serverBannedWords = [];
+
 				this.outgoingMessageQueue.push(outgoingMessage);
 				return;
 			}
