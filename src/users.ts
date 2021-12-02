@@ -140,8 +140,6 @@ export class User {
 	}
 
 	say(message: string, options?: IUserMessageOptions): void {
-		if (!message) return;
-
 		const user = global.Users.get(this.name);
 		if (!user || user === global.Users.self) return;
 

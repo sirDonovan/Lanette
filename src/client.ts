@@ -484,7 +484,13 @@ export class Client {
 	}
 
 	send(outgoingMessage: IOutgoingMessage): void {
-		if (!outgoingMessage.message || !this.webSocket) return;
+		if (!this.webSocket) return;
+
+		if (!outgoingMessage.message) throw new Error("Message is empty");
+
+		if (this.exceedsMessageSizeLimit(outgoingMessage.message)) {
+			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		}
 
 		if (this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
@@ -513,10 +519,6 @@ export class Client {
 			} else {
 				if (!Users.get(outgoingMessage.user.name)) return;
 			}
-		}
-
-		if (this.exceedsMessageSizeLimit(outgoingMessage.message)) {
-			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
 		}
 
 		if (outgoingMessage.filterSend && !outgoingMessage.filterSend()) {
