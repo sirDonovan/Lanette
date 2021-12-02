@@ -17,7 +17,6 @@ import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokem
 import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
-import { LetterDetectorWorker } from './workers/letter-detector';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
 
@@ -128,7 +127,6 @@ export class Games {
 	private readonly userHostedAliases: Dict<string> = {};
 	private readonly userHostedFormats: UserHostedFormats = {};
 	private readonly workers: IGamesWorkers = {
-		letterDetector: new LetterDetectorWorker(),
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
 	};
