@@ -516,10 +516,10 @@ export class Client {
 		}
 
 		if (outgoingMessage.user) {
+			if (Users.get(outgoingMessage.user.name) !== outgoingMessage.user || outgoingMessage.user.locked) return;
+
 			if (outgoingMessage.room) {
 				if (!outgoingMessage.room.getTargetUser(outgoingMessage.user)) return;
-			} else {
-				if (!Users.get(outgoingMessage.user.name)) return;
 			}
 		}
 
@@ -1339,8 +1339,9 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
+			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
-			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
+
 			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
 				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
@@ -1388,7 +1389,7 @@ export class Client {
 			room.onUserJoin(user, messageArguments.rank, true);
 			user.updateStatus(status);
 
-			if (!user.away && Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) {
+			if (!user.away && Config.allowMail) {
 				Storage.retrieveOfflineMessages(user);
 			}
 
@@ -1738,6 +1739,8 @@ export class Client {
 					}
 				}
 			} else {
+				user.setIsLocked(messageArguments.rank);
+
 				if (isUhtml || isUhtmlChange) {
 					if (!isUhtmlChange) user.addUhtmlChatLog("", "html");
 				} else if (isHtml) {
@@ -1754,9 +1757,7 @@ export class Client {
 						commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
 					}
 
-					if (messageArguments.rank !== this.groupSymbols.locked) {
-						CommandParser.parse(user, user, commandMessage, now);
-					}
+					CommandParser.parse(user, user, commandMessage, now);
 				}
 			}
 			break;

@@ -187,7 +187,8 @@ export class CommandParser {
 	}
 
 	parse(room: Room | User, user: User, message: string, timestamp: number): void {
-		if (!this.isCommandMessage(message)) return;
+		if (user.locked || !this.isCommandMessage(message)) return;
+
 		message = message.substr(1);
 		let command: string;
 		let target: string;

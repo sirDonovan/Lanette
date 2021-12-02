@@ -156,9 +156,7 @@ export class Room {
 
 	onUserJoin(user: User, rank: string, onRename?: boolean): void {
 		this.users.add(user);
-
-		const roomData = user.rooms.get(this);
-		user.rooms.set(this, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
+		user.setRoomRank(this, rank);
 
 		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
 		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user, onRename);
@@ -180,7 +178,7 @@ export class Room {
 	}
 
 	canSendToUser(user: User): boolean {
-		return user !== Users.self && user.rooms.has(this) && !user.isLocked(this);
+		return user !== Users.self && user.rooms.has(this) && !user.locked;
 	}
 
 	getTargetUser(userOrPlayer: User | Player): User | undefined {

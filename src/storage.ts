@@ -831,6 +831,8 @@ export class Storage {
 	}
 
 	retrieveOfflineMessages(user: User): void {
+		if (user.locked) return;
+
 		const database = this.getGlobalDatabase();
 		if (!database.offlineMessages || !(user.id in database.offlineMessages)) return;
 		let hasNewMail = false;

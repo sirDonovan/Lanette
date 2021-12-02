@@ -11,6 +11,7 @@ export class User {
 	chatLog: IChatLogEntry[] = [];
 	game: ScriptedGame | null = null;
 	group: string | null = null;
+	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
 	timers: Dict<NodeJS.Timer> | null = null;
@@ -48,6 +49,17 @@ export class User {
 		}
 
 		this.name = name;
+	}
+
+	setRoomRank(room: Room, rank: string): void {
+		const roomData = this.rooms.get(room);
+		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
+
+		this.setIsLocked(rank);
+	}
+
+	setIsLocked(rank: string): void {
+		this.locked = rank === Client.getGroupSymbols().locked;
 	}
 
 	destroy(): void {
@@ -113,11 +125,6 @@ export class User {
 		return !(status === 'busy' || status === 'idle' || status === 'away');
 	}
 
-	isLocked(room: Room): boolean {
-		const roomData = this.rooms.get(room);
-		return roomData && roomData.rank === Client.getGroupSymbols().locked ? true : false;
-	}
-
 	updateStatus(status: string): void {
 		if (status === this.status) return;
 
@@ -140,16 +147,10 @@ export class User {
 	}
 
 	say(message: string, options?: IUserMessageOptions): void {
+		if (this.locked) return;
+
 		const user = global.Users.get(this.name);
-		if (!user || user === global.Users.self) return;
-
-		let locked = false;
-		this.rooms.forEach((data, room) => {
-			if (!locked && this.isLocked(room)) locked = true;
-		});
-
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (locked) return;
+		if (user === global.Users.self || user !== this) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {
