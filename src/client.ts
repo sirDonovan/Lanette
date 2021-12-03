@@ -55,9 +55,9 @@ const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
+const UNREGISTERED_USER_MESSAGE = "/error That user is unregistered and cannot be PMed.";
 const USER_BLOCKING_PMS_MESSAGE = "/error This user is blocking private messages right now.";
-const ADMIN_BLOCKING_PMS_MESSAGE = "/error This Administrator is too busy to answer private messages right now. Please contact a " +
-	"different staff member.";
+const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right now. Please contact a different staff member.";
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
@@ -1638,7 +1638,8 @@ export class Client {
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
-					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE) ||
+					messageArguments.message.endsWith(STAFF_BLOCKING_PMS_MESSAGE) ||
+					messageArguments.message.startsWith(UNREGISTERED_USER_MESSAGE) ||
 					(messageArguments.message.startsWith('/error The user ') &&
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipientId &&
