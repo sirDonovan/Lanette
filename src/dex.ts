@@ -1335,6 +1335,13 @@ export class Dex {
 			if (Tools.isInteger(possibleGen)) format.gen = parseInt(possibleGen);
 		}
 
+		if (format.name.startsWith("[")) {
+			const bracketIndex = format.name.indexOf("]");
+			format.nameWithoutGen = format.name.substr(bracketIndex + 1).trim();
+		} else {
+			format.nameWithoutGen = format.name;
+		}
+
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
 		format.quickFormat = format.ruleTable.pickedTeamSize && format.ruleTable.pickedTeamSize <= 2 ? true : false;
 

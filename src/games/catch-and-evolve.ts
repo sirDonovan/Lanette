@@ -8,6 +8,7 @@ const description = "Every player is given a randomly generated Pokemon to use a
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
 class CatchAndEvolve extends EliminationTournament {
+	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = 1;
 	startingTeamsLength = 1;
@@ -34,41 +35,49 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 	variants: [
 		{
 			name: "Monotype Catch and Evolve",
+			canChangeFormat: false,
 			monoType: true,
 			variantAliases: ["monotype"],
 		},
 		{
 			name: "Monoregion Catch and Evolve",
+			canChangeFormat: false,
 			monoRegion: true,
 			variantAliases: ["monoregion", "monogen"],
 		},
 		{
 			name: "Catch and Evolve Ubers",
+			canChangeFormat: false,
 			battleFormatId: "ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Catch and Evolve UU",
+			canChangeFormat: false,
 			battleFormatId: "uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and Evolve RU",
+			canChangeFormat: false,
 			battleFormatId: "ru",
 			variantAliases: ["ru"],
 		},
 		{
 			name: "Catch and Evolve NU",
+			canChangeFormat: false,
 			battleFormatId: "nu",
 			variantAliases: ["nu"],
 		},
 		{
 			name: "Catch and Evolve PU",
+			canChangeFormat: false,
 			battleFormatId: "pu",
 			variantAliases: ["pu"],
 		},
 		{
 			name: "Catch and Evolve ZU",
+			canChangeFormat: false,
 			battleFormatId: "zu",
 			variantAliases: ["zu"],
 		},

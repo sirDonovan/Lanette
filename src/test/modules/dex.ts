@@ -286,8 +286,11 @@ describe("Dex", () => {
 		}
 	});
 	it('should set custom attributes for formats', () => {
+		assertStrictEqual(Dex.getExistingFormat("ou").nameWithoutGen, "OU");
+
 		for (const i of Dex.getData().formatKeys) {
 			const format = Dex.getExistingFormat(i);
+			assertStrictEqual(typeof format.nameWithoutGen, 'string');
 			assertStrictEqual(typeof format.quickFormat, 'boolean');
 			assertStrictEqual(typeof format.tournamentPlayable, 'boolean');
 			assertStrictEqual(typeof format.unranked, 'boolean');

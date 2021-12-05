@@ -844,6 +844,7 @@ export interface RuleTable {
 export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLinks {
 	desc: string;
 	inputTarget: string;
+	nameWithoutGen: string;
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;
