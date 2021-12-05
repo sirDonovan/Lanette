@@ -42,7 +42,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 }
 
 function createIndividualTestGame(format: IGameFormat): ScriptedGame {
-	const game = Games.createGame(room, format, room, false, initialSeed);
+	const game = Games.createGame(room, format, room, false, initialSeed) as ScriptedGame;
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
@@ -245,7 +245,7 @@ describe("Games", () => {
 	it('should support setting the initial PRNG seed', () => {
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
-			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed);
+			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed) as ScriptedGame;
 			for (let i = 0; i < game.prng.initialSeed.length; i++) {
 				assert(game.prng.initialSeed[i] === prng.initialSeed[i], format.name);
 			}
@@ -310,12 +310,6 @@ describe("Games", () => {
 				break;
 			}
 		}
-
-		const option = "Non-existent option";
-		const optionFormat = Games.getFormat(formatKeys[0] + "," + option);
-		assert(Array.isArray(optionFormat));
-		assertStrictEqual(optionFormat[0], 'invalidGameOption');
-		assertStrictEqual(optionFormat[1], option);
 
 		assert(!Array.isArray(Games.getUserHostedFormat(Object.keys(userHostedFormats)[0])));
 
@@ -465,10 +459,10 @@ describe("Games", () => {
 	});
 
 	it('should properly set options', () => {
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia')).name, "Slowking's Trivia");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities')).name, "Slowking's Ability Trivia");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival')).name, "Slowking's Trivia Survival");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')).name,
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia'))!.name, "Slowking's Trivia");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities'))!.name, "Slowking's Ability Trivia");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival'))!.name, "Slowking's Trivia Survival");
+		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival'))!.name,
 			"Slowking's Ability Trivia Survival");
 
 		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'),

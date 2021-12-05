@@ -333,7 +333,7 @@ export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon], [Pokemon], [...]", Config.commandCharacter + "draw"],
 	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
 	class: StakatakasCardTower,
-	customizableOptions: {
+	customizableNumberOptions: {
 		cards: {min: 6, base: 6, max: 8},
 	},
 	defaultOptions: [],

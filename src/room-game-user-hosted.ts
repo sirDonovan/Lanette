@@ -323,7 +323,7 @@ export class UserHostedGame extends Game {
 	}
 
 	// Game lifecycle
-	onInitialize(format: IUserHostedFormat): void {
+	onInitialize(format: IUserHostedFormat): boolean {
 		this.format = format;
 		this.setUhtmlBaseName();
 
@@ -333,6 +333,8 @@ export class UserHostedGame extends Game {
 			this.format.options.freejoin = 1;
 			this.minPlayers = 0;
 		}
+
+		return true;
 	}
 
 	getHighlightPhrase(): string {

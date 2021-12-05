@@ -1,6 +1,6 @@
 import type { ScriptedGame } from "../../room-game-scripted";
 import { assert } from "../../test/test-tools";
-import type { GameFileTests, IGameFormat, IGameModeFile } from "../../types/games";
+import type { GameFileTests, IGameFormat, IGameModeFile, IModeInputProperties } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
 const name = 'Prolix';
@@ -12,9 +12,14 @@ class Prolix {
 	longestAnswersOnly: boolean = true;
 	minimumAnswersPerHint: number = 2;
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
+	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>): IModeInputProperties {
+		const namePrefixes: string[] = [];
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
-		format.description += ' ' + description;
+
+		return {
+			description: format.description + ' ' + description,
+			namePrefixes,
+		};
 	}
 }
 

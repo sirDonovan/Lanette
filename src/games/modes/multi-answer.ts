@@ -3,7 +3,7 @@ import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, assertStrictEqual, runCommand } from "../../test/test-tools";
 import type {
 	DefaultGameOption,
-	GameFileTests, IGameFormat, IGameModeFile
+	GameFileTests, IGameFormat, IGameModeFile, IGameNumberOptionValues, IModeInputProperties
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -24,21 +24,30 @@ class MultiAnswer {
 	minimumAnswersPerHint: number = 2;
 	readonly winnerPointsToBits: number = 25;
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
+	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>,
+		customizableNumberOptions: Dict<IGameNumberOptionValues>): IModeInputProperties {
+		const namePrefixes: string[] = [];
 		if (!format.name.includes(name)) namePrefixes.unshift(name);
-		format.description += ' ' + description;
 
+		const defaultOptions = format.defaultOptions.slice();
 		for (const option of removedOptions) {
-			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
+			const index = defaultOptions.indexOf(option as DefaultGameOption);
+			if (index !== -1) defaultOptions.splice(index, 1);
 
-			delete format.customizableOptions[option];
+			delete customizableNumberOptions[option];
 		}
 
-		format.customizableOptions.points = {
+		customizableNumberOptions.points = {
 			min: BASE_POINTS,
 			base: BASE_POINTS,
 			max: BASE_POINTS,
+		};
+
+		return {
+			customizableNumberOptions,
+			defaultOptions,
+			description: format.description + ' ' + description,
+			namePrefixes,
 		};
 	}
 

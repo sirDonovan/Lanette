@@ -171,7 +171,7 @@ export const game: IGameFile<NinjasksCorners> = {
 	commandDescriptions: [Config.commandCharacter + "travel [color]"],
 	commands,
 	class: NinjasksCorners,
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: 10, base: 10, max: 10},
 	},
 	defaultOptions: ['freejoin'],

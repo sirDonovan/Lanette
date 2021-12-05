@@ -274,7 +274,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.checkScoreCapBeforeRound) {
 			let reachedCap = false;
 			this.points.forEach((points, player) => {
-				if (points >= this.format.options.points) {
+				if (points >= this.format.options.points!) {
 					this.winners.set(player, points);
 					if (!reachedCap) reachedCap = true;
 				}
@@ -562,7 +562,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				}
 			}
 
-			const reachedMaxPoints = points >= this.format.options.points;
+			const reachedMaxPoints = points >= this.format.options.points!;
 			if (this.maxCorrectPlayersPerRound === 1 || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
 				this.say("**" + player.name + "** advances to **" + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
 					"** point" + (points > 1 ? 's' : '') + "!");

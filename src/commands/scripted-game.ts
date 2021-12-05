@@ -138,7 +138,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const game = Games.createGame(room, voteFormat);
-			game.signups();
+			if (game) game.signups();
 		},
 		aliases: ['sv', 'startskippedcooldownvote'],
 	},
@@ -173,13 +173,15 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const game = Games.createGame(room, eggTossFormat, room, true);
-			game.signups();
-			const canEgg = this.run('toss') as boolean;
-			if (canEgg) {
-				this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
-					Config.commandCharacter + "toss [user]`` before it explodes!");
-			} else {
-				game.end();
+			if (game) {
+				game.signups();
+				const canEgg = this.run('toss') as boolean;
+				if (canEgg) {
+					this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
+						Config.commandCharacter + "toss [user]`` before it explodes!");
+				} else {
+					game.end();
+				}
 			}
 		},
 	},
@@ -666,7 +668,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const game = Games.createGame(room, format, room);
-			game.signups();
+			if (game) game.signups();
 		},
 		aliases: ['createtourgame', 'ctourgame', 'ctg', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
 	},
@@ -836,7 +838,7 @@ export const commands: BaseCommandDefinitions = {
 
 			format.voter = voter;
 			const game = Games.createGame(room, format);
-			game.signups();
+			if (game) game.signups();
 		},
 		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg', 'createskippedcooldowngame',
 			'createpickedskippedcooldowngame'],

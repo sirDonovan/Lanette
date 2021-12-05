@@ -1,7 +1,8 @@
 import type { Player, PlayerTeam } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat, IGameModeFile
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, IGameFormat, IGameModeFile, IGameNumberOptionValues,
+	IModeInputProperties
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -29,26 +30,35 @@ export class CollectiveTeam {
 	// set in onStart()
 	largestTeam!: PlayerTeam;
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[]): void {
+	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>,
+		customizableNumberOptions: Dict<IGameNumberOptionValues>): IModeInputProperties {
+		const namePrefixes: string[] = [];
 		if (!format.name.includes(this.modeName)) namePrefixes.unshift(this.modeName);
-		format.description += ' ' + this.modeDescription;
 
-		if (!format.defaultOptions.includes('teams')) format.defaultOptions.push('teams');
+		const defaultOptions = format.defaultOptions.slice();
+		if (!defaultOptions.includes('teams')) defaultOptions.push('teams');
 
 		for (const option of removedOptions) {
-			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
+			const index = defaultOptions.indexOf(option as DefaultGameOption);
+			if (index !== -1) defaultOptions.splice(index, 1);
 
-			delete format.customizableOptions[option];
+			delete customizableNumberOptions[option];
 		}
 
-		if (!('teamPoints' in format.customizableOptions)) {
-			format.customizableOptions.teamPoints = {
+		if (!('teamPoints' in customizableNumberOptions)) {
+			customizableNumberOptions.teamPoints = {
 				min: BASE_POINTS,
 				base: BASE_POINTS,
 				max: BASE_POINTS,
 			};
 		}
+
+		return {
+			customizableNumberOptions,
+			defaultOptions,
+			description: format.description + ' ' + this.modeDescription,
+			namePrefixes,
+		};
 	}
 
 	tryQueueLateJoin(this: CollectiveTeamThis, player: Player): boolean {
@@ -93,8 +103,8 @@ export class CollectiveTeam {
 	}
 
 	setTeams(this: CollectiveTeamThis): void {
-		this.lateJoinQueueSize = this.format.options.teams;
-		this.teams = this.generateTeams(this.format.options.teams);
+		this.lateJoinQueueSize = this.format.options.teams!;
+		this.teams = this.generateTeams(this.format.options.teams!);
 		this.setLargestTeam();
 
 		for (const id in this.teams) {
@@ -133,7 +143,7 @@ export class CollectiveTeam {
 			delete this.teams[team.id];
 		}
 
-		if (emptyTeams.length >= this.format.options.teams - 1) {
+		if (emptyTeams.length >= this.format.options.teams! - 1) {
 			this.say("Only one team remains!");
 			const winningTeam = this.getFinalTeam()!;
 			for (const player of winningTeam.players) {
@@ -145,7 +155,7 @@ export class CollectiveTeam {
 		} else {
 			if (newAnswer) {
 				if (this.canLateJoin) {
-					const cutOff = this.format.options.teamPoints / 2;
+					const cutOff = this.format.options.teamPoints! / 2;
 					for (const i in this.teams) {
 						if (this.teams[i].points >= cutOff) {
 							this.canLateJoin = false;
@@ -213,7 +223,7 @@ const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 			this.say('**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
 				(player.team!.points > 1 ? 's' : '') + '!');
 			this.displayAnswers(answer);
-			if (player.team!.points >= this.format.options.teamPoints) {
+			if (player.team!.points >= this.format.options.teamPoints!) {
 				if (this.allAnswersTeamAchievement && this.firstAnswers[player.team!.id] === player) {
 					this.unlockAchievement(player, this.allAnswersTeamAchievement);
 				}

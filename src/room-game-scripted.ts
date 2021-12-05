@@ -5,8 +5,8 @@ import { Game } from "./room-game";
 import type { Room } from "./rooms";
 import type {
 	DefaultGameOption, GameChallenge, GameCommandListener, GameCommandReturnType, IBattleGameData, IGameAchievement,
-	IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameMode, IGameOptionValues, IGameVariant, IRandomGameAnswer,
-	LoadedGameCommands, PlayerList
+	IGameCommandCountListener, IGameCommandCountOptions, IGameFormat, IGameInputProperties, IGameMode, IGameOptions,
+	IGameNumberOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { GameActionLocations } from "./types/storage";
 import type { User } from "./users";
@@ -15,7 +15,7 @@ const AUTO_START_VOTE_TIME = 5 * 1000;
 const MIN_BOT_CHALLENGE_SPEED = 1;
 
 // base of 0 defaults option to 'off'
-const defaultOptionValues: KeyedDict<DefaultGameOption, IGameOptionValues> = {
+const defaultOptionValues: KeyedDict<DefaultGameOption, IGameNumberOptionValues> = {
 	points: {min: 10, base: 10, max: 10},
 	teams: {min: 2, base: 2, max: 4},
 	cards: {min: 4, base: 5, max: 6},
@@ -74,63 +74,95 @@ export class ScriptedGame extends Game {
 		super(room, pmRoom, initialSeed);
 	}
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined, variant: IGameVariant | undefined):
-		Dict<number> {
+	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined,
+		variant: IGameVariant | undefined): IGameInputProperties {
+		const customizableNumberOptions = Object.assign({}, format.customizableNumberOptions);
+		let defaultOptions = format.defaultOptions;
+		let description = format.description;
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
+
 		if (format.freejoin || (variant && variant.freejoin)) {
-			format.customizableOptions.freejoin = {
+			customizableNumberOptions.freejoin = {
 				min: 1,
 				base: 1,
 				max: 1,
 			};
 		}
-		if (mode) mode.class.setOptions(format, namePrefixes, nameSuffixes);
 
-		for (const defaultOption of format.defaultOptions) {
-			if (defaultOption in format.customizableOptions) continue;
+		if (mode) {
+			const modeInputProperties = mode.class.resolveInputProperties(format, customizableNumberOptions);
+			if (modeInputProperties.customizableNumberOptions) {
+				Object.assign(customizableNumberOptions, modeInputProperties.customizableNumberOptions);
+			}
+
+			if (modeInputProperties.defaultOptions) defaultOptions = modeInputProperties.defaultOptions;
+			if (modeInputProperties.description) description = modeInputProperties.description;
+
+			if (modeInputProperties.namePrefixes) {
+				for (const prefix of modeInputProperties.namePrefixes) {
+					namePrefixes.push(prefix);
+				}
+			}
+
+			if (modeInputProperties.nameSuffixes) {
+				for (const suffix of modeInputProperties.nameSuffixes) {
+					nameSuffixes.push(suffix);
+				}
+			}
+		}
+
+		for (const defaultOption of defaultOptions) {
+			if (defaultOption in customizableNumberOptions) continue;
+
 			let base: number;
 			if (defaultOptionValues[defaultOption].base === 0) {
 				base = 0;
 			} else {
 				base = defaultOptionValues[defaultOption].base || 5;
 			}
-			format.customizableOptions[defaultOption] = {
+
+			customizableNumberOptions[defaultOption] = {
 				min: defaultOptionValues[defaultOption].min || 1,
 				base,
 				max: defaultOptionValues[defaultOption].max || 10,
 			};
 		}
 
-		const options: Dict<number> = {};
-		for (const i in format.customizableOptions) {
-			options[i] = format.customizableOptions[i].base;
+		const options: IGameOptions = {};
+		for (const i in customizableNumberOptions) {
+			options[i] = customizableNumberOptions[i].base;
 		}
 
-		const customizedOptions: Dict<number> = {};
+		const customizedNumberOptions: Dict<number> = {};
 		for (const i in format.inputOptions) {
-			if (!(i in format.customizableOptions) || format.inputOptions[i] === format.customizableOptions[i].base) continue;
+			if (!(i in customizableNumberOptions)) {
+				options[i] = format.inputOptions[i];
+				continue;
+			}
 
-			let optionValue = format.inputOptions[i];
-			if (optionValue < format.customizableOptions[i].min) {
-				optionValue = format.customizableOptions[i].min;
-			} else if (optionValue > format.customizableOptions[i].max) {
-				optionValue = format.customizableOptions[i].max;
+			if (format.inputOptions[i] === customizableNumberOptions[i].base) continue;
+
+			let optionValue = format.inputOptions[i] as number;
+			if (optionValue < customizableNumberOptions[i].min) {
+				optionValue = customizableNumberOptions[i].min;
+			} else if (optionValue > customizableNumberOptions[i].max) {
+				optionValue = customizableNumberOptions[i].max;
 			}
 
 			options[i] = optionValue;
-			customizedOptions[i] = optionValue;
+			customizedNumberOptions[i] = optionValue;
 		}
 
-		if (customizedOptions.points) nameSuffixes.push("(first to " + customizedOptions.points + ")");
-		if (customizedOptions.teams) namePrefixes.unshift('' + customizedOptions.teams);
-		if (customizedOptions.cards) namePrefixes.unshift(customizedOptions.cards + "-card");
-		if (customizedOptions.gen) namePrefixes.unshift('Gen ' + customizedOptions.gen);
-		if (customizedOptions.ports) namePrefixes.unshift(customizedOptions.ports + '-port');
-		if (customizedOptions.params) namePrefixes.unshift(customizedOptions.params + '-param');
-		if (customizedOptions.names) namePrefixes.unshift(customizedOptions.names + '-name');
-		if (customizedOptions.operands) namePrefixes.unshift(customizedOptions.operands + '-operand');
-		if (customizedOptions.freejoin && !format.freejoin) nameSuffixes.push("(freejoin)");
+		if (customizedNumberOptions.points) nameSuffixes.push("(first to " + customizedNumberOptions.points + ")");
+		if (customizedNumberOptions.teams) namePrefixes.unshift('' + customizedNumberOptions.teams);
+		if (customizedNumberOptions.cards) namePrefixes.unshift(customizedNumberOptions.cards + "-card");
+		if (customizedNumberOptions.gen) namePrefixes.unshift('Gen ' + customizedNumberOptions.gen);
+		if (customizedNumberOptions.ports) namePrefixes.unshift(customizedNumberOptions.ports + '-port');
+		if (customizedNumberOptions.params) namePrefixes.unshift(customizedNumberOptions.params + '-param');
+		if (customizedNumberOptions.names) namePrefixes.unshift(customizedNumberOptions.names + '-name');
+		if (customizedNumberOptions.operands) namePrefixes.unshift(customizedNumberOptions.operands + '-operand');
+		if (customizedNumberOptions.freejoin && !format.freejoin) nameSuffixes.push("(freejoin)");
 
 		let nameWithOptions = '';
 		if (namePrefixes.length) nameWithOptions = namePrefixes.join(" ") + " ";
@@ -143,7 +175,10 @@ export class ScriptedGame extends Game {
 
 		format.nameWithOptions = nameWithOptions;
 
-		return options;
+		return {
+			description,
+			options,
+		};
 	}
 
 	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
@@ -218,8 +253,17 @@ export class ScriptedGame extends Game {
 		this.privateJoinLeaveUhtmlName = this.uhtmlBaseName + "-private-join-leave";
 	}
 
-	onInitialize(format: IGameFormat): void {
+	onInitialize(format: IGameFormat): boolean {
 		this.format = format;
+
+		if (this.validateInputProperties && !this.validateInputProperties(format.resolvedInputProperties)) {
+			return false;
+		}
+
+		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
+		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
+		format.options = format.resolvedInputProperties.options;
+
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
 		this.actionsUhtmlName = this.uhtmlBaseName + "-actions";
@@ -248,6 +292,8 @@ export class ScriptedGame extends Game {
 		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
 		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
+
+		return true;
 	}
 
 	loadModeCommands<T extends ScriptedGame>(commands: LoadedGameCommands<T>): void {
@@ -1334,4 +1380,5 @@ export class ScriptedGame extends Game {
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
 	setupChallenge?(challenger: User, challenged: User, format: IGameFormat, options?: Dict<string>): void;
+	validateInputProperties?(inputProperties: IGameInputProperties): boolean;
 }

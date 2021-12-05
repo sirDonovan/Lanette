@@ -112,14 +112,20 @@ export class OneVsOne extends ScriptedGame {
 		}
 
 		const game = Games.createChildGame(this.challengeFormat, this);
+		if (!game) {
+			this.say("An error occurred while starting the challenge.");
+			this.deallocate(true);
+			return;
+		}
+
 		game.internalGame = true;
 		game.inheritPlayers(this.players);
 		game.minPlayers = 2;
 
 		if (game.format.challengeSettings && game.format.challengeSettings.onevsone && game.format.challengeSettings.onevsone.points) {
 			game.format.options.points = game.format.challengeSettings.onevsone.points;
-		} else if ('points' in game.format.customizableOptions) {
-			game.format.options.points = game.format.customizableOptions.points.max;
+		} else if ('points' in game.format.customizableNumberOptions) {
+			game.format.options.points = game.format.customizableNumberOptions.points.max;
 		} else if (game.format.defaultOptions.includes('points')) {
 			game.format.options.points = 10;
 		}

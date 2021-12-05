@@ -9,9 +9,9 @@ import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
-	GameCommandReturnType, GameMode, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
-	IGameModeFile, IGameOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed, IUserHostedFormat,
-	IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
+	GameCommandReturnType, GameMode, GameNumberOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
+	IGameModeFile, IGameOptions, IGameNumberOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed,
+	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
@@ -63,6 +63,9 @@ const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
 	'speed': 'Speed',
 	'tabletop': 'Tabletop',
 };
+
+const numberGameOptions: GameNumberOptions[] = ['points', 'teamPoints', 'freejoin', 'cards', 'operands', 'names', 'gen', 'params',
+	'ports', 'teams'];
 
 const sharedCommandDefinitions: GameCommandDefinitions = {
 	summary: {
@@ -591,7 +594,7 @@ export class Games {
 					format.minigameCreator = user.id;
 
 					const game = global.Games.createGame(room, format, pmRoom, true);
-					game.signups();
+					if (game) game.signups();
 				},
 			};
 
@@ -635,7 +638,7 @@ export class Games {
 		if (checkDisabled && this.formats[id].disabled) return ['disabledGameFormat', this.formats[id].name];
 
 		const formatData = Tools.deepClone(this.formats[id]);
-		const inputOptions: Dict<number> = {};
+		const inputOptions: IGameOptions = {};
 		let mode: IGameMode | undefined;
 		let variant: IGameVariant | undefined;
 		for (const target of targets) {
@@ -667,30 +670,30 @@ export class Games {
 
 			const option = target.trim();
 			let optionName = '';
-			let optionNumber = 0;
+			let optionValue = '' as string | number;
 			if (option.includes(":")) {
 				const parts = option.split(":");
 				optionName = Tools.toId(parts[0]);
-				optionNumber = parseInt(parts[1].trim());
+				optionValue = parts[1].trim();
 			} else {
 				const optionId = Tools.toId(option);
 				if (optionId === 'freejoin' || optionId === 'fj') {
 					optionName = 'freejoin';
-					optionNumber = 1;
+					optionValue = "1";
 				} else {
 					const firstSpaceIndex = option.indexOf(" ");
 					if (firstSpaceIndex !== -1) {
 						const lastSpaceIndex = option.lastIndexOf(" ");
 						optionName = option.substr(0, firstSpaceIndex);
 						if (Tools.isInteger(optionName)) {
-							optionNumber = parseInt(optionName);
+							optionValue = optionName;
 							optionName = option.substr(firstSpaceIndex + 1);
 						} else {
 							if (lastSpaceIndex !== firstSpaceIndex) {
 								optionName = option.substr(0, lastSpaceIndex);
-								optionNumber = parseInt(option.substr(lastSpaceIndex + 1));
+								optionValue = option.substr(lastSpaceIndex + 1);
 							} else {
-								optionNumber = parseInt(option.substr(firstSpaceIndex + 1));
+								optionValue = option.substr(firstSpaceIndex + 1);
 							}
 						}
 						optionName = Tools.toId(optionName);
@@ -698,11 +701,16 @@ export class Games {
 				}
 			}
 
-			if (!optionName || isNaN(optionNumber)) return ['invalidGameOption', option];
+			if (!optionName) return ['invalidGameOption', option];
+
+			if (numberGameOptions.includes(optionName as GameNumberOptions)) {
+				optionValue = parseInt(optionValue as string);
+				if (isNaN(optionValue)) return ['invalidGameOption', option];
+			}
 
 			if (optionName === 'firstto') optionName = 'points';
 			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
-			inputOptions[optionName] = optionNumber;
+			inputOptions[optionName] = optionValue;
 		}
 
 		const formatComputed: IGameFormatComputed = {
@@ -715,17 +723,18 @@ export class Games {
 		};
 
 		const challengeSettings: GameChallengeSettings = formatData.challengeSettings || {};
-		let customizableOptions: Dict<IGameOptionValues> = formatData.customizableOptions || {};
+		let customizableNumberOptions: Dict<IGameNumberOptionValues> = formatData.customizableNumberOptions || {};
 		let defaultOptions: DefaultGameOption[] = formatData.defaultOptions || [];
 		if (variant) {
 			if (variant.challengeSettings) Object.assign(challengeSettings, variant.challengeSettings);
-			if (variant.customizableOptions) customizableOptions = variant.customizableOptions;
+			if (variant.customizableNumberOptions) customizableNumberOptions = variant.customizableNumberOptions;
 			if (variant.defaultOptions) defaultOptions = variant.defaultOptions;
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{challengeSettings, customizableOptions, defaultOptions, options: {}}) as IGameFormat;
-		format.options = ScriptedGame.setOptions(format, mode, variant);
+			{challengeSettings, customizableNumberOptions, defaultOptions, options: {}}) as IGameFormat;
+
+		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, mode, variant);
 
 		return format;
 	}
@@ -868,9 +877,10 @@ export class Games {
 			nameWithOptions: '',
 		};
 
-		const format = Object.assign({}, formatData, formatComputed, {customizableOptions: formatData.customizableOptions || {},
-			defaultOptions: formatData.defaultOptions || []}) as IGameFormat;
-		format.options = ScriptedGame.setOptions(format, undefined, undefined);
+		const format = Object.assign(formatData, formatComputed, {customizableNumberOptions: formatData.customizableNumberOptions || {},
+			defaultOptions: formatData.defaultOptions || [], options: {}}) as IGameFormat;
+
+		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, undefined, undefined);
 
 		return format;
 	}
@@ -1066,7 +1076,8 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean, initialSeed?: PRNGSeed): ScriptedGame {
+	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean,
+		initialSeed?: PRNGSeed): ScriptedGame | undefined {
 		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
@@ -1077,24 +1088,30 @@ export class Games {
 			format.class.loadedData = true;
 		}
 
-		room.game = new format.class(room, pmRoom, initialSeed);
-		if (isMinigame) room.game.isMiniGame = true;
-		room.game.initialize(format);
+		const game = new format.class(room, pmRoom, initialSeed);
+		if (isMinigame) game.isMiniGame = true;
+		if (game.initialize(format)) {
+			if (isMinigame) {
+				if (format.options.points) format.options.points = 1;
+				if (!format.freejoin && 'freejoin' in format.customizableNumberOptions) format.options.freejoin = 1;
+			}
 
-		if (isMinigame) {
-			if (format.options.points) format.options.points = 1;
-			if (!format.freejoin && 'freejoin' in format.customizableOptions) format.options.freejoin = 1;
+			room.game = game;
+			return room.game;
+		} else {
+			game.deallocate(true);
 		}
-
-		return room.game;
 	}
 
-	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame {
+	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame | undefined {
 		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
-		childGame.canLateJoin = false;
-		childGame.parentGame = parentGame;
+		if (childGame) {
+			childGame.canLateJoin = false;
+			childGame.parentGame = parentGame;
 
-		parentGame.room.game = childGame;
+			parentGame.room.game = childGame;
+		}
+
 		return childGame;
 	}
 

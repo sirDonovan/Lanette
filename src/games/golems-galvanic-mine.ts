@@ -35,7 +35,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 				this.roundMines.forEach((value, player) => {
 					let points = this.points.get(player) || 0;
 					points += value;
-					if (points >= this.format.options.points) {
+					if (points >= this.format.options.points!) {
 						if (!reachedMaxPoints) reachedMaxPoints = true;
 						this.winners.set(player, points);
 					}
@@ -91,7 +91,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.winners.size) this.convertPointsToBits(500 / this.format.options.points, 100 / this.format.options.points);
+		if (this.winners.size) this.convertPointsToBits(500 / this.format.options.points!, 100 / this.format.options.points!);
 		this.announceWinners();
 	}
 }

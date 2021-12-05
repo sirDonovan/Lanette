@@ -73,11 +73,11 @@ export class ParasParameters extends QuestionAndAnswer {
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
 		} else if (this.format.inputOptions.params) {
-			numberOfParams = this.format.options.params;
+			numberOfParams = this.format.options.params!;
 		} else {
 			numberOfParams = BASE_NUMBER_OF_PARAMS;
-			if ('params' in this.format.customizableOptions) {
-				numberOfParams += this.random(this.format.customizableOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
+			if ('params' in this.format.customizableNumberOptions) {
+				numberOfParams += this.random(this.format.customizableNumberOptions.params.max - BASE_NUMBER_OF_PARAMS + 1);
 			}
 		}
 		this.currentNumberOfParams = numberOfParams;
@@ -206,7 +206,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 			for (let i = MIN_GEN; i <= MAX_GEN; i++) {
 				const gen = i;
-				for (let j = format.customizableOptions.params.min; j <= format.customizableOptions.params.max; j++) {
+				for (let j = format.customizableNumberOptions.params.min; j <= format.customizableNumberOptions.params.max; j++) {
 					format.inputOptions.params = j;
 					game.format.options.params = j;
 					format.inputOptions.gen = gen;
@@ -296,7 +296,7 @@ export const game: IGameFile<ParasParameters> = Games.copyTemplateProperties(que
 		},
 	}),
 	class: ParasParameters,
-	customizableOptions: {
+	customizableNumberOptions: {
 		gen: {min: MIN_GEN, base: MAX_GEN, max: MAX_GEN},
 		params: {min: 2, base: BASE_NUMBER_OF_PARAMS, max: 4},
 		points: {min: 5, base: 5, max: 10},

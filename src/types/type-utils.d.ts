@@ -5,6 +5,8 @@ type KeyedDict<T extends string | number | symbol, U> = {[K in T]: U };
 
 type PartialKeyedDict<T extends string | number | symbol, U> = {[K in T]?: U };
 
+type FilterByType<T, U> = { [P in keyof T as T[P] extends U ? P : never]: T[P] };
+
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void;
 
 // Credit to @ahejlsberg - https://github.com/microsoft/TypeScript/issues/42939#issuecomment-785316256

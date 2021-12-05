@@ -76,9 +76,18 @@ interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	loadedData?: boolean;
 }
 
+export interface IModeInputProperties {
+	customizableNumberOptions?: Dict<IGameNumberOptionValues>;
+	defaultOptions?: DefaultGameOption[];
+	description?: string;
+	namePrefixes?: string[];
+	nameSuffixes?: string[];
+}
+
 interface IModeClass<T, U extends ScriptedGame = ScriptedGame> {
 	new(game: U): T;
-	setOptions: <V extends ScriptedGame>(format: IGameFormat<V>, namePrefixes: string[], nameSuffixes: string[]) => void;
+	resolveInputProperties: <V extends ScriptedGame>(format: IGameFormat<V>,
+		customizableNumberOptions: Dict<IGameNumberOptionValues>) => IModeInputProperties;
 }
 
 interface IGameFileTestConfig {
@@ -100,7 +109,7 @@ export interface IRandomGameAnswer {
 }
 
 export type DefaultGameOption = 'points' | 'teams' | 'cards' | 'freejoin';
-export interface IGameOptionValues {
+export interface IGameNumberOptionValues {
 	min: number;
 	base: number;
 	max: number;
@@ -139,7 +148,7 @@ interface IGameFileProperties<T extends ScriptedGame = ScriptedGame> {
 	challengeSettings?: GameChallengeSettings;
 	commands?: GameCommandDefinitions<T>;
 	commandDescriptions?: string[];
-	customizableOptions?: Dict<IGameOptionValues>;
+	customizableNumberOptions?: Dict<IGameNumberOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	disabled?: boolean;
 	freejoin?: boolean;
@@ -182,9 +191,30 @@ export interface IGameFormatData<T extends ScriptedGame = ScriptedGame> extends 
 	commands?: LoadedGameCommands<T>;
 }
 
+export interface IGameOptions {
+	[index: string]: string | number | undefined;
+	points?: number;
+	teamPoints?: number;
+	freejoin?: number;
+	cards?: number;
+	operands?: number;
+	names?: number;
+	gen?: number;
+	params?: number;
+	ports?: number;
+	teams?: number;
+	format?: string;
+}
+
+export interface IGameInputProperties extends IModeInputProperties {
+	options: IGameOptions;
+}
+
+export type GameNumberOptions = keyof FilterByType<IGameOptions, number | undefined>;
+
 export interface IGameFormatComputed<T extends ScriptedGame = ScriptedGame> {
 	effectType: 'GameFormat';
-	inputOptions: Dict<number>;
+	inputOptions: IGameOptions;
 	inputTarget: string;
 	nameWithOptions: string;
 
@@ -194,10 +224,11 @@ export interface IGameFormatComputed<T extends ScriptedGame = ScriptedGame> {
 
 export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGameFormatData<T>, IGameFormatComputed<T> {
 	minigameCreator?: string;
-	customizableOptions: Dict<IGameOptionValues>;
+	customizableNumberOptions: Dict<IGameNumberOptionValues>;
 	defaultOptions: DefaultGameOption[];
 	description: string;
-	options: Dict<number>;
+	resolvedInputProperties: IGameInputProperties;
+	options: IGameOptions;
 	voter?: string;
 }
 
@@ -208,7 +239,7 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	aliases?: string[];
 	challengeSettings?: PartialKeyedDict<GameChallenge, IChallengeSettings>;
 	commandDescriptions?: string[];
-	customizableOptions?: Dict<IGameOptionValues>;
+	customizableNumberOptions?: Dict<IGameNumberOptionValues>;
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
@@ -249,10 +280,10 @@ export interface IUserHostedComputed<T extends UserHostedGame = UserHostedGame> 
 
 export interface IUserHostedFormatComputed {
 	effectType: 'UserHostedFormat';
-	inputOptions: Dict<number>;
+	inputOptions: IGameOptions;
 	inputTarget: string;
 	nameWithOptions: string;
-	options: Dict<number>;
+	options: IGameOptions;
 }
 
 export interface IUserHostedFormat<T extends UserHostedGame = UserHostedGame> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}

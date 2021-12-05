@@ -34,11 +34,11 @@ class MagnetonsMashups extends QuestionAndAnswer {
 	onSetGeneratedHint(): string {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
-			numberOfElements = this.format.options.names;
+			numberOfElements = this.format.options.names!;
 		} else {
 			numberOfElements = BASE_NUMBER_OF_NAMES;
-			if ('names' in this.format.customizableOptions) {
-				numberOfElements += this.random(this.format.customizableOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
+			if ('names' in this.format.customizableNumberOptions) {
+				numberOfElements += this.random(this.format.customizableNumberOptions.names.max - BASE_NUMBER_OF_NAMES + 1);
 			}
 		}
 
@@ -105,7 +105,7 @@ export const game: IGameFile<MagnetonsMashups> = Games.copyTemplateProperties(qu
 	aliases: ['magnetons'],
 	category: 'identification-1',
 	class: MagnetonsMashups,
-	customizableOptions: {
+	customizableNumberOptions: {
 		names: {min: 2, base: BASE_NUMBER_OF_NAMES, max: 4},
 	},
 	defaultOptions: ['points'],
