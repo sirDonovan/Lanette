@@ -7,7 +7,7 @@ import type { IGetPossibleTeamsOptions } from "../../types/dex";
 import type {
 	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameInputProperties, IGameTemplateFile
 } from "../../types/games";
-import type { IFormat, IPokemon } from "../../types/pokemon-showdown";
+import type { GameType, IFormat, IPokemon } from "../../types/pokemon-showdown";
 import type { User } from "../../users";
 
 interface IEliminationTree<T> {
@@ -43,6 +43,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
 	battleFormatId: string = 'ou';
+	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	bracketHtml: string = '';
@@ -117,6 +118,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 			const battleFormat = Dex.getFormat(inputProperties.options.format);
 			if (!battleFormat) {
 				this.say(CommandParser.getErrorText(['invalidFormat', inputProperties.options.format]));
+				return false;
+			}
+
+			if (battleFormat.gameType !== this.battleFormatType) {
+				this.say("You can only change the format to another " + this.battleFormatType + " format.");
 				return false;
 			}
 

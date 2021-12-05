@@ -1,10 +1,12 @@
 import type { IGameFile } from '../types/games';
+import type { GameType } from '../types/pokemon-showdown';
 import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
 
 const name = "Same Duo";
 const description = "Every player battles with the same randomly generated Pokemon duo!";
 
 class SameDuo extends EliminationTournament {
+	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
@@ -15,6 +17,7 @@ class SameDuo extends EliminationTournament {
 	sharedTeams = true;
 	canRejoin = true;
 	battleFormatId = '2v2 Doubles';
+	battleFormatType: GameType = 'doubles';
 
 	getStartingTeam(): readonly string[] {
 		return this.pokedex.slice(0, this.startingTeamsLength);
