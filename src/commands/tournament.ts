@@ -47,6 +47,8 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml(html, tournamentRoom);
 		},
 		aliases: ['tour'],
+		pmSyntax: ["[room]"],
+		description: ["displays information about the current server tournament"],
 	},
 	createtournament: {
 		command(target, room, user) {
@@ -64,7 +66,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 			room.createTournament(format, 'elimination', playerCap);
 		},
-		aliases: ['createtour', 'ct'],
+		chatOnly: true,
+		aliases: ['ct', 'createtour'],
+		syntax: ["[format]"],
+		description: ["creates a server tournament in the given format"],
 	},
 	tournamentcap: {
 		command(target, room, user) {
@@ -77,7 +82,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 			room.tournament.adjustCap(cap);
 		},
-		aliases: ['tourcap', 'tcap'],
+		chatOnly: true,
+		aliases: ['tcap', 'tourcap'],
+		syntax: ["[players]"],
+		description: ["sets the current tournament player cap to the given number of players"],
 	},
 	tournamentenablepoints: {
 		command(target, room, user, cmd) {
@@ -105,7 +113,9 @@ export const commands: BaseCommandDefinitions = {
 				this.say("The " + room.tournament.name + " tournament will no longer award leaderboard points.");
 			}
 		},
+		chatOnly: true,
 		aliases: ['tourenablepoints', 'tournamentdisablepoints', 'tourdisablepoints'],
+		description: ["enables the current tournament to award points"],
 	},
 	tournamentbattlescore: {
 		command(target, room, user) {
@@ -148,6 +158,9 @@ export const commands: BaseCommandDefinitions = {
 				currentBattle.remainingPokemon[slots[0]] + " - " + currentBattle.remainingPokemon[slots[1]]) + ".");
 		},
 		aliases: ['tbscore', 'tbattlescore'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["displays the score of the given user's current tournament battle"],
 	},
 	scheduledtournament: {
 		command(target, room, user) {
@@ -187,7 +200,9 @@ export const commands: BaseCommandDefinitions = {
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			this.sayHtml(html, tournamentRoom);
 		},
-		aliases: ['scheduledtour', 'officialtournament', 'officialtour', 'official'],
+		aliases: ['official', 'scheduledtour', 'officialtournament', 'officialtour'],
+		pmSyntax: ["[room]"],
+		description: ["displays information about the room's next official tournament"],
 	},
 	gettournamentschedule: {
 		command(target, room, user) {
@@ -217,6 +232,9 @@ export const commands: BaseCommandDefinitions = {
 			this.sayCode(schedule);
 		},
 		aliases: ['gettourschedule'],
+		syntax: ["[month]"],
+		pmSyntax: ["[room], [month]"],
+		description: ["provides the tournament schedule HTML for the given month"],
 	},
 	validateformat: {
 		command(target, room, user) {
@@ -227,6 +245,8 @@ export const commands: BaseCommandDefinitions = {
 			return this.say("The specified format is valid (" + Dex.getCustomFormatName(resolved) + ").");
 		},
 		aliases: ['vformat'],
+		syntax: ["[format], [rules]"],
+		description: ["checks the given format and custom rules for errors"],
 	},
 	queuetournament: {
 		command(target, room, user, cmd) {
@@ -239,7 +259,7 @@ export const commands: BaseCommandDefinitions = {
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) {
 				const format = Dex.getFormat(database.queuedTournament.formatid, true);
-				if (format) {
+				if (format && format.effectType === 'Format') {
 					return this.say(format.name + " is already queued for " + room.title + ".");
 				} else {
 					delete database.queuedTournament;
@@ -325,7 +345,10 @@ export const commands: BaseCommandDefinitions = {
 
 			Storage.exportDatabase(room.id);
 		},
-		aliases: ['forcequeuetournament', 'forcenexttournament', 'forcenexttour'],
+		chatOnly: true,
+		aliases: ['forcenexttour', 'forcequeuetournament', 'forcenexttournament'],
+		syntax: ["[format | 'official'], {player cap | custom rules}"],
+		description: ["sets the next server tournament to the given format, optionally with the given player cap or custom rules"],
 	},
 	queuedtournament: {
 		command(target, room, user) {
@@ -354,7 +377,7 @@ export const commands: BaseCommandDefinitions = {
 			const errorText = "There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".";
 			if (!database.queuedTournament) return this.say(errorText);
 			const format = Dex.getFormat(database.queuedTournament.formatid, true);
-			if (!format) {
+			if (!format || format.effectType !== 'Format') {
 				delete database.queuedTournament;
 				Storage.exportDatabase(tournamentRoom.id);
 				return this.say(errorText);
@@ -386,7 +409,9 @@ export const commands: BaseCommandDefinitions = {
 			html += "</div>";
 			this.sayUhtml(room.id + "-queued-tournament-" + format.id, html, tournamentRoom);
 		},
-		aliases: ['queuedtour', 'nexttournament', 'nexttour'],
+		aliases: ['nexttour', 'queuedtour', 'nexttournament'],
+		pmSyntax: ["[room]"],
+		description: ["displays information about the queued server tournament"],
 	},
 	pasttournaments: {
 		command(target, room, user) {
@@ -431,6 +456,9 @@ export const commands: BaseCommandDefinitions = {
 				tournamentRoom);
 		},
 		aliases: ['pasttours', 'recenttournaments', 'recenttours'],
+		pmSyntax: ["[room], {times}"],
+		syntax: ["{times}"],
+		description: ["displays the previously played server tournaments in the room, optionally with the times they ended"],
 	},
 	lasttournament: {
 		command(target, room, user) {
@@ -459,7 +487,7 @@ export const commands: BaseCommandDefinitions = {
 					database.lastTournamentTime) + "** ago.");
 			}
 			const format = Dex.getFormat(targets[0]);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			if (!database.lastTournamentFormatTimes || !(format.id in database.lastTournamentFormatTimes)) {
 				return this.say(format.name + " has not been played in " + tournamentRoom.title + ".");
 			}
@@ -467,6 +495,9 @@ export const commands: BaseCommandDefinitions = {
 				Tools.toDurationString(Date.now() - database.lastTournamentFormatTimes[format.id]) + "** ago.");
 		},
 		aliases: ['lasttour'],
+		pmSyntax: ["[room], [game]"],
+		syntax: ["[game]"],
+		description: ["displays the last time the given tournament format was played"],
 	},
 	usercreatedformats: {
 		command(target, room, user) {
@@ -474,6 +505,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Approved and user-created formats: http://pstournaments.weebly.com/formats.html');
 		},
 		aliases: ['userhostedformats', 'userformats'],
+		description: ["links to the approved user-created formats list"],
 	},
 	gettournamentapproval: {
 		command(target, room, user, cmd) {
@@ -545,7 +577,10 @@ export const commands: BaseCommandDefinitions = {
 				this.say("A staff member will review your tournament as soon as possible!");
 			}
 		},
+		pmOnly: true,
 		aliases: ['gettourapproval'],
+		syntax: ["[room], [bracket link], [signups link]"],
+		description: ["starts the approval process for the given Challonge tournament"],
 	},
 	reviewuserhostedtournament: {
 		command(target, room, user) {
@@ -572,7 +607,10 @@ export const commands: BaseCommandDefinitions = {
 			}, 10 * 60 * 1000);
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['reviewuserhostedtour'],
+		syntax: ["[room], [link]"],
+		description: ["starts the review process for the given Challonge tournament"],
 	},
 	approveuserhostedtournament: {
 		command(target, room, user, cmd) {
@@ -623,7 +661,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['approveuserhostedtour', 'rejectuserhostedtournament', 'rejectuserhostedtour'],
+		syntax: ["[room], [link]"],
+		description: ["approves the given Challonge tournament to be posted in the room"],
 	},
 	removeuserhostedtournament: {
 		command(target, room, user) {
@@ -644,7 +685,10 @@ export const commands: BaseCommandDefinitions = {
 			delete targetRoom.newUserHostedTournaments[link];
 			Tournaments.showUserHostedTournamentApprovals(targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['removeuserhostedtour'],
+		syntax: ["[room], [link]"],
+		description: ["removes the given Challonge tournament from the room's approval queue"],
 	},
 	viewuserhostedtournaments: {
 		command(target, room, user) {
@@ -657,7 +701,10 @@ export const commands: BaseCommandDefinitions = {
 			if (!html) return this.say("There are no user-hosted tournaments running in " + targetRoom.title + ".");
 			this.sayUhtml('userhosted-tournament-approvals-' + targetRoom.id, html, targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['viewuserhostedtours'],
+		syntax: ["[room]"],
+		description: ["displays the room's Challonge tournament approval queue"],
 	},
 	addtournamentmanager: {
 		command(target, room, user) {
@@ -693,7 +740,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The specified user(s) can now use tournament commands in " + tournamentRoom.title + ".");
 			Storage.exportDatabase(tournamentRoom.id);
 		},
-		aliases: ['addtournamentmanagers', 'addtourmanager', 'addtourmanagers'],
+		aliases: ['addtourmanager', 'addtournamentmanagers', 'addtourmanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["adds the given user to the room's tournament managers"],
 	},
 	removetournamentmanager: {
 		command(target, room, user) {
@@ -734,7 +784,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The specified user(s) can no longer use tournament commands for " + leaderboardRoom.title + ".");
 			Storage.exportDatabase(leaderboardRoom.id);
 		},
-		aliases: ['removetournamentmanagers', 'removetourmanager', 'removetourmanagers'],
+		aliases: ['removetourmanager', 'removetournamentmanagers', 'removetourmanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["removes the given user from the room's tournament managers"],
 	},
 	tournamentmanagers: {
 		command(target, room, user) {
@@ -759,6 +812,9 @@ export const commands: BaseCommandDefinitions = {
 
 			this.sayHtml("<b>" + targetRoom.title + "</b> tournament managers:<br /><br />" + names.join(", "), targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['tourmanagers'],
+		syntax: ["[room]"],
+		description: ["displays the room's tournament managers"],
 	},
 };

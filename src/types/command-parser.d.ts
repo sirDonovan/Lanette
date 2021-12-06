@@ -2,15 +2,21 @@ import type { CommandContext } from "../command-parser";
 import type { Room } from "../rooms";
 import type { User } from "../users";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export interface ICommandDefinition<ThisContext, ReturnType = any> {
-	command: (this: ThisContext, target: string, room: Room | User, user: User, alias: string, timestamp: number) => ReturnType;
+export interface ICommandGuide {
 	aliases?: string[];
 	readonly chatOnly?: boolean;
-	readonly eliminatedGameCommand?: boolean;
+	readonly description?: readonly string[];
 	readonly developerOnly?: boolean;
-	readonly pmGameCommand?: boolean;
 	readonly pmOnly?: boolean;
+	readonly pmSyntax?: readonly string[];
+	readonly syntax?: readonly string[];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ICommandDefinition<ThisContext, ReturnType = any> extends ICommandGuide {
+	command: (this: ThisContext, target: string, room: Room | User, user: User, alias: string, timestamp: number) => ReturnType;
+	readonly eliminatedGameCommand?: boolean;
+	readonly pmGameCommand?: boolean;
 	readonly signupsGameCommand?: boolean;
 	readonly spectatorGameCommand?: boolean;
 	readonly staffGameCommand?: boolean;
@@ -36,7 +42,8 @@ export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeat
 	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledSearchChallengeFeatures' | 'disabledUserHostedGameFeatures' |
 	'disabledUserHostedTournamentFeatures' | 'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
 
-export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' | 'noPmGameRoom';
+export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' |
+	'noPmGameRoom' | 'noBotRankRoom';
 
 export type CommandErrorArray = [CommandErrorOptionalTarget, string?] | [CommandErrorRequiredTarget, string] | [CommandErrorNoTarget];
 

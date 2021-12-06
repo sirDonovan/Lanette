@@ -72,7 +72,9 @@ export class Tournaments {
 				if (room) {
 					const data = previous.tournamentTimerData[i];
 					const format = Dex.getFormat(data.formatid);
-					if (format) this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
+					if (format && format.effectType === 'Format') {
+						this.setTournamentTimer(room, data.startTime, format, data.cap, data.scheduled, data.tournamentName);
+					}
 				}
 			}
 		}
@@ -195,7 +197,8 @@ export class Tournaments {
 
 	createTournament(room: Room, json: ITournamentCreateJson): Tournament | undefined {
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
-		if (!format) return;
+		if (!format || format.effectType !== 'Format') return;
+
 		if (room.id in this.tournamentTimers) {
 			clearTimeout(this.tournamentTimers[room.id]);
 			delete this.tournamentTimers[room.id];
@@ -228,7 +231,7 @@ export class Tournaments {
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
-					if (!queuedFormat || tournament.format.id === queuedFormat.id) {
+					if (!queuedFormat || queuedFormat.effectType !== 'Format' || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
 						Storage.exportDatabase(room.id);
 					}

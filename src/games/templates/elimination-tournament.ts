@@ -116,7 +116,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 
 			const battleFormat = Dex.getFormat(inputProperties.options.format);
-			if (!battleFormat) {
+			if (!battleFormat || battleFormat.effectType !== 'Format') {
 				this.say(CommandParser.getErrorText(['invalidFormat', inputProperties.options.format]));
 				return false;
 			}

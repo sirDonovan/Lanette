@@ -7,6 +7,7 @@ export const commands: BaseCommandDefinitions = {
 			if (!this.isPm(room)) return;
 			this.say("This feature has been removed. Please use the server command ``/searchlogs`` instead.");
 		},
+		pmOnly: true,
 	},
 	jointournament: {
 		command(target, room, user) {
@@ -17,6 +18,7 @@ export const commands: BaseCommandDefinitions = {
 				"http://pstournaments.weebly.com/joining-a-tournament.html");
 		},
 		aliases: ['jointour'],
+		description: ["displays information about joining server tournaments"],
 	},
 	autodq: {
 		command(target, room, user) {
@@ -28,12 +30,14 @@ export const commands: BaseCommandDefinitions = {
 				"You will be disqualified from a tournament if you fail to send or accept a challenge from your opponent before the " +
 				"timer expires.");
 		},
+		chatOnly: true,
+		description: ["displays automatic disqualification timer information for the room"],
 	},
 	sampleteams: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 
 			const teams: string[] = [];
 			if (format.teams) teams.push("sample teams: " + format.teams);
@@ -43,6 +47,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say("**" + format.name + "** | " + teams.join(" | "));
 		},
 		aliases: ['steams'],
+		syntax: ["[format]"],
+		description: ["links to the sample teams for the given format"],
 	},
 	roomsampleteams: {
 		command(target, room, user) {
@@ -62,36 +68,40 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<a href='" + database.roomSampleTeamsLink + "'>" + samplesRoom.title + " sample teams</a>", samplesRoom);
 		},
 		aliases: ['roomsamples'],
+		pmSyntax: ["[room]"],
+		description: ["links to the room's sample teams"],
 	},
 	viabilityranking: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			if (!format.viability) return this.say("No viability ranking link found for " + format.name + ".");
 			this.say("**" + format.name + " viability ranking**: " + format.viability);
 		},
 		aliases: ['vranking'],
+		syntax: ["[format]"],
+		description: ["links to the format's viability ranking"],
 	},
 	format: {
 		command(target, room, user) {
 			let pmRoom: Room | undefined;
 			if (this.isPm(room)) {
-				user.rooms.forEach((value, userRoom) => {
-					if (!pmRoom && Users.self.hasRank(userRoom, 'bot')) pmRoom = userRoom;
-				});
-				if (!pmRoom) return this.say("You must be in a room where " + Users.self.name + " has Bot rank.");
+				const botRoom = user.getBotRoom();
+				if (!botRoom) return this.say(CommandParser.getErrorText(['noBotRankRoom']));
+				pmRoom = botRoom;
 			} else {
 				if (!user.hasRank(room, 'star')) return;
 				pmRoom = room;
 			}
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			const html = Dex.getFormatInfoDisplay(format);
 			if (!html) return this.say("No info found for " + format.name + ".");
 			this.sayHtml(html, pmRoom);
 		},
-		aliases: ['om', 'tier'],
+		aliases: ['tier', 'om'],
+		description: ["displays information about the given format"],
 	},
 	randombattle: {
 		command(target, room, user) {
@@ -105,7 +115,9 @@ export const commands: BaseCommandDefinitions = {
 			}
 			this.say("**" + pokemon.name + " moves**: " + Tools.joinList(data.sort()) + ".");
 		},
-		aliases: ['randombattles', 'randbat', 'randbats'],
+		aliases: ['randbats', 'randombattles', 'randbat'],
+		syntax: ["[Pokemon]"],
+		description: ["displays possible Random Battle moves for the given Pokemon"],
 	},
 	randomdoublesbattle: {
 		command(target, room, user) {
@@ -119,6 +131,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 			this.say("**" + pokemon.name + " doubles moves**: " + Tools.joinList(data.sort()) + ".");
 		},
-		aliases: ['randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs', 'randbatsdubs'],
+		aliases: ['randbatsdubs', 'randomdoublesbattles', 'randombattledoubles', 'randombattlesdoubles', 'randdubs', 'randbatdubs'],
+		syntax: ["[Pokemon]"],
+		description: ["displays possible Random Doubles Battle moves for the given Pokemon"],
 	},
 };

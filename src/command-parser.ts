@@ -3,7 +3,7 @@ import path = require('path');
 
 import type { Room } from "./rooms";
 import type {
-	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, IHtmlPageFile, LoadedCommands
+	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, ICommandGuide, IHtmlPageFile, LoadedCommands
 } from "./types/command-parser";
 import type { User } from "./users";
 
@@ -112,6 +112,7 @@ export class CommandContext {
 }
 
 export class CommandParser {
+	private commandGuides: Dict<Dict<ICommandGuide>> = {};
 	private htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
 
 	private commandsDir: string;
@@ -180,6 +181,10 @@ export class CommandParser {
 
 		global.Commands = this.loadCommandDefinitions(baseCommands);
 		global.BaseCommands = Tools.deepClone(global.Commands);
+	}
+
+	getCommandGuide(category: string): Dict<ICommandGuide> | undefined {
+		return this.commandGuides[category];
 	}
 
 	isCommandMessage(message: string): boolean {
@@ -260,6 +265,8 @@ export class CommandParser {
 			return "The host queue is empty.";
 		} else if (error[0] === 'noPmHtmlRoom') {
 			return "You must be in " + error[1].trim() + " to use this command in PMs.";
+		} else if (error[0] === 'noBotRankRoom') {
+			return "You must be in a room where " + Users.self.name + " is Bot rank to use this command.";
 		} else if (error[0] === 'missingBotRankForFeatures') {
 			return Users.self.name + " requires Bot rank (*) to use " + error[1].trim() + " features.";
 		} else if (error[0] === 'disabledTournamentFeatures') {
@@ -316,14 +323,28 @@ export class CommandParser {
 
 		for (const fileName of commandFiles) {
 			if (!fileName.endsWith('.js')) continue;
+
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
 			if (commandFile.commands) {
-				if (!privateDirectory) {
-					for (const i in commandFile.commands) {
-						if (i in allCommands) {
-							throw new Error("Command '" + i + "' is defined in more than 1 location.");
-						}
+				const commandCategory = fileName.substr(0, fileName.length - 3);
+				for (const i in commandFile.commands) {
+					if (!privateDirectory && i in allCommands) {
+						throw new Error("Command '" + i + "' is defined in more than 1 location.");
+					}
+
+					if (commandFile.commands[i].description && commandFile.commands[i].description!.length) {
+						if (!(commandCategory in this.commandGuides)) this.commandGuides[commandCategory] = {};
+
+						this.commandGuides[commandCategory][i] = {
+							aliases: commandFile.commands[i].aliases,
+							chatOnly: commandFile.commands[i].chatOnly,
+							description: commandFile.commands[i].description,
+							developerOnly: commandFile.commands[i].developerOnly,
+							pmOnly: commandFile.commands[i].pmOnly,
+							pmSyntax: commandFile.commands[i].pmSyntax,
+							syntax: commandFile.commands[i].syntax,
+						};
 					}
 				}
 

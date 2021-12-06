@@ -39,7 +39,10 @@ export const commands: BaseCommandDefinitions = {
 				"for " + recipient + ".");
 			this.say("Your message has been sent to " + recipient + ".");
 		},
+		pmOnly: true,
 		aliases: ['mail', 'offlinepm'],
+		syntax: ["[user], [message]"],
+		description: ["sends the given message to the given offline user's mailbox"],
 	},
 	clearofflinemessages: {
 		command(target, room, user) {
@@ -47,7 +50,9 @@ export const commands: BaseCommandDefinitions = {
 			if (!Storage.clearOfflineMessages(user)) return this.say("You do not have any offline messages stored.");
 			this.say("Your offline messages were cleared.");
 		},
-		aliases: ['deleteofflinemessages', 'clearmail', 'deletemail'],
+		pmOnly: true,
+		aliases: ['clearmail', 'deleteofflinemessages', 'deletemail'],
+		description: ["clears your mailbox"],
 	},
 	lastseen: {
 		command(target, room) {
@@ -66,7 +71,10 @@ export const commands: BaseCommandDefinitions = {
 			return this.say(this.sanitizeResponse(target.trim() + " last visited one of " + Users.self.name + "'s rooms **" +
 				Tools.toDurationString(Date.now() - database.lastSeen[id]) + "** ago."));
 		},
+		pmOnly: true,
 		aliases: ['seen'],
+		syntax: ["[user]"],
+		description: ["displays when the given user was last seen by " + Users.self.name],
 	},
 	addpoints: {
 		command(target, room, user, cmd) {
@@ -177,8 +185,10 @@ export const commands: BaseCommandDefinitions = {
 
 			Storage.exportDatabase(room.id);
 		},
-		aliases: ['addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'apt', 'rpt']
+		aliases: ['apt', 'addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'rpt']
 			.concat(addGamePointsAliases),
+		syntax: ["[user], [points]"],
+		description: ["adds the given number of the points to the given user"],
 	},
 	addsemifinalistpoints: {
 		command(target, room, user, cmd) {
@@ -203,7 +213,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
 			const format = Dex.getFormat(targets[1]);
-			if (!format) return this.sayError(['invalidFormat', targets[1].trim()]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
 			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
@@ -235,7 +245,10 @@ export const commands: BaseCommandDefinitions = {
 
 			Storage.exportDatabase(room.id);
 		},
-		aliases: ['addsemifinalpoints', 'addsemipoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
+		chatOnly: true,
+		aliases: ['addsemipoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
+		syntax: ["[user], [format], [players], {official}"],
+		description: ["adds missing points for the given user based on the given number of players and optional official status"],
 	},
 	makesemifinalistpointsofficial: {
 		command(target, room, user, cmd) {
@@ -259,7 +272,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
 			const format = Dex.getFormat(targets[1]);
-			if (!format) return this.sayError(['invalidFormat', targets[1].trim()]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
 			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
@@ -290,8 +303,11 @@ export const commands: BaseCommandDefinitions = {
 
 			Storage.exportDatabase(room.id);
 		},
-		aliases: ['makesemifinalpointsofficial', 'makesemipointsofficial', 'makerunneruppointsofficial', 'makerunnerpointsofficial',
+		chatOnly: true,
+		aliases: ['makesemipointsofficial', 'makesemifinalpointsofficial', 'makerunneruppointsofficial', 'makerunnerpointsofficial',
 			'makewinnerpointsofficial'],
+		syntax: ["[user], [format], [players]"],
+		description: ["adds missing official points for the given user based on the given number of players"],
 	},
 	addleaderboardmanager: {
 		command(target, room, user) {
@@ -327,7 +343,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The specified user(s) can now use ``" + Config.commandCharacter + "apt/rpt`` for " + leaderboardRoom.title + ".");
 			Storage.exportDatabase(leaderboardRoom.id);
 		},
-		aliases: ['addleaderboardmanagers', 'addlbmanager', 'addlbmanagers'],
+		aliases: ['addlbmanager', 'addleaderboardmanagers', 'addlbmanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["adds the given user to the room's leaderboard managers"],
 	},
 	removeleaderboardmanager: {
 		command(target, room, user) {
@@ -368,7 +387,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
 			Storage.exportDatabase(leaderboardRoom.id);
 		},
-		aliases: ['removeleaderboardmanagers', 'removelbmanager', 'removelbmanagers'],
+		aliases: ['removelbmanager', 'removeleaderboardmanagers', 'removelbmanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["removes the given user from the room's leaderboard managers"],
 	},
 	leaderboardmanagers: {
 		command(target, room, user) {
@@ -393,7 +415,10 @@ export const commands: BaseCommandDefinitions = {
 
 			this.sayHtml("<b>" + targetRoom.title + "</b> leaderboard managers:<br /><br />" + names.join(", "), targetRoom);
 		},
+		pmOnly: true,
 		aliases: ['lbmanagers'],
+		syntax: ["[room]"],
+		description: ["displays the room's leaderboard managers"],
 	},
 	leaderboard: {
 		command(target, room, user, cmd) {
@@ -494,7 +519,11 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<b>" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
 				cachedEntries.length + "</b><hr />" + output.join(", "), leaderboardRoom);
 		},
-		aliases: ['lb', 'top'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
+		aliases: ['top', 'lb'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
+		syntax: ["{format | starting position | annual}"],
+		pmSyntax: ["[room], {format | starting position | annual}"],
+		description: ["displays the room's leaderboard, optionally for the given format, from the given starting position, or " +
+			"the sannual leaderboard"],
 	},
 	rank: {
 		command(target, room, user, cmd) {
@@ -628,7 +657,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 			this.say(results.join(" "));
 		},
+		pmOnly: true,
 		aliases: ['points'].concat(tournamentRankAliases, gameRankAliases),
+		syntax: ["[room], {format}, {annual}"],
+		description: ["displays your rank on the room's leaderboard, optionally for the given format or the annual leaderboard"],
 	},
 	clearleaderboard: {
 		command(target, room, user) {
@@ -656,7 +688,9 @@ export const commands: BaseCommandDefinitions = {
 			Storage.clearLeaderboard(room.id, leaderboardTypes);
 			this.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
 		},
+		chatOnly: true,
 		aliases: ['resetleaderboard'],
+		description: ["ends the current leaderboard cycle and starts a new one"],
 	},
 	transferdata: {
 		command(target, room, user) {
@@ -671,6 +705,9 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Data from " + source + " in " + targetRoom.title + " has been successfully transferred to " + destination + ".");
 			targetRoom.modnote(user.name + " transferred data from " + source + " to " + destination + ".");
 		},
+		pmOnly: true,
+		syntax: ["[room], [user A], [user B]"],
+		description: ["transfers room data from user A to user B"],
 	},
 	gameachievements: {
 		command(target, room, user) {
@@ -706,7 +743,10 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<b>" + (id === user.id ? "Your" : name + "'s") + " unlocked game achievements</b>:<br />" +
 				unlockedAchievements.join(", "), targetRoom);
 		},
-		aliases: ['achievements', 'chieves'],
+		pmOnly: true,
+		aliases: ['chieves', 'achievements'],
+		syntax: ["[room], {user}"],
+		description: ["displays your or the given user's unlocked achievements in the room"],
 	},
 	unlockedgameachievements: {
 		command(target, room, user) {
@@ -756,7 +796,10 @@ export const commands: BaseCommandDefinitions = {
 				achievements[achievementId].name + " in " + targetRoom.title + ":<br /><br /><details><summary>Player names</summary>" +
 				unlockedAchievements.join(", ") + "</details>", targetRoom);
 		},
-		aliases: ['unlockedachievements', 'unlockedchieves', 'chieved'],
+		pmOnly: true,
+		aliases: ['chieved', 'unlockedachievements', 'unlockedchieves'],
+		syntax: ["[room], [achievement]"],
+		description: ["displays the list of users who have unlocked the given achievement in the room"],
 	},
 	eventlink: {
 		command(target, room, user) {
@@ -783,6 +826,9 @@ export const commands: BaseCommandDefinitions = {
 				eventInformation.link.description + "</a>", eventRoom);
 		},
 		aliases: ['elink'],
+		syntax: ["[event]"],
+		pmSyntax: ["[room], [event]"],
+		description: ["displays the link for the given room event"],
 	},
 	seteventlink: {
 		command(target, room, user) {
@@ -805,7 +851,10 @@ export const commands: BaseCommandDefinitions = {
 			database.eventInformation[event].link = {description, url};
 			this.say("The event link and description for " + name + " has been stored.");
 		},
+		chatOnly: true,
 		aliases: ['setelink'],
+		syntax: ["[event], [link], [description]"],
+		description: ["sets the link and description for the given room event"],
 	},
 	removeeventlink: {
 		command(target, room, user) {
@@ -820,7 +869,10 @@ export const commands: BaseCommandDefinitions = {
 			delete database.eventInformation[event].link;
 			this.say("The link for " + database.eventInformation[event].name + " has been removed.");
 		},
+		chatOnly: true,
 		aliases: ['removeelink'],
+		syntax: ["[event]"],
+		description: ["removes the link from the given room event"],
 	},
 	eventformats: {
 		command(target, room, user) {
@@ -872,6 +924,9 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['eformats'],
+		syntax: ["[event], {user}"],
+		pmSyntax: ["[room], [event], {user}"],
+		description: ["displays the formats for the given room event and optionally the format points for the given user"],
 	},
 	seteventformats: {
 		command(target, room, user) {
@@ -886,7 +941,7 @@ export const commands: BaseCommandDefinitions = {
 			const formatIds: string[] = [];
 			for (let i = 1; i < targets.length; i++) {
 				const format = Dex.getFormat(targets[i]);
-				if (!format) return this.sayError(['invalidFormat', targets[i]]);
+				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[i]]);
 				formatIds.push(format.id);
 			}
 			let name = targets[0].trim();
@@ -902,7 +957,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The event format" + (multipleFormats ? "s" : "") + " for " + name + " " + (multipleFormats ? "have" : "has") +
 				" been stored.");
 		},
+		chatOnly: true,
 		aliases: ['seteformats'],
+		syntax: ["[event], [formats]"],
+		description: ["sets the list of formats for the given room event"],
 	},
 	removeeventformats: {
 		command(target, room, user) {
@@ -919,7 +977,10 @@ export const commands: BaseCommandDefinitions = {
 			delete database.eventInformation[event].formatIds;
 			this.say("The formats for " + database.eventInformation[event].name + " have been removed.");
 		},
+		chatOnly: true,
 		aliases: ['removeeformats'],
+		syntax: ["[event]"],
+		description: ["clears the list of formats for the given room event"],
 	},
 	removeevent: {
 		command(target, room, user) {
@@ -934,6 +995,9 @@ export const commands: BaseCommandDefinitions = {
 			delete database.eventInformation[event];
 			this.say("The " + name + " event has been removed.");
 		},
+		chatOnly: true,
+		syntax: ["[event]"],
+		description: ["removes the given room event"],
 	},
 	setgreeting: {
 		command(target, room, user, cmd) {
@@ -963,6 +1027,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + (duration ? " (expiring in " +
 				Tools.toDurationString(duration) + ")" : "") + " has been stored."));
 		},
+		developerOnly: true,
+		pmOnly: true,
 		aliases: ['addgreeting', 'awardgreeting'],
 	},
 	removegreeting: {
@@ -982,5 +1048,7 @@ export const commands: BaseCommandDefinitions = {
 			delete database.botGreetings[id];
 			this.say(this.sanitizeResponse(targets[1].trim() + "'s greeting in " + targetRoom.title + " has been removed."));
 		},
+		developerOnly: true,
+		pmOnly: true,
 	},
 };
