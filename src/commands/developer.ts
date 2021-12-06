@@ -26,6 +26,8 @@ export const commands: BaseCommandDefinitions = {
 		},
 		aliases: ['js'],
 		developerOnly: true,
+		syntax: ["[expression]"],
+		description: ["evaluates the given expression and displays the result"],
 	},
 	gitpull: {
 		command() {
@@ -38,6 +40,7 @@ export const commands: BaseCommandDefinitions = {
 			});
 		},
 		developerOnly: true,
+		description: ["fetches the latest code from the source GitHub repository"],
 	},
 	reload: {
 		command(target, room, user) {
@@ -48,5 +51,7 @@ export const commands: BaseCommandDefinitions = {
 		},
 		aliases: ['hotpatch'],
 		developerOnly: true,
+		syntax: ["[module(s)]"],
+		description: ["reloads the given module(s)"],
 	},
 };

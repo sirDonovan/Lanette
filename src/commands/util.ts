@@ -18,6 +18,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say("**Random pick**: " + Tools.sampleOne(choices));
 		},
 		aliases: ['rpick'],
+		syntax: ["[choices]"],
+		description: ["randomly picks one of the given choices"],
 	},
 	randomorder: {
 		command(target, room, user) {
@@ -31,6 +33,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say("**Random order**: " + Tools.shuffle(choices).join(', '));
 		},
 		aliases: ['rorder', 'shuffle'],
+		syntax: ["[choices]"],
+		description: ["randomly shuffles the order of the given choices"],
 	},
 	timer: {
 		command(target, room, user) {
@@ -81,6 +85,9 @@ export const commands: BaseCommandDefinitions = {
 
 			this.say("Your timer has been set for: " + Tools.toDurationString(time) + ".");
 		},
+		syntax: ["[seconds | minutes | 'off']"],
+		pmSyntax: ["[room], [seconds | minutes | 'off']"],
+		description: ["sets or clears a timer for the room"],
 	},
 	repeatmessage: {
 		command(target, room, user, cmd) {
@@ -163,6 +170,8 @@ export const commands: BaseCommandDefinitions = {
 				message + "'");
 		},
 		aliases: ['repeatm', 'repeatmessages'],
+		syntax: ["['off']", "['add'], [name], [interval in minutes], [message]"],
+		description: ["starts or stops a repeated message in the room with the given name, interval, and text"],
 	},
 	showgifs: {
 		command(target, room, user, cmd) {
@@ -215,7 +224,10 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom.sayHtml(html);
 			}
 		},
+		pmOnly: true,
 		aliases: ['showgif', 'showbwgifs', 'showbwgif', 'showicons', 'showicon'],
+		syntax: ["[room], [Pokemon]"],
+		description: ["displays the given Pokemon GIFs in the room"],
 	},
 	showrandomgifs: {
 		command(target, room, user, cmd) {
@@ -302,8 +314,11 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom.sayHtml(html);
 			}
 		},
-		aliases: ['showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandgif', 'showrandbwgifs', 'showrandbwgif',
+		pmOnly: true,
+		aliases: ['showrandgif', 'showrandomgif', 'showrandombwgifs', 'showrandombwgif', 'showrandgifs', 'showrandbwgifs', 'showrandbwgif',
 			'showrandomicons', 'showrandomicon', 'showrandicons', 'showrandicon'],
+		syntax: ["[room], [amount]"],
+		description: ["displays random GIFs in the room, optionally the given amount"],
 	},
 	showtrainersprites: {
 		command(target, room, user) {
@@ -343,7 +358,10 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom.sayHtml(html);
 			}
 		},
-		aliases: ['showtrainersprite', 'showtrainers', 'showtrainer'],
+		pmOnly: true,
+		aliases: ['showtrainer', 'showtrainersprite', 'showtrainers'],
+		syntax: ["[room], [trainer(s)"],
+		description: ["displays the given trainer sprites in the room"],
 	},
 	roll: {
 		command(target, room, user) {
@@ -360,6 +378,8 @@ export const commands: BaseCommandDefinitions = {
 
 			this.say('!roll ' + (target || "2"));
 		},
+		syntax: ["[number of dice]"],
+		description: ["uses the server roll command to perform a dice roll"],
 	},
 	dt: {
 		command(target, room, user) {
@@ -368,6 +388,8 @@ export const commands: BaseCommandDefinitions = {
 			if (!target) return this.say("You must specify an ability, item, move, nature, or Pokemon.");
 			this.say('!dt ' + target);
 		},
+		syntax: ["[ability, item, move, nature, or Pokemon]"],
+		description: ["uses the server dt command to display information"],
 	},
 	randompokemon: {
 		command(target, room, user) {
@@ -393,6 +415,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say("!randpoke " + target);
 		},
 		aliases: ['rpoke', 'rpokemon', 'randpoke'],
+		syntax: ["{option(s)}"],
+		description: ["uses the server randpoke command to generate random Pokemon"],
 	},
 	randommove: {
 		command(target, room, user) {
@@ -425,6 +449,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['rmove', 'randmove'],
+		syntax: ["{amount}"],
+		description: ["generates a random move(s)"],
 	},
 	randomitem: {
 		command(target, room, user) {
@@ -457,6 +483,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['ritem', 'randitem'],
+		syntax: ["{amount}"],
+		description: ["generates a random item(s)"],
 	},
 	randomability: {
 		command(target, room, user) {
@@ -490,6 +518,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['rability', 'randability'],
+		syntax: ["{amount}"],
+		description: ["generates a random ability(ies)"],
 	},
 	randomtype: {
 		command(target, room, user) {
@@ -505,6 +535,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated type: **' + types.join("/") + '**');
 		},
 		aliases: ['rtype', 'randtype'],
+		description: ["generates a random typing"],
 	},
 	randomexistingtype: {
 		command(target, room, user) {
@@ -521,6 +552,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated existing type: **' + type + '**');
 		},
 		aliases: ['rextype', 'randextype', 'rexistingtype', 'randexistingtype'],
+		description: ["generates a random typing that matches an existing Pokemon's typing"],
 	},
 	randombadge: {
 		command(target, room, user) {
@@ -547,6 +579,8 @@ export const commands: BaseCommandDefinitions = {
 				'**' + Tools.sampleOne(badges[region]).trim() + '**');
 		},
 		aliases: ['rbadge', 'randbadge'],
+		syntax: ["{region}"],
+		description: ["generates a random badge, optionally in the given region"],
 	},
 	randomcharacter: {
 		command(target, room, user) {
@@ -586,6 +620,8 @@ export const commands: BaseCommandDefinitions = {
 				characterTypeNames[type] : '') + ' character: **' + Tools.sampleOne(characters[region][type]).trim() + '**');
 		},
 		aliases: ['rchar', 'rcharacter', 'randchar', 'randcharacter'],
+		syntax: ["{region}, {type}"],
+		description: ["generates a random character, optionally in the given region and character type"],
 	},
 	randomlocation: {
 		command(target, room, user) {
@@ -624,7 +660,9 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated' + (target ? ' ' + regionNames[region] : '') + (targets[1] ? ' ' +
 				locationTypeNames[type] : '') + ' location: **' + Tools.sampleOne(locations[region][type]).trim() + '**');
 		},
-		aliases: ['rlocation', 'rloc', 'randloc', 'randlocation'],
+		aliases: ['rloc', 'rlocation', 'randloc', 'randlocation'],
+		syntax: ["{region}, {type}"],
+		description: ["generates a random location, optionally in the given region and location type"],
 	},
 	randomletter: {
 		command(target, room, user) {
@@ -633,6 +671,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated letter: **' + Tools.sampleOne(Tools.letters.toUpperCase().split("")) + '**');
 		},
 		aliases: ['rletter'],
+		description: ["generates a random letter"],
 	},
 	randomcolor: {
 		command(target, room, user) {
@@ -643,6 +682,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated color: **' + colors[Tools.sampleOne(Object.keys(colors))] + '**');
 		},
 		aliases: ['rcolor', 'randcolour', 'rcolour'],
+		description: ["generates a random color"],
 	},
 	randomegggroup: {
 		command(target, room, user) {
@@ -652,7 +692,8 @@ export const commands: BaseCommandDefinitions = {
 			const eggGroups = Dex.getData().eggGroups;
 			this.say('Randomly generated egg group: **' + eggGroups[Tools.sampleOne(Object.keys(eggGroups))] + '**');
 		},
-		aliases: ['regggroup', 'regg'],
+		aliases: ['regg', 'regggroup'],
+		description: ["generates a random egg group"],
 	},
 	randomnature: {
 		command(target, room, user) {
@@ -662,6 +703,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated nature: **' + Dex.getExistingNature(Tools.sampleOne(Dex.getData().natureKeys)).name + '**');
 		},
 		aliases: ['rnature'],
+		description: ["generates a random nature"],
 	},
 	randomcategory: {
 		command(target, room, user) {
@@ -672,6 +714,7 @@ export const commands: BaseCommandDefinitions = {
 			this.say('Randomly generated category: **the ' + categories[Tools.sampleOne(Object.keys(categories))] +
 				' Pokemon**');
 		},
-		aliases: ['rcategory', 'rcat'],
+		aliases: ['rcat', 'rcategory'],
+		description: ["generates a random Pokemon category"],
 	},
 };

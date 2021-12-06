@@ -34,6 +34,8 @@ export const commands: BaseCommandDefinitions = {
 				Config.gameCatalogGists[gameRoom.id].id + "'>" + gameRoom.title + " game catalog</a>", gameRoom);
 		},
 		aliases: ['games'],
+		pmSyntax: ['[room]'],
+		description: ["links to the games catalog"],
 	},
 	minigamecatalog: {
 		command(target, room, user) {
@@ -64,6 +66,8 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom);
 		},
 		aliases: ['minigames'],
+		pmSyntax: ['[room]'],
+		description: ["displays the list of playable minigames"],
 	},
 	gamedescription: {
 		command(target, room, user) {
@@ -108,7 +112,10 @@ export const commands: BaseCommandDefinitions = {
 
 			this.sayHtml("<b>" + format.nameWithOptions + "</b>: " + format.description, gameRoom);
 		},
-		aliases: ['gamedesc', 'gdesc'],
+		aliases: ['gdesc', 'gamedesc'],
+		syntax: ['[game]'],
+		pmSyntax: ['[room], [game]'],
+		description: ["displays the description of the given game"],
 	},
 	startvote: {
 		command(target, room, user, cmd) {
@@ -140,7 +147,9 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, voteFormat);
 			if (game) game.signups();
 		},
+		chatOnly: true,
 		aliases: ['sv', 'startskippedcooldownvote'],
+		description: ["starts a new scripted game vote"],
 	},
 	egg: {
 		command(target, room, user) {
@@ -184,6 +193,9 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 		},
+		chatOnly: true,
+		syntax: ["[user]"],
+		description: ["starts an Egg Toss minigame with the given user as the starting player"],
 	},
 	hidesweets: {
 		command(target, room, user) {
@@ -237,6 +249,9 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
 				Config.commandCharacter + "steal [user]`` before Thievul returns!");
 		},
+		chatOnly: true,
+		syntax: ["[user]"],
+		description: ["starts a Sweet Thief minigame with the given user as the starting player"],
 	},
 	challengecooldown: {
 		command: function(target, room, user) {
@@ -273,7 +288,10 @@ export const commands: BaseCommandDefinitions = {
 				user.say("You must specify a valid challenge type.");
 			}
 		},
-		aliases: ['chalcooldown', 'ccooldown', 'ccdown'],
+		pmOnly: true,
+		aliases: ['ccdown', 'chalcooldown', 'ccooldown'],
+		syntax: ["[room], [challenge type]"],
+		description: ["displays your remaining cooldown time for the given challenge type"],
 	},
 	botchallenge: {
 		command: function(target, room, user) {
@@ -379,7 +397,10 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, botChallengeFormat) as BotChallenge;
 			game.setupChallenge(user, Users.self, challengeFormat, parsedOptions);
 		},
+		chatOnly: true,
 		aliases: ['botch'],
+		syntax: ["[game], {option(s)}"],
+		description: ["starts a new Bot Challenge with " + Users.self.name + " for the given game"],
 	},
 	onevsonechallenge: {
 		command: function(target, room, user) {
@@ -505,7 +526,10 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
 			game.setupChallenge(user, targetUser, challengeFormat, parsedOptions);
 		},
-		aliases: ['onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c', '1v1c'],
+		chatOnly: true,
+		aliases: ['1v1c', 'onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c'],
+		syntax: ["[user], [game]"],
+		description: ["creates a new One vs. One challenge with the given user for the given game"],
 	},
 	acceptonevsonechallenge: {
 		command: function(target, room, user) {
@@ -517,7 +541,9 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.game || !room.game.acceptChallenge) return;
 			room.game.acceptChallenge(user);
 		},
-		aliases: ['acceptonevonechallenge', 'accept1vs1challenge', 'accept1v1challenge', 'accept1vs1c', 'accept1v1c', 'a1vs1c', 'a1v1c'],
+		chatOnly: true,
+		aliases: ['a1v1c', 'acceptonevonechallenge', 'accept1vs1challenge', 'accept1v1challenge', 'accept1vs1c', 'accept1v1c', 'a1vs1c'],
+		description: ["accepts an incoming One vs. One challenge"],
 	},
 	rejectonevsonechallenge: {
 		command: function(target, room, user) {
@@ -525,8 +551,10 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.game || !room.game.rejectChallenge) return;
 			room.game.rejectChallenge(user);
 		},
-		aliases: ['rejectonevonechallenge', 'reject1vs1challenge', 'reject1v1challenge', 'reject1vs1c', 'reject1v1c', 'r1vs1c', 'r1v1c',
+		chatOnly: true,
+		aliases: ['r1v1c', 'rejectonevonechallenge', 'reject1vs1challenge', 'reject1v1challenge', 'reject1vs1c', 'reject1v1c', 'r1vs1c',
 			'denyonevonechallenge', 'deny1vs1challenge', 'deny1v1challenge', 'deny1vs1c', 'deny1v1c', 'd1vs1c', 'd1v1c'],
+		description: ["rejects an incoming One vs. One challenge"],
 	},
 	cancelonevsonechallenge: {
 		command: function(target, room, user) {
@@ -534,7 +562,9 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.game || !room.game.cancelChallenge) return;
 			room.game.cancelChallenge(user);
 		},
-		aliases: ['cancelonevonechallenge', 'cancel1vs1challenge', 'cancel1v1challenge', 'cancel1vs1c', 'cancel1v1c', 'c1vs1c', 'c1v1c'],
+		chatOnly: true,
+		aliases: ['c1v1c', 'cancelonevonechallenge', 'cancel1vs1challenge', 'cancel1v1challenge', 'cancel1vs1c', 'cancel1v1c', 'c1vs1c'],
+		description: ["cancels your pending One vs. One challenge"],
 	},
 	headtoheadgame: {
 		command: function(target, room, user) {
@@ -626,7 +656,10 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, headToHeadFormat) as HeadToHead;
 			game.setupChallenge(leftUser, rightUser, challengeFormat, parsedOptions);
 		},
-		aliases: ['hthgame', 'hthg'],
+		chatOnly: true,
+		aliases: ['hthg', 'hthgame'],
+		syntax: ["[user A], [user B], [game], {option(s)}"],
+		description: ["creates a new Head to Head game between the given users for the given game"],
 	},
 	createtournamentgame: {
 		command(target, room, user, cmd) {
@@ -670,7 +703,10 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, format, room);
 			if (game) game.signups();
 		},
-		aliases: ['createtourgame', 'ctourgame', 'ctg', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
+		chatOnly: true,
+		aliases: ['ctg', 'createtourgame', 'ctourgame', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
+		syntax: ["[format]"],
+		description: ["creates a new scripted tournament game with the given format"],
 	},
 	createsearchchallenge: {
 		command(target, room, user, cmd) {
@@ -710,7 +746,10 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createSearchChallenge(room, format, room);
 			game.signups();
 		},
-		aliases: ['csearchchallenge', 'csc', 'createrandomsearchchallenge', 'randomsearchchallenge', 'crsc'],
+		chatOnly: true,
+		aliases: ['csc', 'csearchchallenge', 'createrandomsearchchallenge', 'randomsearchchallenge', 'crsc'],
+		syntax: ["[challenge]"],
+		description: ["starts a new search challenge of the given type"],
 	},
 	randomminigame: {
 		command(target, room, user) {
@@ -761,7 +800,9 @@ export const commands: BaseCommandDefinitions = {
 
 			this.run(Tools.sampleOne(minigameCommands), "");
 		},
-		aliases: ['randminigame', 'rminigame', 'minigame'],
+		aliases: ['minigame', 'randminigame', 'rminigame'],
+		syntax: ["{category}"],
+		description: ["starts a random minigame, optionally in the given category"],
 	},
 	creategame: {
 		command(target, room, user, cmd) {
@@ -840,8 +881,11 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createGame(room, format);
 			if (game) game.signups();
 		},
+		chatOnly: true,
 		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg', 'createskippedcooldowngame',
 			'createpickedskippedcooldowngame'],
+		syntax: ["[game], {option(s)}"],
+		description: ["creates a new scripted game of the given type"],
 	},
 	startgame: {
 		command(target, room, user) {
@@ -856,7 +900,9 @@ export const commands: BaseCommandDefinitions = {
 				if (!room.userHostedGame.start(isAuth)) user.say("Not enough players have joined your game.");
 			}
 		},
+		chatOnly: true,
 		aliases: ['sg'],
+		description: ["starts the current game"],
 	},
 	endgame: {
 		command(target, room, user) {
@@ -873,6 +919,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 		},
+		description: ["ends the current game"],
 	},
 	joingame: {
 		command(target, room, user) {
@@ -905,6 +952,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['jg'],
+		description: ["adds you to the current game's player list"],
 	},
 	leavegame: {
 		command(target, room, user) {
@@ -926,6 +974,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 		},
+		description: ["removes you from the current game's player list"],
 	},
 	tournamentgameban: {
 		command(target, room, user) {
@@ -986,6 +1035,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['tourgameban'],
+		syntax: ["[user], {days}"],
+		description: ["bans a user from joining scripted tournament games"],
 	},
 	tournamentgameunban: {
 		command(target, room, user) {
@@ -1016,6 +1067,8 @@ export const commands: BaseCommandDefinitions = {
 			Storage.exportDatabase(gameRoom.id);
 		},
 		aliases: ['tourgameunban'],
+		syntax: ["[user]"],
+		description: ["unbans a user from scripted tournament games"],
 	},
 	tournamentgamebanlist: {
 		command(target, room, user) {
@@ -1048,6 +1101,8 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<b>Tournament game banlist</b>: " + list.join(", "), gameRoom);
 		},
 		aliases: ['tourgamebanlist'],
+		pmSyntax: ['[room]'],
+		description: ["displays the list of users who are banned from joining scripted tournament games"],
 	},
 	dqplayer: {
 		command(target, room, user) {
@@ -1061,6 +1116,9 @@ export const commands: BaseCommandDefinitions = {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			room.modnote(user.name + " DQed " + player.name + " from " + (room.game ? room.game.name : "the game") + ".");
 		},
+		chatOnly: true,
+		syntax: ["[user]"],
+		description: ["disqualifies the given user from the current game"],
 	},
 	game: {
 		command(target, room, user) {
@@ -1110,6 +1168,8 @@ export const commands: BaseCommandDefinitions = {
 				this.say("There is no scripted game running.");
 			}
 		},
+		pmSyntax: ["[room]"],
+		description: ["displays information about the current game"],
 	},
 	challenge: {
 		command(target, room, user) {
@@ -1147,9 +1207,11 @@ export const commands: BaseCommandDefinitions = {
 				}
 				this.sayHtml(html, gameRoom);
 			} else {
-				this.say("There is no scripted challenge running.");
+				this.say("There is no search challenge running.");
 			}
 		},
+		pmSyntax: ["[room]"],
+		description: ["displays information about the current search challenge"],
 	},
 	pastgames: {
 		command(target, room, user) {
@@ -1191,6 +1253,9 @@ export const commands: BaseCommandDefinitions = {
 			}
 			this.sayHtml("<b>Past games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) + ".", gameRoom);
 		},
+		pmSyntax: ["[room], {times}"],
+		syntax: ["{times}"],
+		description: ["displays the previously played games in the room, optionally with the times they ended"],
 	},
 	lastgame: {
 		command(target, room, user) {
@@ -1233,6 +1298,9 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The last game of " + format.nameWithOptions + " in " + gameRoom.title + " ended **" +
 				Tools.toDurationString(Date.now() - database.lastGameFormatTimes[id]) + "** ago.");
 		},
+		pmSyntax: ["[room], [game]"],
+		syntax: ["[game]"],
+		description: ["displays the last time the given game was played"],
 	},
 	setscriptedgameoption: {
 		command(target, room, user) {
@@ -1304,6 +1372,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 		},
+		pmOnly: true,
 		aliases: ['scriptedgameoption'],
 	},
 };

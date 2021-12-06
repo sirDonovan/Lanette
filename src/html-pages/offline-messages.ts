@@ -333,7 +333,7 @@ export const commands: BaseCommandDefinitions = {
 			if (!this.isPm(room)) return;
 			const targets = target.split(",");
 			const botRoom = user.getBotRoom();
-			if (!botRoom) return this.say("You must be in a room where " + Users.self.name + " is Bot rank to use this command.");
+			if (!botRoom) return this.say(CommandParser.getErrorText(['noBotRankRoom']));
 
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();

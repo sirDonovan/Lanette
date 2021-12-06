@@ -53,7 +53,10 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<b>Past user-hosted games</b>" + (displayTimes ? "" : " (most recent first)") + ": " + Tools.joinList(names) +
 				".", gameRoom);
 		},
-		aliases: ['pastuserhosts', 'pasthosts'],
+		aliases: ['pasthosts', 'pastuserhosts'],
+		pmSyntax: ["[room], {times}"],
+		syntax: ["{times}"],
+		description: ["displays the previously hosted games in the room, optionally with the times they ended"],
 	},
 	lastuserhostedgame: {
 		command(target, room, user) {
@@ -89,7 +92,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("The last user-hosted game of " + format.name + " in " + gameRoom.title + " ended **" +
 				Tools.toDurationString(Date.now() - database.lastUserHostedGameFormatTimes[format.id]) + "** ago.");
 		},
-		aliases: ['lastuserhost', 'lasthost'],
+		aliases: ['lasthost', 'lastuserhost'],
+		pmSyntax: ["[room], [game]"],
+		syntax: ["[game]"],
+		description: ["displays the last time the given game was hosted"],
 	},
 	host: {
 		command(target, room, user) {
@@ -252,6 +258,9 @@ export const commands: BaseCommandDefinitions = {
 			const game = Games.createUserHostedGame(room, format, host);
 			game.signups();
 		},
+		chatOnly: true,
+		syntax: ["[user], [game]"],
+		description: ["starts or queues a user-hosted game by the given user for the given game"],
 	},
 	restarthost: {
 		command(target, room, user) {
@@ -280,6 +289,9 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.restart(format);
 		},
+		chatOnly: true,
+		syntax: ["{game}"],
+		description: ["restarts the current user-hosted game, optionally switching to a different game"],
 	},
 	extendhost: {
 		command(target, room, user) {
@@ -288,6 +300,8 @@ export const commands: BaseCommandDefinitions = {
 			const error = room.userHostedGame.extend(target, user);
 			if (error) this.say(error);
 		},
+		chatOnly: true,
+		description: ["extends the current user-hosted game"],
 	},
 	subhost: {
 		command(target, room, user) {
@@ -301,6 +315,9 @@ export const commands: BaseCommandDefinitions = {
 			room.userHostedGame.setSubHost(targetUser);
 			this.say(targetUser.name + " is now the sub-host for " + room.userHostedGame.name + ".");
 		},
+		chatOnly: true,
+		syntax: ["[user]"],
+		description: ["adds the given user as a sub-host for the current user-hosted game"],
 	},
 	nexthost: {
 		command(target, room, user) {
@@ -331,6 +348,8 @@ export const commands: BaseCommandDefinitions = {
 			game.signups();
 			Storage.exportDatabase(room.id);
 		},
+		chatOnly: true,
+		description: ["starts the next queued user-hosted game"],
 	},
 	hostqueue: {
 		command(target, room, user) {
@@ -356,6 +375,8 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml("<b>Host queue</b>:<br /><br />" + html.join("<br />"), gameRoom);
 		},
 		aliases: ['hq'],
+		pmSyntax: ["[room]"],
+		description: ["displays the room's user-hosted game queue"],
 	},
 	hosttime: {
 		command(target, room, user) {
@@ -371,7 +392,10 @@ export const commands: BaseCommandDefinitions = {
 				this.say("Your host cooldown has ended.");
 			}
 		},
+		pmOnly: true,
 		aliases: ['ht'],
+		syntax: ["[room]"],
+		description: ["checks your user-hosted game cooldown for the given room"],
 	},
 	dehost: {
 		command(target, room, user) {
@@ -405,7 +429,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 			Storage.exportDatabase(room.id);
 		},
+		chatOnly: true,
 		aliases: ['unhost'],
+		syntax: ["[user]"],
+		description: ["removes the given user from the user-hosted game queue"],
 	},
 	hoststatus: {
 		command(target, room, user) {
@@ -481,6 +508,9 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['hstatus'],
+		syntax: ["[user], {status}"],
+		pmSyntax: ["[room], [user], {status}"],
+		description: ["displays or sets the given user's hosting status"],
 	},
 	hoststatuslist: {
 		command(target, room, user) {
@@ -518,6 +548,9 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		aliases: ['hstatuslist'],
+		syntax: ["[status]"],
+		pmSyntax: ["[room], [status]"],
+		description: ["displays the list of users with the given hosting status in the room"],
 	},
 	hoststats: {
 		command(target, room, user) {
@@ -576,6 +609,9 @@ export const commands: BaseCommandDefinitions = {
 			this.sayHtml(html, gameRoom);
 		},
 		aliases: ['hstats'],
+		syntax: ["{user}"],
+		pmSyntax: ["[room], {user}"],
+		description: ["displays your or the given user's hosting stats for the current cycle"],
 	},
 	gametimer: {
 		command(target, room, user, cmd) {
@@ -696,6 +732,8 @@ export const commands: BaseCommandDefinitions = {
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['gtimer', 'randomgametimer', 'randomgtimer', 'randgametimer', 'randgtimer'],
+		syntax: ["[seconds | minutes | 'off']"],
+		description: ["sets or stops the game timer"],
 	},
 	startgametimer: {
 		command(target, room, user) {
@@ -713,7 +751,10 @@ export const commands: BaseCommandDefinitions = {
 			room.userHostedGame.setStartTimer(minutes);
 			this.say("The game will start in " + minutes + " minutes.");
 		},
+		chatOnly: true,
 		aliases: ['sgtimer'],
+		syntax: ["[minutes]"],
+		description: ["sets the game's auto start timer to the given number of minutes"],
 	},
 	gamecap: {
 		command(target, room, user) {
@@ -740,7 +781,10 @@ export const commands: BaseCommandDefinitions = {
 			game.playerCap = cap;
 			this.say("The game's player cap has been set to **" + cap + "**.");
 		},
+		chatOnly: true,
 		aliases: ['gcap'],
+		syntax: ["[players]"],
+		description: ["sets the game's player cap to the given number"],
 	},
 	addplayer: {
 		command(target, room, user) {
@@ -777,7 +821,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to the player list.");
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['apl', 'addplayers'],
+		syntax: ["[player(s)]"],
+		description: ["adds the given player(s) to the current user-hosted game"],
 	},
 	removeplayer: {
 		command(target, room, user, cmd) {
@@ -801,7 +848,10 @@ export const commands: BaseCommandDefinitions = {
 			if (cmd !== 'silentelim' && cmd !== 'selim' && cmd !== 'srpl') this.run('players');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
-		aliases: ['removeplayers', 'srpl', 'rpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
+		chatOnly: true,
+		aliases: ['rpl', 'removeplayers', 'srpl', 'silentelim', 'selim', 'elim', 'eliminate', 'eliminateplayer', 'eliminateplayers'],
+		syntax: ["[player(s)]"],
+		description: ["removes the given player(s) from the current user-hosted game"],
 	},
 	addteamplayer: {
 		command(target, room, user) {
@@ -846,7 +896,10 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + Tools.joinList(targetUsers.map(x => x.name)) + " to Team " + team.name + ".");
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['atpl', 'addteamplayers'],
+		syntax: ["[team], [player(s)]"],
+		description: ["adds the given player(s) to the given team in the current user-hosted game"],
 	},
 	shuffleplayers: {
 		command(target, room, user) {
@@ -867,7 +920,9 @@ export const commands: BaseCommandDefinitions = {
 			this.run('playerlist');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['shufflepl'],
+		description: ["shuffles and displays the current user-hosted game's player list"],
 	},
 	splitplayers: {
 		command(target, room, user) {
@@ -905,7 +960,10 @@ export const commands: BaseCommandDefinitions = {
 			this.run('playerlist');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['splitpl'],
+		syntax: ["{teams}, {team names}"],
+		description: ["splits the player list of the current user-hosted game into teams, optionally the given number and names"],
 	},
 	unsplitplayers: {
 		command(target, room, user) {
@@ -916,7 +974,9 @@ export const commands: BaseCommandDefinitions = {
 			this.run('playerlist');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['unsplitpl'],
+		description: ["removes previously created teams from the current user-hosted game"],
 	},
 	playerlist: {
 		command(target, room, user) {
@@ -934,7 +994,8 @@ export const commands: BaseCommandDefinitions = {
 			if (!game) return;
 			this.say(game.getPlayersDisplay());
 		},
-		aliases: ['players', 'pl'],
+		aliases: ['pl', 'players'],
+		description: ["displays the list of players in the current game"],
 	},
 	clearplayerlist: {
 		command(target, room, user) {
@@ -947,7 +1008,9 @@ export const commands: BaseCommandDefinitions = {
 			this.run('removeplayer', users.join(", "));
 			room.userHostedGame.autoRefreshControlPanel();
 		},
-		aliases: ['clearplayers', 'clearpl'],
+		chatOnly: true,
+		aliases: ['clearpl', 'clearplayers'],
+		description: ["removes all players from the current user-hosted game"],
 	},
 	addgamepoints: {
 		command(target, room, user, cmd) {
@@ -1048,7 +1111,10 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!this.runningMultipleTargets) room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['addgamepoint', 'removegamepoints', 'removegamepoint'],
+		syntax: ["[user], {points}"],
+		description: ["adds points for the given user in the current user-hosted game"],
 	},
 	addpointall: {
 		command(target, room, user, cmd) {
@@ -1090,7 +1156,10 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['aptall', 'rptall', 'removepointall', 'clearpointall', 'clearptall'],
+		syntax: ["{points}"],
+		description: ["adds points for all players in the current user-hosted game"],
 	},
 	addteampoints: {
 		command(target, room, user, cmd) {
@@ -1119,7 +1188,10 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.autoRefreshControlPanel();
 		},
-		aliases: ['addteampoint', 'removeteampoint', 'removeteampoints', 'atpt', 'rtpt'],
+		chatOnly: true,
+		aliases: ['atpt', 'addteampoint', 'removeteampoint', 'removeteampoints', 'rtpt'],
+		syntax: ["[team], {points}"],
+		description: ["adds points for the given team in the current user-hosted game"],
 	},
 	movepoint: {
 		command(target, room, user) {
@@ -1151,7 +1223,10 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['mpt'],
+		syntax: ["[user A], [user B], {points}"],
+		description: ["moves all or the given number of points from user A to user B in the current user-hosted game"],
 	},
 	scorecap: {
 		command(target, room, user) {
@@ -1168,6 +1243,9 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
+		syntax: ["[players]"],
+		description: ["sets the player cap to the given number for the current user-hosted game"],
 	},
 	store: {
 		command(target, room, user, cmd) {
@@ -1238,6 +1316,9 @@ export const commands: BaseCommandDefinitions = {
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['stored', 'storemultiple', 'storem'],
+		syntax: ["[message]", "[key], [message]"],
+		pmSyntax: ["[room], [message]", "[room], [key], [message]"],
+		description: ["stores the given message to be displayed at another point in the current user-hosted game"],
 	},
 	unstore: {
 		command(target, room, user) {
@@ -1267,6 +1348,8 @@ export const commands: BaseCommandDefinitions = {
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
 		aliases: ['unstorem'],
+		syntax: ["[key]"],
+		description: ["removes the message stored with the given key from the current user-hosted game"],
 	},
 	twist: {
 		command(target, room, user) {
@@ -1294,6 +1377,9 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Your twist has been stored. You can repeat it with ``" + Config.commandCharacter + "twist``.");
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
+		syntax: ["{twist}"],
+		pmSyntax: ["[room], {twist}"],
+		description: ["sets or displays the twist for the current user-hosted game"],
 	},
 	removetwist: {
 		command(target, room, user) {
@@ -1313,6 +1399,8 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Your twist has been removed.");
 			gameRoom.userHostedGame.autoRefreshControlPanel();
 		},
+		pmSyntax: ["[room]"],
+		description: ["removes the twist from the current user-hosted game"],
 	},
 	savewinner: {
 		command(target, room, user) {
@@ -1351,7 +1439,10 @@ export const commands: BaseCommandDefinitions = {
 			this.run('playerlist');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
-		aliases: ['savewinners', 'storewinner', 'storewinners'],
+		chatOnly: true,
+		aliases: ['storewinner', 'savewinners', 'storewinners'],
+		syntax: ["[player(s)"],
+		description: ["adds the given player(s) to the current user-hosted game's winners list"],
 	},
 	removewinner: {
 		command(target, room, user) {
@@ -1366,7 +1457,10 @@ export const commands: BaseCommandDefinitions = {
 			this.run('playerlist');
 			room.userHostedGame.autoRefreshControlPanel();
 		},
+		chatOnly: true,
 		aliases: ['removestoredwinner'],
+		syntax: ["[player(s)]"],
+		description: ["removes the given player(s) from the current user-hosted game's winners list"],
 	},
 	winner: {
 		command(target, room, user, cmd) {
@@ -1466,7 +1560,10 @@ export const commands: BaseCommandDefinitions = {
 
 			room.userHostedGame.end();
 		},
-		aliases: ['autowin', 'win'],
+		chatOnly: true,
+		aliases: ['win', 'autowin'],
+		syntax: ["{player(s)}"],
+		description: ["ends the current user-hosted game with the given player(s) or the saved winners list winning"],
 	},
 	starthangman: {
 		command(target, room, user) {
@@ -1522,6 +1619,9 @@ export const commands: BaseCommandDefinitions = {
 
 			gameRoom.startHangman(answer, hint + " [" + user.name + "]");
 		},
+		pmOnly: true,
+		syntax: ["[room], [answer], [hint]"],
+		description: ["starts a new server hangman game"],
 	},
 	endhangman: {
 		command(target, room, user) {
@@ -1537,6 +1637,9 @@ export const commands: BaseCommandDefinitions = {
 
 			gameRoom.endHangman();
 		},
+		pmOnly: true,
+		syntax: ["[room]"],
+		description: ["ends the current server hangman game"],
 	},
 	randomanswer: {
 		command(target, room, user) {
@@ -1566,6 +1669,9 @@ export const commands: BaseCommandDefinitions = {
 				game.deallocate(true);
 			}
 		},
+		pmOnly: true,
 		aliases: ['randanswer', 'ranswer', 'randomhint', 'randhint', 'rhint'],
+		syntax: ["[game]"],
+		description: ["displays a random hint and answer for the given game"],
 	},
 };
