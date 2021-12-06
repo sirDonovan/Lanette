@@ -714,7 +714,7 @@ export interface INatureCopy extends IBasicEffect {
 export interface INature extends DeepImmutable<INatureCopy> {}
 
 export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
-type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'freeforall';
+export type GameType = 'singles' | 'doubles' | 'triples' | 'rotation' | 'multi' | 'freeforall';
 type SideID = 'p1' | 'p2' | 'p3' | 'p4';
 
 interface IGameTimerSettings {
@@ -844,6 +844,7 @@ export interface RuleTable {
 export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLinks {
 	desc: string;
 	inputTarget: string;
+	nameWithoutGen: string;
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;

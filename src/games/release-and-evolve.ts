@@ -8,6 +8,7 @@ const description = "Every player is given a randomly generated team to start ou
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
 class ReleaseAndEvolve extends EliminationTournament {
+	canChangeFormat = true;
 	dropsPerRound = 1;
 	evolutionsPerRound = 1;
 	startingTeamsLength = 6;
@@ -35,21 +36,25 @@ export const game: IGameFile<ReleaseAndEvolve> = Games.copyTemplateProperties(el
 	variants: [
 		{
 			name: "Release and Evolve Ubers",
+			canChangeFormat: false,
 			battleFormatId: "ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Release and Evolve UU",
+			canChangeFormat: false,
 			battleFormatId: "uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Release and Evolve RU",
+			canChangeFormat: false,
 			battleFormatId: "ru",
 			variantAliases: ["ru"],
 		},
 		{
 			name: "Release and Evolve NU",
+			canChangeFormat: false,
 			battleFormatId: "nu",
 			variantAliases: ["nu"],
 		},

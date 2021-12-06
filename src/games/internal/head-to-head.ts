@@ -21,18 +21,18 @@ export class HeadToHead extends ScriptedGame {
 
 	setupChallenge(leftUser: User, rightUser: User, challengeFormat: IGameFormat, options?: Dict<string>): void {
 		if (challengeFormat.inputOptions.points) {
-			if (!('points' in challengeFormat.customizableOptions)) {
-				challengeFormat.customizableOptions.points = {
+			if (!('points' in challengeFormat.customizableNumberOptions)) {
+				challengeFormat.customizableNumberOptions.points = {
 					min: 3,
 					base: 0,
 					max: 20,
 				};
 			} else {
-				challengeFormat.customizableOptions.points.min = 3;
+				challengeFormat.customizableNumberOptions.points.min = 3;
 			}
 		}
 
-		challengeFormat.options = ScriptedGame.setOptions(challengeFormat, undefined, challengeFormat.variant);
+		challengeFormat.resolvedInputProperties = ScriptedGame.resolveInputProperties(challengeFormat, undefined, challengeFormat.variant);
 
 		this.challengeFormat = challengeFormat;
 		this.leftPlayer = this.createPlayer(leftUser);
@@ -82,6 +82,12 @@ export class HeadToHead extends ScriptedGame {
 		}
 
 		const game = Games.createChildGame(this.challengeFormat, this);
+		if (!game) {
+			this.say("An error occurred while starting the challenge.");
+			this.deallocate(true);
+			return;
+		}
+
 		game.internalGame = true;
 		game.inheritPlayers(this.players);
 		game.minPlayers = 2;
@@ -89,8 +95,8 @@ export class HeadToHead extends ScriptedGame {
 		if (!game.format.inputOptions.points) {
 			if (game.format.challengeSettings && game.format.challengeSettings.onevsone && game.format.challengeSettings.onevsone.points) {
 				game.format.options.points = game.format.challengeSettings.onevsone.points;
-			} else if ('points' in game.format.customizableOptions) {
-				game.format.options.points = game.format.customizableOptions.points.max;
+			} else if ('points' in game.format.customizableNumberOptions) {
+				game.format.options.points = game.format.customizableNumberOptions.points.max;
 			} else if (game.format.defaultOptions.includes('points')) {
 				game.format.options.points = 10;
 			}

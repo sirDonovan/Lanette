@@ -218,7 +218,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 	giveStartingCards(player: Player): void {
 		const cards: ICard[] = [];
-		for (let i = 0; i < this.format.options.cards; i++) {
+		for (let i = 0; i < this.format.options.cards!; i++) {
 			cards.push(this.getCard());
 		}
 		this.playerCards.set(player, cards);

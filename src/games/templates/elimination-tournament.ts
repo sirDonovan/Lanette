@@ -5,9 +5,9 @@ import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
 import type { IGetPossibleTeamsOptions } from "../../types/dex";
 import type {
-	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameTemplateFile
+	GameCategory, GameCommandDefinitions, GameFileTests, IBattleGameData, IGameInputProperties, IGameTemplateFile
 } from "../../types/games";
-import type { IFormat, IPokemon } from "../../types/pokemon-showdown";
+import type { GameType, IFormat, IPokemon } from "../../types/pokemon-showdown";
 import type { User } from "../../users";
 
 interface IEliminationTree<T> {
@@ -43,9 +43,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
 	battleFormatId: string = 'ou';
+	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	bracketHtml: string = '';
+	canChangeFormat: boolean = false;
 	canRejoin: boolean = false;
 	canReroll: boolean = false;
 	checkedBattleRooms: string[] = [];
@@ -106,10 +108,47 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	declare readonly room: Room;
 
-	afterInitialize(): void {
+	validateInputProperties(inputProperties: IGameInputProperties): boolean {
+		if (inputProperties.options.format) {
+			if (!this.canChangeFormat) {
+				this.say("You cannot change the format for " + this.format.nameWithOptions + ".");
+				return false;
+			}
+
+			const battleFormat = Dex.getFormat(inputProperties.options.format);
+			if (!battleFormat) {
+				this.say(CommandParser.getErrorText(['invalidFormat', inputProperties.options.format]));
+				return false;
+			}
+
+			if (battleFormat.gameType !== this.battleFormatType) {
+				this.say("You can only change the format to another " + this.battleFormatType + " format.");
+				return false;
+			}
+
+			this.battleFormatId = battleFormat.inputTarget;
+			try {
+				this.setFormat();
+				this.generatePokedex();
+			} catch (e) {
+				this.say("Unable to generate valid Pokemon for the format " + battleFormat.name + ".");
+				return false;
+			}
+
+			this.format.nameWithOptions += ": " + battleFormat.nameWithoutGen;
+		}
+
+		return true;
+	}
+
+	setFormat(): void {
 		this.battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.hasSpeciesClause = Dex.getRuleTable(this.battleFormat).has('speciesclause');
+	}
+
+	afterInitialize(): void {
+		this.setFormat();
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
 	}
 
@@ -987,7 +1026,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 	}
 
-	onSignups(): void {
+	generatePokedex(): void {
 		const minimumPlayers = POTENTIAL_MAX_PLAYERS[0];
 		const minimumPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(minimumPlayers - 1),
 			this.getMinimumPokedexSizeForPlayers(minimumPlayers));
@@ -1065,6 +1104,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
+	}
+
+	onSignups(): void {
+		this.generatePokedex();
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2><hr />";
 
 		const maxPlayers = this.getMaxPlayers(this.pokedex.length);

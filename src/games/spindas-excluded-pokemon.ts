@@ -224,7 +224,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			if (this.players[id].eliminated) continue;
 			const player = this.players[id];
 			const points = this.points.get(player);
-			if (points === this.format.options.points) {
+			if (points === this.format.options.points!) {
 				this.winners.set(player, points);
 				this.addBits(player, 500);
 			} else if (points) {
@@ -340,7 +340,7 @@ export const game: IGameFile<SpindasExcludedPokemon> = {
 	class: SpindasExcludedPokemon,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'exclude [Pokemon]', Config.commandCharacter + 'g [parameter]'],
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: basePoints, base: basePoints, max: basePoints},
 	},
 	description: "Players try to guess the randomly chosen parameters by excluding Pokemon each round!",

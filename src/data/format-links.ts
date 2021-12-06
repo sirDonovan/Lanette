@@ -108,6 +108,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8bdspou': {
 		teams: 'https://www.smogon.com/forums/threads/3693721/',
 	},
+	'gen8revelationmons': {
+		teams: 'https://www.smogon.com/forums/threads/3692297/#post-9005095',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {

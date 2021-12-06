@@ -27,11 +27,11 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
 		} else if (this.format.inputOptions.ports) {
-			numberOfPorts = this.format.options.ports;
+			numberOfPorts = this.format.options.ports!;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
-			if ('ports' in this.format.customizableOptions) {
-				numberOfPorts += this.random(this.format.customizableOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
+			if ('ports' in this.format.customizableNumberOptions) {
+				numberOfPorts += this.random(this.format.customizableNumberOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
 			}
 		}
 		const result = await Games.getWorkers().portmanteaus.search({
@@ -120,7 +120,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 		async test(game, format): Promise<void> {
 			this.timeout(15000);
 
-			for (let i = format.customizableOptions.ports.min; i <= format.customizableOptions.ports.max; i++) {
+			for (let i = format.customizableNumberOptions.ports.min; i <= format.customizableNumberOptions.ports.max; i++) {
 				game.format.options.ports = i;
 				game.answers = [];
 				await game.onNextRound();
@@ -157,7 +157,7 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 	canGetRandomAnswer: false,
 	category: 'puzzle',
 	class: PoliwrathsPortmanteaus,
-	customizableOptions: {
+	customizableNumberOptions: {
 		ports: {min: 2, base: BASE_NUMBER_OF_PORTS, max: 4},
 		points: {min: 5, base: 5, max: 10},
 		teamPoints: {min: 10, base: 10, max: 10},

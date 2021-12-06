@@ -278,7 +278,7 @@ export const game: IGameFile<DeoxysDifferences> = {
 	commandDescriptions: [Config.commandCharacter + answerCommand + " [coordinates]"],
 	commands,
 	class: DeoxysDifferences,
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: 10, base: 10, max: 10},
 	},
 	description: "Each round players try to be the first to spot the different Pokemon between the grids!",

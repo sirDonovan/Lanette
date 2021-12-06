@@ -119,7 +119,7 @@ export const game: IGameFile<LugiasObstructiveLetters> = Games.copyTemplatePrope
 	aliases: ['lugias', 'lol'],
 	category: 'identification-1',
 	class: LugiasObstructiveLetters,
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: BASE_POINTS, base: BASE_POINTS, max: BASE_POINTS},
 		teamPoints: {min: BASE_TEAM_POINTS, base: BASE_TEAM_POINTS, max: BASE_TEAM_POINTS},
 	},

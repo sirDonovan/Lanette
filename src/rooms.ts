@@ -13,6 +13,7 @@ import type { User } from "./users";
 
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	battle: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
@@ -59,6 +60,7 @@ export class Room {
 		this.id = id;
 
 		this.setPublicRoom(Client.getPublicRooms().includes(id));
+		this.battle = id.startsWith(Tools.battleRoomPrefix);
 		this.groupchat = id.startsWith(Tools.groupchatPrefix);
 
 		let publicId = id;
@@ -154,9 +156,7 @@ export class Room {
 
 	onUserJoin(user: User, rank: string, onRename?: boolean): void {
 		this.users.add(user);
-
-		const roomData = user.rooms.get(this);
-		user.rooms.set(this, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
+		user.setRoomRank(this, rank);
 
 		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
 		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user, onRename);
@@ -178,7 +178,7 @@ export class Room {
 	}
 
 	canSendToUser(user: User): boolean {
-		return user !== Users.self && user.rooms.has(this) && !user.isLocked(this);
+		return user !== Users.self && user.rooms.has(this) && !user.locked;
 	}
 
 	getTargetUser(userOrPlayer: User | Player): User | undefined {
@@ -192,7 +192,7 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
-		if (!message || global.Rooms.get(this.id) !== this) return;
+		if (global.Rooms.get(this.id) !== this) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {

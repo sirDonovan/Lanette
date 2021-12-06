@@ -7,6 +7,7 @@ const description = "Every player is given a randomly generated Pokemon to use a
 	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then de-volve 1 Pokemon on your team.";
 
 class CatchAndDevolve extends EliminationTournament {
+	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = -1;
 	startingTeamsLength = 1;
@@ -34,41 +35,49 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 	variants: [
 		{
 			name: "Monotype Catch and De-volve",
+			canChangeFormat: false,
 			monoType: true,
 			variantAliases: ["monotype"],
 		},
 		{
 			name: "Monoregion Catch and De-volve",
+			canChangeFormat: false,
 			monoRegion: true,
 			variantAliases: ["monoregion", "monogen"],
 		},
 		{
 			name: "Catch and De-volve Ubers",
+			canChangeFormat: false,
 			battleFormatId: "ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Catch and De-volve UU",
+			canChangeFormat: false,
 			battleFormatId: "uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and De-volve RU",
+			canChangeFormat: false,
 			battleFormatId: "ru",
 			variantAliases: ["ru"],
 		},
 		{
 			name: "Catch and De-volve NU",
+			canChangeFormat: false,
 			battleFormatId: "nu",
 			variantAliases: ["nu"],
 		},
 		{
 			name: "Catch and De-volve PU",
+			canChangeFormat: false,
 			battleFormatId: "pu",
 			variantAliases: ["pu"],
 		},
 		{
 			name: "Catch and De-volve ZU",
+			canChangeFormat: false,
 			battleFormatId: "zu",
 			variantAliases: ["zu"],
 		},

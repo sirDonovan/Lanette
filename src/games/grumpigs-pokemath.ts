@@ -100,11 +100,11 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		if (this.roundOperands) {
 			operandsCount = this.roundOperands;
 		} else if (this.format.inputOptions.operands) {
-			operandsCount = this.format.options.operands;
+			operandsCount = this.format.options.operands!;
 		} else {
 			operandsCount = BASE_OPERANDS;
-			if ('operands' in this.format.customizableOptions && operation !== 'multiply' && operation !== 'divide') {
-				operandsCount += this.random(this.format.customizableOptions.operands.max - BASE_OPERANDS + 1);
+			if ('operands' in this.format.customizableNumberOptions && operation !== 'multiply' && operation !== 'divide') {
+				operandsCount += this.random(this.format.customizableNumberOptions.operands.max - BASE_OPERANDS + 1);
 			}
 		}
 
@@ -143,7 +143,7 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	category: 'knowledge-3',
 	class: GrumpigsPokemath,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
-	customizableOptions: {
+	customizableNumberOptions: {
 		operands: {min: 2, base: BASE_OPERANDS, max: 4},
 	},
 	defaultOptions: ['points'],

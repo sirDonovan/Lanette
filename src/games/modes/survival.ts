@@ -2,7 +2,8 @@ import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import { addPlayers, assert, runCommand } from "../../test/test-tools";
 import type {
-	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile
+	DefaultGameOption, GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameFormat, IGameModeFile, IGameNumberOptionValues,
+	IModeInputProperties
 } from "../../types/games";
 import type { QuestionAndAnswer } from "../templates/question-and-answer";
 
@@ -20,22 +21,31 @@ class Survival {
 	readonly playerRounds = new Map<Player, number>();
 	survivalRound: number = 0;
 
-	static setOptions<T extends ScriptedGame>(format: IGameFormat<T>, namePrefixes: string[], nameSuffixes: string[]): void {
+	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>,
+		customizableNumberOptions: Dict<IGameNumberOptionValues>): IModeInputProperties {
+		const nameSuffixes: string[] = [];
 		if (!format.name.includes(name)) nameSuffixes.unshift(name);
-		format.description += ' ' + description;
 
+		const defaultOptions = format.defaultOptions.slice();
 		for (const option of removedOptions) {
-			const index = format.defaultOptions.indexOf(option as DefaultGameOption);
-			if (index !== -1) format.defaultOptions.splice(index, 1);
+			const index = defaultOptions.indexOf(option as DefaultGameOption);
+			if (index !== -1) defaultOptions.splice(index, 1);
 
-			delete format.customizableOptions[option];
+			delete customizableNumberOptions[option];
 		}
 
 		if (format.id === 'parasparameters') {
-			delete format.customizableOptions.params;
+			delete customizableNumberOptions.params;
 		} else if (format.id === 'magnetonsmashups') {
-			delete format.customizableOptions.names;
+			delete customizableNumberOptions.names;
 		}
+
+		return {
+			customizableNumberOptions,
+			defaultOptions,
+			description: format.description + ' ' + description,
+			nameSuffixes,
+		};
 	}
 
 	onStart(this: SurvivalThis): void {

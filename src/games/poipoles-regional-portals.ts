@@ -73,7 +73,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 		let reachedCap = false;
 		this.points.forEach((points, player) => {
-			if (points >= this.format.options.points) {
+			if (points >= this.format.options.points!) {
 				this.winners.set(player, points);
 				if (!reachedCap) reachedCap = true;
 			}
@@ -201,7 +201,7 @@ export const game: IGameFile<PoipolesRegionalPortals> = {
 	commandDescriptions: [Config.commandCharacter + "travel [location]"],
 	commands,
 	class: PoipolesRegionalPortals,
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: 20, base: 20, max: 20},
 	},
 	description: "Players try to be the first 1-" + BASE_TRAVELERS_PER_ROUND + " travelers to a location of a randomly generated type " +

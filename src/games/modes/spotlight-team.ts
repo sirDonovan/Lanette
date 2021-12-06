@@ -25,7 +25,7 @@ class SpotlightTeam extends CollectiveTeam {
 			delete this.currentPlayers[team.id];
 		}
 
-		if (emptyTeams.length >= this.format.options.teams - 1) {
+		if (emptyTeams.length >= this.format.options.teams! - 1) {
 			this.say("There are not enough teams left!");
 			const winningTeam = this.getFinalTeam()!;
 			for (const player of winningTeam.players) {
@@ -37,7 +37,7 @@ class SpotlightTeam extends CollectiveTeam {
 		}
 
 		if (this.canLateJoin) {
-			const cutOff = this.format.options.teamPoints / 2;
+			const cutOff = this.format.options.teamPoints! / 2;
 			for (const i in this.teams) {
 				if (this.teams[i].points >= cutOff) {
 					this.canLateJoin = false;

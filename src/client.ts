@@ -27,8 +27,9 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
-const SLOWER_COMMAND_MESSAGE_THROTTLE = 5000;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
+const STANDARD_MESSAGE_THROTTLE = REGULAR_MESSAGE_THROTTLE * SERVER_CHAT_QUEUE_LIMIT;
+const SLOWER_COMMAND_MESSAGE_THROTTLE = STANDARD_MESSAGE_THROTTLE * 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
@@ -54,9 +55,9 @@ const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
+const UNREGISTERED_USER_MESSAGE = "/error That user is unregistered and cannot be PMed.";
 const USER_BLOCKING_PMS_MESSAGE = "/error This user is blocking private messages right now.";
-const ADMIN_BLOCKING_PMS_MESSAGE = "/error This Administrator is too busy to answer private messages right now. Please contact a " +
-	"different staff member.";
+const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right now. Please contact a different staff member.";
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
@@ -483,7 +484,13 @@ export class Client {
 	}
 
 	send(outgoingMessage: IOutgoingMessage): void {
-		if (!outgoingMessage.message || !this.webSocket) return;
+		if (!this.webSocket) return;
+
+		if (!outgoingMessage.message) throw new Error("Message is empty");
+
+		if (this.exceedsMessageSizeLimit(outgoingMessage.message)) {
+			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
+		}
 
 		if (this.sendTimeout || this.pauseOutgoingMessages) {
 			this.outgoingMessageQueue.push(outgoingMessage);
@@ -501,21 +508,19 @@ export class Client {
 					measure: true,
 				});
 
+				outgoingMessage.room.serverBannedWords = [];
+
 				this.outgoingMessageQueue.push(outgoingMessage);
 				return;
 			}
 		}
 
 		if (outgoingMessage.user) {
+			if (Users.get(outgoingMessage.user.name) !== outgoingMessage.user || outgoingMessage.user.locked) return;
+
 			if (outgoingMessage.room) {
 				if (!outgoingMessage.room.getTargetUser(outgoingMessage.user)) return;
-			} else {
-				if (!Users.get(outgoingMessage.user.name)) return;
 			}
-		}
-
-		if (this.exceedsMessageSizeLimit(outgoingMessage.message)) {
-			throw new Error("Message exceeds server size limit of " + (MAX_MESSAGE_SIZE / 1024) + "KB: " + outgoingMessage.message);
 		}
 
 		if (outgoingMessage.filterSend && !outgoingMessage.filterSend()) {
@@ -529,7 +534,7 @@ export class Client {
 
 		this.webSocket.send(outgoingMessage.message, () => {
 			if (this.sendTimeout === true) {
-				this.startSendTimeout(outgoingMessage.slowerCommand ? SLOWER_COMMAND_MESSAGE_THROTTLE : this.chatQueueSendThrottle);
+				this.startSendTimeout(outgoingMessage.slowerCommand ? SLOWER_COMMAND_MESSAGE_THROTTLE : STANDARD_MESSAGE_THROTTLE);
 			}
 		});
 	}
@@ -1334,8 +1339,9 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
+			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
-			if (Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) Storage.retrieveOfflineMessages(user);
+
 			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
 				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
 				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
@@ -1383,7 +1389,7 @@ export class Client {
 			room.onUserJoin(user, messageArguments.rank, true);
 			user.updateStatus(status);
 
-			if (!user.away && Config.allowMail && messageArguments.rank !== this.groupSymbols.locked) {
+			if (!user.away && Config.allowMail) {
 				Storage.retrieveOfflineMessages(user);
 			}
 
@@ -1632,7 +1638,8 @@ export class Client {
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
-					messageArguments.message.startsWith(ADMIN_BLOCKING_PMS_MESSAGE) ||
+					messageArguments.message.endsWith(STAFF_BLOCKING_PMS_MESSAGE) ||
+					messageArguments.message.startsWith(UNREGISTERED_USER_MESSAGE) ||
 					(messageArguments.message.startsWith('/error The user ') &&
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipientId &&
@@ -1733,6 +1740,8 @@ export class Client {
 					}
 				}
 			} else {
+				user.setIsLocked(messageArguments.rank);
+
 				if (isUhtml || isUhtmlChange) {
 					if (!isUhtmlChange) user.addUhtmlChatLog("", "html");
 				} else if (isHtml) {
@@ -1749,9 +1758,7 @@ export class Client {
 						commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
 					}
 
-					if (messageArguments.rank !== this.groupSymbols.locked) {
-						CommandParser.parse(user, user, commandMessage, now);
-					}
+					CommandParser.parse(user, user, commandMessage, now);
 				}
 			}
 			break;

@@ -223,7 +223,7 @@ export const game: IGameFile<GyaradosShinyHunting> = {
 	commandDescriptions: [Config.commandCharacter + ANSWER_COMMAND + " [coordinates]"],
 	commands,
 	class: GyaradosShinyHunting,
-	customizableOptions: {
+	customizableNumberOptions: {
 		points: {min: 10, base: 10, max: 10},
 	},
 	description: "Each round players try to be the first to hunt the shiny Pokemon in the grid!",

@@ -59,7 +59,7 @@ export abstract class Game extends Activity {
 
 	abstract getMascotIcons(): string;
 	abstract getMascotAndNameHtml(additionalText?: string): string;
-	abstract onInitialize(format: IGameFormat | IUserHostedFormat): void;
+	abstract onInitialize(format: IGameFormat | IUserHostedFormat): boolean;
 
 	exceedsMessageSizeLimit(message: string): boolean {
 		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
@@ -79,16 +79,22 @@ export abstract class Game extends Activity {
 		return !this.random(chance);
 	}
 
-	initialize(format: IGameFormat | IUserHostedFormat): void {
+	initialize(format: IGameFormat | IUserHostedFormat): boolean {
+		if (!this.onInitialize(format)) {
+			this.deallocate(true);
+			return false;
+		}
+
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
 
-		this.onInitialize(format);
 		this.description = format.description;
 
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
 		if (this.afterInitialize) this.afterInitialize();
+
+		return true;
 	}
 
 	announceWinners(): void {

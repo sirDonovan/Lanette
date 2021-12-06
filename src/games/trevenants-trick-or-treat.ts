@@ -191,7 +191,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			this.points.set(player, totalPoints);
 			player.say("You earned **" + earnedPoints + "** point" + (earnedPoints > 1 ? "s" : "") + " for " + move.name + "! Your " +
 				"total is now **" + totalPoints + "**.");
-			if (totalPoints >= this.format.options.points) {
+			if (totalPoints >= this.format.options.points!) {
 				this.winners.set(player, totalPoints);
 				this.end();
 				return true;
