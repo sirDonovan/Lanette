@@ -298,7 +298,7 @@ export class Tournament extends Activity {
 
 		if (this.updates.format) {
 			const format = Dex.getFormat(this.updates.format);
-			if (format) {
+			if (format && format.effectType === 'Format') {
 				this.name = format.name;
 				if (format.name === this.originalFormat) this.manuallyNamed = false;
 			} else {

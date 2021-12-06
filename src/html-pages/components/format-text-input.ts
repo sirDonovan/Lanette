@@ -17,7 +17,7 @@ export class FormatTextInput extends TextInput {
 		const games: string[] = [];
 		for (const part of parts) {
 			const format = Dex.getFormat(part);
-			if (!format) {
+			if (!format || format.effectType !== 'Format') {
 				this.errors.push("'" + part + "' is not a valid format.");
 			} else {
 				games.push(format.name);

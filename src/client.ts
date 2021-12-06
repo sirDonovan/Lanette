@@ -2291,7 +2291,7 @@ export class Client {
 					let queuedTournament = false;
 					if (database.queuedTournament) {
 						const format = Dex.getFormat(database.queuedTournament.formatid, true);
-						if (format) {
+						if (format && format.effectType === 'Format') {
 							queuedTournament = true;
 							if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
 							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format,

@@ -203,7 +203,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
 			const format = Dex.getFormat(targets[1]);
-			if (!format) return this.sayError(['invalidFormat', targets[1].trim()]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
 			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
@@ -259,7 +259,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
 			const format = Dex.getFormat(targets[1]);
-			if (!format) return this.sayError(['invalidFormat', targets[1].trim()]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
 			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
@@ -886,7 +886,7 @@ export const commands: BaseCommandDefinitions = {
 			const formatIds: string[] = [];
 			for (let i = 1; i < targets.length; i++) {
 				const format = Dex.getFormat(targets[i]);
-				if (!format) return this.sayError(['invalidFormat', targets[i]]);
+				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[i]]);
 				formatIds.push(format.id);
 			}
 			let name = targets[0].trim();

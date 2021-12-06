@@ -239,7 +239,7 @@ export const commands: BaseCommandDefinitions = {
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) {
 				const format = Dex.getFormat(database.queuedTournament.formatid, true);
-				if (format) {
+				if (format && format.effectType === 'Format') {
 					return this.say(format.name + " is already queued for " + room.title + ".");
 				} else {
 					delete database.queuedTournament;
@@ -354,7 +354,7 @@ export const commands: BaseCommandDefinitions = {
 			const errorText = "There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".";
 			if (!database.queuedTournament) return this.say(errorText);
 			const format = Dex.getFormat(database.queuedTournament.formatid, true);
-			if (!format) {
+			if (!format || format.effectType !== 'Format') {
 				delete database.queuedTournament;
 				Storage.exportDatabase(tournamentRoom.id);
 				return this.say(errorText);
@@ -459,7 +459,7 @@ export const commands: BaseCommandDefinitions = {
 					database.lastTournamentTime) + "** ago.");
 			}
 			const format = Dex.getFormat(targets[0]);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			if (!database.lastTournamentFormatTimes || !(format.id in database.lastTournamentFormatTimes)) {
 				return this.say(format.name + " has not been played in " + tournamentRoom.title + ".");
 			}

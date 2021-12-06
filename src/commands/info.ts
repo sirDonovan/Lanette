@@ -33,7 +33,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 
 			const teams: string[] = [];
 			if (format.teams) teams.push("sample teams: " + format.teams);
@@ -67,7 +67,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			if (!format.viability) return this.say("No viability ranking link found for " + format.name + ".");
 			this.say("**" + format.name + " viability ranking**: " + format.viability);
 		},
@@ -86,7 +86,7 @@ export const commands: BaseCommandDefinitions = {
 				pmRoom = room;
 			}
 			const format = Dex.getFormat(target);
-			if (!format) return this.sayError(['invalidFormat', target]);
+			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			const html = Dex.getFormatInfoDisplay(format);
 			if (!html) return this.say("No info found for " + format.name + ".");
 			this.sayHtml(html, pmRoom);
