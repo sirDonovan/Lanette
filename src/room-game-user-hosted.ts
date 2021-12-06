@@ -563,6 +563,14 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Eevee's Evolutionary Line",
+			mascot: "Eevee",
+			aliases: ['EEL', 'Eevees'],
+			description: "Players guess the Pokemon that is missing from their evolutionary line! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/eevee-s-evolutionary-line-t1161.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 			freejoin: true,
@@ -608,6 +616,15 @@ export const game: IUserHostedFile = {
 			description: "Kiss the Pokemon with gender differences to win! Use the command <code>" + Config.commandCharacter + "kiss" +
 				"</code> on the Pokemon you believe has different sprites when it is female or male.",
 			freejoin: true,
+		},
+		{
+			name: "Kecleon's Swap Shop",
+			mascot: "Kecleon",
+			aliases: ['KSS', 'Kecleons'],
+			description: "The host will display a random Pokemon, which players will either claim for themselves or give to another " +
+				"player. The players will battle using their assigned Pokemon in a tournament style game, where winners of " +
+				"battles take their opponent's Pokemon. This continues until there is only one player left standing! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/kecleon-39-s-swap-shop-t749.html'>More info</a>",
 		},
 		{
 			name: "Letter Getter",
@@ -727,6 +744,15 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Ralts' Ability Race",
+			mascot: "Ralts",
+			aliases: ['RAR', 'Ralts'],
+			description: "Players guess one to three Pokemon from different evolutionary lines, each one sharing a different ability " +
+				"with the given Pokemon! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/ralts-ability-race-t1126.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Rapid CAP",
 			description: "Each round, players will create Pokemon based on the typing given by the host, including the species, name, " +
 				"and ability(ies) in their answers. Dex entries are not required, but may give a player an edge over the rest of the " +
@@ -760,6 +786,14 @@ export const game: IUserHostedFile = {
 			mascot: "Scyther",
 			description: "Players have to PM the host. Depending on the order in which they PMed, they can win or lose points!",
 			aliases: ['SMS'],
+			freejoin: true,
+		},
+		{
+			name: "Silvally's Single Solutions",
+			mascot: "Silvally",
+			aliases: ['Silvallys'],
+			description: "Players guess two moves which are only learned in combination by the given Pokemon! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/silvally-s-single-solutions-t1157.html'>More info</a>",
 			freejoin: true,
 		},
 		{
