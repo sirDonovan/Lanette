@@ -62,13 +62,15 @@ const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challe
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
 
-const DATA_ROLL_COMMANDS: string[] = ['rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon'];
-const DT_RESULT_COMMANDS: string[] = DATA_ROLL_COMMANDS.concat([
+const DATA_COMMANDS: string[] = [
+	'rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon',
+	'data', 'pstats', 'stats', 'dex', 'pokedex',
+	'dt', 'dt1', 'dt2', 'dt3', 'dt4', 'dt5', 'dt6', 'dt7', 'dt8', 'details',
 	'ds', 'ds1', 'ds2', 'ds3', 'ds4', 'ds5', 'ds6', 'ds7', 'ds8', 'dsearch', 'nds', 'dexsearch',
 	'ms', 'ms1', 'ms2', 'ms3', 'ms4', 'ms5', 'ms6', 'ms7', 'ms8', 'msearch', 'nms', 'movesearch',
 	'is', 'is2', 'is3', 'is4', 'is5', 'is6', 'is7', 'is8', 'itemsearch',
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
-]);
+];
 
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
@@ -392,7 +394,7 @@ export class Client {
 	}
 
 	isDataRollCommand(message: string): boolean {
-		return DATA_ROLL_COMMANDS.includes(message.substr(1).split(" ")[0]);
+		return DATA_COMMANDS.includes(message.substr(1).split(" ")[0]);
 	}
 
 	/**Returns the description of the filter triggered by the message, if any */
@@ -1671,7 +1673,7 @@ export class Client {
 						(error.startsWith('The search included ') && error.endsWith(' more than once.'))) {
 						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
 							this.lastOutgoingMessage.userid === recipient.id &&
-							this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+							this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 							this.clearLastOutgoingMessage(now);
 							recipient.say(Tools.unescapeHTML(error));
 						}
@@ -1910,7 +1912,7 @@ export class Client {
 				messageArguments.error.endsWith(' cannot have alternative parameters') ||
 				(messageArguments.error.startsWith('The search included ') && messageArguments.error.endsWith(' more than once.'))) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 					room.say(Tools.escapeHTML(messageArguments.error));
 				}
@@ -2084,7 +2086,7 @@ export class Client {
 			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||
 				messageArguments.html.startsWith('<ul class="utilichart"><li class="result">')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			}
@@ -2724,10 +2726,6 @@ export class Client {
 				};
 			}
 		}
-	}
-
-	private isDtResultLastMessage(message: string): boolean {
-		return DT_RESULT_COMMANDS.includes(message.substr(1).split(" ")[0]);
 	}
 
 	private clearLastOutgoingMessage(responseTime?: number): void {
