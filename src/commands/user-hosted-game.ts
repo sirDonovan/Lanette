@@ -1660,7 +1660,9 @@ export const commands: BaseCommandDefinitions = {
 			if (Array.isArray(format)) return this.sayError(format);
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
-			delete format.inputOptions.points;
+
+			delete format.resolvedInputProperties.options.points;
+
 			const game = Games.createGame(room, format, pmRoom);
 			if (game) {
 				const randomAnswer = game.getRandomAnswer!();

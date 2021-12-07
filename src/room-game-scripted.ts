@@ -176,6 +176,7 @@ export class ScriptedGame extends Game {
 		format.nameWithOptions = nameWithOptions;
 
 		return {
+			customizableNumberOptions,
 			description,
 			options,
 		};

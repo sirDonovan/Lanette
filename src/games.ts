@@ -590,7 +590,7 @@ export class Games {
 					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
-					delete format.inputOptions.points;
+					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
 					const game = global.Games.createGame(room, format, pmRoom, true);
@@ -1092,8 +1092,11 @@ export class Games {
 		if (isMinigame) game.isMiniGame = true;
 		if (game.initialize(format)) {
 			if (isMinigame) {
-				if (format.options.points) format.options.points = 1;
-				if (!format.freejoin && 'freejoin' in format.customizableNumberOptions) format.options.freejoin = 1;
+				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
+				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
+					'freejoin' in format.resolvedInputProperties.customizableNumberOptions) {
+					format.resolvedInputProperties.options.freejoin = 1;
+				}
 			}
 
 			room.game = game;
