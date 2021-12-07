@@ -242,6 +242,25 @@ describe("Games", () => {
 		}
 	});
 
+	it('should start games through commands', () => {
+		CommandParser.parse(room, Users.self, Config.commandCharacter + "cg trivia", Date.now());
+		assert(room.game);
+		assertStrictEqual(room.game.name, "Slowking's Trivia");
+		room.game.deallocate(true);
+
+		CommandParser.parse(room, Users.self, Config.commandCharacter + "trivium", Date.now());
+		assert(room.game);
+		assert(room.game.isMiniGame);
+		assertStrictEqual(room.game.name, "Slowking's Trivia");
+		room.game.deallocate(true);
+
+		CommandParser.parse(room, Users.self, Config.commandCharacter + "ppair", Date.now());
+		assert(room.game);
+		assert(room.game.isMiniGame);
+		assertStrictEqual(room.game.name, "Pancham's Pairs");
+		room.game.deallocate(true);
+	});
+
 	it('should support setting the initial PRNG seed', () => {
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
