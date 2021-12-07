@@ -53,7 +53,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	updateHintTime?: number;
 
 	afterInitialize(): void {
-		if (!this.format.options.points && !(this.format.mode && this.format.mode.removedOptions &&
+		if (!this.isMiniGame && !this.format.options.points && !(this.format.mode && this.format.mode.removedOptions &&
 			this.format.mode.removedOptions.includes('points'))) {
 			throw new Error("Question and Answer games must include default or customizable points options");
 		}
