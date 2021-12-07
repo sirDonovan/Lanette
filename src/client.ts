@@ -397,6 +397,24 @@ export class Client {
 		return DATA_COMMANDS.includes(message.substr(1).split(" ")[0]);
 	}
 
+	isDataCommandError(error: string): boolean {
+		return error.startsWith("You can't ") || error.endsWith(' could not be found in any of the search categories.') ||
+			error.startsWith('A Pok&eacute;mon cannot ') || error.startsWith('A search cannot ') ||
+			error.startsWith('No more than ') || error.startsWith('No value given to compare with ') ||
+			error.endsWith(' is not a recognized egg group.') || error.endsWith(' is not a recognized stat.') ||
+			error.endsWith(' cannot have alternative parameters') || error.endsWith(' did not contain a valid stat') ||
+			error.endsWith(" cannot be broadcast.") || error.endsWith(" is a status move and can't be used with 'resists'.") ||
+			error.endsWith(" is a status move and can't be used with 'weak'.") ||
+			error.endsWith(" is not a recognized type or move.") || error.startsWith("You cannot ") ||
+			error.startsWith("Invalid stat range for ") || error.startsWith("Invalid property range for ") ||
+			error.endsWith(" isn't a valid move target.") || error.endsWith(" did not contain a valid property.") ||
+			error.startsWith("A Pok\u00e9mon learnset cannot ") || error.startsWith("A search should not ") ||
+			error.endsWith("not recognized.") || error.startsWith("Priority cannot ") ||
+			error.startsWith("The generation must be between ") || error.endsWith("Try a more specific search.") ||
+			error.startsWith("Only specify ") || error.startsWith("No items ") || error.startsWith("No berries ") ||
+			error.startsWith('The search included ');
+	}
+
 	/**Returns the description of the filter triggered by the message, if any */
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
@@ -1661,22 +1679,11 @@ export class Client {
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
 				if (messageArguments.message.startsWith('/error ')) {
 					const error = messageArguments.message.substr(7).trim();
-					if (error.endsWith('could not be found in any of the search categories.') ||
-						error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
-						error.startsWith('A search cannot both include and exclude ') ||
-						error.startsWith('A search cannot both exclude and include ') ||
-						error.startsWith('No more than 3 alternatives for each parameter may be used') ||
-						error.startsWith('No value given to compare with ') ||
-						error.endsWith(' is not a recognized egg group.') ||
-						error.endsWith(' is not a recognized stat.') ||
-						error.endsWith(' cannot have alternative parameters') ||
-						(error.startsWith('The search included ') && error.endsWith(' more than once.'))) {
-						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-							this.lastOutgoingMessage.userid === recipient.id &&
-							this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
-							this.clearLastOutgoingMessage(now);
-							recipient.say(Tools.unescapeHTML(error));
-						}
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
+						this.lastOutgoingMessage.userid === recipient.id && this.isDataRollCommand(this.lastOutgoingMessage.text!) &&
+						this.isDataCommandError(error)) {
+						this.clearLastOutgoingMessage(now);
+						recipient.say(Tools.unescapeHTML(error));
 					}
 
 					return;
@@ -1901,22 +1908,7 @@ export class Client {
 				error: messageParts.join("|"),
 			};
 
-			if (messageArguments.error.endsWith('could not be found in any of the search categories.') ||
-				messageArguments.error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
-				messageArguments.error.startsWith('A search cannot both include and exclude ') ||
-				messageArguments.error.startsWith('A search cannot both exclude and include ') ||
-				messageArguments.error.startsWith('No more than 3 alternatives for each parameter may be used') ||
-				messageArguments.error.startsWith('No value given to compare with ') ||
-				messageArguments.error.endsWith(' is not a recognized egg group.') ||
-				messageArguments.error.endsWith(' is not a recognized stat.') ||
-				messageArguments.error.endsWith(' cannot have alternative parameters') ||
-				(messageArguments.error.startsWith('The search included ') && messageArguments.error.endsWith(' more than once.'))) {
-				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
-					this.clearLastOutgoingMessage(now);
-					room.say(Tools.escapeHTML(messageArguments.error));
-				}
-			} else if (messageArguments.error.startsWith('/tour new - Access denied')) {
+			if (messageArguments.error.startsWith('/tour new - Access denied')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-create' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
@@ -1936,7 +1928,8 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('/tour cap - Access denied')) {
+			} else if (messageArguments.error.startsWith('/tour cap - Access denied') ||
+				messageArguments.error.startsWith("The tournament's player cap is already ")) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-cap' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
@@ -1990,7 +1983,14 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (this.isDataCommandError(messageArguments.error)) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
+					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
+					this.clearLastOutgoingMessage(now);
+					room.say(Tools.escapeHTML(messageArguments.error));
+				}
 			}
+
 			break;
 		}
 
