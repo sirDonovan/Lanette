@@ -1661,8 +1661,6 @@ export const commands: BaseCommandDefinitions = {
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 
-			delete format.resolvedInputProperties.options.points;
-
 			const game = Games.createGame(room, format, pmRoom);
 			if (game) {
 				const randomAnswer = game.getRandomAnswer!();
@@ -1672,7 +1670,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		pmOnly: true,
-		aliases: ['randanswer', 'ranswer', 'randomhint', 'randhint', 'rhint'],
+		aliases: ['rhint', 'randanswer', 'ranswer', 'randomhint', 'randhint'],
 		syntax: ["[game]"],
 		description: ["displays a random hint and answer for the given game"],
 	},

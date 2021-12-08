@@ -191,8 +191,8 @@ export class CommandParser {
 		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
-	parse(room: Room | User, user: User, message: string, timestamp: number): void {
-		if (user.locked || !this.isCommandMessage(message)) return;
+	parse(room: Room | User, user: User, message: string, timestamp: number): boolean {
+		if (user.locked || !this.isCommandMessage(message)) return false;
 
 		message = message.substr(1);
 		let command: string;
@@ -207,17 +207,19 @@ export class CommandParser {
 		}
 
 		command = Tools.toId(command);
-		if (!(command in Commands)) return;
+		if (!(command in Commands)) return false;
 
 		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
-			Config.roomIgnoredCommands[room.id].includes(command)) return;
+			Config.roomIgnoredCommands[room.id].includes(command)) return false;
 
 		try {
 			new CommandContext(command, target, room, user, timestamp).run();
+			return true;
 		} catch (e) {
 			console.log(e);
 			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
 				" (room = " + room.id + "; " + "user = " + user.id + ")");
+			return false;
 		}
 	}
 

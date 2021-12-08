@@ -5,7 +5,7 @@ import { PRNG } from '../../lib/prng';
 import type { ScriptedGame } from '../../room-game-scripted';
 import type { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
+import { assert, assertClientSendQueue, assertStrictEqual, runCommand, testOptions } from '../test-tools';
 
 /* eslint-env mocha */
 
@@ -243,22 +243,26 @@ describe("Games", () => {
 	});
 
 	it('should start games through commands', () => {
-		CommandParser.parse(room, Users.self, Config.commandCharacter + "cg trivia", Date.now());
+		runCommand("cg", "trivia", room, Users.self);
 		assert(room.game);
 		assertStrictEqual(room.game.name, "Slowking's Trivia");
 		room.game.deallocate(true);
 
-		CommandParser.parse(room, Users.self, Config.commandCharacter + "trivium", Date.now());
+		runCommand("trivium", "", room, Users.self);
 		assert(room.game);
 		assert(room.game.isMiniGame);
 		assertStrictEqual(room.game.name, "Slowking's Trivia");
 		room.game.deallocate(true);
 
-		CommandParser.parse(room, Users.self, Config.commandCharacter + "ppair", Date.now());
+		runCommand("ppair", "", room, Users.self);
 		assert(room.game);
 		assert(room.game.isMiniGame);
 		assertStrictEqual(room.game.name, "Pancham's Pairs");
 		room.game.deallocate(true);
+	});
+
+	it('should allow generating random hints', () => {
+		runCommand("rhint", "trivia", Users.self, Users.self);
 	});
 
 	it('should support setting the initial PRNG seed', () => {
