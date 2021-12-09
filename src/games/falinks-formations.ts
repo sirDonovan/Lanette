@@ -109,7 +109,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 			} else {
 				const points = this.addPoints(player, guess);
-				if (points >= this.format.options.points!) {
+				if (points >= this.options.points!) {
 					this.say(falinksText + " " + this.currentPlayer.name + " has reached the score cap!");
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;

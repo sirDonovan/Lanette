@@ -34,7 +34,7 @@ class MagnetonsMashups extends QuestionAndAnswer {
 	onSetGeneratedHint(): string {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
-			numberOfElements = this.format.options.names!;
+			numberOfElements = this.options.names!;
 		} else {
 			numberOfElements = BASE_NUMBER_OF_NAMES;
 			if ('names' in this.format.customizableNumberOptions) {

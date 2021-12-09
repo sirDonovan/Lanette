@@ -361,7 +361,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.options.freejoin) {
+			if (challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.resolvedInputProperties.options.freejoin) {
 				user.say(challengeFormat.name + " can only be played as freejoin for bot challenges.");
 				return;
 			}

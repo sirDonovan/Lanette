@@ -237,7 +237,7 @@ export class UserHostedGame extends Game {
 
 	// Players
 	addPlayer(user: User): Player | undefined {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
 				this.joinNotices.add(user.id);
@@ -277,7 +277,7 @@ export class UserHostedGame extends Game {
 			this.leaveNotices.add(id);
 		}
 
-		if (this.format.options.freejoin) return;
+		if (this.options.freejoin) return;
 
 		if (!this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -327,10 +327,11 @@ export class UserHostedGame extends Game {
 		this.format = format;
 		this.setUhtmlBaseName();
 
+		this.options = {};
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
-			this.format.options.freejoin = 1;
+			this.options.freejoin = 1;
 			this.minPlayers = 0;
 		}
 
@@ -355,7 +356,7 @@ export class UserHostedGame extends Game {
 		}
 
 		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+		if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
@@ -366,7 +367,7 @@ export class UserHostedGame extends Game {
 			this.setSecondActivityTimer();
 		}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
 		}
@@ -497,7 +498,7 @@ export class UserHostedGame extends Game {
 	}
 
 	clearSignupsNotification(): void {
-		if (!this.started || this.format.options.freejoin) this.room.notifyOffRank("all");
+		if (!this.started || this.options.freejoin) this.room.notifyOffRank("all");
 	}
 
 	deallocate(forceEnd: boolean): void {

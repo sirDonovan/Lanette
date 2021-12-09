@@ -81,7 +81,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		this.format.options.points = 1000;
+		this.options.points = 1000;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
 		this.timeout = setTimeout(() => this.generateNewDisplay(), 10 * 1000);
 	}
@@ -191,7 +191,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 			this.points.set(player, totalPoints);
 			player.say("You earned **" + earnedPoints + "** point" + (earnedPoints > 1 ? "s" : "") + " for " + move.name + "! Your " +
 				"total is now **" + totalPoints + "**.");
-			if (totalPoints >= this.format.options.points!) {
+			if (totalPoints >= this.options.points!) {
 				this.winners.set(player, totalPoints);
 				this.end();
 				return true;

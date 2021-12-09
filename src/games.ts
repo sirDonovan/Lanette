@@ -732,7 +732,7 @@ export class Games {
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{challengeSettings, customizableNumberOptions, defaultOptions, options: {}}) as IGameFormat;
+			{challengeSettings, customizableNumberOptions, defaultOptions}) as IGameFormat;
 
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, mode, variant);
 
@@ -851,10 +851,8 @@ export class Games {
 
 		const formatComputed: IUserHostedFormatComputed = {
 			effectType: "UserHostedFormat",
-			inputOptions: {},
 			inputTarget,
 			nameWithOptions: '',
-			options: {},
 		};
 
 		return Object.assign(formatData, formatComputed);
@@ -878,7 +876,7 @@ export class Games {
 		};
 
 		const format = Object.assign(formatData, formatComputed, {customizableNumberOptions: formatData.customizableNumberOptions || {},
-			defaultOptions: formatData.defaultOptions || [], options: {}}) as IGameFormat;
+			defaultOptions: formatData.defaultOptions || []}) as IGameFormat;
 
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, undefined, undefined);
 

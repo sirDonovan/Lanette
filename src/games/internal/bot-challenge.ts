@@ -103,11 +103,11 @@ export class BotChallenge extends ScriptedGame {
 		game.minPlayers = 2;
 
 		if (game.format.challengeSettings && game.format.challengeSettings.onevsone && game.format.challengeSettings.onevsone.points) {
-			game.format.options.points = game.format.challengeSettings.onevsone.points;
+			game.options.points = game.format.challengeSettings.onevsone.points;
 		} else if ('points' in game.format.customizableNumberOptions) {
-			game.format.options.points = game.format.customizableNumberOptions.points.max;
+			game.options.points = game.format.customizableNumberOptions.points.max;
 		} else if (game.format.defaultOptions.includes('points')) {
-			game.format.options.points = 10;
+			game.options.points = 10;
 		}
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
@@ -115,7 +115,7 @@ export class BotChallenge extends ScriptedGame {
 		game.loadChallengeOptions('botchallenge', this.challengeOptions);
 		this.say('glhf');
 
-		if (!game.format.options.freejoin) {
+		if (!game.options.freejoin) {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.challenger);
 			}

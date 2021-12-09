@@ -42,7 +42,7 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin && !this.isMiniGame) {
+		if (this.options.freejoin && !this.isMiniGame) {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
@@ -58,7 +58,7 @@ class InkaysCups extends ScriptedGame {
 	generateCups(): void {
 		const workers = Games.getWorkers();
 		const roundParamTypes = this.sampleMany(paramTypes, 2);
-		const lower = this.format.options.freejoin ? 5 : this.getRemainingPlayerCount();
+		const lower = this.options.freejoin ? 5 : this.getRemainingPlayerCount();
 		const upper = lower * 3;
 		let attempts = 0;
 		let len = 0;
@@ -118,7 +118,7 @@ class InkaysCups extends ScriptedGame {
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canGrab = false;
 
-		if (!this.format.options.freejoin) {
+		if (!this.options.freejoin) {
 			if (this.round > 1) {
 				if (this.roundTime > 5000) this.roundTime -= 2500;
 				for (const i in this.players) {
@@ -129,7 +129,7 @@ class InkaysCups extends ScriptedGame {
 			if (this.getRemainingPlayerCount() < 2) return this.end();
 		}
 
-		const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+		const html = this.getRoundHtml(players => this.options.freejoin ? this.getPlayerPoints(players) :
 			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
@@ -140,7 +140,7 @@ class InkaysCups extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.convertPointsToBits();
 		} else {
 			for (const i in this.players) {
@@ -198,13 +198,13 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 
 			const answer = Dex.getExistingPokemon(this.answers[answerIndex]).name;
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
 				this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
 						this.getAnswers(answer));
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}

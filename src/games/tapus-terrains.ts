@@ -77,7 +77,7 @@ class TapusTerrains extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.roundTime = 3 * 1000;
 			this.terrainDisplayTime = 3 * 1000;
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
@@ -96,7 +96,7 @@ class TapusTerrains extends ScriptedGame {
 		this.canJump = false;
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
-				if (!this.format.options.freejoin) {
+				if (!this.options.freejoin) {
 					for (const i in this.players) {
 						if (this.players[i].eliminated) continue;
 						if (this.queue.includes(this.players[i]) || this.roundJumps.has(this.players[i])) {
@@ -106,7 +106,7 @@ class TapusTerrains extends ScriptedGame {
 				}
 			} else {
 				this.currentTerrain = null;
-				if (!this.format.options.freejoin) {
+				if (!this.options.freejoin) {
 					const len = this.queue.length;
 					if (len > 1 && this.isElimination) {
 						this.eliminatePlayer(this.queue[len - 1], "You were the last player to jump on " + this.targetPokemon + "!");
@@ -121,7 +121,7 @@ class TapusTerrains extends ScriptedGame {
 				}
 			}
 
-			if (!this.format.options.freejoin && this.getRemainingPlayerCount() < 2) return this.end();
+			if (!this.options.freejoin && this.getRemainingPlayerCount() < 2) return this.end();
 		}
 
 		let newTerrain = false;
@@ -131,7 +131,7 @@ class TapusTerrains extends ScriptedGame {
 			this.terrainRound++;
 			if (this.canLateJoin && this.terrainRound > 1) this.canLateJoin = false;
 
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				this.roundJumps.clear();
 			} else {
 				if (this.roundTime > 2000) this.roundTime -= 500;
@@ -157,13 +157,13 @@ class TapusTerrains extends ScriptedGame {
 		this.targetPokemon = targetPokemon;
 		this.queue = [];
 
-		if (!this.format.options.freejoin) this.roundJumps.clear();
+		if (!this.options.freejoin) this.roundJumps.clear();
 
 		const roundTime = this.getRoundTime();
 		const pokemonHtml = '<div class="infobox"><center>' + Dex.getPokemonModel(Dex.getExistingPokemon(this.targetPokemon)) +
 			'<br />A wild <b>' + this.targetPokemon + '</b> appeared!</center></div>';
 		if (newTerrain) {
-			const roundHtml = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+			const roundHtml = this.getRoundHtml(players => this.options.freejoin ? this.getPlayerPoints(players) :
 				this.getPlayerNames(players));
 			const roundUhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(roundUhtmlName, roundHtml, () => {
@@ -239,14 +239,14 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 			this.roundJumps.set(player, true);
 			if (!this.canJump) return false;
 
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				if (this.isValidJump()) {
 					if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 					if (this.timeout) clearTimeout(this.timeout);
 
 					this.currentTerrain = null;
 					const points = this.addPoints(player, 1);
-					if (points === this.format.options.points) {
+					if (points === this.options.points) {
 						for (const i in this.players) {
 							if (this.players[i] !== player) this.players[i].eliminated = true;
 						}

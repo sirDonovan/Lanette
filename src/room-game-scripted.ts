@@ -185,7 +185,7 @@ export class ScriptedGame extends Game {
 	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
 		if (challenge === 'botchallenge') {
 			const challengeSettings = this.format.challengeSettings!.botchallenge!;
-			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.points) this.options.points = challengeSettings.points;
 			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
@@ -206,7 +206,7 @@ export class ScriptedGame extends Game {
 			}
 		} else if (challenge === 'onevsone') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const challengeSettings = this.format.challengeSettings!.onevsone!;
-			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.points) this.options.points = challengeSettings.points;
 			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime && options.speed) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
@@ -263,7 +263,7 @@ export class ScriptedGame extends Game {
 
 		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
 		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
-		format.options = format.resolvedInputProperties.options;
+		this.options = format.resolvedInputProperties.options;
 
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
@@ -404,7 +404,7 @@ export class ScriptedGame extends Game {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 			this.notifyRankSignups = true;
@@ -428,7 +428,7 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
 		} else if (!this.internalGame && !this.isMiniGame) {
@@ -580,13 +580,13 @@ export class ScriptedGame extends Game {
 		if (!attributeText) {
 			const remainingPlayerCount = this.getRemainingPlayerCount(players);
 			if (remainingPlayerCount > 0) {
-				attributeText = "<b>" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount +
+				attributeText = "<b>" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount +
 					")</b>";
 			}
 		}
 
 		let html = this.getMascotAndNameHtml(additionalSpanText);
-		if (this.started && !this.format.options.freejoin && this.canLateJoin) {
+		if (this.started && !this.options.freejoin && this.canLateJoin) {
 			html += "&nbsp;-&nbsp;" + this.getLateJoinButtonHtml();
 		}
 		html += "<br />&nbsp;";
@@ -708,7 +708,7 @@ export class ScriptedGame extends Game {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
 
-		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
+		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
 		this.leaveBattleRooms();
 
@@ -757,7 +757,7 @@ export class ScriptedGame extends Game {
 
 		for (const i in players) {
 			this.players[i] = players[i];
-			if (this.onAddPlayer && !this.format.options.freejoin) {
+			if (this.onAddPlayer && !this.options.freejoin) {
 				try {
 					this.onAddPlayer(this.players[i]);
 				} catch (e) {
@@ -772,7 +772,7 @@ export class ScriptedGame extends Game {
 	}
 
 	addPlayer(user: User): Player | undefined {
-		if (this.format.options.freejoin || this.isMiniGame) {
+		if (this.options.freejoin || this.isMiniGame) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
 				this.joinNotices.add(user.id);
@@ -929,7 +929,7 @@ export class ScriptedGame extends Game {
 			this.leaveNotices.add(id);
 		}
 
-		if (this.format.options.freejoin) return;
+		if (this.options.freejoin) return;
 
 		if (this.showSignupsHtml && !this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -1128,7 +1128,7 @@ export class ScriptedGame extends Game {
 			if (user.id in this.players) {
 				if (this.players[user.id].eliminated) canUseCommands = false;
 			} else {
-				if (!this.format.options.freejoin) canUseCommands = false;
+				if (!this.options.freejoin) canUseCommands = false;
 			}
 		}
 

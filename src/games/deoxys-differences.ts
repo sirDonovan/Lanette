@@ -49,7 +49,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart(): void {

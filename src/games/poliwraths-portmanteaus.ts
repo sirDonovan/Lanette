@@ -27,7 +27,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
 		} else if (this.format.inputOptions.ports) {
-			numberOfPorts = this.format.options.ports!;
+			numberOfPorts = this.options.ports!;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
 			if ('ports' in this.format.customizableNumberOptions) {
@@ -121,7 +121,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			this.timeout(15000);
 
 			for (let i = format.customizableNumberOptions.ports.min; i <= format.customizableNumberOptions.ports.max; i++) {
-				game.format.options.ports = i;
+				game.options.ports = i;
 				game.answers = [];
 				await game.onNextRound();
 				assert(game.answers.length);

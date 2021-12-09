@@ -228,7 +228,6 @@ export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGam
 	defaultOptions: DefaultGameOption[];
 	description: string;
 	resolvedInputProperties: IGameInputProperties;
-	options: IGameOptions;
 	voter?: string;
 }
 
@@ -280,10 +279,8 @@ export interface IUserHostedComputed<T extends UserHostedGame = UserHostedGame> 
 
 export interface IUserHostedFormatComputed {
 	effectType: 'UserHostedFormat';
-	inputOptions: IGameOptions;
 	inputTarget: string;
 	nameWithOptions: string;
-	options: IGameOptions;
 }
 
 export interface IUserHostedFormat<T extends UserHostedGame = UserHostedGame> extends IUserHostedComputed<T>, IUserHostedFormatComputed {}

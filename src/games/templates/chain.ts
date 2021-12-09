@@ -105,7 +105,7 @@ export abstract class Chain extends ScriptedGame {
 			this.linkEnds[i] = linkEndsByName[i].length;
 		}
 
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onStart(): void {
@@ -171,12 +171,12 @@ export abstract class Chain extends ScriptedGame {
 	}
 
 	getDisplayedRoundNumber(): number {
-		return this.format.options.freejoin ? this.round : this.survivalRound;
+		return this.options.freejoin ? this.round : this.survivalRound;
 	}
 
 	onNextRound(): void {
 		let text;
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.resetLinkCounts();
 			this.setLink();
 			text = "The " + this.mascot!.name + " spelled out **" + this.currentLink.name + "**.";
@@ -231,7 +231,7 @@ export abstract class Chain extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.convertPointsToBits();
 		} else {
 			for (const i in this.players) {
@@ -305,7 +305,7 @@ export abstract class Chain extends ScriptedGame {
 const commands: GameCommandDefinitions<Chain> = {
 	guess: {
 		command(target, room, user) {
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				if (!this.targetLinkStarts.length && !this.targetLinkEnds.length) return false;
 			} else {
 				if (this.players[user.id] !== this.currentPlayer) return false;
@@ -314,7 +314,7 @@ const commands: GameCommandDefinitions<Chain> = {
 			if (this.roundLinks[guess]) return false;
 			const possibleLink = this.pool[guess] as Link | undefined;
 			if (!possibleLink) {
-				if (!this.format.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
+				if (!this.options.freejoin) this.say("'" + guess + "' is not a valid " + this.linksType + ".");
 				return false;
 			}
 
@@ -323,7 +323,7 @@ const commands: GameCommandDefinitions<Chain> = {
 			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 			if (this.timeout) clearTimeout(this.timeout);
 
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				this.targetLinkStarts = [];
 				this.targetLinkEnds = [];
 				const player = this.createPlayer(user) || this.players[user.id];
@@ -332,7 +332,7 @@ const commands: GameCommandDefinitions<Chain> = {
 				this.points.set(player, points);
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
 					'answer was __' + possibleLink.name + '__.');
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					this.winners.set(player, points);
 					this.end();
 					return true;

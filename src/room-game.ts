@@ -2,7 +2,10 @@ import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
+import type {
+	IGameFormat, IGameOptions, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat,
+	PlayerList
+} from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
 import type { GameActionGames, GameActionLocations, IGameCustomBox, IGameHostDisplay } from "./types/storage";
 import type { User } from "./users";
@@ -31,6 +34,7 @@ export abstract class Game extends Activity {
 	readonly winners = new Map<Player, number>();
 
 	// set in initialize()
+	options!: IGameOptions;
 	description!: string;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
@@ -194,7 +198,7 @@ export abstract class Game extends Activity {
 		if (lateJoin) {
 			label = "Late-join game";
 		} else if (this.format) {
-			if (!this.format.options.freejoin) {
+			if (!this.options.freejoin) {
 				label = "Join the <b>" + (this.format.nameWithOptions || this.format.name) + "</b> game";
 			}
 		} else {

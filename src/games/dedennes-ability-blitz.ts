@@ -29,7 +29,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 	}
 
 	generateAbilities(): void {

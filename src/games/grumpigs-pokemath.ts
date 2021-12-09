@@ -100,7 +100,7 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		if (this.roundOperands) {
 			operandsCount = this.roundOperands;
 		} else if (this.format.inputOptions.operands) {
-			operandsCount = this.format.options.operands!;
+			operandsCount = this.options.operands!;
 		} else {
 			operandsCount = BASE_OPERANDS;
 			if ('operands' in this.format.customizableNumberOptions && operation !== 'multiply' && operation !== 'divide') {

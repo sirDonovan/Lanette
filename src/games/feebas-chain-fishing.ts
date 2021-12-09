@@ -51,7 +51,7 @@ class FeebasChainFishing extends ScriptedGame {
 	queue: Player[] = [];
 
 	onSignups(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}

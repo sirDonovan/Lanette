@@ -53,7 +53,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	updateHintTime?: number;
 
 	afterInitialize(): void {
-		if (!this.isMiniGame && !this.format.options.points && !(this.format.mode && this.format.mode.removedOptions &&
+		if (!this.isMiniGame && !this.options.points && !(this.format.mode && this.format.mode.removedOptions &&
 			this.format.mode.removedOptions.includes('points'))) {
 			throw new Error("Question and Answer games must include default or customizable points options");
 		}
@@ -68,7 +68,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	onSignups(): void {
 		if (!this.isMiniGame) {
-			if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -274,7 +274,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.checkScoreCapBeforeRound) {
 			let reachedCap = false;
 			this.points.forEach((points, player) => {
-				if (points >= this.format.options.points!) {
+				if (points >= this.options.points!) {
 					this.winners.set(player, points);
 					if (!reachedCap) reachedCap = true;
 				}
@@ -562,7 +562,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				}
 			}
 
-			const reachedMaxPoints = points >= this.format.options.points!;
+			const reachedMaxPoints = points >= this.options.points!;
 			if (this.maxCorrectPlayersPerRound === 1 || (reachedMaxPoints && !this.checkScoreCapBeforeRound)) {
 				this.say("**" + player.name + "** advances to **" + this.getPointsDisplay(points, reachedMaxPoints ? 0 : undefined) +
 					"** point" + (points > 1 ? 's' : '') + "!");
@@ -711,7 +711,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
-			game.format.options.points = 3;
+			game.options.points = 3;
 
 			for (let i = 0; i < 3; i++) {
 				if (game.timeout) clearTimeout(game.timeout);

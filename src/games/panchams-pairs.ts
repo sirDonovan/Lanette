@@ -78,7 +78,7 @@ class PanchamPairs extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin && !this.isMiniGame) {
+		if (this.options.freejoin && !this.isMiniGame) {
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
 	}
@@ -88,7 +88,7 @@ class PanchamPairs extends ScriptedGame {
 	}
 
 	listPossiblePairs(): void {
-		if (!this.format.options.freejoin) {
+		if (!this.options.freejoin) {
 			this.pairRound++;
 			if (this.pairRound >= 4) {
 				this.nextRound();
@@ -130,7 +130,7 @@ class PanchamPairs extends ScriptedGame {
 					this.say("Time is up! " + this.getAnswers(""));
 					this.end();
 				}, this.roundTime);
-			} else if (this.format.options.freejoin) {
+			} else if (this.options.freejoin) {
 				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
 			} else {
 				this.timeout = setTimeout(() => this.listPossiblePairs(), this.getRoundTime());
@@ -171,7 +171,7 @@ class PanchamPairs extends ScriptedGame {
 		this.canPair = false;
 
 		const eliminated: Player[] = [];
-		if (this.round > 1 && !this.format.options.freejoin) {
+		if (this.round > 1 && !this.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
@@ -183,7 +183,7 @@ class PanchamPairs extends ScriptedGame {
 		}
 
 		let remainingPlayerCount: number;
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			remainingPlayerCount = this.random(5) + 5;
 		} else {
 			remainingPlayerCount = this.getRemainingPlayerCount();
@@ -234,10 +234,10 @@ class PanchamPairs extends ScriptedGame {
 
 		if (this.isMiniGame) {
 			this.listPossiblePairs();
-		} else if (this.format.options.freejoin) {
+		} else if (this.options.freejoin) {
 			this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
 		} else {
-			const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+			const html = this.getRoundHtml(players => this.options.freejoin ? this.getPlayerPoints(players) :
 				this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, html, () => {
@@ -250,7 +250,7 @@ class PanchamPairs extends ScriptedGame {
 	onEnd(): void {
 		if (this.isMiniGame) return;
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.convertPointsToBits();
 		}
 
@@ -343,13 +343,13 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 
 			if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
 
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
 				this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! " +
 						this.getAnswers(pair[0] + " & " + pair[1] + " (" + param + ")"));
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}

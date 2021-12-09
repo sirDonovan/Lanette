@@ -122,7 +122,7 @@ export class Vote extends ScriptedGame {
 		const variants: IGameFormat[] = [];
 
 		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
-		if (hasFreejoinVariant && !format.options.freejoin) {
+		if (hasFreejoinVariant && !format.resolvedInputProperties.options.freejoin) {
 			const inputTarget = format.inputTarget + ", freejoin";
 			const variant = Games.getFormat(inputTarget);
 			if (!Array.isArray(variant) && this.isValidFormat(variant)) {
