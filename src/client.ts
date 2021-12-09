@@ -61,6 +61,7 @@ const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
+const ROLL_COMMAND_HELP = "/text /dice ";
 
 const DATA_COMMANDS: string[] = [
 	'rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon',
@@ -1660,6 +1661,7 @@ export class Client {
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
 					messageArguments.message.endsWith(STAFF_BLOCKING_PMS_MESSAGE) ||
 					messageArguments.message.startsWith(UNREGISTERED_USER_MESSAGE) ||
+					messageArguments.message.startsWith(ROLL_COMMAND_HELP) ||
 					(messageArguments.message.startsWith('/error The user ') &&
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipientId &&
@@ -1869,6 +1871,11 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.message.startsWith("/dice ")) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.text!.startsWith('!roll ')) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.message.startsWith("Sent ")) {
 				const parts = messageArguments.message.substr(5).split(" the bot page ");
 				let recipient = parts[0];
@@ -1981,6 +1988,14 @@ export class Client {
 				messageArguments.error.startsWith('The automatic tournament disqualify timer is already set to ')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-autodq' &&
 					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
+				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					(this.lastOutgoingMessage.type === 'pm-html' || this.lastOutgoingMessage.type === 'pm-uhtml' ||
+					this.lastOutgoingMessage.type === 'htmlpage' || this.lastOutgoingMessage.type === 'htmlpageselector' ||
+					this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'closehtmlpage')) {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (this.isDataCommandError(messageArguments.error)) {
