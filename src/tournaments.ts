@@ -357,8 +357,14 @@ export class Tournaments {
 			return CommandParser.getErrorText(['invalidTournamentFormat', format ? format.name : formatName]);
 		}
 
-		if (room && this.isInPastTournaments(room, format.inputTarget)) {
-			return format.name + " is on the past tournaments list and cannot be queued.";
+		if (room) {
+			if (room.tournament && room.tournament.format.id === format.id) {
+				return format.name + " is currently being played and cannot be queued.";
+			}
+
+			if (this.isInPastTournaments(room, format.inputTarget)) {
+				return format.name + " is on the past tournaments list and cannot be queued.";
+			}
 		}
 
 		if (targets.length || samePokemon.length) {
