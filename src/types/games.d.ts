@@ -84,6 +84,10 @@ export interface IModeInputProperties {
 	nameSuffixes?: string[];
 }
 
+export interface IGameInputProperties extends IModeInputProperties {
+	options: IGameOptions;
+}
+
 interface IModeClass<T, U extends ScriptedGame = ScriptedGame> {
 	new(game: U): T;
 	resolveInputProperties: <V extends ScriptedGame>(format: IGameFormat<V>,
@@ -129,7 +133,7 @@ export interface IGameCommandCountListener extends IGameCommandCountOptions {
 	listener: GameCommandListener;
 }
 
-type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties<T>;
+type IGameVariant<T extends ScriptedGame = ScriptedGame> = Partial<T> & IGameVariantProperties;
 
 export interface IChallengeSettings {
 	enabled: boolean,
@@ -206,10 +210,6 @@ export interface IGameOptions {
 	format?: string;
 }
 
-export interface IGameInputProperties extends IModeInputProperties {
-	options: IGameOptions;
-}
-
 export type GameNumberOptions = keyof FilterByType<IGameOptions, number | undefined>;
 
 export interface IGameFormatComputed<T extends ScriptedGame = ScriptedGame> {
@@ -231,7 +231,7 @@ export interface IGameFormat<T extends ScriptedGame = ScriptedGame> extends IGam
 	voter?: string;
 }
 
-export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
+export interface IGameVariantProperties {
 	name: string;
 	variantAliases: string[];
 
@@ -242,7 +242,6 @@ export interface IGameVariantProperties<T extends ScriptedGame = ScriptedGame> {
 	defaultOptions?: DefaultGameOption[];
 	description?: string;
 	freejoin?: boolean;
-	modeProperties?: PartialKeyedDict<GameMode, Partial<T>>;
 	modes?: GameMode[];
 }
 

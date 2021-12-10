@@ -35,7 +35,6 @@ export abstract class Game extends Activity {
 
 	// set in initialize()
 	options!: IGameOptions;
-	description!: string;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
 	joinLeaveButtonRefreshUhtmlName!: string;
@@ -63,7 +62,7 @@ export abstract class Game extends Activity {
 
 	abstract getMascotIcons(): string;
 	abstract getMascotAndNameHtml(additionalText?: string): string;
-	abstract onInitialize(format: IGameFormat | IUserHostedFormat): boolean;
+	abstract onInitialize(): boolean;
 
 	exceedsMessageSizeLimit(message: string): boolean {
 		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
@@ -84,15 +83,15 @@ export abstract class Game extends Activity {
 	}
 
 	initialize(format: IGameFormat | IUserHostedFormat): boolean {
-		if (!this.onInitialize(format)) {
+		this.format = format;
+
+		if (!this.onInitialize()) {
 			this.deallocate(true);
 			return false;
 		}
 
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
-
-		this.description = format.description;
 
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
@@ -185,7 +184,7 @@ export abstract class Game extends Activity {
 	}
 
 	getDescription(): string {
-		return this.description;
+		return this.format!.description;
 	}
 
 	getSignupsPlayersHtml(): string {

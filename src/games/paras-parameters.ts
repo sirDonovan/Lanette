@@ -43,7 +43,7 @@ export class ParasParameters extends QuestionAndAnswer {
 	}
 
 	getDescription(): string {
-		if (this.options.gen === 8) return this.description;
+		if (this.options.gen === 8) return this.format.description;
 		return "Players search for possible <code>/ds" + this.options.gen + "</code> parameters that result in the given " +
 			"Pokemon list!";
 	}

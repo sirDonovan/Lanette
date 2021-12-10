@@ -734,7 +734,11 @@ export class Games {
 		const format = Object.assign(formatData, formatComputed,
 			{challengeSettings, customizableNumberOptions, defaultOptions}) as IGameFormat;
 
+		if (variant) Object.assign(format, variant);
+
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, mode, variant);
+		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
+		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
 
 		return format;
 	}

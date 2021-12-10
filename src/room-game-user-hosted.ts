@@ -89,9 +89,9 @@ export class UserHostedGame extends Game {
 	restart(format: IUserHostedFormat): void {
 		this.reset();
 
-		this.onInitialize(format);
+		this.format = format;
+		this.onInitialize();
 		this.id = format.id;
-		this.description = format.description;
 
 		this.setHost(this.hostName);
 		this.signups();
@@ -323,8 +323,7 @@ export class UserHostedGame extends Game {
 	}
 
 	// Game lifecycle
-	onInitialize(format: IUserHostedFormat): boolean {
-		this.format = format;
+	onInitialize(): boolean {
 		this.setUhtmlBaseName();
 
 		this.options = {};

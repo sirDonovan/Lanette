@@ -46,14 +46,12 @@ export class ScriptedGame extends Game {
 	declare format: IGameFormat;
 	actionsUhtmlName!: string;
 
-	additionalDescription?: string;
 	allowChildGameBits?: boolean;
 	readonly battleRooms?: string[];
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
 	canLateJoin?: boolean;
 	challengeRoundTimes: number[] | null = null;
-	commandDescriptions?: string[];
 	dontAutoCloseHtmlPages?: boolean;
 	isMiniGame?: boolean;
 	lateJoinQueueSize?: number;
@@ -78,7 +76,7 @@ export class ScriptedGame extends Game {
 		variant: IGameVariant | undefined): IGameInputProperties {
 		const customizableNumberOptions = Object.assign({}, format.customizableNumberOptions);
 		let defaultOptions = format.defaultOptions;
-		let description = format.description;
+		let description: string | undefined;
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
 
@@ -254,39 +252,32 @@ export class ScriptedGame extends Game {
 		this.privateJoinLeaveUhtmlName = this.uhtmlBaseName + "-private-join-leave";
 	}
 
-	onInitialize(format: IGameFormat): boolean {
-		this.format = format;
+	onInitialize(): boolean {
+		if (this.format.variant) {
+			Object.assign(this, this.format.variant);
+		}
 
-		if (this.validateInputProperties && !this.validateInputProperties(format.resolvedInputProperties)) {
+		if (this.format.mode && this.format.modeProperties && this.format.mode.id in this.format.modeProperties) {
+			Object.assign(this, this.format.modeProperties[this.format.mode.id]);
+		}
+
+		if (this.validateInputProperties && !this.validateInputProperties(this.format.resolvedInputProperties)) {
 			return false;
 		}
 
-		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
-		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
-		this.options = format.resolvedInputProperties.options;
+		this.options = this.format.resolvedInputProperties.options;
 
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
 		this.actionsUhtmlName = this.uhtmlBaseName + "-actions";
 
-		if (format.commands) Object.assign(this.commands, format.commands);
-		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
-		if (format.additionalDescription) this.additionalDescription = format.additionalDescription;
+		if (this.format.commands) Object.assign(this.commands, this.format.commands);
 
-		const mascot = Games.getFormatMascot(format);
+		const mascot = Games.getFormatMascot(this.format);
 		if (mascot) this.mascot = mascot;
 
-		if (format.variant) {
-			// @ts-expect-error
-			delete format.variant.name;
-			if (format.variant.description) format.description = format.variant.description;
-			Object.assign(this, format.variant);
-		}
-		if (format.mode) {
-			if (format.modeProperties && format.mode.id in format.modeProperties) {
-				Object.assign(this, format.modeProperties[format.mode.id]);
-			}
-			format.mode.initialize(this);
+		if (this.format.mode) {
+			this.format.mode.initialize(this);
 		}
 
 		let htmlPageHeader = "<h2>";
@@ -332,11 +323,11 @@ export class ScriptedGame extends Game {
 
 	getDescriptionHtml(): string {
 		let description = this.getDescription();
-		if (this.additionalDescription) description += "<br /><br />" + this.additionalDescription;
+		if (this.format.additionalDescription) description += "<br /><br />" + this.format.additionalDescription;
 
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
-		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
+		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
 		if (commandDescriptions.length) {
 			description += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
 				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
