@@ -364,8 +364,8 @@ export class Client {
 
 	getCodeListenerHtml(code: string): string {
 		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
-		return '<div class="infobox"><code style="white-space: pre-wrap; display: table; tab-size: 3">' +
-			code.replace(NEWLINE, "<br />") + '</code></div>';
+		return '<div class="infobox"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3">' +
+			code.replace(NEWLINE, "<br />") + '</details></div>';
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
