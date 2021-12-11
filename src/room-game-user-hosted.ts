@@ -594,14 +594,6 @@ export const game: IUserHostedFile = {
 			approvedHostOnly: true,
 		},
 		{
-			name: "Jirachi's Coloring Adventure",
-			mascot: "Jirachi",
-			aliases: ['JCA', 'Jirachis'],
-			description: "Players guess Pokemon that match the given color-based parameters! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/jirachis-coloring-adventure-t1042.html'>More info</a>",
-			freejoin: true,
-		},
-		{
 			name: "Jynx's Klutzy Kissing",
 			mascot: "Jynx",
 			aliases: ['JKK'],
