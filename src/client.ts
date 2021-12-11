@@ -33,6 +33,7 @@ const SLOWER_COMMAND_MESSAGE_THROTTLE = STANDARD_MESSAGE_THROTTLE * 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
+const CODE_COMMAND = '!code';
 const BOT_MESSAGE_COMMAND = '/botmsg ';
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -1446,7 +1447,12 @@ export class Client {
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
 			if (user === Users.self) {
-				if (messageArguments.message.startsWith(ANNOUNCE_CHAT_COMMAND)) {
+				if (messageArguments.message === CODE_COMMAND) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'code' &&
+						this.lastOutgoingMessage.roomid === room.id) {
+						this.clearLastOutgoingMessage(now);
+					}
+				} else if (messageArguments.message.startsWith(ANNOUNCE_CHAT_COMMAND)) {
 					const announcement = messageArguments.message.substr(ANNOUNCE_CHAT_COMMAND.length);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'announce' &&
 						Tools.toId(this.lastOutgoingMessage.announcement) === Tools.toId(announcement)) {
