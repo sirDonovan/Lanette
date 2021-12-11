@@ -563,14 +563,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Eevee's Evolutionary Line",
-			mascot: "Eevee",
-			aliases: ['EEL', 'Eevees'],
-			description: "Players guess the Pokemon that is missing from their evolutionary line! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/eevee-s-evolutionary-line-t1161.html'>More info</a>",
-			freejoin: true,
-		},
-		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 			freejoin: true,
