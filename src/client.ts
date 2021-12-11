@@ -2078,7 +2078,7 @@ export class Client {
 
 					room.tournament.format = Dex.getExistingFormat(Dex.joinNameAndCustomRules(room.tournament.format,
 						Dex.combineCustomRules(separatedCustomRules)));
-					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+					room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
 				'font-size:10pt;margin:5px 0 0 15px">The word has been guessed. Congratulations!</p>')) {
@@ -2096,7 +2096,7 @@ export class Client {
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
 					room.tournament.format = Dex.getExistingFormat(room.tournament.format.name);
-					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+					room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||
 				messageArguments.html.startsWith('<ul class="utilichart"><li class="result">')) {
