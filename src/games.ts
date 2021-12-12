@@ -1029,9 +1029,13 @@ export class Games {
 				continue;
 			}
 
-			if (limitModes && format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
-				pastGameMode = format.mode.name;
-				break;
+			if (limitModes && format.mode && pastFormat.mode) {
+				const formatModeId = format.mode.cooldownId || format.mode.id;
+				const pastFormatModeId = pastFormat.mode.cooldownId || pastFormat.mode.id;
+				if (formatModeId === pastFormatModeId) {
+					pastGameMode = this.modes[pastFormatModeId].name;
+					break;
+				}
 			}
 
 			if (limitCategories) {

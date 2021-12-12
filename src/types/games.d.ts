@@ -294,6 +294,7 @@ export interface IGameModeFile<T = ScriptedGame, U extends ScriptedGame = Script
 	aliases?: string[];
 	challengeSettings?: GameChallengeSettings;
 	commands?: LoadedGameCommands<T & U>;
+	cooldownId?: GameMode;
 	removedOptions?: string[];
 	tests?: GameFileTests<V>;
 }
