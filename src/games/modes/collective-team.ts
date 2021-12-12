@@ -263,6 +263,8 @@ export const mode: IGameModeFile<CollectiveTeam, QuestionAndAnswer, CollectiveTe
 	aliases: ['ct', 'group', 'collective'],
 	class: CollectiveTeam,
 	commands,
+	cooldownId: 'collectiveteam',
+	cooldownName: "Team",
 	description,
 	initialize,
 	name,

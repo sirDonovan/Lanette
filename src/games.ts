@@ -1033,7 +1033,7 @@ export class Games {
 				const formatModeId = format.mode.cooldownId || format.mode.id;
 				const pastFormatModeId = pastFormat.mode.cooldownId || pastFormat.mode.id;
 				if (formatModeId === pastFormatModeId) {
-					pastGameMode = this.modes[pastFormatModeId].name;
+					pastGameMode = format.mode.cooldownName || pastFormat.mode.cooldownName || this.modes[pastFormatModeId].name;
 					break;
 				}
 			}

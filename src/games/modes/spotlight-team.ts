@@ -132,6 +132,8 @@ export const mode: IGameModeFile<SpotlightTeam, QuestionAndAnswer, SpotlightTeam
 	aliases: ['st', 'team', 'spotlight'],
 	class: SpotlightTeam,
 	commands,
+	cooldownId: 'collectiveteam',
+	cooldownName: "Team",
 	description,
 	initialize,
 	name,
