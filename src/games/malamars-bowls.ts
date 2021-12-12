@@ -185,18 +185,11 @@ class MalamarsBowls extends QuestionAndAnswer {
 
 export const game: IGameFile<MalamarsBowls> = Games.copyTemplateProperties(questionAndAnswerGame, {
 	aliases: ['malamars', 'bowls'],
-	challengeSettings: {
+	challengeSettings: Object.assign({}, questionAndAnswerGame.challengeSettings, {
 		botchallenge: {
-			enabled: true,
-			options: ['speed'],
-			requiredFreejoin: true,
+			enabled: false,
 		},
-		onevsone: {
-			enabled: true,
-			options: ['speed'],
-			requiredFreejoin: true,
-		},
-	},
+	}),
 	category: 'knowledge-3',
 	class: MalamarsBowls,
 	commandDescriptions: [Config.commandCharacter + "g [parameter 1], [parameter 2]"],
