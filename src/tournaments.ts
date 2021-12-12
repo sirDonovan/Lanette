@@ -652,6 +652,45 @@ export class Tournaments {
 		}, timer);
 	}
 
+	onTournamentEnd(room: Room, now: number): void {
+		// delayed scheduled tournament
+		if (room.id in this.nextScheduledTournaments && this.nextScheduledTournaments[room.id].time <= now) {
+			this.setScheduledTournamentTimer(room);
+		} else {
+			const database = Storage.getDatabase(room);
+			let queuedTournament = false;
+
+			if (database.queuedTournament) {
+				const format = Dex.getFormat(database.queuedTournament.formatid, true);
+				if (format && format.effectType === 'Format') {
+					queuedTournament = true;
+					if (!database.queuedTournament.time) database.queuedTournament.time = now + this.queuedTournamentTime;
+					this.setTournamentTimer(room, database.queuedTournament.time, format,
+						database.queuedTournament.playerCap, database.queuedTournament.scheduled);
+				} else {
+					delete database.queuedTournament;
+					Storage.exportDatabase(room.id);
+				}
+			}
+
+			if (!queuedTournament) {
+				let setRandomTournament = false;
+				if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers) {
+					if (this.canSetRandomTournament(room)) {
+						this.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
+						setRandomTournament = true;
+					} else if (this.canSetRandomQuickTournament(room)) {
+						this.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id], true);
+						setRandomTournament = true;
+					}
+				}
+				if (!setRandomTournament && room.id in this.scheduledTournaments) {
+					this.setScheduledTournamentTimer(room);
+				}
+			}
+		}
+	}
+
 	getTournamentScheduleHtml(room: Room, month: number): string {
 		if (!(room.id in this.schedules)) return "";
 		const schedule = this.schedules[room.id];

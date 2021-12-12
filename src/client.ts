@@ -2305,42 +2305,8 @@ export class Client {
 					room.tournament.updateEnd();
 					room.tournament.end();
 				}
-				const database = Storage.getDatabase(room);
 
-				// delayed scheduled tournament
-				if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
-					Tournaments.setScheduledTournamentTimer(room);
-				} else {
-					let queuedTournament = false;
-					if (database.queuedTournament) {
-						const format = Dex.getFormat(database.queuedTournament.formatid, true);
-						if (format && format.effectType === 'Format') {
-							queuedTournament = true;
-							if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
-							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format,
-								database.queuedTournament.playerCap, database.queuedTournament.scheduled);
-						} else {
-							delete database.queuedTournament;
-							Storage.exportDatabase(room.id);
-						}
-					}
-
-					if (!queuedTournament) {
-						let setRandomTournament = false;
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers) {
-							if (Tournaments.canSetRandomTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
-								setRandomTournament = true;
-							} else if (Tournaments.canSetRandomQuickTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id], true);
-								setRandomTournament = true;
-							}
-						}
-						if (!setRandomTournament && room.id in Tournaments.scheduledTournaments) {
-							Tournaments.setScheduledTournamentTimer(room);
-						}
-					}
-				}
+				Tournaments.onTournamentEnd(room, now);
 				break;
 			}
 
@@ -2353,6 +2319,8 @@ export class Client {
 				room.addHtmlChatLog("tournament|forceend");
 
 				if (room.tournament) room.tournament.forceEnd();
+
+				Tournaments.onTournamentEnd(room, now);
 				break;
 			}
 
