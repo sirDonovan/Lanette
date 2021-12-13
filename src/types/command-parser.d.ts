@@ -40,7 +40,8 @@ export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | '
 
 export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' |
 	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledSearchChallengeFeatures' | 'disabledUserHostedGameFeatures' |
-	'disabledUserHostedTournamentFeatures' | 'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat';
+	'disabledUserHostedTournamentFeatures' | 'noRoomEventInformation' | 'invalidRoomEvent' | 'invalidGameOption' | 'disabledGameFormat' |
+	'gameOptionRequiresFreejoin';
 
 export type CommandErrorNoTarget = 'invalidUserInRoom' | 'invalidUsernameLength' | 'reloadInProgress' | 'invalidHttpsLink' |
 	'noPmGameRoom' | 'noBotRankRoom';

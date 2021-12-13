@@ -289,6 +289,8 @@ export class CommandParser {
 			return "You must specify one of " + error[1].trim() + "'s events.";
 		} else if (error[0] === 'disabledGameFormat') {
 			return error[1].trim() + " is currently disabled.";
+		} else if (error[0] === 'gameOptionRequiresFreejoin') {
+			return error[1].trim() + " must be played as freejoin.";
 		} else if (error[0] === 'invalidUserInRoom') {
 			return "You must specify a user currently in the room.";
 		} else if (error[0] === 'invalidUsernameLength') {

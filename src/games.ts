@@ -737,6 +737,11 @@ export class Games {
 		if (variant) Object.assign(format, variant);
 
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, mode, variant);
+
+		if (format.resolvedInputProperties.options.points && !format.freejoin && !format.resolvedInputProperties.options.freejoin) {
+			return ['gameOptionRequiresFreejoin', format.nameWithOptions];
+		}
+
 		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
 		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
 
