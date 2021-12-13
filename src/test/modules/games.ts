@@ -311,6 +311,21 @@ describe("Games", () => {
 		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
 		assertStrictEqual(nameFormat[1], name);
 
+		const pointsFormat = Games.getFormat("cups, firstto: 10");
+		assert(Array.isArray(pointsFormat));
+		assertStrictEqual(pointsFormat[0], 'gameOptionRequiresFreejoin');
+		assertStrictEqual(pointsFormat[1], "Inkay's Cups (first to 10)");
+
+		const pointsFreejoinFormat = Games.getFormat("cups, firstto: 10, fj");
+		assert(!Array.isArray(pointsFreejoinFormat));
+		assert(pointsFreejoinFormat.resolvedInputProperties.options.points);
+		assert(pointsFreejoinFormat.resolvedInputProperties.options.freejoin);
+
+		const pointsNonFreejoinFormat = Games.getFormat("Falinks' Formations");
+		assert(!Array.isArray(pointsNonFreejoinFormat));
+		assert(pointsNonFreejoinFormat.resolvedInputProperties.options.points);
+		assert(!pointsNonFreejoinFormat.resolvedInputProperties.options.freejoin);
+
 		for (const key of formatKeys) {
 			const formatData = formats[key];
 			if (formatData.modes && formatData.modes.length >= 2) {
