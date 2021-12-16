@@ -326,6 +326,11 @@ describe("Games", () => {
 		assert(pointsNonFreejoinFormat.resolvedInputProperties.options.points);
 		assert(!pointsNonFreejoinFormat.resolvedInputProperties.options.freejoin);
 
+		const invalidPointsFormat = Games.getFormat("trivia, firstto: (((10)))");
+		assert(Array.isArray(invalidPointsFormat));
+		assertStrictEqual(invalidPointsFormat[0], 'invalidGameOption');
+		assertStrictEqual(invalidPointsFormat[1], "firstto: (((10)))");
+
 		for (const key of formatKeys) {
 			const formatData = formats[key];
 			if (formatData.modes && formatData.modes.length >= 2) {

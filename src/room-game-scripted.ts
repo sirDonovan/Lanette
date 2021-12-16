@@ -148,7 +148,7 @@ export class ScriptedGame extends Game {
 
 			options[i] = optionValue;
 
-			if (optionValue !== customizableNumberOptions[i].base) {
+			if (!format.freejoin || optionValue !== customizableNumberOptions[i].base) {
 				customizedNumberOptions[i] = optionValue;
 			}
 		}
