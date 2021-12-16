@@ -139,8 +139,6 @@ export class ScriptedGame extends Game {
 				continue;
 			}
 
-			if (format.inputOptions[i] === customizableNumberOptions[i].base) continue;
-
 			let optionValue = format.inputOptions[i] as number;
 			if (optionValue < customizableNumberOptions[i].min) {
 				optionValue = customizableNumberOptions[i].min;
@@ -149,7 +147,10 @@ export class ScriptedGame extends Game {
 			}
 
 			options[i] = optionValue;
-			customizedNumberOptions[i] = optionValue;
+
+			if (optionValue !== customizableNumberOptions[i].base) {
+				customizedNumberOptions[i] = optionValue;
+			}
 		}
 
 		if (customizedNumberOptions.points) nameSuffixes.push("(first to " + customizedNumberOptions.points + ")");

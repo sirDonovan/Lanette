@@ -703,13 +703,14 @@ export class Games {
 
 			if (!optionName) return ['invalidGameOption', option];
 
+			if (optionName === 'firstto') optionName = 'points';
+			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
+
 			if (numberGameOptions.includes(optionName as GameNumberOptions)) {
 				optionValue = parseInt(optionValue as string);
 				if (isNaN(optionValue)) return ['invalidGameOption', option];
 			}
 
-			if (optionName === 'firstto') optionName = 'points';
-			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
 			inputOptions[optionName] = optionValue;
 		}
 
