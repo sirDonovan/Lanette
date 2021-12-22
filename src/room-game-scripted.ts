@@ -135,7 +135,7 @@ export class ScriptedGame extends Game {
 		const customizedNumberOptions: Dict<number> = {};
 		for (const i in format.inputOptions) {
 			if (!(i in customizableNumberOptions)) {
-				options[i] = format.inputOptions[i];
+				if (i !== 'freejoin') options[i] = format.inputOptions[i];
 				continue;
 			}
 
