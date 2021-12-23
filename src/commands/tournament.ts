@@ -164,6 +164,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	scheduledtournament: {
 		command(target, room, user) {
+			const nextScheduledTournaments = Tournaments.getNextScheduledTournaments();
 			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
@@ -174,7 +175,7 @@ export const commands: BaseCommandDefinitions = {
 					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				}
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
-				if (!(targetRoom.id in Tournaments.nextScheduledTournaments)) {
+				if (!(targetRoom.id in nextScheduledTournaments)) {
 					return this.say("There is no tournament scheduled for " + targetRoom.title + ".");
 				}
 				tournamentRoom = targetRoom;
@@ -183,11 +184,11 @@ export const commands: BaseCommandDefinitions = {
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
-				if (!(room.id in Tournaments.nextScheduledTournaments)) return this.say("There is no tournament scheduled for this room.");
+				if (!(room.id in nextScheduledTournaments)) return this.say("There is no tournament scheduled for this room.");
 				tournamentRoom = room;
 			}
 
-			const scheduledTournament = Tournaments.nextScheduledTournaments[tournamentRoom.id];
+			const scheduledTournament = nextScheduledTournaments[tournamentRoom.id];
 			const format = Dex.getExistingFormat(scheduledTournament.format, true);
 			const now = Date.now();
 			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " scheduled tournament</b>: " + format.name + "<br />";
@@ -274,14 +275,15 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
 
+			const nextScheduledTournaments = Tournaments.getNextScheduledTournaments();
 			let scheduled = false;
 			let format: IFormat | undefined;
 			if (id === 'scheduled' || id === 'official') {
-				if (!(room.id in Tournaments.schedules)) return this.say("There is no tournament schedule for this room.");
+				if (!(room.id in nextScheduledTournaments)) return this.say("There is no tournament schedule for this room.");
 				scheduled = true;
-				format = Dex.getExistingFormat(Tournaments.nextScheduledTournaments[room.id].format, true);
+				format = Dex.getExistingFormat(nextScheduledTournaments[room.id].format, true);
 			} else {
-				if (room.id in Tournaments.nextScheduledTournaments && Date.now() > Tournaments.nextScheduledTournaments[room.id].time) {
+				if (room.id in nextScheduledTournaments && Date.now() > nextScheduledTournaments[room.id].time) {
 					return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
 				}
 
@@ -313,7 +315,7 @@ export const commands: BaseCommandDefinitions = {
 
 			let time: number = 0;
 			if (scheduled) {
-				time = Tournaments.nextScheduledTournaments[room.id].time;
+				time = nextScheduledTournaments[room.id].time;
 			} else if (!room.tournament) {
 				const now = Date.now();
 				if (database.lastTournamentTime) {

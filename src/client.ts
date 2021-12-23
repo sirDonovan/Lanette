@@ -309,6 +309,10 @@ export class Client {
 		return this.serverGroups;
 	}
 
+	getServerId(): string {
+		return this.serverId;
+	}
+
 	getHtmlChatCommand(): string {
 		return HTML_CHAT_COMMAND;
 	}
@@ -1251,9 +1255,7 @@ export class Client {
 					delete this.reconnectRoomMessages[room.id];
 				}
 
-				if (room.id in Tournaments.schedules) {
-					Tournaments.setScheduledTournament(room);
-				}
+				Tournaments.setScheduledTournament(room);
 			}
 			break;
 		}

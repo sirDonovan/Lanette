@@ -97,3 +97,11 @@ interface ICurrentTournamentBattle {
 	readonly playerB: Player;
 	readonly room: Room;
 }
+
+export interface ITournamentTimerData {
+	cap: number;
+	formatid: string;
+	startTime: number;
+	scheduled?: boolean;
+	tournamentName?: string;
+}
