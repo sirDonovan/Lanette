@@ -301,11 +301,11 @@ export class Client {
 		this.messageParsersExist = this.messageParsers.length > 0;
 	}
 
-	getGroupSymbols(): Readonly<KeyedDict<GroupName, string>> {
+	getGroupSymbols(): DeepImmutable<KeyedDict<GroupName, string>> {
 		return this.groupSymbols;
 	}
 
-	getServerGroups(): Readonly<Dict<IServerGroup>> {
+	getServerGroups(): DeepImmutable<Dict<IServerGroup>> {
 		return this.serverGroups;
 	}
 
@@ -321,11 +321,11 @@ export class Client {
 		return UHTML_CHANGE_CHAT_COMMAND;
 	}
 
-	getLastOutgoingMessage(): Readonly<IOutgoingMessage> | null {
+	getLastOutgoingMessage(): DeepImmutable<IOutgoingMessage> | null {
 		return this.lastOutgoingMessage;
 	}
 
-	getPublicRooms(): string[] {
+	getPublicRooms(): readonly string[] {
 		return this.publicChatRooms;
 	}
 
@@ -337,7 +337,7 @@ export class Client {
 		return this.replayServerAddress;
 	}
 
-	getOutgoingMessageQueue(): readonly IOutgoingMessage[] {
+	getOutgoingMessageQueue(): readonly DeepImmutable<IOutgoingMessage>[] {
 		return this.outgoingMessageQueue;
 	}
 
@@ -742,7 +742,6 @@ export class Client {
 			delete previous[i];
 		}
 	}
-
 	/* eslint-enable */
 
 	private clearConnectionTimeouts(): void {
