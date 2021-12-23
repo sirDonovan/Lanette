@@ -331,6 +331,11 @@ describe("Games", () => {
 		assertStrictEqual(invalidPointsFormat[0], 'invalidGameOption');
 		assertStrictEqual(invalidPointsFormat[1], "firstto: (((10)))");
 
+		const invalidFreeJoinFormat = Games.getFormat("fbc, fj");
+		assert(!Array.isArray(invalidFreeJoinFormat));
+		assertStrictEqual(invalidFreeJoinFormat.nameWithOptions, "Fraxure's Battle Chain");
+		assert(!invalidFreeJoinFormat.resolvedInputProperties.options.freejoin);
+
 		for (const key of formatKeys) {
 			const formatData = formats[key];
 			if (formatData.modes && formatData.modes.length >= 2) {
