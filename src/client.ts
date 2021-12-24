@@ -523,30 +523,29 @@ export class Client {
 			return;
 		}
 
-		if (outgoingMessage.room) {
-			if (Rooms.get(outgoingMessage.room.id) !== outgoingMessage.room) return;
+		let room: Room | undefined;
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+			room = Rooms.get(outgoingMessage.roomid);
+			if (!room) return;
 
-			if (outgoingMessage.room.type === 'chat' && !outgoingMessage.room.serverBannedWords) {
+			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'banword-list') {
+				room.serverBannedWords = [];
+
 				this.send({
-					message: outgoingMessage.room.id + '|/banword list',
-					roomid: outgoingMessage.room.id,
+					message: room.id + '|/banword list',
+					roomid: room.id,
 					type: 'banword-list',
 					measure: true,
 				});
-
-				outgoingMessage.room.serverBannedWords = [];
 
 				this.outgoingMessageQueue.push(outgoingMessage);
 				return;
 			}
 		}
 
-		if (outgoingMessage.user) {
-			if (Users.get(outgoingMessage.user.name) !== outgoingMessage.user || outgoingMessage.user.locked) return;
-
-			if (outgoingMessage.room) {
-				if (!outgoingMessage.room.getTargetUser(outgoingMessage.user)) return;
-			}
+		if (outgoingMessage.userid) {
+			const user = Users.get(outgoingMessage.userid);
+			if (!user || user.locked || (room && !room.getTargetUser(user))) return;
 		}
 
 		if (outgoingMessage.filterSend && !outgoingMessage.filterSend()) {
@@ -2780,13 +2779,6 @@ export class Client {
 
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
-					delete this.lastOutgoingMessage.user;
-					delete this.lastOutgoingMessage.room;
-					if (this.lastMeasuredMessage) {
-						delete this.lastMeasuredMessage.user;
-						delete this.lastMeasuredMessage.room;
-					}
-
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
