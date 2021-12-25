@@ -86,7 +86,7 @@ export class Tournaments {
 					}
 				}
 
-				const months = Object.keys(this.schedules[server][room].months).map(x => parseInt(x)).sort((a, b) => a - b);
+				const months = Object.keys(this.schedules[server][room].months).map(x => parseInt(x));
 				let month = months[0];
 				months.shift();
 
