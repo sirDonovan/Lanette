@@ -119,6 +119,7 @@ export class Tournaments {
 						months.shift();
 						if (month) {
 							date.setMonth(month - 1, day);
+							if (currentMonth === 11 && month === 1) date.setFullYear(date.getFullYear() + 1);
 
 							times = this.schedules[server][room].months[month].times;
 							lastDayOfMonth = Tools.getLastDayOfMonth(date);
