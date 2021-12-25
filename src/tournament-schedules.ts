@@ -44,6 +44,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'31': 'nu',
 					},
 					times: [[2, 30], [9, 30], [15, 30], [20, 30]],
+					year: 2021,
 				},
 				'1': {
 					formats: {
@@ -80,6 +81,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'31': 'pu',
 					},
 					times: [[2, 30], [9, 30], [15, 30], [20, 30]],
+					year: 2022,
 				},
 			},
 		},
@@ -120,6 +122,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'31': 'vgc2021series11',
 					},
 					times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+					year: 2021,
 				},
 				'1': {
 					formats: {
@@ -156,6 +159,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'31': 'nubl',
 					},
 					times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+					year: 2022,
 				},
 			},
 		},

@@ -17,6 +17,7 @@ export interface IScheduledTournament {
 export interface IMonthlyTournamentSchedule {
 	formats: Dict<string>;
 	times: [number, number][];
+	year: number;
 }
 
 export interface IRoomTournamentSchedule {

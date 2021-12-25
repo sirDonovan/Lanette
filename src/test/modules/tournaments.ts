@@ -61,7 +61,6 @@ describe("Tournaments", () => {
 	it('should properly set scheduled formats according to configured times', () => {
 		const room = Rooms.get('mocha')!;
 		const date = new Date();
-		if (date.getMonth() === 11) date.setFullYear(date.getFullYear() + 1);
 
 		const month = 0;
 		date.setMonth(month);
@@ -73,7 +72,7 @@ describe("Tournaments", () => {
 
 		// 4 officials on 1 day
 		let times: [number, number][] = [[2, 30], [9, 30], [15, 30], [20, 30]];
-		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth] = {formats: {}, times, year: 2021};
 		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
 			schedule.months[scheduleMonth].formats[i] = formats['2'];
@@ -98,7 +97,7 @@ describe("Tournaments", () => {
 
 		// 1 official on day 1, 3 officials on day 2
 		times = [[20, 30], [2, 30], [9, 30], [15, 30]];
-		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth] = {formats: {}, times, year: 2021};
 		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		schedule.months[scheduleMonth].formats['2'] = formats['2'];
 		for (let i = 3; i <= lastDayOfMonth; i++) {
@@ -139,7 +138,7 @@ describe("Tournaments", () => {
 
 		// 2 officials on day 1, 2 officials on day 2
 		times = [[15, 30], [20, 30], [2, 30], [9, 30]];
-		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth] = {formats: {}, times, year: 2021};
 		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
 			schedule.months[scheduleMonth].formats[i] = formats['2'];
@@ -179,7 +178,7 @@ describe("Tournaments", () => {
 
 		// 3 officials on day 1, 1 official on day 2
 		times = [[9, 30], [15, 30], [20, 30], [2, 30]];
-		schedule.months[scheduleMonth] = {formats: {}, times};
+		schedule.months[scheduleMonth] = {formats: {}, times, year: 2021};
 		schedule.months[scheduleMonth].formats['1'] = formats['1'];
 		for (let i = 2; i <= lastDayOfMonth; i++) {
 			schedule.months[scheduleMonth].formats[i] = formats['2'];
