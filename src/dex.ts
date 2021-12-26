@@ -1430,7 +1430,7 @@ export class Dex {
 		return format;
 	}
 
-	getFormatInfoDisplay(format: IFormat): string {
+	getFormatInfoDisplay(format: IFormat, tournamentRoom?: string): string {
 		let info = format.desc || '';
 
 		if (format.info) {
@@ -1467,6 +1467,10 @@ export class Dex {
 
 		if (format.roleCompendium) {
 			links.push('&bull;&nbsp;<a href="' + format.roleCompendium + '">Role compendium</a>');
+		}
+
+		if (tournamentRoom && Config.tournamentRules && tournamentRoom in Config.tournamentRules) {
+			links.push('<br />Please follow the <b><a href="' + Config.tournamentRules[tournamentRoom] + '">tournament rules</a></b>!');
 		}
 
 		if (!info && !links.length) return "";

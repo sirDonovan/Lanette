@@ -218,6 +218,11 @@ export let trackTournamentBattleScores: string[] = [];
 export let randomTournamentTimers: Dict<number> = {};
 
 /**
+ * For each room in the object, the link to the tournament rules
+ */
+ export let tournamentRules: Dict<string> = {};
+
+/**
  * A list of rooms (roomids) where hosted tournaments go through the approval process
  */
 export let allowUserHostedTournaments: string[] = [];

@@ -238,7 +238,7 @@ export class Tournaments {
 			}
 
 			if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
-				const formatInfo = Dex.getFormatInfoDisplay(tournament.format);
+				const formatInfo = Dex.getFormatInfoDisplay(tournament.format, room.id);
 				if (formatInfo) room.sayHtml(formatInfo);
 			}
 
