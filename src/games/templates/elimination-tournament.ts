@@ -1287,7 +1287,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 		if (!this.started) this.updatePlayerHtmlPage(player);
 	}
 
-	onRemovePlayer(player: Player): void {
+	onRemovePlayer(player: Player, notAutoconfirmed?: boolean): void {
+		// allow rejoining on an autoconfirmed account
+		if (notAutoconfirmed) this.tournamentPlayers.delete(player);
+
 		if (!this.started) {
 			const starterPokemon = this.starterPokemon.get(player);
 			if (starterPokemon) {
