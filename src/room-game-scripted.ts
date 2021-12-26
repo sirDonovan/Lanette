@@ -807,14 +807,10 @@ export class ScriptedGame extends Game {
 			failedToJoin = true;
 		}
 
-		if (this.requiresAutoconfirmed) {
-			if (user.autoconfirmed !== null) {
-				if (!user.autoconfirmed) {
-					this.sendNotAutoconfirmed(player);
-					failedToJoin = true;
-				}
-			} else {
-				this.checkPlayerAutoconfirmed(player);
+		if (this.requiresAutoconfirmed && user.autoconfirmed !== null) {
+			if (!user.autoconfirmed) {
+				this.sendNotAutoconfirmed(player);
+				failedToJoin = true;
 			}
 		}
 
@@ -823,94 +819,103 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		let addPlayerResult: boolean | undefined = true;
-		if (this.onAddPlayer) {
-			try {
-				addPlayerResult = this.onAddPlayer(player, this.started);
-			} catch (e) {
-				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddPlayer()");
-				this.errorEnd();
+		const onSuccessfulJoin = (): Player | undefined => {
+			let addPlayerResult: boolean | undefined = true;
+			if (this.onAddPlayer) {
+				try {
+					addPlayerResult = this.onAddPlayer(player, this.started);
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddPlayer()");
+					this.errorEnd();
+					return;
+				}
+			}
+
+			if (!addPlayerResult) {
+				this.destroyPlayer(user, true);
 				return;
 			}
-		}
 
-		if (!addPlayerResult) {
-			this.destroyPlayer(user, true);
-			return;
-		}
+			if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
+				this.lateJoinQueue.push(player);
 
-		if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
-			this.lateJoinQueue.push(player);
+				const presentPlayers: Player[] = [];
+				for (const queuedPlayer of this.lateJoinQueue) {
+					const queuedUser = Users.get(queuedPlayer.name);
+					if (!queuedUser || !queuedUser.rooms.has(this.room as Room)) continue;
+					presentPlayers.push(queuedPlayer);
+				}
 
-			const presentPlayers: Player[] = [];
-			for (const queuedPlayer of this.lateJoinQueue) {
-				const queuedUser = Users.get(queuedPlayer.name);
-				if (!queuedUser || !queuedUser.rooms.has(this.room as Room)) continue;
-				presentPlayers.push(queuedPlayer);
+				if (presentPlayers.length === this.lateJoinQueueSize) {
+					for (const listener of this.commandsListeners) {
+						if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
+					}
+
+					for (const queuedPlayer of presentPlayers) {
+						queuedPlayer.frozen = false;
+						queuedPlayer.sendRoomHighlight("You are now in the game!");
+						this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
+					}
+
+					if (this.onAddLateJoinQueuedPlayers) {
+						try {
+							this.onAddLateJoinQueuedPlayers(presentPlayers);
+						} catch (e) {
+							console.log(e);
+							Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddLateJoinQueuedPlayers()");
+							this.errorEnd();
+							return;
+						}
+					}
+				} else {
+					player.frozen = true;
+					const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
+					player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
+						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
+						this.joinLeaveButtonUhtmlName);
+				}
+
+				return;
 			}
 
-			if (presentPlayers.length === this.lateJoinQueueSize) {
+			if (!this.internalGame && !this.joinNotices.has(user.id)) {
+				this.sendJoinNotice(player);
+				this.joinNotices.add(user.id);
+			}
+
+			if (this.showSignupsHtml && !this.started) {
+				if (!this.signupsHtmlTimeout) {
+					this.signupsHtmlTimeout = setTimeout(() => {
+						this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+						this.signupsHtmlTimeout = null;
+					}, this.getSignupsUpdateDelay());
+				}
+			}
+
+			if (this.started) {
 				for (const listener of this.commandsListeners) {
-					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
-				}
-
-				for (const queuedPlayer of presentPlayers) {
-					queuedPlayer.frozen = false;
-					queuedPlayer.sendRoomHighlight("You are now in the game!");
-					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
-				}
-
-				if (this.onAddLateJoinQueuedPlayers) {
-					try {
-						this.onAddLateJoinQueuedPlayers(presentPlayers);
-					} catch (e) {
-						console.log(e);
-						Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddLateJoinQueuedPlayers()");
-						this.errorEnd();
-						return;
-					}
+					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
 				}
 			} else {
-				player.frozen = true;
-				const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
-				player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
-					(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
-					this.joinLeaveButtonUhtmlName);
+				if (this.playerCap && this.playerCount >= this.playerCap) {
+					if (this.canLateJoin) this.canLateJoin = false;
+					this.start();
+				}
 			}
 
-			return;
-		}
+			return player;
+		};
 
-		if (!this.internalGame && !this.joinNotices.has(user.id)) {
-			this.sendJoinNotice(player);
-			this.joinNotices.add(user.id);
-		}
-
-		if (this.showSignupsHtml && !this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
-		}
-
-		if (this.started) {
-			for (const listener of this.commandsListeners) {
-				if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
-			}
+		if (this.requiresAutoconfirmed && user.autoconfirmed === null) {
+			this.checkPlayerAutoconfirmed(player, onSuccessfulJoin);
+			return player;
 		} else {
-			if (this.playerCap && this.playerCount >= this.playerCap) {
-				if (this.canLateJoin) this.canLateJoin = false;
-				this.start();
-			}
+			return onSuccessfulJoin();
 		}
-
-		return player;
 	}
 
-	removePlayer(user: User | string, silent?: boolean): void {
+	removePlayer(user: User | string, silent?: boolean, notAutoconfirmed?: boolean): void {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (!player) return;
@@ -941,7 +946,7 @@ export class ScriptedGame extends Game {
 
 		if (this.onRemovePlayer) {
 			try {
-				this.onRemovePlayer(player);
+				this.onRemovePlayer(player, notAutoconfirmed);
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onRemovePlayer()");
@@ -981,13 +986,15 @@ export class ScriptedGame extends Game {
 		player.say("You must be autoconfirmed to participate in " + this.name + ".");
 	}
 
-	checkPlayerAutoconfirmed(player: Player): void {
+	checkPlayerAutoconfirmed(player: Player, autoconfirmedCallback: () => void): void {
 		const user = Users.get(player.name);
 		if (!user || user.autoconfirmed !== null) return;
 
 		Client.getUserDetails(user, (checkedUser) => {
-			if (!checkedUser.autoconfirmed) {
-				this.removePlayer(checkedUser);
+			if (checkedUser.autoconfirmed) {
+				autoconfirmedCallback();
+			} else {
+				this.removePlayer(checkedUser, true, true);
 				this.sendNotAutoconfirmed(player);
 			}
 		});
@@ -1362,7 +1369,7 @@ export class ScriptedGame extends Game {
 	onEliminatePlayer?(player: Player, eliminator?: Player | null): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;
-	onRemovePlayer?(player: Player): void;
+	onRemovePlayer?(player: Player, notAutoconfirmed?: boolean): void;
 	onSignups?(): void;
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */

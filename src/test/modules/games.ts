@@ -71,6 +71,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			if (testConfig.async) {
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
 					try {
@@ -85,6 +86,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			} else {
 				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
 					try {
