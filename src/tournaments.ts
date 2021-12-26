@@ -145,6 +145,8 @@ export class Tournaments {
 
 					if (!rolledOverDay) rolloverDay();
 				}
+
+				this.scheduledTournaments[server][room].sort((a, b) => a.time - b.time);
 			}
 		}
 	}
