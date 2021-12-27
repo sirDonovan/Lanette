@@ -25,10 +25,6 @@ class BonslysCategoryClutters extends QuestionAndAnswer {
 
 		this.cachedData.hintKeys = hintKeys;
 	}
-
-	onSignups(): void {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-	}
 }
 
 export const game: IGameFile<BonslysCategoryClutters> = Games.copyTemplateProperties(questionAndAnswerGame, {
@@ -44,4 +40,11 @@ export const game: IGameFile<BonslysCategoryClutters> = Games.copyTemplateProper
 	minigameCommandAliases: ['bclutter'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the category of the given Pokemon!",
 	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
+	variants: [
+		{
+			name: "Bonsly's Category Clutters (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

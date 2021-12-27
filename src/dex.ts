@@ -1067,6 +1067,10 @@ export class Dex {
 		return !!this.getModelData(pokemon, generation, direction);
 	}
 
+	getPlaceholderSprite(): string {
+		return '<img src="//' + Tools.mainServer + '/sprites/gen5/0.png" width="96" height="96" />';
+	}
+
 	getPokemonModel(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
 		if (!generation) generation = 'xy';
 

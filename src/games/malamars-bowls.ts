@@ -102,29 +102,36 @@ class MalamarsBowls extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		this.generateBowls();
 
-		this.hint = "<b>" + Users.self.name + " grabbed</b>: ";
+		this.hint = "<b>" + Users.self.name + " grabbed</b>: " + (this.pokemonGifHints ? "<br />" : "");
 
 		this.hintUpdates = 0;
 		this.answers = [this.roundParameters.map(x => x.param).join(",")];
-		return "";
 	}
 
 	updateHint(): void {
-		const nextPokemon = Dex.getExistingPokemon(this.roundPokemon[0]).name;
-		this.roundPokemon.shift();
-
-		this.hintUpdates++;
-		if (this.hintUpdates === 1) {
-			this.bowlsRound++;
-			this.hint += nextPokemon;
-		} else {
-			this.hint += ", " + nextPokemon;
+		while (this.pokemonGifHints && !this.getHintKeyGif(this.roundPokemon[0])) {
+			if (!this.roundPokemon.length) break;
+			this.roundPokemon.shift();
 		}
 
-		this.roundGuesses.clear();
+		if (this.roundPokemon.length) {
+			const nextPokemon = Dex.getExistingPokemon(this.roundPokemon[0]).name;
+			this.roundPokemon.shift();
+			const nextHint = this.getHintKeyGif(nextPokemon) || nextPokemon;
+
+			this.hintUpdates++;
+			if (this.hintUpdates === 1) {
+				this.bowlsRound++;
+				this.hint += nextHint;
+			} else {
+				this.hint += ", " + nextHint;
+			}
+
+			this.roundGuesses.clear();
+		}
 	}
 
 	onHintHtml(): void {
@@ -199,4 +206,11 @@ export const game: IGameFile<MalamarsBowls> = Games.copyTemplateProperties(quest
 	name: "Malamar's Bowls",
 	mascot: "Malamar",
 	nonTrivialLoadData: true,
+	variants: [
+		{
+			name: "Malamar's Bowls (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

@@ -31,6 +31,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	minimumAnswersPerHint: number = 0;
 	multiRoundHints: boolean = false;
 	readonly points = new Map<Player, number>();
+	pokemonGifHints: boolean = false;
 	previousHint: string = '';
 	questionAndAnswerRound: number = 0;
 	roundTime: number = 10 * 1000;
@@ -169,7 +170,10 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 				}
 			} else {
 				if (!this.customGenerateHint) throw new Error("No customGenerateHint() method defined");
-				return await this.customGenerateHint();
+				await this.customGenerateHint();
+
+				if (!this.hint && !this.ended) throw new Error("No hint set");
+				return this.hint;
 			}
 		} catch (e) {
 			console.log(e);
@@ -179,21 +183,53 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 	}
 
+	getHintKeyGif(hintKey: string): string | undefined {
+		if (this.pokemonGifHints) {
+			const pokemon = Dex.getPokemon(hintKey);
+			if (pokemon) return Dex.getPokemonModel(pokemon);
+		}
+	}
+
 	async setGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): Promise<string> {
 		if (hintAnswers) {
 			this.answers = hintKey in hintAnswers ? hintAnswers[hintKey] : [];
+
 			const hintPrefix = this.hintPrefix || this.currentCategory;
-			this.hint = (hintPrefix ? "<b>" + hintPrefix + "</b>: <i>" : "") + hintKey + (hintPrefix ? "</i>" : "");
+			const hintKeyGif = this.getHintKeyGif(hintKey);
+
+			let hint = "";
+			if (hintPrefix) {
+				hint += "<b>" + hintPrefix + "</b>:";
+				if (hintKeyGif) {
+					hint += "<br />";
+				} else {
+					hint += " <i>";
+				}
+			}
+
+			if (hintKeyGif) {
+				hint += "<center>" + hintKeyGif + "</center>";
+			} else {
+				hint += hintKey;
+				if (hintPrefix) hint += "</i>";
+			}
+
+			this.hint = hint;
 		} else {
 			if (!this.onSetGeneratedHint) throw new Error("No onSetGeneratedHint() method defined");
 			this.answers = [hintKey];
 		}
 
 		if (this.onSetGeneratedHint) {
-			hintKey = await this.onSetGeneratedHint(hintKey, hintAnswers);
+			await this.onSetGeneratedHint(hintKey, hintAnswers);
+		} else {
+			if (this.pokemonGifHints && !this.getHintKeyGif(hintKey)) {
+				return await this.generateHint();
+			}
 		}
 
-		return hintKey;
+		if (!this.hint && !this.ended) throw new Error("No hint set");
+		return this.hint;
 	}
 
 	async setNextAnswer(): Promise<void> {
@@ -508,12 +544,12 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	beforeNextRound?(newAnswer: boolean): boolean | string;
 	filterGuess?(guess: string, player?: Player): boolean;
-	customGenerateHint?(): Promise<string> | string;
+	customGenerateHint?(): Promise<void>;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
 	onCorrectGuess?(player: Player, guess: string): void;
 	onHintHtml?(): void;
 	onIncorrectGuess?(player: Player, guess: string): string;
-	onSetGeneratedHint?(hintKey: string, hintAnswers?: Dict<readonly string[]>): Promise<string> | string;
+	onSetGeneratedHint?(hintKey: string, hintAnswers?: Dict<readonly string[]>): Promise<void>;
 	updateHint?(): void;
 }
 

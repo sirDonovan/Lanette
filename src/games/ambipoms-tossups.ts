@@ -43,7 +43,8 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		return this.hints.join(" ");
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		this.revealedLetters = 0;
 		this.hintUpdates = 0;
 		this.roundGuesses.clear();
@@ -57,7 +58,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 			this.hints[i] = Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i];
 		}
 
-		return this.getHintKey();
+		this.setHintHtml();
 	}
 
 	updateHint(): void {
@@ -73,6 +74,10 @@ class AmbipomsTossups extends QuestionAndAnswer {
 			this.revealedLetters++;
 		}
 
+		this.setHintHtml();
+	}
+
+	setHintHtml(): void {
 		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey();
 	}
 

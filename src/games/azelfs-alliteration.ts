@@ -65,18 +65,25 @@ class AzelfsAlliteration extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(baseHintKey: string, hintAnswers: Dict<readonly string[]>): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string, hintAnswers: Dict<readonly string[]>): Promise<void> {
 		let pokemon = this.sampleOne(AzelfsAlliteration.cachedData.hintKeys!);
 		let letter = pokemon.charAt(0).toLowerCase();
-		while (!(letter in hintAnswers) || !hintAnswers[letter].length) {
+		while (!(letter in hintAnswers) || !hintAnswers[letter].length || (this.pokemonGifHints && !this.getHintKeyGif(pokemon))) {
 			pokemon = this.sampleOne(AzelfsAlliteration.cachedData.hintKeys!);
 			letter = pokemon.charAt(0).toLowerCase();
 		}
 
 		this.answers = hintAnswers[letter];
-		const hintKey = pokemon + " - " + this.currentCategory;
-		this.hint = "<b>Randomly generated Pokemon and category</b>: <i>" + hintKey + "</i>";
-		return hintKey;
+
+		let hint = "<b>Randomly generated Pokemon and category</b>:";
+		if (this.pokemonGifHints) {
+			hint += "<br /><center>" + this.getHintKeyGif(pokemon) + "<br />" +
+				this.currentCategory.charAt(0).toUpperCase() + this.currentCategory.substr(1) + "</center>";
+		} else {
+			hint += " <i>" + pokemon + " - " + this.currentCategory + "</i>";
+		}
+		this.hint = hint;
 	}
 }
 
@@ -95,4 +102,11 @@ export const game: IGameFile<AzelfsAlliteration> = Games.copyTemplateProperties(
 		"Pokemon's name!",
 	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
 	nonTrivialLoadData: true,
+	variants: [
+		{
+			name: "Azelf's Alliteration (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

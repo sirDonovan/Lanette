@@ -24,12 +24,21 @@ class EeveesEvolutionaryLines extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async onSetGeneratedHint(hintKey: string): Promise<string> {
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const evolutionLines = hintKey.split("|").map(x => x.split(","));
 		const branchEvolution = evolutionLines.length > 1;
 		const hiddenLine = this.sampleOne(evolutionLines);
 		const lineHints: string[] = [];
 		for (const line of evolutionLines) {
+			if (this.pokemonGifHints) {
+				for (const pokemon of line) {
+					if (!this.getHintKeyGif(pokemon)) {
+						await this.generateHint();
+						return;
+					}
+				}
+			}
+
 			if (line === hiddenLine) {
 				let hidden = this.sampleOne(line);
 				while (branchEvolution && hidden === line[0]) {
@@ -37,14 +46,22 @@ class EeveesEvolutionaryLines extends QuestionAndAnswer {
 				}
 
 				this.answers = [hidden];
-				lineHints.push(line.map(x => x === hidden ? HIDDEN_POKEMON : x).join(", "));
+				lineHints.push(line.map(x => {
+					if (x === hidden) return this.pokemonGifHints ? Dex.getPlaceholderSprite() : HIDDEN_POKEMON;
+					return this.getHintKeyGif(x) || x;
+				}).join(this.pokemonGifHints ? "-> " : ", "));
 			} else {
-				lineHints.push(line.join(", "));
+				lineHints.push(line.map(x => this.getHintKeyGif(x) || x).join(this.pokemonGifHints ? "-> " : ", "));
 			}
 		}
 
-		this.hint = "<b>Randomly generated evolution line</b>: <i>" + lineHints.join(" or ") + "</i>";
-		return hintKey;
+		let hint = "<b>Randomly generated evolution line" + (branchEvolution ? "s" : "") + "</b>:";
+		if (this.pokemonGifHints) {
+			hint += "<br /><center>" + lineHints.join(" or ") + "</center>";
+		} else {
+			hint += " <i>" + lineHints.join(" or ") + "</i>";
+		}
+		this.hint = hint;
 	}
 }
 
@@ -63,4 +80,11 @@ export const game: IGameFile<EeveesEvolutionaryLines> = Games.copyTemplateProper
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon that is missing from the given " +
 		"evolution line!",
 	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
+	variants: [
+		{
+			name: "Eevee's Evolutionary Lines (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

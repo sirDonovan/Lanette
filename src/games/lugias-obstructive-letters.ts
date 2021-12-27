@@ -81,7 +81,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	async onSetGeneratedHint(baseHintKey: string): Promise<string> {
+	async onSetGeneratedHint(baseHintKey: string): Promise<void> {
 		const unavailableLetters = this.sampleMany(LugiasObstructiveLetters.availableLetters[baseHintKey],
 			Math.floor(LugiasObstructiveLetters.availableLetters[baseHintKey].length / 2)).sort();
 		const answers: string[] = [];
@@ -101,13 +101,12 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 		}
 
 		if (answers.length > MAX_ANSWERS) {
-			return await this.generateHint();
+			await this.generateHint();
+			return;
 		}
 
 		this.answers = answers;
-		const hintKey = unavailableLetters.join(", ").toUpperCase();
-		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + hintKey + "</i>";
-		return hintKey;
+		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + unavailableLetters.join(", ").toUpperCase() + "</i>";
 	}
 
 	getPointsForAnswer(answer: string): number {

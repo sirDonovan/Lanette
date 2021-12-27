@@ -31,7 +31,8 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "";
 	}
 
-	onSetGeneratedHint(): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(): Promise<void> {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {
 			numberOfElements = this.options.names!;
@@ -97,7 +98,6 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			Tools.getPermutations(elements).map(x => x.join("")));
 		this.hint = "<b>" + this.currentCategory + "</b>: <i>" + mashup + "</i>";
 		this.additionalHintHeader = "- " + numberOfElements + " names";
-		return mashup;
 	}
 }
 

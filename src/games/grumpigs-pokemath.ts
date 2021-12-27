@@ -89,7 +89,7 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let operation = this.sampleOne(OPERATIONS);
 		while (operation === this.lastOperation) {
 			operation = this.sampleOne(OPERATIONS);
@@ -109,13 +109,30 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 		}
 
 		const operandsAndResult = this.getOperandsAndResult(operation, operandsCount);
+		if (this.pokemonGifHints) {
+			for (const pokemon of operandsAndResult.operands) {
+				if (!this.getHintKeyGif(GrumpigsPokemath.pokemonByNumber[pokemon][0])) {
+					await this.generateHint();
+					return;
+				}
+			}
+		}
+
 		this.lastResult = operandsAndResult.result;
 
 		this.answers = GrumpigsPokemath.pokemonByNumber[operandsAndResult.result];
 
-		this.hint = "<b>" + operandsAndResult.operands.map(x => GrumpigsPokemath.pokemonByNumber[x][0]).join(" " +
-			OPERATION_SYMBOLS[operation] + " ") + " = ?</b>";
-		return "";
+		let hint = "<b>";
+		if (this.pokemonGifHints) hint += "<center>";
+
+		hint += operandsAndResult.operands
+			.map(x => this.getHintKeyGif(GrumpigsPokemath.pokemonByNumber[x][0]) || GrumpigsPokemath.pokemonByNumber[x][0]).join(" " +
+			OPERATION_SYMBOLS[operation] + " ") + " = ?";
+
+		if (this.pokemonGifHints) hint += "</center>";
+		hint += "</b>";
+
+		this.hint = hint;
 	}
 
 	increaseDifficulty(): void {
@@ -168,4 +185,11 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 		},
 	},
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
+	variants: [
+		{
+			name: "Grumpig's Pokemath (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

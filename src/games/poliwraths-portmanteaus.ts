@@ -22,7 +22,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		Games.getWorkers().portmanteaus.init();
 	}
 
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let numberOfPorts: number;
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
@@ -44,12 +44,12 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 		});
 
-		if (this.ended) return "";
+		if (this.ended) return;
 
 		if (result === null) {
 			this.say("An error occurred while generating a portmanteau.");
 			this.deallocate(true);
-			return "";
+			return;
 		}
 
 		if (!result.answers.length) {
@@ -62,8 +62,6 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			this.hint = "<b>" + result.ports.join(" ") + "</b>";
 			this.prng = new PRNG(result.prngSeed);
 		}
-
-		return "";
 	}
 
 	getAnswers(givenAnswer?: string): readonly string[] {

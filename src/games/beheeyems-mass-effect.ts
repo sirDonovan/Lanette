@@ -72,12 +72,6 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
-
-	onSignups(): void {
-		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
-		}
-	}
 }
 
 export const game: IGameFile<BeheeyemsMassEffect> = Games.copyTemplateProperties(questionAndAnswerGame, {

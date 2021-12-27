@@ -48,10 +48,6 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		}
 	}
 
-	onSignups(): void {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-	}
-
 	onStart(): void {
 		this.nextRound();
 	}
@@ -77,7 +73,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		return data.gifData[pokemon].h + ADDITIONAL_HEIGHT;
 	}
 
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		const pokemonPerGridRow = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
 		const rowsPerGrid = MIN_POKEMON + this.random((1 + MAX_POKEMON) - MIN_POKEMON);
 
@@ -144,7 +140,7 @@ class DeoxysDifferences extends QuestionAndAnswer {
 
 		this.answers = [Tools.toId(letters[differenceCoordinates[0]] + differenceCoordinates[1]),
 			Tools.toId(letters[differenceCoordinates[0] + pokemonPerGridRow] + differenceCoordinates[1])];
-		return "";
+		this.hint = "unused";
 	}
 
 	generateDifferenceCoordinates(pokemonPerGridRow: number, rowsPerGrid: number): [number, number] {

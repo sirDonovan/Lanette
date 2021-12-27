@@ -44,12 +44,11 @@ class GreninjasTypings extends QuestionAndAnswer {
 		this.cachedData.inverseHintAnswers = inverseHints;
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		if (this.inverse) {
 			this.answers = this.answers.concat(GreninjasTypings.cachedData.hintAnswers![hintKey]);
 		}
-
-		return hintKey;
 	}
 }
 
