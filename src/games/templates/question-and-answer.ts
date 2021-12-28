@@ -186,7 +186,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	getHintKeyGif(hintKey: string): string | undefined {
 		if (this.pokemonGifHints) {
 			const pokemon = Dex.getPokemon(hintKey);
-			if (pokemon) return Dex.getPokemonModel(pokemon);
+			if (pokemon && Dex.hasModelData(pokemon)) return Dex.getPokemonModel(pokemon);
 		}
 	}
 
