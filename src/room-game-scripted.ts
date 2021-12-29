@@ -578,7 +578,7 @@ export class ScriptedGame extends Game {
 		}
 
 		let html = this.getMascotAndNameHtml(additionalSpanText);
-		if (this.started && !this.options.freejoin && this.canLateJoin) {
+		if (this.started && !this.options.freejoin && this.canLateJoin && (!this.playerCap || this.playerCount < this.playerCap)) {
 			html += "&nbsp;-&nbsp;" + this.getLateJoinButtonHtml();
 		}
 		html += "<br />&nbsp;";
