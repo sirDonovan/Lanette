@@ -2,6 +2,7 @@ import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import type { GameCommandDefinitions, IGameFile, IGameFormat } from "../../types/games";
+import type { IGameCustomBox } from "../../types/storage";
 
 const timeLimit = 30 * 1000;
 
@@ -112,8 +113,9 @@ export class Vote extends ScriptedGame {
 		return false;
 	}
 
-	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, buttonStyle?: string): string {
-		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + inputTarget, text, false, buttonStyle);
+	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, customBox?: IGameCustomBox): string {
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + inputTarget, text, false,
+			customBox ? Games.getCustomBoxButtonStyle(customBox) : "");
 	}
 
 	sendPrivateVoteHtml(player: Player, format: IGameFormat, pm: boolean, anonymous: boolean): void {
@@ -130,6 +132,9 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
+		const customBox = this.getPlayerOrPickedCustomBox(player);
+		const voteCommand = anonymous ? 'pmvote' : pm ? 'vote' : 'buttonvote';
+		let variantsHtml = "";
 		if (!format.variant && format.variants) {
 			for (const variantData of format.variants) {
 				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
@@ -147,17 +152,15 @@ export class Vote extends ScriptedGame {
 					}
 				}
 			}
-		}
 
-		const voteCommand = anonymous ? 'pmvote' : pm ? 'vote' : 'buttonvote';
-
-		let variantsHtml = "";
-		if (variants.length) {
-			variantsHtml += "<details><summary><b>Votable variants</b></summary>";
-			for (const variant of variants) {
-				variantsHtml += this.getPmVoteButton(voteCommand, variant.inputTarget, variant.nameWithOptions);
+			if (variants.length) {
+				for (const variant of variants) {
+					variantsHtml += this.getPmVoteButton(voteCommand, variant.inputTarget, variant.nameWithOptions, customBox);
+				}
 			}
-			variantsHtml += "</details>";
+		} else if (format.variant) {
+			variantsHtml += this.getPmVoteButton(voteCommand, format.id + (format.mode ? ", " + format.mode.id : ""),
+				"Choose a different variant", customBox);
 		}
 
 		let modesHtml = "";
@@ -169,20 +172,35 @@ export class Vote extends ScriptedGame {
 			}
 
 			if (modes.length) {
-				modesHtml += "<details><summary><b>Votable modes</b></summary>";
 				for (const mode of modes) {
-					modesHtml += this.getPmVoteButton(voteCommand, mode.inputTarget, mode.nameWithOptions);
+					modesHtml += this.getPmVoteButton(voteCommand, mode.inputTarget, mode.nameWithOptions, customBox);
 				}
-				modesHtml += "</details>";
 			}
+		} else if (format.mode) {
+			modesHtml += this.getPmVoteButton(voteCommand, format.id + (format.variant ? ", " + format.variant.variantAliases[0] : ""),
+				"Choose a different mode", customBox);
 		}
 
 		let html = "You have voted for <b>" + format.nameWithOptions + "</b>!";
 		if (variantsHtml || modesHtml) {
-			html += "<br /><br />";
+			const both = variantsHtml && modesHtml;
+			html += " Consider adding a ";
+			if (both) {
+				html += "variant and/or mode";
+			} else if (variantsHtml) {
+				html += "variant";
+			} else {
+				html += "mode";
+			}
+			html += " to mix up gameplay:<br /><br />";
+
 			html += variantsHtml;
-			if (variantsHtml && modesHtml) html += "<br />";
+			if (both) html += "<br /><br />";
 			html += modesHtml;
+
+			if (format.variant && format.mode) {
+				html += "<br /><br />" + this.getPmVoteButton(voteCommand, format.id, "Clear all", customBox);
+			}
 		}
 
 		if (pm) {
