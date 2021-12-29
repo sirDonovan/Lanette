@@ -464,6 +464,8 @@ export class ScriptedGame extends Game {
 
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+			this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+
 			const signupsEndMessage = this.getSignupsEndMessage();
 			if (this.signupsRefreshed) {
 				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
