@@ -782,23 +782,35 @@ export const commands: BaseCommandDefinitions = {
 
 			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 
+			const gameCategories = Games.getCategoryNames();
+			let category = Tools.toId(target);
+			let variant = "";
+			if (!(category in gameCategories)) {
+				variant = category;
+				category = "";
+			}
+
 			const minigameCommands: string[] = [];
-			const category = Tools.toId(target);
 			const minigameCommandNames = Games.getMinigameCommandNames();
 			for (const i in minigameCommandNames) {
 				const format = Games.getExistingFormat(minigameCommandNames[i].format);
 				if (format.disabled) continue;
-				if (!category || Tools.toId(format.category) === category) {
-					minigameCommands.push(i);
-				}
+				if (category && Tools.toId(format.category) !== category) continue;
+				if (variant && Array.isArray(Games.getFormat(format.name + ", " + variant))) continue;
+				minigameCommands.push(i);
 			}
 
 			if (!minigameCommands.length) {
-				return this.say((category ? "There are no minigames in the category '" + target.trim() + "'" : "A random minigame could " +
-					"not be chosen") + ".");
+				if (category) {
+					return this.say("There are no minigames in the category '" + target.trim() + "'.");
+				}
+				if (variant) {
+					return this.say("There are no minigames with a '" + target.trim() + "' variant.");
+				}
+				return this.say("A random minigame could not be chosen.");
 			}
 
-			this.run(Tools.sampleOne(minigameCommands), "");
+			this.run(Tools.sampleOne(minigameCommands), variant || "");
 		},
 		aliases: ['minigame', 'randminigame', 'rminigame'],
 		syntax: ["{category}"],

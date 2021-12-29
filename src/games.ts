@@ -27,6 +27,7 @@ type LastChallengeTimes = KeyedDict<GameChallenge, Dict<Dict<number>>>;
 type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
 type Modes = Dict<IGameMode>;
 type UserHostedFormats = Dict<IUserHostedComputed>;
+type GameCategoryNames = Readonly<KeyedDict<GameCategory, string>>;
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
@@ -47,7 +48,7 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 
-const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
+const categoryNames: GameCategoryNames = {
 	'chain': 'Chain',
 	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
@@ -183,6 +184,10 @@ export class Games {
 
 	getInternalFormats(): Readonly<InternalFormats> {
 		return this.internalFormats;
+	}
+
+	getCategoryNames(): GameCategoryNames {
+		return categoryNames;
 	}
 
 	getMaxMoveAvailability(): number {
@@ -585,6 +590,7 @@ export class Games {
 							return;
 						}
 					}
+
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
