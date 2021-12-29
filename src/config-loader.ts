@@ -111,6 +111,7 @@ export function load(config: typeof Config): typeof Config {
 		config.disallowQueueingPastTournaments = arrayToRoomIds(config.disallowQueueingPastTournaments);
 	}
 	if (config.tournamentAutoDQTimers) objectKeysToRoomId(config.tournamentAutoDQTimers);
+	if (config.tournamentRandomAutoDQTimers) objectKeysToRoomId(config.tournamentRandomAutoDQTimers);
 	if (config.adjustTournamentCaps) config.adjustTournamentCaps = arrayToRoomIds(config.adjustTournamentCaps);
 	if (config.trackTournamentBattleScores) config.trackTournamentBattleScores = arrayToRoomIds(config.trackTournamentBattleScores);
 	if (config.tournamentStartTimers) objectKeysToRoomId(config.tournamentStartTimers);

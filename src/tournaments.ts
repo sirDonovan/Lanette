@@ -205,9 +205,16 @@ export class Tournaments {
 
 			if (tournament.playerCap) room.autoStartTournament();
 
-			if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
-				room.setTournamentAutoDq(Config.tournamentAutoDQTimers[room.id]);
-				tournament.setAutoDqMinutes(Config.tournamentAutoDQTimers[room.id]);
+			let autoDQ: number | undefined;
+			if (Config.tournamentRandomAutoDQTimers && room.id in Config.tournamentRandomAutoDQTimers && tournament.format.team) {
+				autoDQ = Config.tournamentRandomAutoDQTimers[room.id];
+			} else if (Config.tournamentAutoDQTimers && room.id in Config.tournamentAutoDQTimers) {
+				autoDQ = Config.tournamentAutoDQTimers[room.id];
+			}
+
+			if (autoDQ) {
+				room.setTournamentAutoDq(autoDQ);
+				tournament.setAutoDqMinutes(autoDQ);
 			}
 
 			if ((!tournament.format.team && Config.disallowTournamentScouting && Config.disallowTournamentScouting.includes(room.id)) ||
