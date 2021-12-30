@@ -747,7 +747,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const minutes = parseInt(target.trim());
-			if (isNaN(minutes) || minutes < 2 || minutes > 5) return this.say("You must specify a number of minutes between 2 and 5.");
+			if (isNaN(minutes) || minutes < 1 || minutes > 4) return this.say("You must specify a number of minutes between 1 and 4.");
 			room.userHostedGame.setStartTimer(minutes);
 			this.say("The game will start in " + minutes + " minutes.");
 		},
