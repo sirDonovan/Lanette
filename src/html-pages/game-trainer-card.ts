@@ -1,20 +1,23 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
-import type { IGameTrainerCard } from "../types/storage";
+import type { IDatabase, IGameTrainerCard } from "../types/storage";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
+import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { HtmlPageBase } from "./html-page-base";
+import type { PokemonChoices } from "./game-host-control-panel";
+import { PokemonTextInput } from "./components/pokemon-text-input";
 
 const baseCommand = 'gametrainercard';
-const setPokemonCommand = 'setpokemon';
 const previewCommand = 'preview';
-const setPokemonSeparateCommand = 'gtcpokemon';
 const chooseBackgroundColorPicker = 'choosebackgroundcolorpicker';
 const chooseTrainerPicker = 'choosetrainerpicker';
+const choosePokemonPicker = 'choosepokemonpicker';
 const setBackgroundColorCommand = 'setbackgroundcolor';
+const setPokemonCommand = 'setpokemon';
 const setTrainerCommand = 'settrainer';
 const closeCommand = 'close';
 
@@ -23,12 +26,15 @@ const pages: Dict<GameTrainerCard> = {};
 class GameTrainerCard extends HtmlPageBase {
 	pageId = 'game-trainer-card';
 
-	currentPicker: 'background' | 'trainer' = 'background';
+	currentPicker: 'background' | 'trainer' | 'pokemon' = 'background';
+	currentPokemon: PokemonChoices = [];
 
 	backgroundColorPicker: ColorPicker;
 	trainerPicker: TrainerPicker;
+	pokemonPicker: PokemonTextInput;
+	maxIcons: number;
 
-	constructor(room: Room, user: User) {
+	constructor(room: Room, user: User, maxIcons: number) {
 		super(room, user, baseCommand);
 
 		const database = Storage.getDatabase(this.room);
@@ -53,13 +59,41 @@ class GameTrainerCard extends HtmlPageBase {
 		});
 		this.trainerPicker.active = false;
 
-		this.components = [this.backgroundColorPicker, this.trainerPicker];
+		PokemonPickerBase.loadData();
+
+		this.pokemonPicker = new PokemonTextInput(room, this.commandPrefix, setPokemonCommand, {
+			gif: false,
+			currentInput: trainerCard ? trainerCard.pokemon.join(", ") : "",
+			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
+			inputWidth: Tools.minRoomWidth,
+			minPokemon: 1,
+			maxPokemon: maxIcons,
+			placeholder: "Enter all Pokemon",
+			clearText: "Clear all",
+			submitText: "Update all",
+			onClear: () => this.clearPokemonInput(),
+			onErrors: () => this.send(),
+			onSubmit: (output) => this.submitAllPokemonInput(output),
+			reRender: () => this.send(),
+		});
+		this.pokemonPicker.active = false;
+
+		this.components = [this.backgroundColorPicker, this.trainerPicker, this.pokemonPicker];
+
+		this.maxIcons = maxIcons;
 
 		pages[this.userId] = this;
 	}
 
 	onClose(): void {
 		delete pages[this.userId];
+	}
+
+	getDatabase(): IDatabase {
+		const database = Storage.getDatabase(this.room);
+		Storage.createGameTrainerCard(database, this.userId);
+
+		return database;
 	}
 
 	chooseBackgroundColorPicker(): void {
@@ -82,6 +116,17 @@ class GameTrainerCard extends HtmlPageBase {
 		this.send();
 	}
 
+	choosePokemonPicker(): void {
+		if (this.currentPicker === 'pokemon') return;
+
+		this.pokemonPicker.active = true;
+		this.backgroundColorPicker.active = false;
+		this.trainerPicker.active = false;
+		this.currentPicker = 'pokemon';
+
+		this.send();
+	}
+
 	pickBackgroundHueVariation(dontRender?: boolean): void {
 		if (!dontRender) this.send();
 	}
@@ -91,16 +136,14 @@ class GameTrainerCard extends HtmlPageBase {
 	}
 
 	clearBackgroundColor(dontRender?: boolean): void {
-		const database = Storage.getDatabase(this.room);
-		Storage.createGameTrainerCard(database, this.userId);
+		const database = this.getDatabase();
 		delete database.gameTrainerCards![this.userId].background;
 
 		if (!dontRender) this.send();
 	}
 
 	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
-		const database = Storage.getDatabase(this.room);
-		Storage.createGameTrainerCard(database, this.userId);
+		const database = this.getDatabase();
 		database.gameTrainerCards![this.userId].background = color.hexCode;
 
 		if (!dontRender) this.send();
@@ -111,19 +154,38 @@ class GameTrainerCard extends HtmlPageBase {
 	}
 
 	clearTrainer(dontRender?: boolean): void {
-		const database = Storage.getDatabase(this.room);
-		Storage.createGameTrainerCard(database, this.userId);
+		const database = this.getDatabase();
 		delete database.gameTrainerCards![this.userId].avatar;
 
 		if (!dontRender) this.send();
 	}
 
 	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
-		const database = Storage.getDatabase(this.room);
-		Storage.createGameTrainerCard(database, this.userId);
+		const database = this.getDatabase();
 		database.gameTrainerCards![this.userId].avatar = trainer.trainer;
 
 		if (!dontRender) this.send();
+	}
+
+	clearPokemonInput(): void {
+		this.currentPokemon = [];
+
+		this.storePokemon();
+
+		this.send();
+	}
+
+	submitAllPokemonInput(output: PokemonChoices): void {
+		this.currentPokemon = output;
+
+		this.storePokemon();
+
+		this.send();
+	}
+
+	storePokemon(): void {
+		const database = this.getDatabase();
+		database.gameTrainerCards![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined).map(x => x!.pokemon);
 	}
 
 	render(): string {
@@ -144,22 +206,25 @@ class GameTrainerCard extends HtmlPageBase {
 		html += "<br />";
 		html += "</center>";
 
-		html += "<b>Pokemon icons</b><br />";
-		html += "Choose your icons by PMing " + Users.self.name + " <code>" + Config.commandCharacter + setPokemonSeparateCommand + " " +
-			this.room.title + ", [Pokemon], [Pokemon], [...]</code>";
+		const background = this.currentPicker === 'background';
+		const trainer = this.currentPicker === 'trainer';
+		const pokemon = this.currentPicker === 'pokemon';
+
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background", background);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer", trainer);
+		if (this.maxIcons) {
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonPicker, "Pokemon", pokemon);
+		}
 		html += "<br /><br />";
 
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
-			this.currentPicker === 'background');
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
-			this.currentPicker === 'trainer');
-		html += "<br /><br />";
-
-		if (this.currentPicker === 'background') {
+		if (background) {
 			html += "<b>Background color</b><br />";
 			html += this.backgroundColorPicker.render();
-		} else {
+		} else if (trainer) {
 			html += this.trainerPicker.render();
+		} else {
+			html += "<b>Pokemon icon</b><br />";
+			html += this.pokemonPicker.render();
 		}
 
 		html += "</div>";
@@ -195,86 +260,57 @@ export const commands: BaseCommandDefinitions = {
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();
 
+			let maxIcons = checkBits ? 0 : 6;
+			if (checkBits && (!cmd || !(user.id in pages))) {
+				for (let i = 6; i >= 1; i--) {
+					let requirement: 'one' | 'two' | 'three' | 'four' | 'five' | 'six';
+					if (i === 6) {
+						requirement = 'six';
+					} else if (i === 5) {
+						requirement = 'five';
+					} else if (i === 4) {
+						requirement = 'four';
+					} else if (i === 3) {
+						requirement = 'three';
+					} else if (i === 2) {
+						requirement = 'two';
+					} else {
+						requirement = 'one';
+					}
+
+					const requiredBits = Config.gameTrainerCardRequirements[targetRoom.id].pokemon[requirement];
+					if (requiredBits > 0 && annualBits >= requiredBits) {
+						maxIcons = i;
+						break;
+					}
+				}
+			}
+
 			if (!cmd) {
-				new GameTrainerCard(targetRoom, user).open();
+				new GameTrainerCard(targetRoom, user, maxIcons).open();
 			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
 				const trainerCard = Games.getTrainerCardHtml(targetRoom, user.name);
 				if (!trainerCard) return this.say("You do not have a game trainer card.");
 				targetRoom.pmUhtml(user, targetRoom.id + "-game-trainer-card", trainerCard);
-			} else if (cmd === setPokemonCommand || cmd === 'seticon' || cmd === 'seticons') {
-				if (checkBits && Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one > 0 &&
-					annualBits < Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one) {
-					return this.say("You need at least " + Config.gameTrainerCardRequirements[targetRoom.id].pokemon.one + " annual " +
-						"bits to add a Pokemon icon to your game trainer card.");
-				}
-
-				const selectedPokemon: string[] = [];
-				for (let i = 0; i < 6; i++) {
-					if (!targets[i]) break;
-					const pokemon = Dex.getPokemon(targets[i]);
-					if (!pokemon) return this.sayError(['invalidPokemon', targets[i]]);
-					if (!Dex.getPokemonIcon(pokemon)) {
-						return this.say(pokemon.name + " does not have an icon! Please choose a different Pokemon.");
-					}
-					if (pokemon.forme && pokemon.baseSpecies === 'Unown') {
-						return this.say("You can only use a regular Unown icon.");
-					}
-					selectedPokemon.push(pokemon.name);
-				}
-
-				const selectedPokemonLength = selectedPokemon.length;
-				if (!selectedPokemonLength) return this.say("You must specify at least 1 Pokemon.");
-
-				if (checkBits) {
-					let requirement: 'two' | 'three' | 'four' | 'five' | 'six' | undefined;
-					if (selectedPokemonLength === 2) {
-						requirement = 'two';
-					} else if (selectedPokemonLength === 3) {
-						requirement = 'three';
-					} else if (selectedPokemonLength === 4) {
-						requirement = 'four';
-					} else if (selectedPokemonLength === 5) {
-						requirement = 'five';
-					} else if (selectedPokemonLength === 6) {
-						requirement = 'six';
-					}
-
-					if (requirement) {
-						const requiredBits = Config.gameTrainerCardRequirements[targetRoom.id].pokemon[requirement];
-						if (requiredBits > 0 && annualBits < requiredBits) {
-							return this.say("You need at least " + requiredBits + " annual bits to add " + selectedPokemonLength + " " +
-								"Pokemon icons to your game trainer card.");
-						}
-					}
-				}
-
-				Storage.createGameTrainerCard(database, user.name);
-				database.gameTrainerCards[user.id].pokemon = selectedPokemon;
-
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
-				pages[user.id].send();
 			} else if (cmd === chooseBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				pages[user.id].chooseBackgroundColorPicker();
 			} else if (cmd === chooseTrainerPicker) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				pages[user.id].chooseTrainerPicker();
+			} else if (cmd === choosePokemonPicker) {
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
+				pages[user.id].choosePokemonPicker();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				pages[user.id].close();
 				delete pages[user.id];
 			} else {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user);
+				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}
 		},
 		aliases: ['gtc'],
-	},
-	[setPokemonSeparateCommand]: {
-		command(target) {
-			const targets = target.split(',');
-			this.run(baseCommand, targets[0] + "," + setPokemonCommand + "," + targets.slice(1).join(","));
-		},
 	},
 };

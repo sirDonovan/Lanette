@@ -1050,7 +1050,7 @@ export class Dex {
 		return 'xy';
 	}
 
-	getModelGenerations(): ModelGeneration[] {
+	getModelGenerations(): readonly ModelGeneration[] {
 		return ['rb', 'gs', 'rs', 'dp', 'bw', 'xy'];
 	}
 

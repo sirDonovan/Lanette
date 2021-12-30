@@ -72,7 +72,7 @@ class GameScriptedBox extends HtmlPageBase {
 	gameButtonsBorderStyle: BorderStyle;
 	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'game-background' | 'game-buttons' |
 		'pokemon' | 'background-border' | 'buttons-border' | 'signups-background-border' | 'signups-buttons-border' |
-		'game-background-border' | 'game-buttons-border' = 'background';
+		'game-background-border' | 'game-buttons-border' = 'pokemon';
 	currentView: 'signups' | 'game' = 'signups';
 
 	constructor(room: Room, user: User) {
@@ -780,18 +780,20 @@ class GameScriptedBox extends HtmlPageBase {
 				pokemon);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
 				background);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
-				buttons);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-				"Signups background", signupsBackground);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker,
-				"Signups buttons", signupsButtons);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
 				backgroundBorder);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
+				buttons);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
 				buttonsBorder);
+
+			html += "<br />";
+			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
+				"Signups background", signupsBackground);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
 				"Signups background border", signupsBackgroundBorder);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker,
+				"Signups buttons", signupsButtons);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
 				"Signups buttons border", signupsButtonsBorder);
 

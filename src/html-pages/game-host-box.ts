@@ -46,7 +46,7 @@ class GameHostBox extends HtmlPageBase {
 	pageId = 'game-host-box';
 
 	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'background-border' | 'buttons-border' |
-		'signups-background-border' | 'signups-buttons-border' | 'trainer' | 'pokemon' = 'background';
+		'signups-background-border' | 'signups-buttons-border' | 'trainer' | 'pokemon' = 'trainer';
 	currentPokemon: PokemonChoices = [];
 
 	backgroundColorPicker: ColorPicker;
@@ -625,26 +625,28 @@ class GameHostBox extends HtmlPageBase {
 		const trainer = this.currentPicker === 'trainer';
 		const pokemon = this.currentPicker === 'pokemon';
 
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
-			background);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
-			buttons);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-			"Signups background", signupsBackground);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Signups buttons",
-			signupsButtons);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
-			backgroundBorder);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
-			buttonsBorder);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
-			"Signups background border", signupsBackgroundBorder);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
-			"Signups buttons border", signupsButtonsBorder);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
 			trainer);
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Pokemon",
 			pokemon || !this.maxPokemonModels);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
+			background);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
+			backgroundBorder);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
+			buttons);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
+			buttonsBorder);
+
+		html += "<br />";
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
+			"Signups background", signupsBackground);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
+			"Signups background border", signupsBackgroundBorder);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Signups buttons",
+			signupsButtons);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
+			"Signups buttons border", signupsButtonsBorder);
 		html += "<br /><br />";
 
 		if (background) {
