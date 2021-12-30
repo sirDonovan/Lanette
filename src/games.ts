@@ -1640,18 +1640,21 @@ export class Games {
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
 		}
 
-		let iconHtml = "";
-		if (scriptedBox && voter) {
-			const icons: string[] = [];
-			for (const pokemon of scriptedBox.pokemon) {
-				const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
-				if (icon) icons.push(icon);
+		let content = "";
+		if (voter) {
+			let iconHtml = "";
+			if (scriptedBox) {
+				const icons: string[] = [];
+				for (const pokemon of scriptedBox.pokemon) {
+					const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
+					if (icon) icons.push(icon);
+				}
+
+				if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
 			}
 
-			if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
+			content += iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
 		}
-
-		let content = iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
 
 		if (mascot) {
 			const gif = Dex.getPokemonModel(mascot, undefined, undefined, shinyMascot);
