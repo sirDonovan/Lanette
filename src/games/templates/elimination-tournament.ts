@@ -207,8 +207,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const teamPreviewHiddenFormes = Dex.getTeamPreviewHiddenFormes();
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
+		const deEvolution = this.evolutionsPerRound < 0;
 
 		const pokedex: IPokemon[] = [];
+
+		outer:
 		for (const name of Dex.getData().pokemonKeys) {
 			const pokemon = Dex.getExistingPokemon(name);
 			if (!this.meetsPokemonCriteria(pokemon, 'starter', teamPreviewHiddenFormes)) continue;
@@ -225,6 +228,14 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 
 			if (checkEvolutions) {
+				// filter out formes such as battleOnly that don't have a prevo and give an advantage
+				if (deEvolution && pokemon.prevo) {
+					const formes = Dex.getFormes(pokemon);
+					for (const forme of formes) {
+						if (!Dex.getExistingPokemon(forme).prevo) continue outer;
+					}
+				}
+
 				const evolutionLines = Dex.getEvolutionLines(pokemon);
 				let validEvolutionLines = evolutionLines.length;
 				for (const line of evolutionLines) {
