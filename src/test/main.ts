@@ -47,6 +47,10 @@ module.exports = (inputOptions: Dict<string>): void => {
 		const mochaRoom = Rooms.add('mocha');
 		mochaRoom.setPublicRoom(true);
 		mochaRoom.setTitle('Mocha');
+		mochaRoom.onUserJoin(Users.self, Client.getGroupSymbols().bot);
+
+		if (!Config.allowScriptedGames) Config.allowScriptedGames = [];
+		Config.allowScriptedGames.push(mochaRoom.id);
 
 		let modulesToTest: string[];
 		if (testOptions.modules) {

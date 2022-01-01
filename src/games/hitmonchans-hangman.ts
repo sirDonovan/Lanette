@@ -37,7 +37,8 @@ class HitmonchansHangman extends QuestionAndAnswer {
 		return this.hints.join(" ");
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		this.solvedLetters = [];
 		this.guessedLetters = [];
 		this.hintUpdates = 0;
@@ -52,7 +53,7 @@ class HitmonchansHangman extends QuestionAndAnswer {
 			this.hints[i] = Tools.toId(this.hints[i]).length ? "_" : this.hints[i] === ' ' ? "/" : this.hints[i];
 		}
 
-		return this.getHintKey();
+		this.setHintHtml();
 	}
 
 	updateHint(): void {
@@ -70,6 +71,11 @@ class HitmonchansHangman extends QuestionAndAnswer {
 		for (let i = 0; i < this.letters.length; i++) {
 			if (this.solvedLetters.includes(Tools.toId(this.letters[i]))) this.hints[i] = this.letters[i];
 		}
+
+		this.setHintHtml();
+	}
+
+	setHintHtml(): void {
 		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey() + (this.guessedLetters.length ?
 			' | <font color="red">' + this.guessedLetters.join(", ") + '</font>' : "");
 	}

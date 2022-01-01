@@ -747,7 +747,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const minutes = parseInt(target.trim());
-			if (isNaN(minutes) || minutes < 2 || minutes > 5) return this.say("You must specify a number of minutes between 2 and 5.");
+			if (isNaN(minutes) || minutes < 1 || minutes > 4) return this.say("You must specify a number of minutes between 1 and 4.");
 			room.userHostedGame.setStartTimer(minutes);
 			this.say("The game will start in " + minutes + " minutes.");
 		},
@@ -1660,7 +1660,7 @@ export const commands: BaseCommandDefinitions = {
 			if (Array.isArray(format)) return this.sayError(format);
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
-			delete format.inputOptions.points;
+
 			const game = Games.createGame(room, format, pmRoom);
 			if (game) {
 				const randomAnswer = game.getRandomAnswer!();
@@ -1670,7 +1670,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 		},
 		pmOnly: true,
-		aliases: ['randanswer', 'ranswer', 'randomhint', 'randhint', 'rhint'],
+		aliases: ['rhint', 'randanswer', 'ranswer', 'randomhint', 'randhint'],
 		syntax: ["[game]"],
 		description: ["displays a random hint and answer for the given game"],
 	},

@@ -21,8 +21,8 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (!this.format.inputOptions.points) this.format.options.points = 30;
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
+		if (!this.format.inputOptions.points) this.options.points = 30;
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
 	}
 
 	onNextRound(): void {
@@ -35,7 +35,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 				this.roundMines.forEach((value, player) => {
 					let points = this.points.get(player) || 0;
 					points += value;
-					if (points >= this.format.options.points!) {
+					if (points >= this.options.points!) {
 						if (!reachedMaxPoints) reachedMaxPoints = true;
 						this.winners.set(player, points);
 					}
@@ -91,7 +91,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.winners.size) this.convertPointsToBits(500 / this.format.options.points!, 100 / this.format.options.points!);
+		if (this.winners.size) this.convertPointsToBits(500 / this.options.points!, 100 / this.options.points!);
 		this.announceWinners();
 	}
 }

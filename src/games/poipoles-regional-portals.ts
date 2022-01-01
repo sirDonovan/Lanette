@@ -47,7 +47,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart(): void {
@@ -73,7 +73,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 
 		let reachedCap = false;
 		this.points.forEach((points, player) => {
-			if (points >= this.format.options.points!) {
+			if (points >= this.options.points!) {
 				this.winners.set(player, points);
 				if (!reachedCap) reachedCap = true;
 			}

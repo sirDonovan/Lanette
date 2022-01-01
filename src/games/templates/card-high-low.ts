@@ -40,7 +40,7 @@ export abstract class CardHighLow extends Card {
 
 	onSignups(): void {
 		this.createDeck();
-		if (!this.format.inputOptions.points) this.format.options.points = 5;
+		if (!this.format.inputOptions.points) this.options.points = 5;
 	}
 
 	onStart(): void {
@@ -170,7 +170,7 @@ export abstract class CardHighLow extends Card {
 				let points = this.points.get(winners[i].player) || 0;
 				points++;
 				this.points.set(winners[i].player, points);
-				if (!ended && points >= this.format.options.points!) ended = true;
+				if (!ended && points >= this.options.points!) ended = true;
 			}
 			html += '<center>' + this.getCardChatHtml(cards) + '</center>';
 			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.highOrLow === 'High' ? "highest" : "lowest") + " " +
@@ -231,7 +231,7 @@ export abstract class CardHighLow extends Card {
 			const points = this.points.get(player);
 			if (!points) continue;
 			/*
-			if (points === this.format.options.cards) {
+			if (points === this.options.cards) {
 				if (this.id === 'cacturnespokemoncards') {
 					Games.unlockAchievement(this.room, player, 'Prickly Perfection', this);
 				} else if (this.id === 'mewsmovecards') {

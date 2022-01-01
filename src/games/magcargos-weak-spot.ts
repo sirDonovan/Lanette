@@ -56,13 +56,22 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 		this.cachedData.inverseHintKeys = inverseHintKeys;
 	}
 
-	async onSetGeneratedHint(baseHintKey: string): Promise<string> {
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const typeWeaknesses: Dict<readonly string[]> = this.inverse ? MagcargosWeakSpot.cachedData.inverseHintAnswers! :
 			MagcargosWeakSpot.cachedData.hintAnswers!;
-		const pokemonList = this.sampleMany(typeWeaknesses[baseHintKey], 3).sort();
-		const answers: string[] = [baseHintKey];
+		const pokemonList = this.sampleMany(typeWeaknesses[hintKey], 3).sort();
+		if (this.pokemonGifHints) {
+			for (const pokemon of pokemonList) {
+				if (!this.getHintKeyGif(pokemon)) {
+					await this.generateHint();
+					return;
+				}
+			}
+		}
+
+		const answers: string[] = [hintKey];
 		for (const i in typeWeaknesses) {
-			if (i === baseHintKey) continue;
+			if (i === hintKey) continue;
 			let containsPokemon = true;
 			for (const pokemon of pokemonList) {
 				if (!typeWeaknesses[i].includes(pokemon)) {
@@ -81,13 +90,19 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 			}
 		}
 		if (containsPreviousAnswer) {
-			return await this.generateHint();
+			await this.generateHint();
+			return;
 		}
 
 		this.answers = answers;
-		const hintKey = pokemonList.join(", ");
-		this.hint = "<b>Randomly generated Pokemon</b>: <i>" + hintKey + "</i>";
-		return hintKey;
+		let hint = "<b>Randomly generated Pokemon</b>:";
+		if (this.pokemonGifHints) {
+			hint += "<br /><center>" + pokemonList.map(x => this.getHintKeyGif(x) || x).join("") + "</center>";
+		} else {
+			hint += " <i>" + pokemonList.join(", ") + "</i>";
+		}
+
+		this.hint = hint;
 	}
 }
 
@@ -110,6 +125,11 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(q
 			description: "Using an inverted type chart, players guess the weakness(es) that the given Pokemon share!",
 			inverse: true,
 			variantAliases: ['inverse'],
+		},
+		{
+			name: "Magcargo's Weak Spot (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
 		},
 	],
 });

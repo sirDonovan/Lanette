@@ -17,6 +17,7 @@ export interface IScheduledTournament {
 export interface IMonthlyTournamentSchedule {
 	formats: Dict<string>;
 	times: [number, number][];
+	year: number;
 }
 
 export interface IRoomTournamentSchedule {
@@ -96,4 +97,12 @@ interface ICurrentTournamentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
 	readonly room: Room;
+}
+
+export interface ITournamentTimerData {
+	cap: number;
+	formatid: string;
+	startTime: number;
+	scheduled?: boolean;
+	tournamentName?: string;
 }

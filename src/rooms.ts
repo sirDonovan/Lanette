@@ -203,12 +203,13 @@ export class Room {
 			}
 		}
 
-		const outgoingMessage: IOutgoingMessage = Object.assign(options || {}, {
-			room: this,
+		const baseOutgoingMessage: Partial<IOutgoingMessage> = {
 			roomid: this.id,
 			message: this.getMessageWithClientPrefix(message),
 			type: options && options.type ? options.type : 'chat',
-		});
+		};
+
+		const outgoingMessage = Object.assign(options || {}, baseOutgoingMessage) as IOutgoingMessage;
 
 		if (outgoingMessage.type === 'chat' && Client.isDataRollCommand(message)) {
 			outgoingMessage.slowerCommand = true;
@@ -334,7 +335,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			userid: user.id,
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -353,7 +353,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			userid: user.id,
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -373,7 +372,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			userid: user.id,
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -392,7 +390,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			html: Client.getListenerHtml(html, true),
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -412,7 +409,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			uhtmlName,
 			html: Client.getListenerUhtml(html, true),
 			dontCheckFilter: true,
@@ -433,7 +429,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			uhtmlName,
 			html: Client.getListenerUhtml(html, true),
 			dontCheckFilter: true,
@@ -461,7 +456,6 @@ export class Room {
 		if (!user) return;
 
 		this.say("/warn " + user.id + ", " + reason, {
-			user,
 			type: 'warn',
 			warnReason: reason,
 		});
@@ -503,7 +497,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'notifyuser',
@@ -520,7 +513,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'notifyoffuser',
@@ -539,7 +531,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'htmlpage',
@@ -560,7 +551,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'htmlpageselector',
@@ -579,7 +569,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'closehtmlpage',
@@ -598,7 +587,6 @@ export class Room {
 		if (!user) return;
 
 		const options: IRoomMessageOptions = {
-			user,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'highlight-htmlpage',

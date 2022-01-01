@@ -105,4 +105,11 @@ export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(q
 			roundTime: 15 * 1000,
 		},
 	},
+	variants: [
+		{
+			name: "Natu's Nature Min-Max (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

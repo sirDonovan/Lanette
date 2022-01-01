@@ -162,7 +162,6 @@ export class User {
 		}
 
 		const outgoingMessage: IOutgoingMessage = {
-			user: this,
 			message: this.getMessageWithClientPrefix(message),
 			text: message,
 			type: options && options.type ? options.type : 'pm',

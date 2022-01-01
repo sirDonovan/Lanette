@@ -793,14 +793,32 @@ export class Tools {
 			return clone;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-		const clone = Object.create(Object.getPrototypeOf(obj)) as DeepMutable<T>;
+		if (obj instanceof Map) {
+			const clone = new Map();
+			const keys = Array.from(obj.keys());
+			for (const key of keys) {
+				clone.set(key, this.deepClone(obj.get(key)));
+			}
+			return clone as DeepMutable<T>;
+		}
+
+		if (obj instanceof Set) {
+			const clone = new Set();
+			const values = Array.from(obj.values());
+			for (const value of values) {
+				clone.add(this.deepClone(value));
+			}
+			return clone as DeepMutable<T>;
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
+		const clone = Object.create(Object.getPrototypeOf(obj));
 		const keys = Object.keys(obj) as (keyof T)[];
 		for (const key of keys) {
-			// @ts-expect-error
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			clone[key] = this.deepClone(obj[key]);
 		}
-		return clone;
+		return clone as DeepMutable<T>;
 	}
 
 	uncacheTree(root: string): void {

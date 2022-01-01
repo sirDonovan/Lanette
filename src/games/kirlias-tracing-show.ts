@@ -29,10 +29,6 @@ class KirliasTracingShow extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
-
-	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-	}
 }
 
 const commands = Tools.deepClone(questionAndAnswerGame.commands!);
@@ -54,4 +50,11 @@ export const game: IGameFile<KirliasTracingShow> = Games.copyTemplateProperties(
 	minigameCommandAliases: ['ktrace'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess an ability that the given Pokemon has!",
 	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
+	variants: [
+		{
+			name: "Kirlia's Tracing Show (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

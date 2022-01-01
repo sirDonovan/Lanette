@@ -23,7 +23,7 @@ class NinjasksCorners extends ScriptedGame {
 	roundTravels = new Map<Player, string>();
 
 	onSignups(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.maxRound = 0;
 			this.timeout = setTimeout(() => this.nextRound(), 5000);
 		}
@@ -34,7 +34,7 @@ class NinjasksCorners extends ScriptedGame {
 	}
 
 	checkRoundTravels(): void {
-		if (!this.format.options.freejoin) {
+		if (!this.options.freejoin) {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				const player = this.players[i];
@@ -70,9 +70,9 @@ class NinjasksCorners extends ScriptedGame {
 		this.lastColor = color;
 
 		this.roundTravels.clear();
-		if (!this.format.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
+		if (!this.options.freejoin && this.roundTime > this.minRoundTime) this.roundTime -= 250;
 
-		const html = this.getRoundHtml(players => this.format.options.freejoin ? this.getPlayerPoints(players) :
+		const html = this.getRoundHtml(players => this.options.freejoin ? this.getPlayerPoints(players) :
 			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
@@ -94,11 +94,11 @@ class NinjasksCorners extends ScriptedGame {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
 			if (player === this.firstTravel) this.unlockAchievement(player, NinjasksCorners.achievements.speedbooster);
-			this.winners.set(player, this.format.options.freejoin ? this.points.get(player)! : 1);
+			this.winners.set(player, this.options.freejoin ? this.points.get(player)! : 1);
 			this.addBits(player, 250);
 		}
 
-		if (this.format.options.freejoin) this.convertPointsToBits(0);
+		if (this.options.freejoin) this.convertPointsToBits(0);
 
 		this.announceWinners();
 	}
@@ -126,7 +126,7 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 			const player = this.createPlayer(user) || this.players[user.id];
 			const color = Tools.toId(target);
 			if (!color) return false;
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				if (color !== this.color) return false;
 
 				if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
@@ -134,7 +134,7 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 				let points = this.points.get(player) || 0;
 				points++;
 				this.points.set(player, points);
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					for (const i in this.players) {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}

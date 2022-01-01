@@ -224,7 +224,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			if (this.players[id].eliminated) continue;
 			const player = this.players[id];
 			const points = this.points.get(player);
-			if (points === this.format.options.points!) {
+			if (points === this.options.points!) {
 				this.winners.set(player, points);
 				this.addBits(player, 500);
 			} else if (points) {
@@ -315,7 +315,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 
 				this.say(player.name + " advances to **" + points + "** point" + (points > 1 ? "s" : "") + "! The parameter was __" +
 					this.parameter + "__.");
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					this.end();
 					return true;
 				} else {

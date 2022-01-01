@@ -191,8 +191,8 @@ export class CommandParser {
 		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
-	parse(room: Room | User, user: User, message: string, timestamp: number): void {
-		if (user.locked || !this.isCommandMessage(message)) return;
+	parse(room: Room | User, user: User, message: string, timestamp: number): boolean {
+		if (user.locked || !this.isCommandMessage(message)) return false;
 
 		message = message.substr(1);
 		let command: string;
@@ -207,17 +207,19 @@ export class CommandParser {
 		}
 
 		command = Tools.toId(command);
-		if (!(command in Commands)) return;
+		if (!(command in Commands)) return false;
 
 		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
-			Config.roomIgnoredCommands[room.id].includes(command)) return;
+			Config.roomIgnoredCommands[room.id].includes(command)) return false;
 
 		try {
 			new CommandContext(command, target, room, user, timestamp).run();
+			return true;
 		} catch (e) {
 			console.log(e);
 			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
 				" (room = " + room.id + "; " + "user = " + user.id + ")");
+			return false;
 		}
 	}
 
@@ -287,6 +289,8 @@ export class CommandParser {
 			return "You must specify one of " + error[1].trim() + "'s events.";
 		} else if (error[0] === 'disabledGameFormat') {
 			return error[1].trim() + " is currently disabled.";
+		} else if (error[0] === 'gameOptionRequiresFreejoin') {
+			return error[1].trim() + " must be played as freejoin.";
 		} else if (error[0] === 'invalidUserInRoom') {
 			return "You must specify a user currently in the room.";
 		} else if (error[0] === 'invalidUsernameLength') {

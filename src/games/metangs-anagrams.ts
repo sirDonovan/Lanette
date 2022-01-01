@@ -28,7 +28,8 @@ class MetangsAnagrams extends QuestionAndAnswer {
 		};
 	}
 
-	onSetGeneratedHint(baseHintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(baseHintKey: string): Promise<void> {
 		const id = Tools.toId(baseHintKey);
 		const letters = id.split("");
 		let hint = this.shuffle(letters);
@@ -36,9 +37,7 @@ class MetangsAnagrams extends QuestionAndAnswer {
 			hint = this.shuffle(letters);
 		}
 
-		const hintKey = hint.join(", ");
-		this.hint = '<b>' + this.currentCategory + '</b>: <i>' + hintKey + '</i>';
-		return hintKey;
+		this.hint = '<b>' + this.currentCategory + '</b>: <i>' + hint.join(", ") + '</i>';
 	}
 }
 

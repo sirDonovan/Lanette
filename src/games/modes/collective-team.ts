@@ -103,8 +103,8 @@ export class CollectiveTeam {
 	}
 
 	setTeams(this: CollectiveTeamThis): void {
-		this.lateJoinQueueSize = this.format.options.teams!;
-		this.teams = this.generateTeams(this.format.options.teams!);
+		this.lateJoinQueueSize = this.options.teams!;
+		this.teams = this.generateTeams(this.options.teams!);
 		this.setLargestTeam();
 
 		for (const id in this.teams) {
@@ -143,7 +143,7 @@ export class CollectiveTeam {
 			delete this.teams[team.id];
 		}
 
-		if (emptyTeams.length >= this.format.options.teams! - 1) {
+		if (emptyTeams.length >= this.options.teams! - 1) {
 			this.say("Only one team remains!");
 			const winningTeam = this.getFinalTeam()!;
 			for (const player of winningTeam.players) {
@@ -155,7 +155,7 @@ export class CollectiveTeam {
 		} else {
 			if (newAnswer) {
 				if (this.canLateJoin) {
-					const cutOff = this.format.options.teamPoints! / 2;
+					const cutOff = this.options.teamPoints! / 2;
 					for (const i in this.teams) {
 						if (this.teams[i].points >= cutOff) {
 							this.canLateJoin = false;
@@ -223,7 +223,7 @@ const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 			this.say('**' + player.name + '** advances Team ' + player.team!.name + ' to **' + player.team!.points + '** point' +
 				(player.team!.points > 1 ? 's' : '') + '!');
 			this.displayAnswers(answer);
-			if (player.team!.points >= this.format.options.teamPoints!) {
+			if (player.team!.points >= this.options.teamPoints!) {
 				if (this.allAnswersTeamAchievement && this.firstAnswers[player.team!.id] === player) {
 					this.unlockAchievement(player, this.allAnswersTeamAchievement);
 				}
@@ -263,6 +263,8 @@ export const mode: IGameModeFile<CollectiveTeam, QuestionAndAnswer, CollectiveTe
 	aliases: ['ct', 'group', 'collective'],
 	class: CollectiveTeam,
 	commands,
+	cooldownId: 'collectiveteam',
+	cooldownName: "Team",
 	description,
 	initialize,
 	name,

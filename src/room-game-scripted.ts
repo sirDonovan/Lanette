@@ -46,14 +46,12 @@ export class ScriptedGame extends Game {
 	declare format: IGameFormat;
 	actionsUhtmlName!: string;
 
-	additionalDescription?: string;
 	allowChildGameBits?: boolean;
 	readonly battleRooms?: string[];
 	botChallengeSpeeds: number[] | null = null;
 	botTurnTimeout?: NodeJS.Timer;
 	canLateJoin?: boolean;
 	challengeRoundTimes: number[] | null = null;
-	commandDescriptions?: string[];
 	dontAutoCloseHtmlPages?: boolean;
 	isMiniGame?: boolean;
 	lateJoinQueueSize?: number;
@@ -78,7 +76,7 @@ export class ScriptedGame extends Game {
 		variant: IGameVariant | undefined): IGameInputProperties {
 		const customizableNumberOptions = Object.assign({}, format.customizableNumberOptions);
 		let defaultOptions = format.defaultOptions;
-		let description = format.description;
+		let description: string | undefined;
 		const namePrefixes: string[] = [];
 		const nameSuffixes: string[] = [];
 
@@ -137,11 +135,9 @@ export class ScriptedGame extends Game {
 		const customizedNumberOptions: Dict<number> = {};
 		for (const i in format.inputOptions) {
 			if (!(i in customizableNumberOptions)) {
-				options[i] = format.inputOptions[i];
+				if (i !== 'freejoin') options[i] = format.inputOptions[i];
 				continue;
 			}
-
-			if (format.inputOptions[i] === customizableNumberOptions[i].base) continue;
 
 			let optionValue = format.inputOptions[i] as number;
 			if (optionValue < customizableNumberOptions[i].min) {
@@ -151,7 +147,10 @@ export class ScriptedGame extends Game {
 			}
 
 			options[i] = optionValue;
-			customizedNumberOptions[i] = optionValue;
+
+			if (!format.freejoin || optionValue !== customizableNumberOptions[i].base) {
+				customizedNumberOptions[i] = optionValue;
+			}
 		}
 
 		if (customizedNumberOptions.points) nameSuffixes.push("(first to " + customizedNumberOptions.points + ")");
@@ -176,6 +175,7 @@ export class ScriptedGame extends Game {
 		format.nameWithOptions = nameWithOptions;
 
 		return {
+			customizableNumberOptions,
 			description,
 			options,
 		};
@@ -184,7 +184,7 @@ export class ScriptedGame extends Game {
 	loadChallengeOptions(challenge: GameChallenge, options: Dict<string>): void {
 		if (challenge === 'botchallenge') {
 			const challengeSettings = this.format.challengeSettings!.botchallenge!;
-			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.points) this.options.points = challengeSettings.points;
 			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
@@ -205,7 +205,7 @@ export class ScriptedGame extends Game {
 			}
 		} else if (challenge === 'onevsone') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const challengeSettings = this.format.challengeSettings!.onevsone!;
-			if (challengeSettings.points) this.format.options.points = challengeSettings.points;
+			if (challengeSettings.points) this.options.points = challengeSettings.points;
 			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime && options.speed) {
 				let speed = parseFloat(options.speed);
 				if (isNaN(speed)) {
@@ -253,39 +253,32 @@ export class ScriptedGame extends Game {
 		this.privateJoinLeaveUhtmlName = this.uhtmlBaseName + "-private-join-leave";
 	}
 
-	onInitialize(format: IGameFormat): boolean {
-		this.format = format;
+	onInitialize(): boolean {
+		if (this.format.variant) {
+			Object.assign(this, this.format.variant);
+		}
 
-		if (this.validateInputProperties && !this.validateInputProperties(format.resolvedInputProperties)) {
+		if (this.format.mode && this.format.modeProperties && this.format.mode.id in this.format.modeProperties) {
+			Object.assign(this, this.format.modeProperties[this.format.mode.id]);
+		}
+
+		if (this.validateInputProperties && !this.validateInputProperties(this.format.resolvedInputProperties)) {
 			return false;
 		}
 
-		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
-		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
-		format.options = format.resolvedInputProperties.options;
+		this.options = this.format.resolvedInputProperties.options;
 
 		this.baseHtmlPageId = this.room.id + "-" + this.format.id;
 		this.setUhtmlBaseName();
 		this.actionsUhtmlName = this.uhtmlBaseName + "-actions";
 
-		if (format.commands) Object.assign(this.commands, format.commands);
-		if (format.commandDescriptions) this.commandDescriptions = format.commandDescriptions;
-		if (format.additionalDescription) this.additionalDescription = format.additionalDescription;
+		if (this.format.commands) Object.assign(this.commands, this.format.commands);
 
-		const mascot = Games.getFormatMascot(format);
+		const mascot = Games.getFormatMascot(this.format);
 		if (mascot) this.mascot = mascot;
 
-		if (format.variant) {
-			// @ts-expect-error
-			delete format.variant.name;
-			if (format.variant.description) format.description = format.variant.description;
-			Object.assign(this, format.variant);
-		}
-		if (format.mode) {
-			if (format.modeProperties && format.mode.id in format.modeProperties) {
-				Object.assign(this, format.modeProperties[format.mode.id]);
-			}
-			format.mode.initialize(this);
+		if (this.format.mode) {
+			this.format.mode.initialize(this);
 		}
 
 		let htmlPageHeader = "<h2>";
@@ -331,11 +324,11 @@ export class ScriptedGame extends Game {
 
 	getDescriptionHtml(): string {
 		let description = this.getDescription();
-		if (this.additionalDescription) description += "<br /><br />" + this.additionalDescription;
+		if (this.format.additionalDescription) description += "<br /><br />" + this.format.additionalDescription;
 
 		let commandDescriptions: string[] = [];
 		if (this.getPlayerSummary) commandDescriptions.push(Config.commandCharacter + "summary");
-		if (this.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.commandDescriptions);
+		if (this.format.commandDescriptions) commandDescriptions = commandDescriptions.concat(this.format.commandDescriptions);
 		if (commandDescriptions.length) {
 			description += "<br /><b>Command" + (commandDescriptions.length > 1 ? "s" : "") + "</b>: " +
 				commandDescriptions.map(x => "<code>" + x + "</code>").join(", ");
@@ -403,7 +396,7 @@ export class ScriptedGame extends Game {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-			if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 			this.notifyRankSignups = true;
@@ -427,7 +420,7 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
 		} else if (!this.internalGame && !this.isMiniGame) {
@@ -471,6 +464,8 @@ export class ScriptedGame extends Game {
 
 		if (this.showSignupsHtml) {
 			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+			this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+
 			const signupsEndMessage = this.getSignupsEndMessage();
 			if (this.signupsRefreshed) {
 				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
@@ -579,13 +574,13 @@ export class ScriptedGame extends Game {
 		if (!attributeText) {
 			const remainingPlayerCount = this.getRemainingPlayerCount(players);
 			if (remainingPlayerCount > 0) {
-				attributeText = "<b>" + (!this.format.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount +
+				attributeText = "<b>" + (!this.options.freejoin ? "Remaining players" : "Players") + " (" + remainingPlayerCount +
 					")</b>";
 			}
 		}
 
 		let html = this.getMascotAndNameHtml(additionalSpanText);
-		if (this.started && !this.format.options.freejoin && this.canLateJoin) {
+		if (this.started && !this.options.freejoin && this.canLateJoin && (!this.playerCap || this.playerCount < this.playerCap)) {
 			html += "&nbsp;-&nbsp;" + this.getLateJoinButtonHtml();
 		}
 		html += "<br />&nbsp;";
@@ -707,7 +702,7 @@ export class ScriptedGame extends Game {
 		if (this.timeout) clearTimeout(this.timeout);
 		if (this.startTimer) clearTimeout(this.startTimer);
 
-		if ((!this.started || this.format.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
+		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
 		this.leaveBattleRooms();
 
@@ -756,7 +751,7 @@ export class ScriptedGame extends Game {
 
 		for (const i in players) {
 			this.players[i] = players[i];
-			if (this.onAddPlayer && !this.format.options.freejoin) {
+			if (this.onAddPlayer && !this.options.freejoin) {
 				try {
 					this.onAddPlayer(this.players[i]);
 				} catch (e) {
@@ -771,7 +766,7 @@ export class ScriptedGame extends Game {
 	}
 
 	addPlayer(user: User): Player | undefined {
-		if (this.format.options.freejoin || this.isMiniGame) {
+		if (this.options.freejoin || this.isMiniGame) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
 				this.joinNotices.add(user.id);
@@ -814,14 +809,10 @@ export class ScriptedGame extends Game {
 			failedToJoin = true;
 		}
 
-		if (this.requiresAutoconfirmed) {
-			if (user.autoconfirmed !== null) {
-				if (!user.autoconfirmed) {
-					this.sendNotAutoconfirmed(player);
-					failedToJoin = true;
-				}
-			} else {
-				this.checkPlayerAutoconfirmed(player);
+		if (this.requiresAutoconfirmed && user.autoconfirmed !== null) {
+			if (!user.autoconfirmed) {
+				this.sendNotAutoconfirmed(player);
+				failedToJoin = true;
 			}
 		}
 
@@ -830,94 +821,103 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		let addPlayerResult: boolean | undefined = true;
-		if (this.onAddPlayer) {
-			try {
-				addPlayerResult = this.onAddPlayer(player, this.started);
-			} catch (e) {
-				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddPlayer()");
-				this.errorEnd();
+		const onSuccessfulJoin = (): Player | undefined => {
+			let addPlayerResult: boolean | undefined = true;
+			if (this.onAddPlayer) {
+				try {
+					addPlayerResult = this.onAddPlayer(player, this.started);
+				} catch (e) {
+					console.log(e);
+					Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddPlayer()");
+					this.errorEnd();
+					return;
+				}
+			}
+
+			if (!addPlayerResult) {
+				this.destroyPlayer(user, true);
 				return;
 			}
-		}
 
-		if (!addPlayerResult) {
-			this.destroyPlayer(user, true);
-			return;
-		}
+			if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
+				this.lateJoinQueue.push(player);
 
-		if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
-			this.lateJoinQueue.push(player);
+				const presentPlayers: Player[] = [];
+				for (const queuedPlayer of this.lateJoinQueue) {
+					const queuedUser = Users.get(queuedPlayer.name);
+					if (!queuedUser || !queuedUser.rooms.has(this.room as Room)) continue;
+					presentPlayers.push(queuedPlayer);
+				}
 
-			const presentPlayers: Player[] = [];
-			for (const queuedPlayer of this.lateJoinQueue) {
-				const queuedUser = Users.get(queuedPlayer.name);
-				if (!queuedUser || !queuedUser.rooms.has(this.room as Room)) continue;
-				presentPlayers.push(queuedPlayer);
+				if (presentPlayers.length === this.lateJoinQueueSize) {
+					for (const listener of this.commandsListeners) {
+						if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
+					}
+
+					for (const queuedPlayer of presentPlayers) {
+						queuedPlayer.frozen = false;
+						queuedPlayer.sendRoomHighlight("You are now in the game!");
+						this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
+					}
+
+					if (this.onAddLateJoinQueuedPlayers) {
+						try {
+							this.onAddLateJoinQueuedPlayers(presentPlayers);
+						} catch (e) {
+							console.log(e);
+							Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddLateJoinQueuedPlayers()");
+							this.errorEnd();
+							return;
+						}
+					}
+				} else {
+					player.frozen = true;
+					const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
+					player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
+						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
+						this.joinLeaveButtonUhtmlName);
+				}
+
+				return;
 			}
 
-			if (presentPlayers.length === this.lateJoinQueueSize) {
+			if (!this.internalGame && !this.joinNotices.has(user.id)) {
+				this.sendJoinNotice(player);
+				this.joinNotices.add(user.id);
+			}
+
+			if (this.showSignupsHtml && !this.started) {
+				if (!this.signupsHtmlTimeout) {
+					this.signupsHtmlTimeout = setTimeout(() => {
+						this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+						this.signupsHtmlTimeout = null;
+					}, this.getSignupsUpdateDelay());
+				}
+			}
+
+			if (this.started) {
 				for (const listener of this.commandsListeners) {
-					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
-				}
-
-				for (const queuedPlayer of presentPlayers) {
-					queuedPlayer.frozen = false;
-					queuedPlayer.sendRoomHighlight("You are now in the game!");
-					this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
-				}
-
-				if (this.onAddLateJoinQueuedPlayers) {
-					try {
-						this.onAddLateJoinQueuedPlayers(presentPlayers);
-					} catch (e) {
-						console.log(e);
-						Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAddLateJoinQueuedPlayers()");
-						this.errorEnd();
-						return;
-					}
+					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
 				}
 			} else {
-				player.frozen = true;
-				const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
-				player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
-					(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
-					this.joinLeaveButtonUhtmlName);
+				if (this.playerCap && this.playerCount >= this.playerCap) {
+					if (this.canLateJoin) this.canLateJoin = false;
+					this.start();
+				}
 			}
 
-			return;
-		}
+			return player;
+		};
 
-		if (!this.internalGame && !this.joinNotices.has(user.id)) {
-			this.sendJoinNotice(player);
-			this.joinNotices.add(user.id);
-		}
-
-		if (this.showSignupsHtml && !this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
-		}
-
-		if (this.started) {
-			for (const listener of this.commandsListeners) {
-				if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
-			}
+		if (this.requiresAutoconfirmed && user.autoconfirmed === null) {
+			this.checkPlayerAutoconfirmed(player, onSuccessfulJoin);
+			return player;
 		} else {
-			if (this.playerCap && this.playerCount >= this.playerCap) {
-				if (this.canLateJoin) this.canLateJoin = false;
-				this.start();
-			}
+			return onSuccessfulJoin();
 		}
-
-		return player;
 	}
 
-	removePlayer(user: User | string, silent?: boolean): void {
+	removePlayer(user: User | string, silent?: boolean, notAutoconfirmed?: boolean): void {
 		if (this.isMiniGame) return;
 		const player = this.destroyPlayer(user);
 		if (!player) return;
@@ -928,7 +928,7 @@ export class ScriptedGame extends Game {
 			this.leaveNotices.add(id);
 		}
 
-		if (this.format.options.freejoin) return;
+		if (this.options.freejoin) return;
 
 		if (this.showSignupsHtml && !this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -948,7 +948,7 @@ export class ScriptedGame extends Game {
 
 		if (this.onRemovePlayer) {
 			try {
-				this.onRemovePlayer(player);
+				this.onRemovePlayer(player, notAutoconfirmed);
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onRemovePlayer()");
@@ -988,13 +988,15 @@ export class ScriptedGame extends Game {
 		player.say("You must be autoconfirmed to participate in " + this.name + ".");
 	}
 
-	checkPlayerAutoconfirmed(player: Player): void {
+	checkPlayerAutoconfirmed(player: Player, autoconfirmedCallback: () => void): void {
 		const user = Users.get(player.name);
 		if (!user || user.autoconfirmed !== null) return;
 
 		Client.getUserDetails(user, (checkedUser) => {
-			if (!checkedUser.autoconfirmed) {
-				this.removePlayer(checkedUser);
+			if (checkedUser.autoconfirmed) {
+				autoconfirmedCallback();
+			} else {
+				this.removePlayer(checkedUser, true, true);
 				this.sendNotAutoconfirmed(player);
 			}
 		});
@@ -1127,7 +1129,7 @@ export class ScriptedGame extends Game {
 			if (user.id in this.players) {
 				if (this.players[user.id].eliminated) canUseCommands = false;
 			} else {
-				if (!this.format.options.freejoin) canUseCommands = false;
+				if (!this.options.freejoin) canUseCommands = false;
 			}
 		}
 
@@ -1369,7 +1371,7 @@ export class ScriptedGame extends Game {
 	onEliminatePlayer?(player: Player, eliminator?: Player | null): void;
 	onMaxRound?(): void;
 	onNextRound?(): void;
-	onRemovePlayer?(player: Player): void;
+	onRemovePlayer?(player: Player, notAutoconfirmed?: boolean): void;
 	onSignups?(): void;
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */

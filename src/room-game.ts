@@ -2,7 +2,10 @@ import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
-import type { IGameFormat, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat, PlayerList } from "./types/games";
+import type {
+	IGameFormat, IGameOptions, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat,
+	PlayerList
+} from "./types/games";
 import type { IPokemon, IPokemonCopy } from "./types/pokemon-showdown";
 import type { GameActionGames, GameActionLocations, IGameCustomBox, IGameHostDisplay } from "./types/storage";
 import type { User } from "./users";
@@ -31,7 +34,7 @@ export abstract class Game extends Activity {
 	readonly winners = new Map<Player, number>();
 
 	// set in initialize()
-	description!: string;
+	options!: IGameOptions;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
 	joinLeaveButtonRefreshUhtmlName!: string;
@@ -59,7 +62,7 @@ export abstract class Game extends Activity {
 
 	abstract getMascotIcons(): string;
 	abstract getMascotAndNameHtml(additionalText?: string): string;
-	abstract onInitialize(format: IGameFormat | IUserHostedFormat): boolean;
+	abstract onInitialize(): boolean;
 
 	exceedsMessageSizeLimit(message: string): boolean {
 		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
@@ -80,15 +83,15 @@ export abstract class Game extends Activity {
 	}
 
 	initialize(format: IGameFormat | IUserHostedFormat): boolean {
-		if (!this.onInitialize(format)) {
+		this.format = format;
+
+		if (!this.onInitialize()) {
 			this.deallocate(true);
 			return false;
 		}
 
 		this.name = format.nameWithOptions || format.name;
 		this.id = format.id;
-
-		this.description = format.description;
 
 		if (this.maxPlayers) this.playerCap = this.maxPlayers;
 
@@ -181,7 +184,7 @@ export abstract class Game extends Activity {
 	}
 
 	getDescription(): string {
-		return this.description;
+		return this.format!.description;
 	}
 
 	getSignupsPlayersHtml(): string {
@@ -194,7 +197,7 @@ export abstract class Game extends Activity {
 		if (lateJoin) {
 			label = "Late-join game";
 		} else if (this.format) {
-			if (!this.format.options.freejoin) {
+			if (!this.options.freejoin) {
 				label = "Join the <b>" + (this.format.nameWithOptions || this.format.name) + "</b> game";
 			}
 		} else {

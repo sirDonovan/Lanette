@@ -47,10 +47,6 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		}
 	}
 
-	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
-	}
-
 	onStart(): void {
 		this.nextRound();
 	}
@@ -82,7 +78,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/require-await
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
 		while (species === this.lastPokemon) {
 			species = this.sampleOne(GyaradosShinyHunting.gifDataKeys);
@@ -129,7 +125,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 			this.getCurrentGif(pokemon) + "&nbsp;" + this.getShinyCurrentGif(pokemon) + "</center>");
 
 		this.answers = this.shinyCoordinates.map(x => Tools.toId(LETTERS[x[0]] + x[1]));
-		return "";
+		this.hint = "unused";
 	}
 
 	generateShinyCoordinates(pokemonInRow: number, rowsInGrid: number): [number, number] {

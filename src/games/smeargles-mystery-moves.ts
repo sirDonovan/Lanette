@@ -43,11 +43,13 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 		this.cachedData.hintKeys = hintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string, hintAnswers?: Dict<readonly string[]>): string {
-		this.hints = this.shuffle(hintAnswers![hintKey]);
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string, hintAnswers: Dict<readonly string[]>): Promise<void> {
+		this.hints = this.shuffle(hintAnswers[hintKey]);
 		this.answers = [hintKey];
 		this.mysteryRound = -1;
-		return hintKey;
+
+		this.setHintHtml();
 	}
 
 	updateHint(): void {
@@ -58,6 +60,10 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 
 		if (this.roundGuesses) this.roundGuesses.clear();
 
+		this.setHintHtml();
+	}
+
+	setHintHtml(): void {
 		const pastHints = this.hints.slice(0, this.mysteryRound);
 		this.hint = (pastHints.length ? pastHints.join("<br />") + "<br />" : "") + (this.hints[this.mysteryRound] ?
 			"<i>" + this.hints[this.mysteryRound] + "</i>" : "");

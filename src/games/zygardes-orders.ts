@@ -46,7 +46,8 @@ class ZygardesOrders extends QuestionAndAnswer {
 		return this.hints.join("");
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		this.hintUpdates = 0;
 		this.ordersRound = 0;
 		this.roundGuesses.clear();
@@ -64,7 +65,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 		this.hints[firstLetter] = this.letters[firstLetter];
 		this.revealedLetters = 1;
 
-		return this.getHintKey();
+		this.setHintHtml();
 	}
 
 	updateHint(): void {
@@ -96,6 +97,10 @@ class ZygardesOrders extends QuestionAndAnswer {
 			}
 		}
 
+		this.setHintHtml();
+	}
+
+	setHintHtml(): void {
 		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey();
 	}
 

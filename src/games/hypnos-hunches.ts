@@ -37,7 +37,8 @@ class HypnosHunches extends QuestionAndAnswer {
 		return this.hints.join("");
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		this.solvedLetters = [];
 		this.guessedLetters = [];
 		this.hintUpdates = 0;
@@ -52,7 +53,7 @@ class HypnosHunches extends QuestionAndAnswer {
 		this.uniqueLetters = uniqueLetters.length;
 		this.hints = new Array(letters.length).fill('') as string[];
 
-		return this.getHintKey();
+		this.setHintHtml();
 	}
 
 	updateHint(): void {
@@ -71,6 +72,11 @@ class HypnosHunches extends QuestionAndAnswer {
 			const id = Tools.toId(this.letters[i]);
 			if (this.solvedLetters.includes(id)) this.hints[i] = id;
 		}
+
+		this.setHintHtml();
+	}
+
+	setHintHtml(): void {
 		this.hint = "<b>" + this.currentCategory + "</b> | " + this.getHintKey() + (this.guessedLetters.length ?
 			' | <font color="red">' + this.guessedLetters.join(", ") + '</font>' : "");
 	}

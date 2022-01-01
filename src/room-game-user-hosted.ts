@@ -89,9 +89,9 @@ export class UserHostedGame extends Game {
 	restart(format: IUserHostedFormat): void {
 		this.reset();
 
-		this.onInitialize(format);
+		this.format = format;
+		this.onInitialize();
 		this.id = format.id;
-		this.description = format.description;
 
 		this.setHost(this.hostName);
 		this.signups();
@@ -237,7 +237,7 @@ export class UserHostedGame extends Game {
 
 	// Players
 	addPlayer(user: User): Player | undefined {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
 				this.joinNotices.add(user.id);
@@ -277,7 +277,7 @@ export class UserHostedGame extends Game {
 			this.leaveNotices.add(id);
 		}
 
-		if (this.format.options.freejoin) return;
+		if (this.options.freejoin) return;
 
 		if (!this.started) {
 			if (!this.signupsHtmlTimeout) {
@@ -323,14 +323,14 @@ export class UserHostedGame extends Game {
 	}
 
 	// Game lifecycle
-	onInitialize(format: IUserHostedFormat): boolean {
-		this.format = format;
+	onInitialize(): boolean {
 		this.setUhtmlBaseName();
 
+		this.options = {};
 		this.endTime = Date.now() + HOST_TIME_LIMIT;
 		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
-			this.format.options.freejoin = 1;
+			this.options.freejoin = 1;
 			this.minPlayers = 0;
 		}
 
@@ -355,7 +355,7 @@ export class UserHostedGame extends Game {
 		}
 
 		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-		if (!this.format.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+		if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
@@ -366,7 +366,7 @@ export class UserHostedGame extends Game {
 			this.setSecondActivityTimer();
 		}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
 		}
@@ -383,6 +383,7 @@ export class UserHostedGame extends Game {
 		this.joinNotices.clear();
 		this.leaveNotices.clear();
 		this.room.notifyOffRank("all");
+		this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, this.getSignupsEndMessage());
 
 		this.say(this.name + " is starting!");
@@ -497,7 +498,7 @@ export class UserHostedGame extends Game {
 	}
 
 	clearSignupsNotification(): void {
-		if (!this.started || this.format.options.freejoin) this.room.notifyOffRank("all");
+		if (!this.started || this.options.freejoin) this.room.notifyOffRank("all");
 	}
 
 	deallocate(forceEnd: boolean): void {
@@ -600,14 +601,6 @@ export const game: IUserHostedFile = {
 				"in which players have to choose their paths and overcome obstacles to be the last one standing.",
 			aliases: ['hg'],
 			approvedHostOnly: true,
-		},
-		{
-			name: "Jirachi's Coloring Adventure",
-			mascot: "Jirachi",
-			aliases: ['JCA', 'Jirachis'],
-			description: "Players guess Pokemon that match the given color-based parameters! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/jirachis-coloring-adventure-t1042.html'>More info</a>",
-			freejoin: true,
 		},
 		{
 			name: "Jynx's Klutzy Kissing",

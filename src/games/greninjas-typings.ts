@@ -44,12 +44,11 @@ class GreninjasTypings extends QuestionAndAnswer {
 		this.cachedData.inverseHintAnswers = inverseHints;
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		if (this.inverse) {
 			this.answers = this.answers.concat(GreninjasTypings.cachedData.hintAnswers![hintKey]);
 		}
-
-		return hintKey;
 	}
 }
 
@@ -65,7 +64,7 @@ export const game: IGameFile<GreninjasTypings> = Games.copyTemplateProperties(qu
 	name: "Greninja's Typings",
 	mascot: "Greninja",
 	minigameCommand: 'typing',
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that match the given typing!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that matches the given typing!",
 	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{

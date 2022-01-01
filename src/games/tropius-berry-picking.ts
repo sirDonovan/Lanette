@@ -103,7 +103,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart(): void {
@@ -120,7 +120,7 @@ class TropiusBerryPicking extends ScriptedGame {
 			}
 		}
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			if (this.round > 1 && this.roundEffect !== noEffect) {
 				this.say("Time is up! The " + (answers.length > 1 ? "possible answers were" : "answer was") + " __" +
 					Tools.joinList(answers) + "__.");
@@ -211,7 +211,7 @@ class TropiusBerryPicking extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.say(smeargleText);
 		} else {
 			const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -224,7 +224,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.convertPointsToBits();
 		} else {
 			const base = Math.min(500, 100 * this.round);
@@ -274,7 +274,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 			const id = Tools.toId(target);
 			const berry = id in berries ? berries[id] : berries[id + 'berry'] as IBerry | undefined;
 			if (!berry) return false;
-			if (this.format.options.freejoin) {
+			if (this.options.freejoin) {
 				if (berry.effect !== this.roundEffect.effect) return false;
 
 				if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
@@ -294,7 +294,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 				this.say('**' + player.name + '** advances to **' + points + '** point' + (points > 1 ? 's' : '') + '! A possible ' +
 					'answer was __' + berry.name + '__.');
 
-				if (points === this.format.options.points) {
+				if (points === this.options.points) {
 					if (this.firstEat === player && !this.parentGame) {
 						this.unlockAchievement(player, TropiusBerryPicking.achievements.berrymaster);
 					}

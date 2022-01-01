@@ -33,6 +33,7 @@ const SLOWER_COMMAND_MESSAGE_THROTTLE = STANDARD_MESSAGE_THROTTLE * 2;
 const MAX_MESSAGE_SIZE = 100 * 1024;
 const BOT_GREETING_COOLDOWN = 6 * 60 * 60 * 1000;
 const CONNECTION_CHECK_INTERVAL = 30 * 1000;
+const CODE_COMMAND = '!code';
 const BOT_MESSAGE_COMMAND = '/botmsg ';
 const INVITE_COMMAND = '/invite ';
 const HTML_CHAT_COMMAND = '/raw ';
@@ -61,14 +62,17 @@ const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
+const ROLL_COMMAND_HELP = "/text /dice ";
 
-const DATA_ROLL_COMMANDS: string[] = ['rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon'];
-const DT_RESULT_COMMANDS: string[] = DATA_ROLL_COMMANDS.concat([
+const DATA_COMMANDS: string[] = [
+	'rollmove', 'randmove', 'randommove', 'rollpokemon', 'randpoke', 'randompokemon',
+	'data', 'pstats', 'stats', 'dex', 'pokedex',
+	'dt', 'dt1', 'dt2', 'dt3', 'dt4', 'dt5', 'dt6', 'dt7', 'dt8', 'details',
 	'ds', 'ds1', 'ds2', 'ds3', 'ds4', 'ds5', 'ds6', 'ds7', 'ds8', 'dsearch', 'nds', 'dexsearch',
 	'ms', 'ms1', 'ms2', 'ms3', 'ms4', 'ms5', 'ms6', 'ms7', 'ms8', 'msearch', 'nms', 'movesearch',
 	'is', 'is2', 'is3', 'is4', 'is5', 'is6', 'is7', 'is8', 'itemsearch',
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
-]);
+];
 
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
@@ -297,12 +301,16 @@ export class Client {
 		this.messageParsersExist = this.messageParsers.length > 0;
 	}
 
-	getGroupSymbols(): Readonly<KeyedDict<GroupName, string>> {
+	getGroupSymbols(): DeepImmutable<KeyedDict<GroupName, string>> {
 		return this.groupSymbols;
 	}
 
-	getServerGroups(): Readonly<Dict<IServerGroup>> {
+	getServerGroups(): DeepImmutable<Dict<IServerGroup>> {
 		return this.serverGroups;
+	}
+
+	getServerId(): string {
+		return this.serverId;
 	}
 
 	getHtmlChatCommand(): string {
@@ -317,11 +325,11 @@ export class Client {
 		return UHTML_CHANGE_CHAT_COMMAND;
 	}
 
-	getLastOutgoingMessage(): Readonly<IOutgoingMessage> | null {
+	getLastOutgoingMessage(): DeepImmutable<IOutgoingMessage> | null {
 		return this.lastOutgoingMessage;
 	}
 
-	getPublicRooms(): string[] {
+	getPublicRooms(): readonly string[] {
 		return this.publicChatRooms;
 	}
 
@@ -333,7 +341,7 @@ export class Client {
 		return this.replayServerAddress;
 	}
 
-	getOutgoingMessageQueue(): readonly IOutgoingMessage[] {
+	getOutgoingMessageQueue(): readonly DeepImmutable<IOutgoingMessage>[] {
 		return this.outgoingMessageQueue;
 	}
 
@@ -361,8 +369,8 @@ export class Client {
 
 	getCodeListenerHtml(code: string): string {
 		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
-		return '<div class="infobox"><code style="white-space: pre-wrap; display: table; tab-size: 3">' +
-			code.replace(NEWLINE, "<br />") + '</code></div>';
+		return '<div class="infobox"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3">' +
+			code.replace(NEWLINE, "<br />") + '</details></div>';
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
@@ -392,7 +400,25 @@ export class Client {
 	}
 
 	isDataRollCommand(message: string): boolean {
-		return DATA_ROLL_COMMANDS.includes(message.substr(1).split(" ")[0]);
+		return DATA_COMMANDS.includes(message.substr(1).split(" ")[0]);
+	}
+
+	isDataCommandError(error: string): boolean {
+		return error.startsWith("You can't ") || error.endsWith(' could not be found in any of the search categories.') ||
+			error.startsWith('A Pok&eacute;mon cannot ') || error.startsWith('A search cannot ') ||
+			error.startsWith('No more than ') || error.startsWith('No value given to compare with ') ||
+			error.endsWith(' is not a recognized egg group.') || error.endsWith(' is not a recognized stat.') ||
+			error.endsWith(' cannot have alternative parameters') || error.endsWith(' did not contain a valid stat') ||
+			error.endsWith(" cannot be broadcast.") || error.endsWith(" is a status move and can't be used with 'resists'.") ||
+			error.endsWith(" is a status move and can't be used with 'weak'.") ||
+			error.endsWith(" is not a recognized type or move.") || error.startsWith("You cannot ") ||
+			error.startsWith("Invalid stat range for ") || error.startsWith("Invalid property range for ") ||
+			error.endsWith(" isn't a valid move target.") || error.endsWith(" did not contain a valid property.") ||
+			error.startsWith("A Pok\u00e9mon learnset cannot ") || error.startsWith("A search should not ") ||
+			error.endsWith("not recognized.") || error.startsWith("Priority cannot ") ||
+			error.startsWith("The generation must be between ") || error.endsWith("Try a more specific search.") ||
+			error.startsWith("Only specify ") || error.startsWith("No items ") || error.startsWith("No berries ") ||
+			error.startsWith('The search included ');
 	}
 
 	/**Returns the description of the filter triggered by the message, if any */
@@ -497,30 +523,29 @@ export class Client {
 			return;
 		}
 
-		if (outgoingMessage.room) {
-			if (Rooms.get(outgoingMessage.room.id) !== outgoingMessage.room) return;
+		let room: Room | undefined;
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+			room = Rooms.get(outgoingMessage.roomid);
+			if (!room) return;
 
-			if (outgoingMessage.room.type === 'chat' && !outgoingMessage.room.serverBannedWords) {
+			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'banword-list') {
+				room.serverBannedWords = [];
+
 				this.send({
-					message: outgoingMessage.room.id + '|/banword list',
-					roomid: outgoingMessage.room.id,
+					message: room.id + '|/banword list',
+					roomid: room.id,
 					type: 'banword-list',
 					measure: true,
 				});
-
-				outgoingMessage.room.serverBannedWords = [];
 
 				this.outgoingMessageQueue.push(outgoingMessage);
 				return;
 			}
 		}
 
-		if (outgoingMessage.user) {
-			if (Users.get(outgoingMessage.user.name) !== outgoingMessage.user || outgoingMessage.user.locked) return;
-
-			if (outgoingMessage.room) {
-				if (!outgoingMessage.room.getTargetUser(outgoingMessage.user)) return;
-			}
+		if (outgoingMessage.userid) {
+			const user = Users.get(outgoingMessage.userid);
+			if (!user || user.locked || (room && !room.getTargetUser(user))) return;
 		}
 
 		if (outgoingMessage.filterSend && !outgoingMessage.filterSend()) {
@@ -720,7 +745,6 @@ export class Client {
 			delete previous[i];
 		}
 	}
-
 	/* eslint-enable */
 
 	private clearConnectionTimeouts(): void {
@@ -1230,9 +1254,7 @@ export class Client {
 					delete this.reconnectRoomMessages[room.id];
 				}
 
-				if (room.id in Tournaments.schedules) {
-					Tournaments.setScheduledTournament(room);
-				}
+				Tournaments.setScheduledTournament(room);
 			}
 			break;
 		}
@@ -1425,7 +1447,12 @@ export class Client {
 			if (roomData) roomData.lastChatMessage = messageArguments.timestamp;
 
 			if (user === Users.self) {
-				if (messageArguments.message.startsWith(ANNOUNCE_CHAT_COMMAND)) {
+				if (messageArguments.message === CODE_COMMAND) {
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'code' &&
+						this.lastOutgoingMessage.roomid === room.id) {
+						this.clearLastOutgoingMessage(now);
+					}
+				} else if (messageArguments.message.startsWith(ANNOUNCE_CHAT_COMMAND)) {
 					const announcement = messageArguments.message.substr(ANNOUNCE_CHAT_COMMAND.length);
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'announce' &&
 						Tools.toId(this.lastOutgoingMessage.announcement) === Tools.toId(announcement)) {
@@ -1640,6 +1667,7 @@ export class Client {
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
 					messageArguments.message.endsWith(STAFF_BLOCKING_PMS_MESSAGE) ||
 					messageArguments.message.startsWith(UNREGISTERED_USER_MESSAGE) ||
+					messageArguments.message.startsWith(ROLL_COMMAND_HELP) ||
 					(messageArguments.message.startsWith('/error The user ') &&
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipientId &&
@@ -1659,22 +1687,11 @@ export class Client {
 				const recipient = Users.add(messageArguments.recipientUsername, recipientId);
 				if (messageArguments.message.startsWith('/error ')) {
 					const error = messageArguments.message.substr(7).trim();
-					if (error.endsWith('could not be found in any of the search categories.') ||
-						error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
-						error.startsWith('A search cannot both include and exclude ') ||
-						error.startsWith('A search cannot both exclude and include ') ||
-						error.startsWith('No more than 3 alternatives for each parameter may be used') ||
-						error.startsWith('No value given to compare with ') ||
-						error.endsWith(' is not a recognized egg group.') ||
-						error.endsWith(' is not a recognized stat.') ||
-						error.endsWith(' cannot have alternative parameters') ||
-						(error.startsWith('The search included ') && error.endsWith(' more than once.'))) {
-						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-							this.lastOutgoingMessage.userid === recipient.id &&
-							this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
-							this.clearLastOutgoingMessage(now);
-							recipient.say(Tools.unescapeHTML(error));
-						}
+					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
+						this.lastOutgoingMessage.userid === recipient.id && this.isDataRollCommand(this.lastOutgoingMessage.text!) &&
+						this.isDataCommandError(error)) {
+						this.clearLastOutgoingMessage(now);
+						recipient.say(Tools.unescapeHTML(error));
 					}
 
 					return;
@@ -1860,6 +1877,11 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.message.startsWith("/dice ")) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' &&
+					this.lastOutgoingMessage.roomid === room.id && this.lastOutgoingMessage.text!.startsWith('!roll ')) {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (messageArguments.message.startsWith("Sent ")) {
 				const parts = messageArguments.message.substr(5).split(" the bot page ");
 				let recipient = parts[0];
@@ -1899,22 +1921,7 @@ export class Client {
 				error: messageParts.join("|"),
 			};
 
-			if (messageArguments.error.endsWith('could not be found in any of the search categories.') ||
-				messageArguments.error.startsWith('A Pok&eacute;mon cannot have multiple ') ||
-				messageArguments.error.startsWith('A search cannot both include and exclude ') ||
-				messageArguments.error.startsWith('A search cannot both exclude and include ') ||
-				messageArguments.error.startsWith('No more than 3 alternatives for each parameter may be used') ||
-				messageArguments.error.startsWith('No value given to compare with ') ||
-				messageArguments.error.endsWith(' is not a recognized egg group.') ||
-				messageArguments.error.endsWith(' is not a recognized stat.') ||
-				messageArguments.error.endsWith(' cannot have alternative parameters') ||
-				(messageArguments.error.startsWith('The search included ') && messageArguments.error.endsWith(' more than once.'))) {
-				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
-					this.clearLastOutgoingMessage(now);
-					room.say(Tools.escapeHTML(messageArguments.error));
-				}
-			} else if (messageArguments.error.startsWith('/tour new - Access denied')) {
+			if (messageArguments.error.startsWith('/tour new - Access denied')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-create' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
@@ -1934,7 +1941,8 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('/tour cap - Access denied')) {
+			} else if (messageArguments.error.startsWith('/tour cap - Access denied') ||
+				messageArguments.error.startsWith("The tournament's player cap is already ")) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-cap' &&
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
@@ -1988,7 +1996,22 @@ export class Client {
 					this.lastOutgoingMessage.roomid === room.id) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
+				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					(this.lastOutgoingMessage.type === 'pm-html' || this.lastOutgoingMessage.type === 'pm-uhtml' ||
+					this.lastOutgoingMessage.type === 'htmlpage' || this.lastOutgoingMessage.type === 'htmlpageselector' ||
+					this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'closehtmlpage')) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (this.isDataCommandError(messageArguments.error)) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
+					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
+					this.clearLastOutgoingMessage(now);
+					room.say(Tools.escapeHTML(messageArguments.error));
+				}
 			}
+
 			break;
 		}
 
@@ -2061,7 +2084,7 @@ export class Client {
 
 					room.tournament.format = Dex.getExistingFormat(Dex.joinNameAndCustomRules(room.tournament.format,
 						Dex.combineCustomRules(separatedCustomRules)));
-					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+					room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="broadcast-green"><p style="text-align:left;font-weight:bold;' +
 				'font-size:10pt;margin:5px 0 0 15px">The word has been guessed. Congratulations!</p>')) {
@@ -2079,12 +2102,12 @@ export class Client {
 			} else if (messageArguments.html === "<b>The tournament's custom rules were cleared.</b>") {
 				if (room.tournament) {
 					room.tournament.format = Dex.getExistingFormat(room.tournament.format.name);
-					if (!room.tournament.manuallyNamed) room.tournament.setCustomFormatName();
+					room.tournament.setCustomFormatName();
 				}
 			} else if (messageArguments.html.startsWith('<div class="message"><ul class="utilichart"><li class="result">') ||
 				messageArguments.html.startsWith('<ul class="utilichart"><li class="result">')) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
-					this.isDtResultLastMessage(this.lastOutgoingMessage.text!)) {
+					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 				}
 			}
@@ -2282,42 +2305,8 @@ export class Client {
 					room.tournament.updateEnd();
 					room.tournament.end();
 				}
-				const database = Storage.getDatabase(room);
 
-				// delayed scheduled tournament
-				if (room.id in Tournaments.nextScheduledTournaments && Tournaments.nextScheduledTournaments[room.id].time <= now) {
-					Tournaments.setScheduledTournamentTimer(room);
-				} else {
-					let queuedTournament = false;
-					if (database.queuedTournament) {
-						const format = Dex.getFormat(database.queuedTournament.formatid, true);
-						if (format && format.effectType === 'Format') {
-							queuedTournament = true;
-							if (!database.queuedTournament.time) database.queuedTournament.time = now + Tournaments.queuedTournamentTime;
-							Tournaments.setTournamentTimer(room, database.queuedTournament.time, format,
-								database.queuedTournament.playerCap, database.queuedTournament.scheduled);
-						} else {
-							delete database.queuedTournament;
-							Storage.exportDatabase(room.id);
-						}
-					}
-
-					if (!queuedTournament) {
-						let setRandomTournament = false;
-						if (Config.randomTournamentTimers && room.id in Config.randomTournamentTimers) {
-							if (Tournaments.canSetRandomTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id]);
-								setRandomTournament = true;
-							} else if (Tournaments.canSetRandomQuickTournament(room)) {
-								Tournaments.setRandomTournamentTimer(room, Config.randomTournamentTimers[room.id], true);
-								setRandomTournament = true;
-							}
-						}
-						if (!setRandomTournament && room.id in Tournaments.scheduledTournaments) {
-							Tournaments.setScheduledTournamentTimer(room);
-						}
-					}
-				}
+				Tournaments.onTournamentEnd(room, now);
 				break;
 			}
 
@@ -2330,6 +2319,8 @@ export class Client {
 				room.addHtmlChatLog("tournament|forceend");
 
 				if (room.tournament) room.tournament.forceEnd();
+
+				Tournaments.onTournamentEnd(room, now);
 				break;
 			}
 
@@ -2726,10 +2717,6 @@ export class Client {
 		}
 	}
 
-	private isDtResultLastMessage(message: string): boolean {
-		return DT_RESULT_COMMANDS.includes(message.substr(1).split(" ")[0]);
-	}
-
 	private clearLastOutgoingMessage(responseTime?: number): void {
 		if (this.lastOutgoingMessage) {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
@@ -2792,13 +2779,6 @@ export class Client {
 
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
-					delete this.lastOutgoingMessage.user;
-					delete this.lastOutgoingMessage.room;
-					if (this.lastMeasuredMessage) {
-						delete this.lastMeasuredMessage.user;
-						delete this.lastMeasuredMessage.room;
-					}
-
 					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +

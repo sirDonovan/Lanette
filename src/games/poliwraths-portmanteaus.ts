@@ -22,12 +22,12 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 		Games.getWorkers().portmanteaus.init();
 	}
 
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let numberOfPorts: number;
 		if (this.customPortTypes) {
 			numberOfPorts = this.customPortTypes.length;
 		} else if (this.format.inputOptions.ports) {
-			numberOfPorts = this.format.options.ports!;
+			numberOfPorts = this.options.ports!;
 		} else {
 			numberOfPorts = BASE_NUMBER_OF_PORTS;
 			if ('ports' in this.format.customizableNumberOptions) {
@@ -44,12 +44,12 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 		});
 
-		if (this.ended) return "";
+		if (this.ended) return;
 
 		if (result === null) {
 			this.say("An error occurred while generating a portmanteau.");
 			this.deallocate(true);
-			return "";
+			return;
 		}
 
 		if (!result.answers.length) {
@@ -62,8 +62,6 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			this.hint = "<b>" + result.ports.join(" ") + "</b>";
 			this.prng = new PRNG(result.prngSeed);
 		}
-
-		return "";
 	}
 
 	getAnswers(givenAnswer?: string): readonly string[] {
@@ -121,7 +119,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			this.timeout(15000);
 
 			for (let i = format.customizableNumberOptions.ports.min; i <= format.customizableNumberOptions.ports.max; i++) {
-				game.format.options.ports = i;
+				game.options.ports = i;
 				game.answers = [];
 				await game.onNextRound();
 				assert(game.answers.length);

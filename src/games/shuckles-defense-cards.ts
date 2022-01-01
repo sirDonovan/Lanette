@@ -459,10 +459,10 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
 		const dex = this.getDex();
-		const minimumDeck = (this.maxPlayers + 1) * this.format.options.cards!;
+		const minimumDeck = (this.maxPlayers + 1) * this.options.cards!;
 		for (const card of deckPool) {
 			const resistances = dex.getResistances(Dex.getExistingPokemon(card.name)).join(",");
-			if (resistances in resistancesCounts && resistancesCounts[resistances] >= this.format.options.cards!) continue;
+			if (resistances in resistancesCounts && resistancesCounts[resistances] >= this.options.cards!) continue;
 			if (!(resistances in resistancesCounts)) resistancesCounts[resistances] = 0;
 			resistancesCounts[resistances]++;
 

@@ -106,6 +106,7 @@ export const mode: IGameModeFile<PMTimeAttack, QuestionAndAnswer, PMTimeAttackTh
 		},
 	},
 	class: PMTimeAttack,
+	cooldownId: 'timeattack',
 	description,
 	initialize,
 	name,

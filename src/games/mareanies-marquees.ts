@@ -27,13 +27,14 @@ class MareaniesMarquees extends QuestionAndAnswer {
 		};
 	}
 
-	async onSetGeneratedHint(hintKey: string): Promise<string> {
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const letters = hintKey.replace(" ", "").split("");
 		for (let i = 0; i < letters.length; i++) {
 			let part = letters.slice(i, i + LETTERS_TO_REVEAL);
 			if (part.length < LETTERS_TO_REVEAL) part = part.concat(letters.slice(0, LETTERS_TO_REVEAL - part.length));
 			if (Client.checkFilters(part.join(''), !this.isPmActivity(this.room) ? this.room : undefined)) {
-				return await this.generateHint();
+				await this.generateHint();
+				return;
 			}
 		}
 
@@ -42,7 +43,6 @@ class MareaniesMarquees extends QuestionAndAnswer {
 		this.hintUpdates = 0;
 		this.hintUpdateLimit = letters.length * this.hintUpdateLimitMultiplier;
 		this.updateHint();
-		return hintKey;
 	}
 
 	updateHint(): void {

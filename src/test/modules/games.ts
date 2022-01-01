@@ -5,7 +5,7 @@ import { PRNG } from '../../lib/prng';
 import type { ScriptedGame } from '../../room-game-scripted';
 import type { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual, testOptions } from '../test-tools';
+import { assert, assertClientSendQueue, assertStrictEqual, runCommand, testOptions } from '../test-tools';
 
 /* eslint-env mocha */
 
@@ -71,6 +71,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			if (testConfig.async) {
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
 					try {
@@ -85,6 +86,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			} else {
 				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
 					try {
@@ -242,6 +244,29 @@ describe("Games", () => {
 		}
 	});
 
+	it('should start games through commands', () => {
+		runCommand("cg", "trivia", room, Users.self);
+		assert(room.game);
+		assertStrictEqual(room.game.name, "Slowking's Trivia");
+		room.game.deallocate(true);
+
+		runCommand("trivium", "", room, Users.self);
+		assert(room.game);
+		assert(room.game.isMiniGame);
+		assertStrictEqual(room.game.name, "Slowking's Trivia");
+		room.game.deallocate(true);
+
+		runCommand("ppair", "", room, Users.self);
+		assert(room.game);
+		assert(room.game.isMiniGame);
+		assertStrictEqual(room.game.name, "Pancham's Pairs");
+		room.game.deallocate(true);
+	});
+
+	it('should allow generating random hints', () => {
+		runCommand("rhint", "trivia", Users.self, Users.self);
+	});
+
 	it('should support setting the initial PRNG seed', () => {
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
@@ -287,6 +312,31 @@ describe("Games", () => {
 		assert(Array.isArray(nameFormat));
 		assertStrictEqual(nameFormat[0], 'invalidGameFormat');
 		assertStrictEqual(nameFormat[1], name);
+
+		const pointsFormat = Games.getFormat("cups, firstto: 10");
+		assert(Array.isArray(pointsFormat));
+		assertStrictEqual(pointsFormat[0], 'gameOptionRequiresFreejoin');
+		assertStrictEqual(pointsFormat[1], "Inkay's Cups (first to 10)");
+
+		const pointsFreejoinFormat = Games.getFormat("cups, firstto: 10, fj");
+		assert(!Array.isArray(pointsFreejoinFormat));
+		assert(pointsFreejoinFormat.resolvedInputProperties.options.points);
+		assert(pointsFreejoinFormat.resolvedInputProperties.options.freejoin);
+
+		const pointsNonFreejoinFormat = Games.getFormat("Falinks' Formations");
+		assert(!Array.isArray(pointsNonFreejoinFormat));
+		assert(pointsNonFreejoinFormat.resolvedInputProperties.options.points);
+		assert(!pointsNonFreejoinFormat.resolvedInputProperties.options.freejoin);
+
+		const invalidPointsFormat = Games.getFormat("trivia, firstto: (((10)))");
+		assert(Array.isArray(invalidPointsFormat));
+		assertStrictEqual(invalidPointsFormat[0], 'invalidGameOption');
+		assertStrictEqual(invalidPointsFormat[1], "firstto: (((10)))");
+
+		const invalidFreeJoinFormat = Games.getFormat("fbc, fj");
+		assert(!Array.isArray(invalidFreeJoinFormat));
+		assertStrictEqual(invalidFreeJoinFormat.nameWithOptions, "Fraxure's Battle Chain");
+		assert(!invalidFreeJoinFormat.resolvedInputProperties.options.freejoin);
 
 		for (const key of formatKeys) {
 			const formatData = formats[key];

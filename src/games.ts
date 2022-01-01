@@ -27,6 +27,7 @@ type LastChallengeTimes = KeyedDict<GameChallenge, Dict<Dict<number>>>;
 type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
 type Modes = Dict<IGameMode>;
 type UserHostedFormats = Dict<IUserHostedComputed>;
+type GameCategoryNames = Readonly<KeyedDict<GameCategory, string>>;
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
@@ -47,7 +48,7 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 	vote: path.join(gamesDirectory, "internal", "vote.js"),
 };
 
-const categoryNames: Readonly<KeyedDict<GameCategory, string>> = {
+const categoryNames: GameCategoryNames = {
 	'chain': 'Chain',
 	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
@@ -183,6 +184,10 @@ export class Games {
 
 	getInternalFormats(): Readonly<InternalFormats> {
 		return this.internalFormats;
+	}
+
+	getCategoryNames(): GameCategoryNames {
+		return categoryNames;
 	}
 
 	getMaxMoveAvailability(): number {
@@ -585,12 +590,13 @@ export class Games {
 							return;
 						}
 					}
+
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
 					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
-					delete format.inputOptions.points;
+					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
 					const game = global.Games.createGame(room, format, pmRoom, true);
@@ -703,13 +709,14 @@ export class Games {
 
 			if (!optionName) return ['invalidGameOption', option];
 
+			if (optionName === 'firstto') optionName = 'points';
+			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
+
 			if (numberGameOptions.includes(optionName as GameNumberOptions)) {
 				optionValue = parseInt(optionValue as string);
 				if (isNaN(optionValue)) return ['invalidGameOption', option];
 			}
 
-			if (optionName === 'firstto') optionName = 'points';
-			if (optionName === 'points' && mode && (mode.id === 'collectiveteam' || mode.id === 'spotlightteam')) optionName = 'teamPoints';
 			inputOptions[optionName] = optionValue;
 		}
 
@@ -732,9 +739,18 @@ export class Games {
 		}
 
 		const format = Object.assign(formatData, formatComputed,
-			{challengeSettings, customizableNumberOptions, defaultOptions, options: {}}) as IGameFormat;
+			{challengeSettings, customizableNumberOptions, defaultOptions}) as IGameFormat;
+
+		if (variant) Object.assign(format, variant);
 
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, mode, variant);
+
+		if (inputOptions.points && !format.freejoin && !format.resolvedInputProperties.options.freejoin) {
+			return ['gameOptionRequiresFreejoin', format.nameWithOptions];
+		}
+
+		if (format.resolvedInputProperties.description) format.description = format.resolvedInputProperties.description;
+		if (format.resolvedInputProperties.defaultOptions) format.defaultOptions = format.resolvedInputProperties.defaultOptions;
 
 		return format;
 	}
@@ -851,10 +867,8 @@ export class Games {
 
 		const formatComputed: IUserHostedFormatComputed = {
 			effectType: "UserHostedFormat",
-			inputOptions: {},
 			inputTarget,
 			nameWithOptions: '',
-			options: {},
 		};
 
 		return Object.assign(formatData, formatComputed);
@@ -878,7 +892,7 @@ export class Games {
 		};
 
 		const format = Object.assign(formatData, formatComputed, {customizableNumberOptions: formatData.customizableNumberOptions || {},
-			defaultOptions: formatData.defaultOptions || [], options: {}}) as IGameFormat;
+			defaultOptions: formatData.defaultOptions || []}) as IGameFormat;
 
 		format.resolvedInputProperties = ScriptedGame.resolveInputProperties(format, undefined, undefined);
 
@@ -1027,9 +1041,13 @@ export class Games {
 				continue;
 			}
 
-			if (limitModes && format.mode && pastFormat.mode && format.mode.id === pastFormat.mode.id) {
-				pastGameMode = format.mode.name;
-				break;
+			if (limitModes && format.mode && pastFormat.mode) {
+				const formatModeId = format.mode.cooldownId || format.mode.id;
+				const pastFormatModeId = pastFormat.mode.cooldownId || pastFormat.mode.id;
+				if (formatModeId === pastFormatModeId) {
+					pastGameMode = format.mode.cooldownName || pastFormat.mode.cooldownName || this.modes[pastFormatModeId].name;
+					break;
+				}
 			}
 
 			if (limitCategories) {
@@ -1092,8 +1110,11 @@ export class Games {
 		if (isMinigame) game.isMiniGame = true;
 		if (game.initialize(format)) {
 			if (isMinigame) {
-				if (format.options.points) format.options.points = 1;
-				if (!format.freejoin && 'freejoin' in format.customizableNumberOptions) format.options.freejoin = 1;
+				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
+				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
+					'freejoin' in format.resolvedInputProperties.customizableNumberOptions) {
+					format.resolvedInputProperties.options.freejoin = 1;
+				}
 			}
 
 			room.game = game;
@@ -1620,15 +1641,19 @@ export class Games {
 		}
 
 		let content = "";
+		if (voter) {
+			let iconHtml = "";
+			if (scriptedBox) {
+				const icons: string[] = [];
+				for (const pokemon of scriptedBox.pokemon) {
+					const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
+					if (icon) icons.push(icon);
+				}
 
-		if (scriptedBox && voter) {
-			const icons: string[] = [];
-			for (const pokemon of scriptedBox.pokemon) {
-				const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
-				if (icon) icons.push(icon);
+				if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
 			}
 
-			content += (icons.length ? icons.join("&nbsp;") + " " : "") + "<b>" + voter + "</b>'s pick<br /><br />";
+			content += iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
 		}
 
 		if (mascot) {

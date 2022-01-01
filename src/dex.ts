@@ -1050,7 +1050,7 @@ export class Dex {
 		return 'xy';
 	}
 
-	getModelGenerations(): ModelGeneration[] {
+	getModelGenerations(): readonly ModelGeneration[] {
 		return ['rb', 'gs', 'rs', 'dp', 'bw', 'xy'];
 	}
 
@@ -1065,6 +1065,10 @@ export class Dex {
 
 	hasModelData(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back'): boolean {
 		return !!this.getModelData(pokemon, generation, direction);
+	}
+
+	getPlaceholderSprite(): string {
+		return '<img src="//' + Tools.mainServer + '/sprites/gen5/0.png" width="96" height="96" />';
 	}
 
 	getPokemonModel(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
@@ -1430,7 +1434,7 @@ export class Dex {
 		return format;
 	}
 
-	getFormatInfoDisplay(format: IFormat): string {
+	getFormatInfoDisplay(format: IFormat, tournamentRoom?: string): string {
 		let info = format.desc || '';
 
 		if (format.info) {
@@ -1467,6 +1471,10 @@ export class Dex {
 
 		if (format.roleCompendium) {
 			links.push('&bull;&nbsp;<a href="' + format.roleCompendium + '">Role compendium</a>');
+		}
+
+		if (tournamentRoom && Config.tournamentRules && tournamentRoom in Config.tournamentRules) {
+			links.push('<br />Please follow the <b><a href="' + Config.tournamentRules[tournamentRoom] + '">tournament rules</a></b>!');
 		}
 
 		if (!info && !links.length) return "";

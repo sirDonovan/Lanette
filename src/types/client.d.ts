@@ -48,9 +48,7 @@ export interface IOutgoingMessageAttributes {
 export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 	message: string;
 	type: IOutgoingMessageTypes;
-	room?: Room;
 	sentTime?: number;
-	user?: User;
 }
 
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'star' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' |

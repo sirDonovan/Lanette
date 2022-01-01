@@ -76,9 +76,21 @@ class MiltanksMoves extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	onSetGeneratedHint(hintKey: string): string {
-		this.hint = "<b>Randomly generated Pokemon and type</b>: <i>" + this.currentCategory + " - " + hintKey + " type</i>";
-		return hintKey;
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSetGeneratedHint(hintKey: string): Promise<void> {
+		const hintKeyGif = this.getHintKeyGif(this.currentCategory!);
+		if (this.pokemonGifHints && !hintKeyGif) {
+			await this.generateHint();
+			return;
+		}
+
+		let hint = "<b>Randomly generated Pokemon and type</b>:";
+		if (hintKeyGif) {
+			hint += "<br /><center>" + hintKeyGif + "<br />" + Dex.getTypeHtml(Dex.getExistingType(hintKey)) + "</center>";
+		} else {
+			hint += " <i>" + this.currentCategory + " - " + hintKey + " type</i>";
+		}
+		this.hint = hint;
 	}
 }
 
@@ -95,4 +107,11 @@ export const game: IGameFile<MiltanksMoves> = Games.copyTemplateProperties(quest
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a move of the specified type that the Pokemon learns!",
 	modes: ["abridged", "collectiveteam", "multianswer", "pmtimeattack", "prolix", "spotlightteam", "survival", "timeattack"],
 	nonTrivialLoadData: true,
+	variants: [
+		{
+			name: "Miltank's Moves (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });

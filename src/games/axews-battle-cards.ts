@@ -498,7 +498,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
 		const dex = this.getDex();
-		const minimumDeck = (this.playerCount + 1) * this.format.options.cards!;
+		const minimumDeck = (this.playerCount + 1) * this.options.cards!;
 		for (const card of deckPool) {
 			if (!this.usesActionCards && card.types.join("") === "Normal") continue;
 

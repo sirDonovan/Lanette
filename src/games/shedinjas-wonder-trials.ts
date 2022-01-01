@@ -34,7 +34,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.format.options.freejoin) {
+		if (this.options.freejoin) {
 			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}

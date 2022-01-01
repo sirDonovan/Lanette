@@ -198,6 +198,11 @@ export let tournamentRoomAdvertisements: Dict<string[]> = {};
 export let tournamentAutoDQTimers: Dict<number> = {};
 
 /**
+ * The number of minutes to set for the auto DQ timer in random format tournaments
+ */
+export let tournamentRandomAutoDQTimers: Dict<number> = {};
+
+/**
  * A list of rooms (roomids) where tournament caps will be adjusted when signups are halfway over
  */
 export let adjustTournamentCaps: string[] = [];
@@ -216,6 +221,11 @@ export let trackTournamentBattleScores: string[] = [];
  * For each room in the object, the number of minutes to wait before setting a timer for a random tournament
  */
 export let randomTournamentTimers: Dict<number> = {};
+
+/**
+ * For each room in the object, the link to the tournament rules
+ */
+ export let tournamentRules: Dict<string> = {};
 
 /**
  * A list of rooms (roomids) where hosted tournaments go through the approval process

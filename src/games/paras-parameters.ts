@@ -37,14 +37,14 @@ export class ParasParameters extends QuestionAndAnswer {
 	}
 
 	getMinigameDescription(): string {
-		const dexsearchCommand = "<code>/" + (this.format.options.gen === 8 ? "nds" : "ds" + this.format.options.gen) + "</code>";
+		const dexsearchCommand = "<code>/" + (this.options.gen === 8 ? "nds" : "ds" + this.options.gen) + "</code>";
 		return "Use " + dexsearchCommand + " to search for and then <code>" + Config.commandCharacter + "g</code> to guess " +
 			dexsearchCommand + " parameters that give the following Pokemon!";
 	}
 
 	getDescription(): string {
-		if (this.format.options.gen === 8) return this.description;
-		return "Players search for possible <code>/ds" + this.format.options.gen + "</code> parameters that result in the given " +
+		if (this.options.gen === 8) return this.format.description;
+		return "Players search for possible <code>/ds" + this.options.gen + "</code> parameters that result in the given " +
 			"Pokemon list!";
 	}
 
@@ -68,12 +68,12 @@ export class ParasParameters extends QuestionAndAnswer {
 		return names.sort();
 	}
 
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let numberOfParams: number;
 		if (this.customParamTypes) {
 			numberOfParams = this.customParamTypes.length;
 		} else if (this.format.inputOptions.params) {
-			numberOfParams = this.format.options.params!;
+			numberOfParams = this.options.params!;
 		} else {
 			numberOfParams = BASE_NUMBER_OF_PARAMS;
 			if ('params' in this.format.customizableNumberOptions) {
@@ -85,19 +85,19 @@ export class ParasParameters extends QuestionAndAnswer {
 			customParamTypes: this.customParamTypes,
 			minimumResults: this.minimumResults,
 			maximumResults: this.maximumResults,
-			mod: 'gen' + this.format.options.gen,
+			mod: 'gen' + this.options.gen,
 			numberOfParams,
 			paramTypes: this.paramTypes,
 			prngSeed: this.prng.seed.slice() as PRNGSeed,
 			searchType: 'pokemon',
 		});
 
-		if (this.ended) return "";
+		if (this.ended) return;
 
 		if (result === null) {
 			this.say("An error occurred while generating parameters.");
 			this.deallocate(true);
-			return "";
+			return;
 		}
 
 		if (!result.pokemon.length) {
@@ -110,8 +110,8 @@ export class ParasParameters extends QuestionAndAnswer {
 
 			this.answers = [this.getParamNames(result.params).join(',')];
 			let oldGen = '';
-			if (this.format.options.gen && this.format.options.gen !== Dex.getGen()) {
-				oldGen = " (Generation " + this.format.options.gen + ")";
+			if (this.options.gen && this.options.gen !== Dex.getGen()) {
+				oldGen = " (Generation " + this.options.gen + ")";
 			}
 			this.additionalHintHeader = "- " + this.params.length + " params" + oldGen + ":";
 
@@ -122,8 +122,6 @@ export class ParasParameters extends QuestionAndAnswer {
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
-
-		return "";
 	}
 
 	getAnswers(givenAnswer?: string): string[] {
@@ -138,7 +136,7 @@ export class ParasParameters extends QuestionAndAnswer {
 	intersect(parts: string[]): IParametersResponse | null {
 		const workers = Games.getWorkers();
 		const params: IParam[] = [];
-		const mod = 'gen' + this.format.options.gen;
+		const mod = 'gen' + this.options.gen;
 		const paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
 		for (const part of parts) {
 			const id = Tools.toId(part);
@@ -208,9 +206,9 @@ const tests: GameFileTests<ParasParameters> = {
 				const gen = i;
 				for (let j = format.customizableNumberOptions.params.min; j <= format.customizableNumberOptions.params.max; j++) {
 					format.inputOptions.params = j;
-					game.format.options.params = j;
+					game.options.params = j;
 					format.inputOptions.gen = gen;
-					game.format.options.gen = gen;
+					game.options.gen = gen;
 					game.answers = [];
 					await game.onNextRound();
 					assert(game.params.length);
@@ -218,9 +216,9 @@ const tests: GameFileTests<ParasParameters> = {
 				}
 			}
 			delete format.inputOptions.params;
-			delete game.format.options.params;
+			delete game.options.params;
 
-			game.format.options.gen = 8;
+			game.options.gen = 8;
 			game.customParamTypes = ['move', 'egggroup'];
 			game.answers = [];
 			await game.onNextRound();
@@ -267,7 +265,7 @@ const tests: GameFileTests<ParasParameters> = {
 
 			// past gen
 
-			game.format.options.gen = 7;
+			game.options.gen = 7;
 
 			intersection = game.intersect(['steeltype', 'rockclimb']);
 			assert(intersection);

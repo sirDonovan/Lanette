@@ -10,14 +10,15 @@ const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 const removeFromBuild = ["require('better-sqlite3')", 'require("better-sqlite3")'];
 const removeFromPackageJson = [
 	// dependencies
-	"@swc/core", "@types/better-sqlite3", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
+	"@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
 	// optionalDependencies
-	"better-sqlite3", "brain.js", "cloud-env", "node-static", "nodemailer", "permessage-deflate", "sql-template-strings", "sqlite",
+	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
+		"sql-template-strings", "sqlite",
 	// secretDependencies
 	"node-oom-heapdump",
 	// devDependencies
-	"@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/sockjs", "@typescript-eslint/eslint-plugin",
-		"@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
+	"@types/better-sqlite3", "@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/pg", "@types/sockjs", 
+		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
 ];
 
 const exec = util.promisify(child_process.exec);

@@ -33,7 +33,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		}
 	}
 
-	async customGenerateHint(): Promise<string> {
+	async customGenerateHint(): Promise<void> {
 		let eggGroups = this.shuffle(WailordsEggCompatibilities.eggGroupKeys);
 		let startEggGroup = eggGroups[0];
 		while (startEggGroup === this.lastStartEggGroup) {
@@ -58,6 +58,12 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		while (endPokemon === this.lastEndPokemon || endPokemon === startPokemon ||
 			WailordsEggCompatibilities.pokemonEggGroups[endPokemon].includes(startEggGroup)) {
 			endPokemon = this.sampleOne(WailordsEggCompatibilities.eggGroups[endEggGroup]);
+		}
+
+		const startPokemonGif = this.getHintKeyGif(startPokemon);
+		const endPokemonGif = this.getHintKeyGif(endPokemon);
+		if (this.pokemonGifHints && (!startPokemonGif || !endPokemonGif)) {
+			return await this.customGenerateHint();
 		}
 
 		const middleEggGroups = BASE_MIDDLE_EGG_GROUPS + this.random(2);
@@ -105,10 +111,21 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		this.lastEndPokemon = endPokemon;
 		this.answers = answers;
 
-		const hintKey = startPokemon + " and " + endPokemon +
-			" (" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "");
-		this.hint = "<b>Randomly generated start and end</b>: <i>" + hintKey + ")</i>";
-		return hintKey;
+		let hint = "<b>Randomly generated start and end</b>:";
+		if (startPokemonGif && endPokemonGif) {
+			hint += "<br /><center>" + startPokemonGif + " and " + endPokemonGif + "<br />";
+		} else {
+			hint += " <i>" + startPokemon + " and " + endPokemon + " ";
+		}
+
+		hint += "(" + middleEggGroups + " connection" + (middleEggGroups > 1 ? "s" : "") + ")";
+
+		if (this.pokemonGifHints) {
+			hint += "</center>";
+		} else {
+			hint += "</i>";
+		}
+		this.hint = hint;
 	}
 }
 
@@ -127,4 +144,11 @@ export const game: IGameFile<WailordsEggCompatibilities> = Games.copyTemplatePro
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon in compatible egg groups to connect " +
 		"the chain!",
 	modes: ["collectiveteam", "spotlightteam"],
+	variants: [
+		{
+			name: "Wailord's Egg Compatibilities (GIFs)",
+			variantAliases: ["gif", "gifs"],
+			pokemonGifHints: true,
+		},
+	],
 });
