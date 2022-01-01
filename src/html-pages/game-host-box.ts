@@ -40,10 +40,13 @@ const setTrainerCommand = 'settrainer';
 const setPokemonModelCommand = 'setpokemonmodel';
 const closeCommand = 'close';
 
-const pages: Dict<GameHostBox> = {};
+const pageId = 'game-host-box';
+
+export const id = pageId;
+export const pages: Dict<GameHostBox> = {};
 
 class GameHostBox extends HtmlPageBase {
-	pageId = 'game-host-box';
+	pageId = pageId;
 
 	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'background-border' | 'buttons-border' |
 		'signups-background-border' | 'signups-buttons-border' | 'trainer' | 'pokemon' = 'trainer';

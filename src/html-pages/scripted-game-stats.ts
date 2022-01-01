@@ -13,10 +13,13 @@ const closeCommand = 'close';
 const leaderboardCommand = 'gameleaderboard';
 const pointsBreakdownCommand = 'gamepointsbreakdown';
 
-const pages: Dict<ScriptedGameStats> = {};
+const pageId = 'scripted-game-stats';
+
+export const id = pageId;
+export const pages: Dict<ScriptedGameStats> = {};
 
 class ScriptedGameStats extends HtmlPageBase {
-	pageId = 'scripted-game-stats';
+	pageId = pageId;
 	currentView: 'leaderboard' | 'pointsbreakdown' = 'leaderboard';
 
 	gameLeaderboard: GameLeaderboard;

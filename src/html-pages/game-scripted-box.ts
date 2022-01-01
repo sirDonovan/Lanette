@@ -50,10 +50,13 @@ const setGameBackgroudBorderStyleCommand = 'setgamebackgroundborderstyle';
 const setGameButtonBorderStyleCommand = 'setgamebuttonborderstyle';
 const closeCommand = 'close';
 
-const pages: Dict<GameScriptedBox> = {};
+const pageId = 'game-scripted-box';
+
+export const id = pageId;
+export const pages: Dict<GameScriptedBox> = {};
 
 class GameScriptedBox extends HtmlPageBase {
-	pageId = 'game-scripted-box';
+	pageId = pageId;
 
 	gameFormat: string;
 
