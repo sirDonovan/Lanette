@@ -550,7 +550,7 @@ export const game: IUserHostedFile = {
 			description: "Each round, players will PM the host a cake color and a plate. A random Pokemon will be shown, and players " +
 				"gain points if the cake color matches the Pokemon's color, if the plate's type matches the Pokemon, or if the plate's " +
 				"type receives super effective damage from the Pokemon's types. However, choosing a plate type that deals super " +
-				"effective damage to the Pokemon will cause the player to lose a point!" +
+				"effective damage to the Pokemon will cause the player to lose a point! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/bewear-s-birthday-cakes-t744.html>More info</a>",
 		},
 		{
