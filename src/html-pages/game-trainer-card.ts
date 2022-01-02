@@ -21,10 +21,13 @@ const setPokemonCommand = 'setpokemon';
 const setTrainerCommand = 'settrainer';
 const closeCommand = 'close';
 
-const pages: Dict<GameTrainerCard> = {};
+const pageId = 'game-trainer-card';
+
+export const id = pageId;
+export const pages: Dict<GameTrainerCard> = {};
 
 class GameTrainerCard extends HtmlPageBase {
-	pageId = 'game-trainer-card';
+	pageId = pageId;
 
 	currentPicker: 'background' | 'trainer' | 'pokemon' = 'background';
 	currentPokemon: PokemonChoices = [];

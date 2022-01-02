@@ -19,9 +19,14 @@ const discardCommand = 'discard';
 const undoDiscardCommand = 'undodiscard';
 const closeCommand = 'close';
 
-const pages: Dict<OfflineMessages> = {};
+const pageId = 'offline-messages';
+
+export const id = pageId;
+export const pages: Dict<OfflineMessages> = {};
 
 class OfflineMessages extends HtmlPageBase {
+	pageId = pageId;
+
 	allMessages: readonly IOfflineMessage[] = [];
 	dateOptions: string[] = [];
 	discardedMessages: IOfflineMessage[] = [];
@@ -32,7 +37,6 @@ class OfflineMessages extends HtmlPageBase {
 	messageType: 'new' | 'old' | 'discarded' = 'new';
 	minutesOffset: number = 0;
 	newMessages: IOfflineMessage[] = [];
-	pageId = 'offline-messages';
 	selectedDate: string = '';
 
 	timezone: TimeZone;
@@ -216,8 +220,8 @@ class OfflineMessages extends HtmlPageBase {
 			let timeString = date.toTimeString();
 			timeString = timeString.substr(0, timeString.indexOf(' ')).trim();
 
-			const id = Tools.toId(message.sender);
-			if (!(id in names)) names[id] = message.sender;
+			const senderId = Tools.toId(message.sender);
+			if (!(senderId in names)) names[senderId] = message.sender;
 
 			let html = '<div class="chat">';
 			if (oldMessages) {
@@ -227,7 +231,7 @@ class OfflineMessages extends HtmlPageBase {
 				html += this.getQuietPmButton(this.commandPrefix + " " + undoDiscardCommand + ", " +
 					this.allMessages.indexOf(message), '<i class="fa fa-undo"></i>') + '&nbsp;';
 			}
-			html += '<small>[' + timeString + '] </small><username>' + names[id] + ':</username> <em>' +
+			html += '<small>[' + timeString + '] </small><username>' + names[senderId] + ':</username> <em>' +
 				Tools.escapeHTML(message.message) + '</em></div>';
 
 			messagesHtml.set(message, html);
@@ -235,8 +239,8 @@ class OfflineMessages extends HtmlPageBase {
 			const dateString = date.toDateString();
 			if (!(dateString in messagesByDateAndUser)) messagesByDateAndUser[dateString] = {};
 
-			if (!(id in messagesByDateAndUser[dateString])) messagesByDateAndUser[dateString][id] = [];
-			messagesByDateAndUser[dateString][id].push(message);
+			if (!(senderId in messagesByDateAndUser[dateString])) messagesByDateAndUser[dateString][senderId] = [];
+			messagesByDateAndUser[dateString][senderId].push(message);
 		}
 
 		const messagesByDate: Dict<string> = {};

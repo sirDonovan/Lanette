@@ -16,10 +16,13 @@ const chooseUtil = 'chooseutil';
 const commandPageCommand = 'commandspage';
 const closeCommand = 'close';
 
-const pages: Dict<CommandsGuide> = {};
+const pageId = 'commands-guide';
+
+export const id = pageId;
+export const pages: Dict<CommandsGuide> = {};
 
 class CommandsGuide extends HtmlPageBase {
-	pageId = 'commands-guide';
+	pageId = pageId;
 	currentView: 'developer' | 'info' | 'scripted-game' | 'storage' | 'tournament' | 'user-hosted-game' | 'util' = 'info';
 
 	showDeveloperCommands: boolean;

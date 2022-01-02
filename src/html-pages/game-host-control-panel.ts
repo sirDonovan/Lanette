@@ -48,13 +48,16 @@ const maxGifs = 6;
 const maxIcons = 15;
 const maxTrainers = 6;
 
-const pages: Dict<GameHostControlPanel> = {};
+const pageId = 'game-host-control-panel';
+
+export const id = pageId;
+export const pages: Dict<GameHostControlPanel> = {};
 
 class GameHostControlPanel extends HtmlPageBase {
 	static compatibleHintGames: string[] = [];
 	static GameHostControlPanelLoaded: boolean = false;
 
-	pageId = 'game-host-control-panel';
+	pageId = pageId;
 
 	autoSendDisplay: boolean = false;
 	currentView: 'hostinformation' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
@@ -345,10 +348,10 @@ class GameHostControlPanel extends HtmlPageBase {
 		this.send();
 	}
 
-	setCurrentPlayer(id: string): void {
-		if (this.currentPlayer === id) return;
+	setCurrentPlayer(playerId: string): void {
+		if (this.currentPlayer === playerId) return;
 
-		this.currentPlayer = id;
+		this.currentPlayer = playerId;
 
 		this.send();
 	}
@@ -671,10 +674,10 @@ class GameHostControlPanel extends HtmlPageBase {
 						const remainingTeamPlayers = Object.keys(game.getRemainingPlayers(game.teams[i].players));
 						if (remainingTeamPlayers.length) {
 							html += "Team " + game.teams[i].name + ":";
-							for (const id of remainingTeamPlayers) {
-								const player = game.players[id];
-								html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
-									player.name, this.currentPlayer === id);
+							for (const playerId of remainingTeamPlayers) {
+								const player = game.players[playerId];
+								html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " +
+									playerId, player.name, this.currentPlayer === playerId);
 							}
 							html += "<br />";
 						}
@@ -682,10 +685,10 @@ class GameHostControlPanel extends HtmlPageBase {
 
 					if (this.currentPlayer) html += "<br />";
 				} else {
-					for (const id of remainingPlayers) {
-						const player = game.players[id];
-						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + id,
-							player.name, this.currentPlayer === id);
+					for (const playerId of remainingPlayers) {
+						const player = game.players[playerId];
+						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + playerId,
+							player.name, this.currentPlayer === playerId);
 					}
 
 					if (this.currentPlayer) html += "<br /><br />";

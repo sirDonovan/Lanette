@@ -1,4 +1,5 @@
 import type { CommandContext } from "../command-parser";
+import type { HtmlPageBase } from "../html-pages/html-page-base";
 import type { Room } from "../rooms";
 import type { User } from "../users";
 
@@ -53,5 +54,7 @@ export interface ICommandFile {
 }
 
 export interface IHtmlPageFile {
+	id: string;
+	pages: Dict<HtmlPageBase>;
 	commands?: BaseCommandDefinitions;
 }

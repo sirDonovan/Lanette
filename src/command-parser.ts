@@ -1,6 +1,7 @@
 import fs = require('fs');
 import path = require('path');
 
+import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
 import type {
 	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, ICommandGuide, IHtmlPageFile, LoadedCommands
@@ -113,6 +114,7 @@ export class CommandContext {
 
 export class CommandParser {
 	private commandGuides: Dict<Dict<ICommandGuide>> = {};
+	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
 	private htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
 
 	private commandsDir: string;
@@ -168,6 +170,10 @@ export class CommandParser {
 			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
+			if (htmlPage.id in this.htmlPages) throw new Error("Html page id '" + htmlPage.id + "' is used for more than 1 page.");
+
+			this.htmlPages[htmlPage.id] = htmlPage.pages;
+
 			if (htmlPage.commands) {
 				for (const i in htmlPage.commands) {
 					if (i in baseCommands) {
@@ -212,15 +218,24 @@ export class CommandParser {
 		if (Config.roomIgnoredCommands && room.id in Config.roomIgnoredCommands &&
 			Config.roomIgnoredCommands[room.id].includes(command)) return false;
 
+		let commandContext: CommandContext | undefined;
+		let result = true;
 		try {
-			new CommandContext(command, target, room, user, timestamp).run();
-			return true;
+			commandContext = new CommandContext(command, target, room, user, timestamp);
+			commandContext.run();
 		} catch (e) {
 			console.log(e);
 			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
 				" (room = " + room.id + "; " + "user = " + user.id + ")");
-			return false;
+			result = false;
 		}
+
+		for (const i in commandContext) {
+			// @ts-expect-error
+			delete commandContext[i];
+		}
+
+		return result;
 	}
 
 	getErrorText(error: CommandErrorArray): string {
@@ -307,6 +322,18 @@ export class CommandParser {
 	}
 
 	private onReload(previous: Partial<CommandParser>): void {
+		for (const i in this.commandGuides) {
+			for (const j in this.commandGuides[i]) {
+				delete this.commandGuides[i][j];
+			}
+		}
+
+		for (const i in this.htmlPages) {
+			for (const user in this.htmlPages[i]) {
+				delete this.htmlPages[i][user];
+			}
+		}
+
 		for (const i in previous) {
 			// @ts-expect-error
 			delete previous[i];
