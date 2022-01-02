@@ -544,8 +544,27 @@ export const game: IUserHostedFile = {
 				"is only one player left standing!",
 		},
 		{
+			name: "Bewear's Birthday Cakes",
+			mascot: "Bewear",
+			aliases: ['BBC', 'Bewears'],
+			description: "Each round, players will PM the host a cake color and a plate. A random Pokemon will be shown, and players " +
+				"gain points if the cake color matches the Pokemon's color, if the plate's type matches the Pokemon, or if the plate's " +
+				"type receives super effective damage from the Pokemon's types. However, choosing a plate type that deals super " +
+				"effective damage to the Pokemon will cause the player to lose a point! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/bewear-s-birthday-cakes-t744.html'>More info</a>",
+		},
+		{
 			name: "Commonyms",
 			description: "Players must find the word that applies to all of the words in the puzzle Ex: sky, jay, sad | Answer: blue",
+			freejoin: true,
+		},
+		{
+			name: "Diglett's Whack-a-Mole",
+			mascot: "Diglett",
+			aliases: ['DWM', 'Digletts', 'Whack a Diglett', 'WAD'],
+			description: "Players predict locations where Diglett are hiding to bop them on their heads and earn a point! If you're " +
+				"lucky, you may encounter a Dugtrio, which is worth three points! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/whack-a-diglett-t813.html'>More info</a>",
 			freejoin: true,
 		},
 		{
@@ -610,6 +629,14 @@ export const game: IUserHostedFile = {
 				"player. The players will battle using their assigned Pokemon in a tournament style game, where winners of " +
 				"battles take their opponent's Pokemon. This continues until there is only one player left standing! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/kecleon-39-s-swap-shop-t749.html'>More info</a>",
+		},
+		{
+			name: "Lapras' Mystery Locations",
+			mascot: "Lapras",
+			aliases: ['LML', 'Lapras'],
+			description: "Players guess locations based on the given hints (one guess per hint)! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/lapras-s-mystery-locations-t1132.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Letter Getter",
@@ -685,6 +712,14 @@ export const game: IUserHostedFile = {
 			description: "A random Pokemon is displayed by the host and the players have to either recommend or not recommend it. " +
 				"Then, the host will display another random Pokemon. If the 1st Pokemon wins type-wise, the players that recommended " +
 				"it win a point and vice-versa!",
+			freejoin: true,
+		},
+		{
+			name: "Passimian's Mystery Abilities",
+			mascot: "Passimian",
+			aliases: ['PMA', 'Passimians'],
+			description: "Players guess abilities based on the given hints (one guess per hint)! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/passimian-s-mystery-abilities-t1139.html'>More info</a>",
 			freejoin: true,
 		},
 		{
