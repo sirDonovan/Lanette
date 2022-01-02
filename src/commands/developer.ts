@@ -30,12 +30,13 @@ export const commands: BaseCommandDefinitions = {
 		description: ["evaluates the given expression and displays the result"],
 	},
 	gitpull: {
-		command() {
+		command(target, room, user) {
 			child_process.exec('git pull', {}, err => {
+				const latestUser = Users.get(user.name);
 				if (err) {
-					this.say("An error occurred while running ``git pull``: " + err.message);
+					if (latestUser) latestUser.say("An error occurred while running ``git pull``: " + err.message);
 				} else {
-					this.say("Successfully ran ``git pull``.");
+					if (latestUser) latestUser.say("Successfully ran ``git pull``.");
 				}
 			});
 		},
