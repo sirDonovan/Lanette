@@ -246,7 +246,7 @@ export const commands: BaseCommandDefinitions = {
 			Storage.exportDatabase(room.id);
 		},
 		chatOnly: true,
-		aliases: ['addsemipoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
+		aliases: ['addsemipoints', 'addsemispoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
 		syntax: ["[user], [format], [players], {official}"],
 		description: ["adds missing points for the given user based on the given number of players and optional official status"],
 	},
@@ -304,8 +304,8 @@ export const commands: BaseCommandDefinitions = {
 			Storage.exportDatabase(room.id);
 		},
 		chatOnly: true,
-		aliases: ['makesemipointsofficial', 'makesemifinalpointsofficial', 'makerunneruppointsofficial', 'makerunnerpointsofficial',
-			'makewinnerpointsofficial'],
+		aliases: ['makesemipointsofficial', 'makesemispointsofficial', 'makesemifinalpointsofficial', 'makerunneruppointsofficial',
+			'makerunnerpointsofficial', 'makewinnerpointsofficial'],
 		syntax: ["[user], [format], [players]"],
 		description: ["adds missing official points for the given user based on the given number of players"],
 	},
