@@ -1223,10 +1223,10 @@ export class Dex {
 	joinNameAndCustomRules(format: string | IFormat, customRules: string[] | null): string {
 		let compatibleRules: string[] = [];
 		if (customRules) {
-			if (typeof format !== 'string' && format.team) {
+			if (typeof format !== 'string' && format.team && !format.id.includes('hackmonscup')) {
 				for (const rule of customRules) {
 					const type = rule.charAt(0);
-					if (type !== '-' && type !== '+') compatibleRules.push(rule);
+					if (type !== '-' && type !== '+' && type !== '*') compatibleRules.push(rule);
 				}
 			} else {
 				compatibleRules = customRules;

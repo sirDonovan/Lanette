@@ -126,6 +126,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 				return false;
 			}
 
+			if (battleFormat.team) {
+				this.say("You cannot change the format to one that uses generated teams.");
+				return false;
+			}
+
 			this.battleFormatId = battleFormat.inputTarget;
 			try {
 				this.setFormat();
