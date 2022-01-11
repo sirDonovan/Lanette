@@ -410,7 +410,7 @@ const commands: GameCommandDefinitions<Vote> = {
 
 				const targetFormat = Games.getFormat(target, true);
 				if (Array.isArray(targetFormat)) {
-					player.sayPrivateHtml(CommandParser.getErrorText(targetFormat));
+					player.sayPrivateHtml(Tools.stripHtmlCharacters(CommandParser.getErrorText(targetFormat)));
 					return false;
 				}
 
