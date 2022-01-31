@@ -519,6 +519,15 @@ export class UserHostedGame extends Game {
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
 		}
+
+		this.destroyTeams();
+		this.destroyPlayers();
+
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
 	}
 }
 

@@ -1694,6 +1694,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 	cleanupTimers(): void {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
+		if (this.updateHtmlPagesTimeout) clearTimeout(this.updateHtmlPagesTimeout);
 
 		if (this.treeRoot) {
 			this.treeRoot.traverse(node => {

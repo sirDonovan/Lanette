@@ -744,6 +744,17 @@ export class ScriptedGame extends Game {
 				Tools.logError(e as NodeJS.ErrnoException, this.format.name + " onAfterDeallocate()");
 			}
 		}
+
+		this.destroyTeams();
+		this.destroyPlayers();
+
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			if (key === "ended") continue;
+
+			// @ts-expect-error
+			this[key] = undefined;
+		}
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -1158,6 +1169,7 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!result) return false;
+		if (this.ended) return true;
 
 		const triggeredListeners: IGameCommandCountListener[] = [];
 		for (const commandListener of this.commandsListeners) {

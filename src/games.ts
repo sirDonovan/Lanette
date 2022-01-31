@@ -2164,7 +2164,8 @@ export class Games {
 		if (previous.autoCreateTimers) {
 			for (const i in previous.autoCreateTimers) {
 				clearTimeout(previous.autoCreateTimers[i]);
-				delete previous.autoCreateTimers[i];
+				// @ts-expect-error
+				previous.autoCreateTimers[i] = undefined;
 			}
 
 			for (const i in previous.autoCreateTimerData) {
@@ -2181,7 +2182,8 @@ export class Games {
 		if (previous.gameCooldownMessageTimers) {
 			for (const i in previous.gameCooldownMessageTimers) {
 				clearTimeout(previous.gameCooldownMessageTimers[i]);
-				delete previous.gameCooldownMessageTimers[i];
+				// @ts-expect-error
+				previous.gameCooldownMessageTimers[i] = undefined;
 			}
 
 			for (const i in previous.gameCooldownMessageTimerData) {
@@ -2211,9 +2213,10 @@ export class Games {
 			}
 		}
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 
 		this.loadFormats();

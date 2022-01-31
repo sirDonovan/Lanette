@@ -28,6 +28,14 @@ export class CommandContext {
 		this.pm = room === user;
 	}
 
+	destroy() {
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
+	}
+
 	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
 		this.room.say(message, {dontPrepare, dontCheckFilter});
 	}
@@ -230,10 +238,7 @@ export class CommandParser {
 			result = false;
 		}
 
-		for (const i in commandContext) {
-			// @ts-expect-error
-			delete commandContext[i];
-		}
+		if (commandContext) commandContext.destroy();
 
 		return result;
 	}
@@ -324,19 +329,26 @@ export class CommandParser {
 	private onReload(previous: Partial<CommandParser>): void {
 		for (const i in this.commandGuides) {
 			for (const j in this.commandGuides[i]) {
-				delete this.commandGuides[i][j];
+				// @ts-expect-error
+				this.commandGuides[i][j] = undefined;
 			}
+			// @ts-expect-error
+			this.commandGuides[i] = undefined;
 		}
 
 		for (const i in this.htmlPages) {
 			for (const user in this.htmlPages[i]) {
-				delete this.htmlPages[i][user];
+				// @ts-expect-error
+				this.htmlPages[i][user] = undefined;
 			}
+			// @ts-expect-error
+			this.htmlPages[i] = undefined;
 		}
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 
 		this.loadBaseCommands();

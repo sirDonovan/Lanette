@@ -175,8 +175,14 @@ export class Tournament extends Activity {
 
 		this.leaveBattleRooms();
 
-		delete this.battleRoomGame;
 		this.room.tournament = null;
+
+		this.destroyPlayers();
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
 	}
 
 	start(): void {

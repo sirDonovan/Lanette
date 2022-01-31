@@ -823,7 +823,8 @@ export class Tournaments {
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
-				delete previous.tournamentTimers[i];
+				// @ts-expect-error
+				previous.tournamentTimers[i] = undefined;
 			}
 		}
 
@@ -861,9 +862,10 @@ export class Tournaments {
 			}
 		}
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 	}
 	/* eslint-enable */
