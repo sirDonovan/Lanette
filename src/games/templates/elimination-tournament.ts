@@ -1657,9 +1657,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
 			loserTeam);
-		this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 
 		if (!this.ended) {
+			this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			this.updateMatches();
 		}
 	}
