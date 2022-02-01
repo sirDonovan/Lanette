@@ -30,6 +30,30 @@ export class User {
 		this.setName(name);
 	}
 
+	destroy(): void {
+		for (const i in this.timers) {
+			clearTimeout(this.timers[i]);
+			// @ts-expect-error
+			this.timers[i] = undefined;
+		}
+
+		if (this.game) this.game.forceEnd(this);
+
+		const rooms = Array.from(this.rooms.keys());
+		for (const room of rooms) {
+			room.onUserLeave(this);
+		}
+		this.rooms.clear();
+
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			if (key === 'id' || key === 'name') continue;
+
+			// @ts-expect-error
+			this[key] = undefined;
+		}
+	}
+
 	setName(name: string): void {
 		name = Tools.stripHtmlCharacters(name);
 
@@ -60,18 +84,6 @@ export class User {
 
 	setIsLocked(rank: string): void {
 		this.locked = rank === Client.getGroupSymbols().locked;
-	}
-
-	destroy(): void {
-		for (const i in this.timers) {
-			clearTimeout(this.timers[i]);
-		}
-
-		if (this.game) this.game.forceEnd(this);
-
-		for (const i in this) {
-			if (i !== 'id' && i !== 'name') delete this[i];
-		}
 	}
 
 	addChatLog(log: string): void {
@@ -260,7 +272,7 @@ export class Users {
 	}
 
 	remove(user: User): void {
-		if (user === this.self) return;
+		if (user === this.self || !(user.id in this.users)) return;
 
 		delete this.users[user.id];
 		user.destroy();

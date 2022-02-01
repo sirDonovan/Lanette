@@ -833,7 +833,8 @@ export class Tournaments {
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(previous.userHostedTournamentNotificationTimeouts[i]);
-				delete previous.userHostedTournamentNotificationTimeouts[i];
+				// @ts-expect-error
+				previous.userHostedTournamentNotificationTimeouts[i] = undefined;
 
 				const room = Rooms.get(i);
 				if (room) this.setUserHostedTournamentNotificationTimer(room);

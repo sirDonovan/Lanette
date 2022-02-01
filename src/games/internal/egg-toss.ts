@@ -20,7 +20,11 @@ class EggToss extends ScriptedGame {
 	declare readonly room: Room;
 
 	cleanupTimers(): void {
-		if (this.explodeTimeout) clearTimeout(this.explodeTimeout);
+		if (this.explodeTimeout) {
+			clearTimeout(this.explodeTimeout);
+			// @ts-expect-error
+			this.explodeTimeout = undefined;
+		}
 	}
 
 	onUserLeaveRoom(room: Room, user: User): void {

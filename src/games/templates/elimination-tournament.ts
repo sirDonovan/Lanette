@@ -1693,13 +1693,26 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	cleanupTimers(): void {
-		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
-		if (this.updateHtmlPagesTimeout) clearTimeout(this.updateHtmlPagesTimeout);
+		if (this.advertisementInterval) {
+			clearInterval(this.advertisementInterval);
+			// @ts-expect-error
+			this.advertisementInterval = undefined;
+		}
+
+		if (this.updateHtmlPagesTimeout) {
+			clearTimeout(this.updateHtmlPagesTimeout);
+			// @ts-expect-error
+			this.updateHtmlPagesTimeout = undefined;
+		}
 
 		if (this.treeRoot) {
 			this.treeRoot.traverse(node => {
 				this.clearNodeTimers(node);
 			});
+
+			this.activityTimers.clear();
+			this.checkChallengesTimers.clear();
+			this.checkChallengesInactiveTimers.clear();
 		}
 	}
 
@@ -1773,6 +1786,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
 		}
+
+		this.battleData.clear();
 	}
 
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;

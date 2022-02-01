@@ -2253,7 +2253,11 @@ export class Games {
 	}
 
 	private clearAutoCreateTimer(room: Room): void {
-		if (room.id in this.autoCreateTimers) clearTimeout(this.autoCreateTimers[room.id]);
+		if (room.id in this.autoCreateTimers) {
+			clearTimeout(this.autoCreateTimers[room.id]);
+			delete this.autoCreateTimers[room.id];
+		}
+
 		delete this.autoCreateTimerData[room.id];
 	}
 }

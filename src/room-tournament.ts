@@ -167,17 +167,33 @@ export class Tournament extends Activity {
 	}
 
 	deallocate(): void {
-		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
-		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
+		if (this.adjustCapTimer) {
+			clearTimeout(this.adjustCapTimer);
+			// @ts-expect-error
+			this.adjustCapTimer = undefined;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			// @ts-expect-error
+			this.startTimer = undefined;
+		}
+
+		if (this.runAutoDqTimeout) {
+			clearTimeout(this.runAutoDqTimeout);
+			// @ts-expect-error
+			this.runAutoDqTimeout = undefined;
+		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
 
 		this.leaveBattleRooms();
 
-		this.room.tournament = null;
+		// @ts-expect-error
+		this.room.tournament = undefined;
 
 		this.destroyPlayers();
+
 		const keys = Object.getOwnPropertyNames(this);
 		for (const key of keys) {
 			// @ts-expect-error

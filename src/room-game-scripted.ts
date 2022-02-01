@@ -698,9 +698,29 @@ export class ScriptedGame extends Game {
 
 		this.cleanupMessageListeners();
 		if (this.cleanupTimers) this.cleanupTimers();
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		if (this.timeout) clearTimeout(this.timeout);
-		if (this.startTimer) clearTimeout(this.startTimer);
+
+		if (this.botTurnTimeout) {
+			clearTimeout(this.botTurnTimeout);
+			this.botTurnTimeout = undefined;
+		}
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
+		}
+
+		if (this.signupsHtmlTimeout) {
+			clearTimeout(this.signupsHtmlTimeout);
+			// @ts-expect-error
+			this.signupsHtmlTimeout = undefined;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			// @ts-expect-error
+			this.startTimer = undefined;
+		}
 
 		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
@@ -715,12 +735,15 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.room.game === this) this.room.game = null;
+		if (this.room.game === this) {
+			// @ts-expect-error
+			this.room.game = undefined;
+		}
 
 		// @ts-expect-error
 		if ((this.room as Room).searchChallenge === this) {
 			// @ts-expect-error
-			delete this.room.searchChallenge; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 		}
 
 		if (this.parentGame) {

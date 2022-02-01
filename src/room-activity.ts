@@ -345,7 +345,12 @@ export abstract class Activity {
 	}
 
 	end(): void {
-		if (this.timeout) clearTimeout(this.timeout);
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
+		}
+
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);

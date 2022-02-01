@@ -63,7 +63,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	cleanupTimers(): void {
 		if (this.answerTimeout) {
 			clearTimeout(this.answerTimeout);
-			delete this.answerTimeout;
+			this.answerTimeout = undefined;
 		}
 	}
 

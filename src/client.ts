@@ -640,7 +640,11 @@ export class Client {
 			if (previousClient) pongListener = null;
 		}
 
-		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
+		if (this.serverPingTimeout) {
+			clearTimeout(this.serverPingTimeout);
+			// @ts-expect-error
+			this.serverPingTimeout = undefined;
+		}
 	}
 
 	private pingServer(): void {
