@@ -114,8 +114,8 @@ export class Vote extends ScriptedGame {
 	}
 
 	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, customBox?: IGameCustomBox): string {
-		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + inputTarget, text, false,
-			customBox ? Games.getCustomBoxButtonStyle(customBox) : "");
+		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + Tools.stripHtmlCharacters(inputTarget),
+			text, false, customBox ? Games.getCustomBoxButtonStyle(customBox) : "");
 	}
 
 	sendPrivateVoteHtml(player: Player, format: IGameFormat, pm: boolean, anonymous: boolean): void {
@@ -410,7 +410,7 @@ const commands: GameCommandDefinitions<Vote> = {
 
 				const targetFormat = Games.getFormat(target, true);
 				if (Array.isArray(targetFormat)) {
-					player.sayPrivateHtml(CommandParser.getErrorText(targetFormat));
+					player.sayPrivateHtml(Tools.stripHtmlCharacters(CommandParser.getErrorText(targetFormat)));
 					return false;
 				}
 

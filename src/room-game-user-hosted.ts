@@ -41,27 +41,32 @@ export class UserHostedGame extends Game {
 	reset(): void {
 		if (this.timeout) {
 			clearTimeout(this.timeout);
-			this.timeout = null;
+			// @ts-expect-error
+			this.timeout = undefined;
 		}
 
 		if (this.gameTimer) {
 			clearTimeout(this.gameTimer);
-			this.gameTimer = null;
+			// @ts-expect-error
+			this.gameTimer = undefined;
 		}
 
 		if (this.hostTimeout) {
 			clearTimeout(this.hostTimeout);
-			this.hostTimeout = null;
+			// @ts-expect-error
+			this.hostTimeout = undefined;
 		}
 
 		if (this.startTimer) {
 			clearTimeout(this.startTimer);
-			this.startTimer = null;
+			// @ts-expect-error
+			this.startTimer = undefined;
 		}
 
 		if (this.signupsHtmlTimeout) {
 			clearTimeout(this.signupsHtmlTimeout);
-			this.signupsHtmlTimeout = null;
+			// @ts-expect-error
+			this.signupsHtmlTimeout = undefined;
 		}
 
 		this.clearHangman();
@@ -504,20 +509,27 @@ export class UserHostedGame extends Game {
 	deallocate(forceEnd: boolean): void {
 		if (!this.ended) this.ended = true;
 
+		this.reset();
 		this.cleanupMessageListeners();
-		if (this.timeout) clearTimeout(this.timeout);
-		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.gameTimer) clearTimeout(this.gameTimer);
-		if (this.hostTimeout) clearTimeout(this.hostTimeout);
 
-		if (this.room.userHostedGame === this) this.room.userHostedGame = null;
+		if (this.room.userHostedGame === this) {
+			// @ts-expect-error
+			this.room.userHostedGame = undefined;
+		}
 
-		this.clearHangman();
-		this.clearSignupsNotification();
 		this.closeControlPanel();
 
 		if (forceEnd && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers) {
 			Games.setAutoCreateTimer(this.room, 'userhosted', FORCE_END_CREATE_TIMER);
+		}
+
+		this.destroyTeams();
+		this.destroyPlayers();
+
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
 		}
 	}
 }

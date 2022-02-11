@@ -1223,10 +1223,10 @@ export class Dex {
 	joinNameAndCustomRules(format: string | IFormat, customRules: string[] | null): string {
 		let compatibleRules: string[] = [];
 		if (customRules) {
-			if (typeof format !== 'string' && format.team) {
+			if (typeof format !== 'string' && format.team && !format.id.includes('hackmonscup')) {
 				for (const rule of customRules) {
 					const type = rule.charAt(0);
-					if (type !== '-' && type !== '+') compatibleRules.push(rule);
+					if (type !== '-' && type !== '+' && type !== '*') compatibleRules.push(rule);
 				}
 			} else {
 				compatibleRules = customRules;
@@ -2388,12 +2388,14 @@ export class Dex {
 			const pokemonShowdownDexes = previous.pokemonShowdownDex.dexes;
 			for (const mod in pokemonShowdownDexes) {
 				const dex = pokemonShowdownDexes[mod];
-				for (const i in dex) {
+				const keys = Object.getOwnPropertyNames(dex);
+				for (const key of keys) {
 					// @ts-expect-error
-					delete dex[i];
+					dex[key] = undefined;
 				}
 
-				delete pokemonShowdownDexes[mod];
+				// @ts-expect-error
+				pokemonShowdownDexes[mod] = undefined;
 			}
 		}
 
@@ -2403,19 +2405,22 @@ export class Dex {
 			for (const mod in previousDexes) {
 				if (previousDexes[mod] !== previous) {
 					const dex = previousDexes[mod];
-					for (const i in dex) {
+					const keys = Object.getOwnPropertyNames(dex);
+					for (const key of keys) {
 						// @ts-expect-error
-						delete dex[i];
+						dex[key] = undefined;
 					}
 				}
+
 				// @ts-expect-error
-				delete previousDexes[mod];
+				previousDexes[mod] = undefined;
 			}
 		}
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 
 		this.loadAllData();

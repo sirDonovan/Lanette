@@ -640,7 +640,11 @@ export class Client {
 			if (previousClient) pongListener = null;
 		}
 
-		if (this.serverPingTimeout) clearTimeout(this.serverPingTimeout);
+		if (this.serverPingTimeout) {
+			clearTimeout(this.serverPingTimeout);
+			// @ts-expect-error
+			this.serverPingTimeout = undefined;
+		}
 	}
 
 	private pingServer(): void {
@@ -726,7 +730,7 @@ export class Client {
 
 		if (previous.sendTimeout) {
 			if (previous.sendTimeout !== true) clearTimeout(previous.sendTimeout);
-			delete previous.sendTimeout;
+			previous.sendTimeout = undefined;
 			if (!this.sendTimeout) this.startSendTimeout(this.sendTimeoutDuration);
 		}
 
@@ -740,9 +744,10 @@ export class Client {
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 	}
 	/* eslint-enable */

@@ -63,7 +63,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	cleanupTimers(): void {
 		if (this.answerTimeout) {
 			clearTimeout(this.answerTimeout);
-			delete this.answerTimeout;
+			this.answerTimeout = undefined;
 		}
 	}
 
@@ -758,8 +758,8 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 				if (points) expectedPoints += points;
 				game.canGuess = true;
 				runCommand('guess', game.answers[0], game.room, name);
-				assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
 				if (game.ended) break;
+				assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
 			}
 
 			assert(game.ended);
@@ -772,10 +772,10 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
 			this.timeout(15000);
+			const room = game.room;
 			game.deallocate(true);
 
-			const minigame = Games.createGame(game.room,
-				(format as unknown) as IGameFormat, game.room as Room, true) as QuestionAndAnswer;
+			const minigame = Games.createGame(room, (format as unknown) as IGameFormat, room as Room, true) as QuestionAndAnswer;
 			minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
@@ -783,8 +783,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			minigame.canGuess = true;
 			runCommand('guess', minigame.answers[0], minigame.room, getBasePlayerName());
 			assert(minigame.ended);
-
-			minigame.deallocate(true);
 		},
 	},
 	'it should properly work in PMs as a minigame': {
@@ -794,13 +792,13 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
 			this.timeout(15000);
+			const room = game.room;
 			game.deallocate(true);
 
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
-			const pmMinigame = Games.createGame(user,
-				(format as unknown) as IGameFormat, game.room as Room, true) as QuestionAndAnswer;
+			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat, room as Room, true) as QuestionAndAnswer;
 
 			pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);
@@ -810,7 +808,6 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			runCommand('guess', pmMinigame.answers[0], user, name);
 			assert(pmMinigame.ended);
 
-			pmMinigame.deallocate(true);
 			Users.remove(user);
 		},
 	},

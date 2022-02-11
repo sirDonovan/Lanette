@@ -117,9 +117,10 @@ export class Tools {
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 	}
 

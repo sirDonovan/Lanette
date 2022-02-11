@@ -64,6 +64,16 @@ export abstract class Game extends Activity {
 	abstract getMascotAndNameHtml(additionalText?: string): string;
 	abstract onInitialize(): boolean;
 
+	destroyTeams(): void {
+		if (this.teams) {
+			for (const i in this.teams) {
+				this.teams[i].destroy();
+				// @ts-expect-error
+				this.teams[i] = undefined;
+			}
+		}
+	}
+
 	exceedsMessageSizeLimit(message: string): boolean {
 		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
 	}

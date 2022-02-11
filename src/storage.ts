@@ -57,9 +57,10 @@ export class Storage {
 
 		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
 
-		for (const i in previous) {
+		const keys = Object.getOwnPropertyNames(previous);
+		for (const key of keys) {
 			// @ts-expect-error
-			delete previous[i];
+			previous[key] = undefined;
 		}
 	}
 

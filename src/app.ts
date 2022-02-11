@@ -138,6 +138,7 @@ module.exports = (): void => {
 
 					if (!modules.includes('games')) Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
+					const oldConfig = global.Config;
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const configLoader = require('./config-loader') as typeof import('./config-loader');
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -145,6 +146,12 @@ module.exports = (): void => {
 					global.Config = newConfig;
 					Client.updateConfigSettings();
 					Rooms.updateConfigSettings();
+
+					const keys = Object.getOwnPropertyNames(oldConfig);
+					for (const key of keys) {
+						// @ts-expect-error
+						oldConfig[key] = undefined;
+					}
 				} else if (moduleId === 'dex') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const newDex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');

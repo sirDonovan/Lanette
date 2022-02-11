@@ -55,6 +55,39 @@ export class Room {
 		this.updateConfigSettings();
 	}
 
+	destroy(): void {
+		if (this.game && this.game.room === this) this.game.deallocate(true);
+		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
+		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
+		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
+
+		for (const i in this.repeatedMessages) {
+			clearInterval(this.repeatedMessages[i].timer);
+			// @ts-expect-error
+			this.repeatedMessages[i].timer = undefined;
+		}
+
+		for (const i in this.timers) {
+			clearTimeout(this.timers[i]);
+			// @ts-expect-error
+			this.timers[i] = undefined;
+		}
+
+		const users = Array.from(this.users.keys());
+		for (const user of users) {
+			this.onUserLeave(user);
+		}
+		this.users.clear();
+
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			if (key === 'id' || key === 'title') continue;
+
+			// @ts-expect-error
+			this[key] = undefined;
+		}
+	}
+
 	setId(id: string): void {
 		// @ts-expect-error
 		this.id = id;
@@ -84,30 +117,6 @@ export class Room {
 
 	init(type: RoomType): void {
 		this.type = type;
-	}
-
-	destroy(): void {
-		if (this.game && this.game.room === this) this.game.deallocate(true);
-		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
-		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
-		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
-
-		for (const i in this.repeatedMessages) {
-			clearInterval(this.repeatedMessages[i].timer);
-		}
-
-		for (const i in this.timers) {
-			clearTimeout(this.timers[i]);
-		}
-
-		const users = Array.from(this.users.keys());
-		for (const user of users) {
-			this.onUserLeave(user);
-		}
-
-		for (const i in this) {
-			if (i !== 'id' && i !== 'title') delete this[i];
-		}
 	}
 
 	updateConfigSettings(): void {
@@ -167,7 +176,11 @@ export class Room {
 	onUserLeave(user: User): void {
 		this.users.delete(user);
 		user.rooms.delete(this);
-		if (user.timers && this.id in user.timers) clearTimeout(user.timers[this.id]);
+		if (user.timers && this.id in user.timers) {
+			clearTimeout(user.timers[this.id]);
+			// @ts-expect-error
+			user.timers[this.id] = undefined;
+		}
 
 		if (this.game && this.game.onUserLeaveRoom) this.game.onUserLeaveRoom(this, user);
 		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);
@@ -829,6 +842,8 @@ export class Rooms {
 	}
 
 	remove(room: Room): void {
+		if (!(room.id in this.rooms)) return;
+
 		delete this.rooms[room.id];
 		room.destroy();
 	}

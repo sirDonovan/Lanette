@@ -126,6 +126,11 @@ export abstract class EliminationTournament extends ScriptedGame {
 				return false;
 			}
 
+			if (battleFormat.team) {
+				this.say("You cannot change the format to one that uses generated teams.");
+				return false;
+			}
+
 			this.battleFormatId = battleFormat.inputTarget;
 			try {
 				this.setFormat();
@@ -1652,9 +1657,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 
 		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
 			loserTeam);
-		this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 
 		if (!this.ended) {
+			this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			this.updateMatches();
 		}
 	}
@@ -1688,12 +1693,26 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	cleanupTimers(): void {
-		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
+		if (this.advertisementInterval) {
+			clearInterval(this.advertisementInterval);
+			// @ts-expect-error
+			this.advertisementInterval = undefined;
+		}
+
+		if (this.updateHtmlPagesTimeout) {
+			clearTimeout(this.updateHtmlPagesTimeout);
+			// @ts-expect-error
+			this.updateHtmlPagesTimeout = undefined;
+		}
 
 		if (this.treeRoot) {
 			this.treeRoot.traverse(node => {
 				this.clearNodeTimers(node);
 			});
+
+			this.activityTimers.clear();
+			this.checkChallengesTimers.clear();
+			this.checkChallengesInactiveTimers.clear();
 		}
 	}
 
@@ -1767,6 +1786,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
 		}
+
+		this.battleData.clear();
 	}
 
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;

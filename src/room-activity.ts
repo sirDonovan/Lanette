@@ -44,6 +44,14 @@ export class Player {
 		delete this.team;
 	}
 
+	destroy(): void {
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
+	}
+
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		const user = Users.get(this.name);
 		if (user) user.say(message, additionalAttributes);
@@ -125,6 +133,14 @@ export class PlayerTeam {
 		this.name = name;
 		this.id = Tools.toId(name);
 		this.activity = activity;
+	}
+
+	destroy(): void {
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
 	}
 
 	addPlayer(player: Player): boolean {
@@ -214,6 +230,14 @@ export abstract class Activity {
 	abstract deallocate(forceEnd: boolean): void;
 	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
+
+	destroyPlayers(): void {
+		for (const i in this.players) {
+			this.players[i].destroy();
+			// @ts-expect-error
+			this.players[i] = undefined;
+		}
+	}
 
 	random(m: number): number {
 		return Tools.random(m, this.prng);
@@ -321,7 +345,12 @@ export abstract class Activity {
 	}
 
 	end(): void {
-		if (this.timeout) clearTimeout(this.timeout);
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
+		}
+
 		if (this.onEnd) this.onEnd();
 		this.ended = true;
 		this.deallocate(false);
