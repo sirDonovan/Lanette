@@ -799,7 +799,7 @@ export const game: IUserHostedFile = {
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/pupitar-39-s-power-placement-t723.html'>More info</a>",
 			freejoin: true,
 		},
-		{	
+		{
 			name: "Ralts' Ability Race",
 			mascot: "Ralts",
 			aliases: ['RAR', 'Ralts'],
