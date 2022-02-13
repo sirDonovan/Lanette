@@ -595,6 +595,22 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Elgyem's Number Encoder",
+			mascot: "Elgyem",
+			aliases: ['ENE', 'Elgyems'],
+			description: "Players guess answers that are encrypted in numbers (eg. 19-20-21-14-6-9-19-11 = Stunfisk)! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/elgyem-39-s-number-encoder-t820.html'>More info</a>",
+			freejoin: true,
+		},
+		{
+			name: "Exeggutor-Alola's Limbo",
+			mascot: "Exeggutor-Alola",
+			aliases: ['Alola Limbo', 'EAL', 'Exeggutors'],
+			description: "A height is chosen at the start of the game, and each round, players PM the host with a Pokemon selected with " +
+				"!randpoke. If a player's Pokemon is taller than the allowed height, they are eliminated! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/alola-limbo-t747.html'>More info</a>",
+		},
+		{
 			name: "Gameathlon",
 			description: "A series of Game Corner games in one! Players try to win each mini-game to earn points.",
 			freejoin: true,
@@ -773,6 +789,14 @@ export const game: IUserHostedFile = {
 		{
 			name: "Pun Game",
 			description: "Players make creative puns referencing the Pokemon selected by the host to score points.",
+			freejoin: true,
+		},
+		{
+			name: "Pupitar's Power Placement",
+			mascot: "Pupitar",
+			aliases: ['Pupitars'],
+			description: "Players guess moves with a base power that shares the same tens range as the randomly chosen number! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/pupitar-39-s-power-placement-t723.html'>More info</a>",
 			freejoin: true,
 		},
 		{
