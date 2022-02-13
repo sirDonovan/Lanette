@@ -338,6 +338,8 @@ export class CommandParser {
 
 		for (const i in this.htmlPages) {
 			for (const user in this.htmlPages[i]) {
+				this.htmlPages[i][user].destroy();
+
 				// @ts-expect-error
 				this.htmlPages[i][user] = undefined;
 			}

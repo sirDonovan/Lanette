@@ -22,7 +22,16 @@ export abstract class HtmlPageBase {
 		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
 	}
 
+	abstract onClose(): void;
 	abstract render(onOpen?: boolean): string;
+
+	destroy(): void {
+		const keys = Object.getOwnPropertyNames(this);
+		for (const key of keys) {
+			// @ts-expect-error
+			this[key] = undefined;
+		}
+	}
 
 	open(): void {
 		this.send(true);
@@ -30,11 +39,10 @@ export abstract class HtmlPageBase {
 
 	close(): void {
 		const user = Users.get(this.userId);
-		if (!user) return;
+		if (user) this.room.closeHtmlPage(user, this.pageId);
 
-		this.room.closeHtmlPage(user, this.pageId);
-
-		if (this.onClose) this.onClose();
+		this.onClose();
+		this.destroy();
 	}
 
 	send(onOpen?: boolean): void {
@@ -67,7 +75,6 @@ export abstract class HtmlPageBase {
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;
-	onClose?(): void;
 	onOpen?(): void;
 	onSend?(onOpen?: boolean): void;
 }
