@@ -1416,7 +1416,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
-		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
+		if (this.ended || this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players && !players.includes(this.players[user.id])) {
