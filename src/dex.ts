@@ -102,6 +102,8 @@ const clauseNicknames: Dict<string> = {
 	'Chimera 1v1 Rule': 'Chimera 1v1',
 	'Bonus Type Rule': 'Bonus Type',
 	'First Blood Rule': 'First Blood',
+	'Cross Evolution Mod': 'Cross Evolution',
+	'Revelationmons Mod': 'Revelationmons',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',

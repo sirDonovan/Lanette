@@ -85,24 +85,25 @@ describe("Parameters Worker", () => {
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,alakazam,articunogalar,azelf,calyrexshadow,celebi,cresselia," +
 			"decidueye,doublade,drowzee,exeggutor,gallade,hatterene,honedge,hypno,kadabra,latias,latios,lunala,medicham,meditite," +
-			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,spectrier,starmie,swoobat,tapulele,uxie,woobat,zacian");
+			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,sneaselhisui,spectrier,starmie,swoobat,tapulele," +
+			"uxie,woobat,zacian");
 
 		// gmax with no tier
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.gen['gen8'], paramTypePools.color.blue, paramTypePools.move.surf, paramTypePools.type.ice]}));
 		assert(intersection);
-		assertStrictEqual(intersection.pokemon.join(","), "arctovish,arctozolt,eiscue");
+		assertStrictEqual(intersection.pokemon.join(","), "arctovish,arctozolt,avalugghisui,eiscue");
 
 		// regional formes
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.normal]}));
 		assert(intersection);
-		assertStrictEqual(intersection.pokemon.join(","), "aipom,ambipom,bewear,bibarel,bidoof,bouffalant,buneary,bunnelby,cinccino," +
-			"deerling,delcatty,diggersby,dubwool,dunsparce,eevee,exploud,farfetchd,furfrou,furret,girafarig,glameow,greedent,gumshoos," +
-			"herdier,kecleon,komala,lillipup,linoone,linoonegalar,litleo,lopunny,loudred,meowth,miltank,minccino,obstagoon,oranguru," +
-			"patrat,persian,purugly,pyroar,raticate,raticatealola,rattata,rattataalola,sawsbuck,sentret,skitty,skwovet,slaking,slakoth," +
-			"smeargle,spinda,stantler,stoutland,stufful,tauros,teddiursa,ursaring,vigoroth,watchog,whismur,wooloo,yungoos,zangoose," +
-			"zigzagoon,zigzagoongalar");
+		assertStrictEqual(intersection.pokemon.join(","), "aipom,ambipom,bewear,bibarel,bidoof,bouffalant,buneary,bunnelby," +
+			"cinccino,deerling,delcatty,diggersby,dubwool,dunsparce,eevee,exploud,farfetchd,furfrou,furret,girafarig,glameow," +
+			"greedent,gumshoos,herdier,kecleon,komala,lillipup,linoone,linoonegalar,litleo,lopunny,loudred,meowth,miltank," +
+			"minccino,obstagoon,oranguru,patrat,persian,purugly,pyroar,raticate,raticatealola,rattata,rattataalola,sawsbuck," +
+			"sentret,skitty,skwovet,slaking,slakoth,smeargle,spinda,stantler,stoutland,stufful,tauros,teddiursa,ursaluna," +
+			"ursaring,vigoroth,watchog,whismur,wooloo,wyrdeer,yungoos,zangoose,zigzagoon,zigzagoongalar,zoroarkhisui,zoruahisui");
 
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.egggroup['field'], paramTypePools.type.electric]}));

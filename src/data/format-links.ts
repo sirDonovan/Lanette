@@ -35,10 +35,12 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3657818',
 		viability: 'https://www.smogon.com/forums/threads/3670056',
 	},
+	/*
 	'gen8vgc2021series9': {
 		info: 'https://www.smogon.com/dex/ss/formats/vgc21',
 		teams: 'https://www.smogon.com/forums/threads/3682855',
 	},
+	*/
 	'gen81v1': {
 		info: 'https://www.smogon.com/dex/ss/formats/1v1',
 	},
