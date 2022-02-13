@@ -75,7 +75,7 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getExistingPokemon("Furfrou").spriteid, "furfrou");
 		assertStrictEqual(Dex.getExistingPokemon("Furfrou-Dandy").spriteid, "furfrou-dandy");
 
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 394);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 404);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 		// bypass gen 8 Sketch check
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aura Wheel")), 3);
