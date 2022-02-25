@@ -1218,10 +1218,13 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		for (const listener of triggeredListeners) {
-			// could be removed already in listener()
-			const index = this.commandsListeners.indexOf(listener);
-			if (index !== -1) this.commandsListeners.splice(index, 1);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (!this.ended) {
+			for (const listener of triggeredListeners) {
+				// could be removed already in listener()
+				const index = this.commandsListeners.indexOf(listener);
+				if (index !== -1) this.commandsListeners.splice(index, 1);
+			}
 		}
 
 		return result;
