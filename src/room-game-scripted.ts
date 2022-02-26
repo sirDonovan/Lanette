@@ -735,6 +735,12 @@ export class ScriptedGame extends Game {
 			}
 		}
 
+		// @ts-expect-error
+		if ((this.room as Room).tournament && (this.room as Room).tournament.battleRoomGame === this) {
+			// @ts-expect-error
+			this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+		}
+
 		if (this.room.game === this) {
 			// @ts-expect-error
 			this.room.game = undefined;

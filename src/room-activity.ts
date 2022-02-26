@@ -360,10 +360,14 @@ export abstract class Activity {
 		if (!this.battleData) return;
 
 		this.battleData.forEach((data, battleRoom) => {
+			// @ts-expect-error
+			battleRoom.tournament = undefined;
+			// @ts-expect-error
+			battleRoom.game = undefined;
+
 			if (battleRoom.id) {
 				const room = Rooms.get(battleRoom.id);
 				if (room) {
-					room.game = null;
 					room.leave();
 				}
 			}
