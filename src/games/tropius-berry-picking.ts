@@ -29,12 +29,22 @@ const berries: Dict<IBerry> = {
 	'aspearberry': {name: 'Aspear', effect: 'frz'},
 	'persimberry': {name: 'Persim', effect: 'confusion'},
 
+	// flavor
+	'figyberry': {name: 'Figy', effect: 'flavor-spicy'},
+	'wikiberry': {name: 'Wiki', effect: 'flavor-dry'},
+	'magoberry': {name: 'Mago', effect: 'flavor-sweet'},
+	'aguavberry': {name: 'Aguav', effect: 'flavor-bitter'},
+	'iapapaberry': {name: 'Iapapa', effect: 'flavor-sour'},
+
 	// stats
 	'liechi': {name: 'Liechi', effect: 'stat-attack'},
 	'petaya': {name: 'Petaya', effect: 'stat-specialattack'},
 	'ganlon': {name: 'Ganlon', effect: 'stat-defense'},
 	'apicot': {name: 'Apicot', effect: 'stat-specialdefense'},
 	'salac': {name: 'Salac', effect: 'stat-speed'},
+	'micle': {name: 'Micle', effect: 'stat-accuracy'},
+	'custap': {name: 'Custap', effect: 'stat-priority'},
+	'starf': {name: 'Starf', effect: 'stat-randomstat'},
 
 	// EVs
 	'pomeg': {name: 'Pomeg', effect: 'ev-hp'},
@@ -44,6 +54,17 @@ const berries: Dict<IBerry> = {
 	'grepa': {name: 'Grepa', effect: 'ev-specialdefense'},
 	'tamato': {name: 'Tamato', effect: 'ev-speed'},
 
+	// damageback
+	'jaboca': {name: 'Jaboca', effect: 'damageback-physical'},
+	'rowap': {name: 'Rowap', effect: 'damageback-special'},
+	
+	// boostback
+	'kee': {name: 'Kee', effect: 'boostback-physical'},
+	'maranga': {name: 'Maranga', effect: 'boostback-special'},
+	
+	//healback
+	'enigma': {name: 'Enigma', effect: 'healback'},	
+	
 	// super-effective
 	'occaberry': {name: 'Occa', effect: 'Fire'},
 	'passhoberry': {name: 'Passho', effect: 'Water'},
@@ -74,8 +95,10 @@ const effectDescriptions: Dict<string> = {
 	'confusion': 'confused',
 };
 
-const stats: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
+const stats: string[] = ['Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed', 'Accuracy', 'Priority', 'random stat'];
 const evs: string[] = ['HP', 'Attack', 'Defense', 'Special Attack', 'Special Defense', 'Speed'];
+const flavor: string[] = ['Spicy', 'Dry', 'Sweet', 'Bitter', 'Sour'];
+const payback: string[] = ['Physical', 'Special']
 
 class TropiusBerryPicking extends ScriptedGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
@@ -90,7 +113,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	roundBerries = new Map<Player, IBerry>();
 	roundEffect: IRoundEffect = noEffect;
 	roundLimit: number = 20;
-	roundTime: number = 10 * 1000;
+	roundTime: number = 4 * 1000;
 
 	static loadData(): void {
 		const types: string[] = [];
@@ -174,6 +197,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		const move = Dex.getExistingMove(name);
 		let effect = move.type;
 		let effectType = 'type';
+		let randnum = this.random(22);
 		if (move.secondary && move.secondary !== true) {
 			let moveEffect = move.secondary.status || move.secondary.volatileStatus;
 			if (moveEffect) {
@@ -183,15 +207,27 @@ class TropiusBerryPicking extends ScriptedGame {
 					effectType = 'status';
 				}
 			}
-		} else if (!this.random(3)) {
-			if (!this.random(2)) {
+		} else {
+			if (randnum>=0 && randnum < 6) {
 				effect = this.sampleOne(stats);
 				effectType = 'stat';
-			} else {
+			} else if (randnum >=6 && randnum < 12) {
 				effect = this.sampleOne(evs);
 				effectType = 'ev';
-			}
+			} else if(randnum>=12 && randnum <17){
+				effect = this.sampleOne(flavor);
+				effectType = 'flavor';
+			} else if(randnum==17){
+				effectType = 'healback';
+			} else if(randnum==18 || randnum == 19){
+				effectType = 'damageback';
+				} else {
+				effectType = 'boostback';
+				}
+				
+			
 		}
+		
 		let smeargleText = 'A wild Smeargle used **' + move.name + '**!';
 		if (effectType === 'status') {
 			smeargleText += ' You were **' + effectDescriptions[effect] + '**!';
@@ -201,6 +237,21 @@ class TropiusBerryPicking extends ScriptedGame {
 		} else if (effectType === 'ev') {
 			smeargleText = 'Tropius has excess **' + effect + ' EVs**!';
 			effect = 'ev-' + Tools.toId(effect);
+		} else if (effectType === 'flavor') {
+			smeargleText = 'Tropius wants to recover HP, but got confused by a **' + effect + ' flavor**!';
+			effect = 'flavor-' + Tools.toId(effect);
+		}
+		else if (effectType === 'damageback') {
+			smeargleText = 'Tropius wants to **inflict damage** after being hit by **' + move.name + '**!';
+			effect = 'damageback-' + move.category.toLowerCase();
+		}
+		else if (effectType === 'boostback') {
+			smeargleText = 'Tropius wants to **raise a defensive stat** after being hit by **' + move.name + '**!';
+			effect = 'boostback-' + move.category.toLowerCase();
+		}
+		else if (effectType === 'healback') {
+			smeargleText = 'Tropius wants to **restore HP** after being hit by a **super-effective move**!' 
+			effect = 'healback'
 		}
 		const roundEffect: IRoundEffect = {effect, type: effectType};
 		this.roundEffect = roundEffect;
