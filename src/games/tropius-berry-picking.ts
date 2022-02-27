@@ -112,7 +112,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	roundBerries = new Map<Player, IBerry>();
 	roundEffect: IRoundEffect = noEffect;
 	roundLimit: number = 20;
-	roundTime: number = 4 * 1000;
+	roundTime: number = 10 * 1000;
 
 	static loadData(): void {
 		const types: string[] = [];
