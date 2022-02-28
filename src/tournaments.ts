@@ -815,6 +815,92 @@ export class Tournaments {
 		return false;
 	}
 
+	getBadgeHtml(id: string): string {
+		if (Config.tournamentTrainerCardBadges && id in Config.tournamentTrainerCardBadges) {
+			return '<img src="' + Config.tournamentTrainerCardBadges[id].source + '" width=16px height=16px ' +
+				'title="' + Config.tournamentTrainerCardBadges[id].name + '" />';
+		}
+
+		return "";
+	}
+
+	getTrainerCardRoom(room: Room): Room | undefined {
+		if (Config.sharedTournamentTrainerCards && room.id in Config.sharedTournamentTrainerCards) {
+			return Rooms.get(Config.sharedTournamentTrainerCards[room.id]);
+		}
+		return room;
+	}
+
+	getTrainerCardHtml(room: Room, name: string): string {
+		const id = Tools.toId(name);
+		const trainerCardRoom = this.getTrainerCardRoom(room);
+		if (!trainerCardRoom) return "";
+
+		const database = Storage.getDatabase(trainerCardRoom);
+		if (!database.tournamentTrainerCards || !(id in database.tournamentTrainerCards)) return "";
+
+		const trainerCard = database.tournamentTrainerCards[id];
+
+		let html = '<div style="width: 100%"><table style="border-collapse: collapse; width: 100%;">' +
+			'<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 0px; width: 80px;">';
+		let avatarHtml = "";
+		if (trainerCard.customAvatar) {
+			const dimensions = Dex.getTrainerSpriteDimensions();
+			avatarHtml = '<img src="' + trainerCard.customAvatar + '" width=' + dimensions + 'px height=' + dimensions + 'px />';
+		} else {
+			let avatarSpriteId: string | undefined;
+			if (trainerCard.avatar) {
+				avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+			}
+
+			avatarHtml = Dex.getTrainerSprite(avatarSpriteId || Dex.getRandomDefaultTrainerSpriteId());
+		}
+
+		const user = Users.get(name);
+		html += avatarHtml + '</td><td style="border: 1px solid; padding: 7px 8px 8px 6px;width: 100%"><username>' +
+			(user ? user.name : name) + '</username>';
+		if (user && user.hasRank(room, 'voice')) {
+			const groups = Client.getServerGroups();
+			const rank = user.rooms.get(room)!.rank;
+			if (rank in groups) html += "<br /><i>" + groups[rank].name + "</i>";
+		}
+
+		const tournamentPoints = Storage.getAnnualPoints(room, Storage.tournamentLeaderboard, name);
+		if (tournamentPoints) {
+			html += "<br />" + tournamentPoints + " annual points";
+		}
+
+		const gamePoints = Storage.getAnnualPoints(room, Storage.gameLeaderboard, name);
+		if (gamePoints) {
+			html += "<br />" + gamePoints + " annual bits";
+		}
+
+		if (trainerCard.favoriteFormat) html += "<br /><b>Favorite format</b>: " + trainerCard.favoriteFormat;
+
+		html += "</td></tr>";
+
+		if (Config.tournamentTrainerCardBadges && trainerCard.badges && trainerCard.badges.length) {
+			const badgesHtml: string[] = [];
+			for (const badge of trainerCard.badges) {
+				const badgeHtml = this.getBadgeHtml(badge);
+				if (badgeHtml) badgesHtml.push(badgeHtml);
+			}
+
+			if (badgesHtml.length) {
+				html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 4px;" colspan="2">' +
+					'<b>Badges</b>: ' + badgesHtml.join("") + "</td></tr>";
+			}
+		}
+
+		if (trainerCard.bio) {
+			html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 4px;" colspan="2"><b>Bio</b>: ' +
+				trainerCard.bio + '</td></tr>';
+		}
+
+		html += "</table></div>";
+		return html;
+	}
+
 	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Tournaments): void {
 		if (previous.createListeners) Object.assign(this.createListeners, previous.createListeners);

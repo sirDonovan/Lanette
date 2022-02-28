@@ -287,8 +287,15 @@ export class Tournament extends Activity {
 			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.scheduled ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
-			this.sayHtml("<div class='infobox-limited'>" + placesHtml + (formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") +
-				"</div>");
+
+			const trainerCard = Tournaments.getTrainerCardHtml(this.room, winners[0]);
+			const showTrainerCard = trainerCard && winners.length === 1;
+			this.sayHtml("<div class='infobox-limited'" + (showTrainerCard ? " style='max-height:125px'" : "") + ">" + placesHtml +
+				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
+
+			if (showTrainerCard) {
+				this.sayHtml(trainerCard);
+			}
 		}
 
 		Storage.exportDatabase(this.room.id);

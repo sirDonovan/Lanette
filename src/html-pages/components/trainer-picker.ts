@@ -65,8 +65,8 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 		TrainerPicker.loadData();
 
-		if (this.currentPick) {
-			const id = this.currentPick as TrainerSpriteId;
+		if (this.currentPicks.length) {
+			const id = this.currentPicks[0] as TrainerSpriteId;
 			if (TrainerPicker.genOneTrainerIds.includes(id)) {
 				this.trainerGen = 'gen1';
 			} else if (TrainerPicker.genTwoTrainerIds.includes(id)) {
@@ -252,7 +252,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 		const list = Tools.shuffle(trainers);
 		let trainer = list.shift()!;
-		while (trainer === this.currentPick || (parentTrainers && parentTrainers.includes(trainer))) {
+		while (trainer === this.currentPicks[0] || (parentTrainers && parentTrainers.includes(trainer))) {
 			if (!list.length) return false;
 			trainer = list.shift()!;
 		}

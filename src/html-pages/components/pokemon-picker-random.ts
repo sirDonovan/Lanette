@@ -218,7 +218,7 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 		const list = Tools.shuffle(pokemon[type]);
 
 		let pick = list.shift()!;
-		while (pick === this.currentPick || (parentPokemon && parentPokemon.includes(pick))) {
+		while (pick === this.currentPicks[0] || (parentPokemon && parentPokemon.includes(pick))) {
 			if (!list.length) return false;
 			pick = list.shift()!;
 		}
@@ -235,7 +235,7 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 		this.parentPickShininess(pick.shiny ? true : false);
 
 		if (!textInput) {
-			this.currentPick = undefined;
+			this.currentPicks = [];
 			this.parentPick(pick.pokemon);
 		}
 	}

@@ -801,6 +801,79 @@ export const commands: BaseCommandDefinitions = {
 		syntax: ["[room], [achievement]"],
 		description: ["displays the list of users who have unlocked the given achievement in the room"],
 	},
+	tournamenttrainercardbadges: {
+		command(target, room, user) {
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				tournamentRoom = room;
+			}
+
+			const badgesHtml: string[] = [];
+			if (Config.tournamentTrainerCardBadges) {
+				for (const i in Config.tournamentTrainerCardBadges) {
+					const badgeHtml = Tournaments.getBadgeHtml(i);
+					if (badgeHtml) badgesHtml.push(badgeHtml);
+				}
+			}
+
+			if (!badgesHtml.length) {
+				return this.say("There are no tournament trainer card badges for " + tournamentRoom.title + ".");
+			}
+
+			this.sayHtml("<b>" + tournamentRoom.title + " trainer card badges</b>:<br />" + badgesHtml.join(""), tournamentRoom);
+		},
+		aliases: ['tourtrainercardbadges', 'tourbadges', 'ttcbadges'],
+		syntax: ["[room]"],
+		description: ["displays the list of tournament trainer card badges for the given room"],
+	},
+	tournamenttrainercardbadgeholders: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				tournamentRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				tournamentRoom = room;
+			}
+
+			const id = Tools.toId(targets[0]);
+			if (!Config.tournamentTrainerCardBadges || !(id in Config.tournamentTrainerCardBadges)) {
+				return this.say("'" + targets[0].trim() + "' is not a valid tournament trainer card badge.");
+			}
+
+			const trainerCardRoom = Tournaments.getTrainerCardRoom(tournamentRoom);
+			if (!trainerCardRoom) {
+				return this.say("The tournament trainer card badges for " + tournamentRoom.title + " cannot currently be viewed.");
+			}
+
+			const database = Storage.getDatabase(trainerCardRoom);
+			const users: string[] = [];
+			if (database.tournamentTrainerCards) {
+				for (const i in database.tournamentTrainerCards) {
+					if (database.tournamentTrainerCards[i].badges && database.tournamentTrainerCards[i].badges!.includes(id)) {
+						const badgeUser = Users.get(i);
+						users.push(badgeUser ? badgeUser.name : i);
+					}
+				}
+			}
+
+			if (!users.length) return this.say("No one holds the " + Config.tournamentTrainerCardBadges[id].name + " badge.");
+			this.sayHtml("<b>" + Config.tournamentTrainerCardBadges[id].name + "badge holders</b>:<br />" + users.join(", "),
+				tournamentRoom);
+		},
+		aliases: ['tourtrainercardbadgeholders', 'tourbadgeholders', 'ttcbh'],
+		syntax: ["[room], [badge]"],
+		description: ["displays the list of users who hold the given badge on their tournament trainer card"],
+	},
 	eventlink: {
 		command(target, room, user) {
 			const targets = target.split(',');

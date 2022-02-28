@@ -10,6 +10,7 @@ export abstract class HtmlPageBase {
 
 	baseCommand: string;
 	commandPrefix: string;
+	isRoomStaff: boolean;
 	room: Room;
 	userName: string;
 	userId: string;
@@ -18,6 +19,7 @@ export abstract class HtmlPageBase {
 		this.room = room;
 		this.userName = user.name;
 		this.userId = user.id;
+		this.isRoomStaff = user.hasRank(room, 'driver') || user.isDeveloper();
 		this.baseCommand = baseCommand;
 		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
 	}

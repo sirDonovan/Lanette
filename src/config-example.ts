@@ -225,7 +225,22 @@ export let randomTournamentTimers: Dict<number> = {};
 /**
  * For each room in the object, the link to the tournament rules
  */
- export let tournamentRules: Dict<string> = {};
+export let tournamentRules: Dict<string> = {};
+
+/**
+ * A list of rooms (roomids) where tournament trainer cards are shown for winners
+ */
+export let showTournamentTrainerCards: string[] = [];
+
+/**
+ * For each room in the object, the source tournament trainer card to use
+ */
+export let sharedTournamentTrainerCards: Dict<string> = {};
+
+/**
+ * For each badge in the object, the link to the badge image
+ */
+export let tournamentTrainerCardBadges: Dict<{name: string; source: string; width: number; height: number}> = {};
 
 /**
  * A list of rooms (roomids) where hosted tournaments go through the approval process
