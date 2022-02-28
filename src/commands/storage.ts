@@ -801,6 +801,31 @@ export const commands: BaseCommandDefinitions = {
 		syntax: ["[room], [achievement]"],
 		description: ["displays the list of users who have unlocked the given achievement in the room"],
 	},
+	tournamentprofile: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				tournamentRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				tournamentRoom = room;
+			}
+
+			const cardUser = Users.get(targets[0]);
+			const name = cardUser ? cardUser.name : targets[0];
+			const html = Tournaments.getTrainerCardHtml(tournamentRoom, name);
+			if (!html) return this.say("'" + name + "' does not have a tournament trainer card.");
+
+			this.sayHtml(html, tournamentRoom);
+		},
+		aliases: ['tourprofile'],
+		syntax: ["[room]"],
+		description: ["displays the tournament trainer card of the given user"],
+	},
 	tournamenttrainercardbadges: {
 		command(target, room, user) {
 			let tournamentRoom: Room;
@@ -827,7 +852,7 @@ export const commands: BaseCommandDefinitions = {
 
 			this.sayHtml("<b>" + tournamentRoom.title + " trainer card badges</b>:<br />" + badgesHtml.join(""), tournamentRoom);
 		},
-		aliases: ['tourtrainercardbadges', 'tourbadges', 'ttcbadges'],
+		aliases: ['tourtrainercardbadges', 'tourbadges', 'tourbadgelist', 'ttcbadges'],
 		syntax: ["[room]"],
 		description: ["displays the list of tournament trainer card badges for the given room"],
 	},
