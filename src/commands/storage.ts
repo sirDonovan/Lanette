@@ -815,10 +815,13 @@ export const commands: BaseCommandDefinitions = {
 				tournamentRoom = room;
 			}
 
-			const cardUser = Users.get(targets[0]);
-			const name = cardUser ? cardUser.name : targets[0];
-			const html = Tournaments.getTrainerCardHtml(tournamentRoom, name);
-			if (!html) return this.say("'" + name + "' does not have a tournament trainer card.");
+			let targetName = targets[0] || user.name;
+			const targetUser = Users.get(targetName);
+			if (targetUser) {
+				targetName = targetUser.name;
+			}
+			const html = Tournaments.getTrainerCardHtml(tournamentRoom, targetName);
+			if (!html) return this.say(targetName + " does not have a tournament trainer card.");
 
 			this.sayHtml(html, tournamentRoom);
 		},
