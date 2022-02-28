@@ -288,13 +288,12 @@ export class Tournament extends Activity {
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 
-			const trainerCard = Tournaments.getTrainerCardHtml(this.room, winners[0]);
-			const showTrainerCard = trainerCard && winners.length === 1;
+			const showTrainerCard = winners.length === 1;
 			this.sayHtml("<div class='infobox-limited'" + (showTrainerCard ? " style='max-height:125px'" : "") + ">" + placesHtml +
 				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
 
 			if (showTrainerCard) {
-				this.sayHtml(trainerCard);
+				Tournaments.showWinnerTrainerCard(this.room, winners[0]);
 			}
 		}
 

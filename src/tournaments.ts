@@ -4,6 +4,7 @@ import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import { tournamentSchedules } from './tournament-schedules';
 import type { GroupName } from "./types/client";
+import type { TrainerSpriteId } from "./types/dex";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IPastTournament, LeaderboardType } from "./types/storage";
 import type {
@@ -899,6 +900,31 @@ export class Tournaments {
 
 		html += "</table></div>";
 		return html;
+	}
+
+	showWinnerTrainerCard(room: Room, name: string): void {
+		const id = Tools.toId(name);
+		const trainerCardRoom = this.getTrainerCardRoom(room);
+		if (trainerCardRoom) {
+			const database = Storage.getDatabase(trainerCardRoom);
+			if (!database.tournamentTrainerCards || !(id in database.tournamentTrainerCards)) {
+				const user = Users.get(name);
+				if (user) {
+					Client.getUserDetails(user, (checkedUser) => {
+						const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
+						if (trainerSpriteId) {
+							Storage.createTournamentTrainerCard(database, user.name);
+							database.tournamentTrainerCards![id].avatar = trainerSpriteId as TrainerSpriteId;
+							const trainerCard = this.getTrainerCardHtml(room, user.name);
+							if (trainerCard) room.sayHtml(trainerCard);
+						}
+					});
+				}
+			} else {
+				const trainerCard = this.getTrainerCardHtml(room, name);
+				if (trainerCard) room.sayHtml(trainerCard);
+			}
+		}
 	}
 
 	/* eslint-disable @typescript-eslint/no-unnecessary-condition */

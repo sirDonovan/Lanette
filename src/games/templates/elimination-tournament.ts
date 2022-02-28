@@ -1789,6 +1789,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 			const placesHtml = Tournaments.getPlacesHtml('gameLeaderboard', this.name, winners.map(x => x.name),
 				runnersUp.map(x => x.name), places.semifinalists.map(x => x.name), winnerPoints, runnerUpPoints, semiFinalistPoints);
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
+
+			if (winners.length === 1) {
+				Tournaments.showWinnerTrainerCard(this.room, winners[0].name);
+			}
 		}
 
 		Games.setLastGame(this.room, Date.now());

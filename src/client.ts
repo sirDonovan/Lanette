@@ -1216,6 +1216,7 @@ export class Client {
 
 					if (user) {
 						user.autoconfirmed = response.autoconfirmed;
+						user.avatar = response.avatar;
 						user.group = response.group;
 						user.status = response.status;
 
