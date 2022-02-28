@@ -67,11 +67,10 @@ class TournamentTrainerCard extends HtmlPageBase {
 		}
 
 		this.formatPicker = new FormatTextInput(room, this.commandPrefix, setFormatCommand, {
-			currentInput: format ? format.nameWithoutGen : "",
+			currentInput: format ? format.name : "",
 			inputWidth: Tools.minRoomWidth,
 			placeholder: "Enter a format",
 			maxFormats: 1,
-			nameWithoutGen: true,
 			onClear: () => this.clearFormatInput(),
 			onErrors: () => this.send(),
 			onSubmit: (output) => this.submitFormatInput(output),
