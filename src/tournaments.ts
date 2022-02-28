@@ -894,7 +894,7 @@ export class Tournaments {
 
 		if (trainerCard.bio) {
 			html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 4px;" colspan="2"><b>Bio</b>: ' +
-				trainerCard.bio + '</td></tr>';
+				Tools.stripHtmlCharacters(trainerCard.bio) + '</td></tr>';
 		}
 
 		html += "</table></div>";

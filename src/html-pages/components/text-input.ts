@@ -13,6 +13,7 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	inputWidth?: number;
 	label?: string;
 	placeholder?: string;
+	stripHtmlCharacters?: boolean;
 	submitText?: string;
 	textArea?: boolean;
 	textAreaConfiguration?: ITextAreaConfiguration;
@@ -59,6 +60,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 	}
 
 	submit(input: string): void {
+		if (this.props.stripHtmlCharacters) input = Tools.stripHtmlCharacters(input);
 		this.currentInput = input;
 		this.errors = [];
 

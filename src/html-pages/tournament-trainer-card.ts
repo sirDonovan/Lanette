@@ -90,7 +90,8 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.trainerCardBadgePicker.active = false;
 
 		this.bioInput = new TextInput(room, this.commandPrefix, setBioCommand, {
-			label: "Enter bio",
+			placeholder: "Enter bio",
+			stripHtmlCharacters: true,
 			onClear: () => this.clearBio(),
 			onErrors: () => this.send(),
 			onSubmit: (output) => this.setBio(output),
