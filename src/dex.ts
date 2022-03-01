@@ -8,7 +8,7 @@ import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
 	CategoryData, CharacterType, ModelGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData,
-	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam
+	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -22,6 +22,8 @@ const CURRENT_GEN = 8;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 const POKEMON_ICON_HEIGHT = 30;
 const POKEMON_ICON_WIDTH = 40;
+const TRAINER_SPRITE_DIMENSIONS = 80;
+const DEFAULT_TRAINER_SPRITES = ['lucas', 'dawn', 'ethan', 'lyra', 'hilbert', 'hilda', 'rosa', 'nate'] as TrainerSpriteId[];
 const TEAM_PREVIEW_HIDDEN_FORMES: string[] = ['Arceus', 'Gourgeist', 'Genesect', 'Pumpkaboo', 'Silvally', 'Urshifu'];
 const OM_OF_THE_MONTH = 'OM of the Month';
 const ROA_SPOTLIGHT = 'RoA Spotlight';
@@ -365,6 +367,10 @@ export class Dex {
 
 	getDexes(): Readonly<Dexes> {
 		return dexes;
+	}
+
+	getTrainerSpriteDimensions(): number {
+		return TRAINER_SPRITE_DIMENSIONS;
 	}
 
 	getGen(): number {
@@ -1202,8 +1208,13 @@ export class Dex {
 		}
 	}
 
+	getRandomDefaultTrainerSpriteId(): string {
+		return Tools.sampleOne(DEFAULT_TRAINER_SPRITES);
+	}
+
 	getTrainerSprite(id: string): string {
-		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=80px height=80px />';
+		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
 	getTypeHtml(type: ITypeData, width?: number): string {

@@ -7,6 +7,7 @@ const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
 
 export class User {
 	autoconfirmed: boolean | null = null;
+	avatar: string | null = null;
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
 	game: ScriptedGame | null = null;

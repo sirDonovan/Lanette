@@ -476,9 +476,9 @@ export abstract class EliminationTournament extends ScriptedGame {
 				this.disqualifiedOpponents.set(winner, player);
 
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
-				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
-
 				if (this.ended) break;
+
+				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			}
 		}
 
@@ -1416,7 +1416,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
-		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
+		if (this.ended || this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players && !players.includes(this.players[user.id])) {
@@ -1438,6 +1438,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
+		if (this.ended) return;
+
 		const id = Tools.toId(username);
 		if (!id) return;
 
@@ -1482,6 +1484,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePokemon(room: Room, slot: string, details: string): boolean {
+		if (this.ended) return false;
+
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1496,6 +1500,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTeamPreview(room: Room): boolean {
+		if (this.ended) return false;
+
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1563,6 +1569,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleStart(room: Room): boolean {
+		if (this.ended) return false;
+
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1576,6 +1584,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleSwitch(room: Room, pokemon: string, details: string): boolean {
+		if (this.ended) return false;
+
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1590,6 +1600,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleFaint(room: Room, pokemonArgument: string): boolean {
+		if (this.ended) return false;
+
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1633,6 +1645,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleWin(room: Room, username: string): void {
+		if (this.ended) return;
+
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return;
 
@@ -1658,6 +1672,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
 			loserTeam);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this.ended) {
 			this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			this.updateMatches();
@@ -1665,6 +1680,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleExpire(room: Room): void {
+		if (this.ended) return;
+
 		this.checkedBattleRooms.push(room.publicId);
 
 		const players = this.getPlayersFromBattleData(room);
@@ -1678,6 +1695,8 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTie(room: Room): void {
+		if (this.ended) return;
+
 		this.checkedBattleRooms.push(room.publicId);
 	}
 
@@ -1770,6 +1789,10 @@ export abstract class EliminationTournament extends ScriptedGame {
 			const placesHtml = Tournaments.getPlacesHtml('gameLeaderboard', this.name, winners.map(x => x.name),
 				runnersUp.map(x => x.name), places.semifinalists.map(x => x.name), winnerPoints, runnerUpPoints, semiFinalistPoints);
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
+
+			if (winners.length === 1) {
+				Tournaments.showWinnerTrainerCard(this.room, winners[0].name);
+			}
 		}
 
 		Games.setLastGame(this.room, Date.now());

@@ -339,6 +339,14 @@ export class Storage {
 		};
 	}
 
+	createTournamentTrainerCard(database: IDatabase, name: string): void {
+		const id = Tools.toId(name);
+		if (!database.tournamentTrainerCards) database.tournamentTrainerCards = {};
+		if (id in database.tournamentTrainerCards) return;
+
+		database.tournamentTrainerCards[id] = {};
+	}
+
 	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
 		if (!amount) return;
 
