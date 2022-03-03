@@ -69,6 +69,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			const attributes: IGameTestAttributes = {};
 			if (commands) attributes.commands = commands[i];
 			if (testConfig.async) {
+				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
 					game.requiresAutoconfirmed = false;
@@ -90,6 +91,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
 					try {
+						// eslint-disable-next-line @typescript-eslint/no-floating-promises
 						testData.test.call(this, game, testFormat, attributes);
 					} catch (e) {
 						console.log(e);
