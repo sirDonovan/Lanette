@@ -2471,6 +2471,8 @@ export class Dex {
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
+		trainerSpriteList.sort();
+
 		const trainerSprites: Dict<string> = {};
 		for (const trainer of trainerSpriteList) {
 			trainerSprites[Tools.toId(trainer)] = trainer;
