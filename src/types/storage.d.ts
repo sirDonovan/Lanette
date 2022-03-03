@@ -40,6 +40,14 @@ export interface IPastGame {
 	time: number;
 }
 
+export interface ITournamentTrainerCard {
+	avatar?: TrainerSpriteId;
+	badges?: string[];
+	bio?: string;
+	customAvatar?: string;
+	favoriteFormat?: string;
+}
+
 export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
@@ -210,6 +218,7 @@ export interface IDatabase {
 	tournamentLeaderboard?: ILeaderboard;
 	tournamentManagers?: string[];
 	tournamentGameBanlist?: Dict<ITournamentGameBan>;
+	tournamentTrainerCards?: Dict<ITournamentTrainerCard>;
 	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;
 	userHostedGameStats?: Dict<IGameStat[]>;

@@ -137,7 +137,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 	}
 
 	tryParentPickGeneration(generation: ModelGeneration): void {
-		if (!this.currentPick || this.isInGeneration(generation, this.currentPick)) this.parentPickGeneration(generation);
+		if (!this.currentPicks.length || this.isInGeneration(generation, this.currentPicks[0])) this.parentPickGeneration(generation);
 	}
 
 	onPickGeneration(previousGeneration: ModelGeneration, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {

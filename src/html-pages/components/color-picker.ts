@@ -88,8 +88,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		ColorPicker.loadData();
 
-		if (this.currentPick && this.currentPick in Tools.hexCodes) {
-			const hexCode = this.currentPick as HexCode;
+		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
+			const hexCode = this.currentPicks[0] as HexCode;
 			if (Tools.hexCodes[hexCode]!.category === 'shade') {
 				this.lightness = 'shade';
 				this.hueVariation = 'standardvariation';
@@ -133,7 +133,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				}
 			}
 		} else {
-			this.currentPick = undefined;
+			this.currentPicks = [];
 			this.noPickElement.html = this.renderNoPickElement();
 			this.noPickElement.selected = true;
 			this.lightness = 'lowlightness';
@@ -351,7 +351,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	getChoiceButtonHtml(choice: IColorPick): string {
-		const currentColor = this.currentPick === choice.hexCode;
+		const currentColor = this.currentPicks[0] === choice.hexCode;
 
 		let colorDiv = "<div style='background: " + Tools.hexCodes[choice.hexCode]!.gradient + ";height: 15px;width: 15px";
 		if (currentColor) {
@@ -462,7 +462,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		}
 
 		let color = Tools.sampleOne(colors);
-		while (color === this.currentPick) {
+		while (color === this.currentPicks[0]) {
 			color = Tools.sampleOne(colors);
 		}
 

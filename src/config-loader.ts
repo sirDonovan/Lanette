@@ -18,6 +18,18 @@ function objectKeysToRoomId<T>(object: Dict<T>): Dict<T> {
 	return object;
 }
 
+function objectKeysToId<T>(object: Dict<T>): Dict<T> {
+	for (const i in object) {
+		const id = Tools.toId(i);
+		if (id !== i) {
+			object[id] = object[i];
+			delete object[i];
+		}
+	}
+
+	return object;
+}
+
 function stringObjectToRoomIds(object: Dict<string>): Dict<string> {
 	for (const i in object) {
 		object[i] = Tools.toRoomId(object[i]);
@@ -122,6 +134,11 @@ export function load(config: typeof Config): typeof Config {
 	if (config.randomTournamentTimers) objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.tournamentRules) objectKeysToRoomId(config.tournamentRules);
 	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
+	if (config.showTournamentTrainerCards) config.showTournamentTrainerCards = arrayToRoomIds(config.showTournamentTrainerCards);
+	if (config.sharedTournamentTrainerCards) {
+		config.sharedTournamentTrainerCards = objectKeysToRoomId(stringObjectToRoomIds(config.sharedTournamentTrainerCards));
+	}
+	if (config.tournamentTrainerCardBadges) config.tournamentTrainerCardBadges = objectKeysToId(config.tournamentTrainerCardBadges);
 	if (config.userHostedTournamentRanks) objectKeysToRoomId(config.userHostedTournamentRanks);
 	if (config.gameCatalogGists) objectKeysToRoomId(config.gameCatalogGists);
 

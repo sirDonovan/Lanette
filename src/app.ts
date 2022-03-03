@@ -149,8 +149,10 @@ module.exports = (): void => {
 
 					const keys = Object.getOwnPropertyNames(oldConfig);
 					for (const key of keys) {
-						// @ts-expect-error
-						oldConfig[key] = undefined;
+						try {
+							// @ts-expect-error
+							oldConfig[key] = undefined;
+						} catch (e) {} // eslint-disable-line no-empty
 					}
 				} else if (moduleId === 'dex') {
 					// eslint-disable-next-line @typescript-eslint/no-var-requires

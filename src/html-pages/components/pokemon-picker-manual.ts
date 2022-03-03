@@ -282,7 +282,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 			if (previousLetter in this.letterPaginations[this.generation]) {
 				this.parentPickLetter(previousLetter);
-				if (this.currentPick) this.letterPaginations[this.generation][previousLetter].autoSelectPage();
+				if (this.currentPicks.length) this.letterPaginations[this.generation][previousLetter].autoSelectPage();
 			} else {
 				this.choices = this.choicesByGeneration[previousGeneration];
 				this.parentClear();
@@ -298,11 +298,11 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	}
 
 	autoSetPokemonTextInput(): void {
-		if (!this.currentPick) return;
+		if (!this.currentPicks.length) return;
 
 		this.pokemonTextInputs[this.generation].setModelGeneration(this.generation);
 		this.pokemonTextInputs[this.generation].setShiny(this.shininess);
-		this.pokemonTextInputs[this.generation].onSubmit(this.currentPick);
+		this.pokemonTextInputs[this.generation].onSubmit(this.currentPicks[0]);
 	}
 
 	setPokemonAttributes(pick: IPokemonPick, textInput?: boolean): void {
@@ -315,7 +315,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		const letter = pick.pokemon.charAt(0).toUpperCase();
 		this.parentPickLetter(letter);
 		if (!textInput) {
-			this.currentPick = undefined;
+			this.currentPicks = [];
 			this.parentPick(pick.pokemon);
 			this.autoSetPokemonTextInput();
 		}
