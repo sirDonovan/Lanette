@@ -175,6 +175,7 @@ describe("Portmanteaus Worker", () => {
 			assert(!tier.startsWith('('));
 		}
 	});
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	it('should properly list portmanteaus', async() => {
 		const workers = Games.getWorkers();
 
