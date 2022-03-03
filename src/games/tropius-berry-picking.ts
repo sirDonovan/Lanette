@@ -228,13 +228,13 @@ class TropiusBerryPicking extends ScriptedGame {
 		if (effectType === 'status') {
 			smeargleText += ' You were **' + effectDescriptions[effect] + '**!';
 		} else if (effectType === 'stat') {
-			smeargleText = 'Tropius is down to 25% health and wants a' + (effect === 'Attack' ? "n" : "") + " **" + effect + " boost**!";
+			smeargleText = 'Tropius is down to 25% HP and wants a' + (effect === 'Attack' ? "n" : "") + " **" + effect + " boost**!";
 			effect = 'stat-' + Tools.toId(effect);
 		} else if (effectType === 'ev') {
 			smeargleText = 'Tropius has excess **' + effect + ' EVs**!';
 			effect = 'ev-' + Tools.toId(effect);
 		} else if (effectType === 'flavor') {
-			smeargleText = 'Tropius wants to recover HP, but got confused by a **' + effect + ' flavor**!';
+			smeargleText = 'Tropius wants to **restore HP** but got confused by a **' + effect + ' flavor**!';
 			effect = 'flavor-' + Tools.toId(effect);
 		} else if (effectType === 'damageback') {
 			smeargleText = 'Tropius wants to **inflict damage** after being hit by **' + move.name + '**!';
