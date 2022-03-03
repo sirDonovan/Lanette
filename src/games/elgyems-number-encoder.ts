@@ -30,9 +30,7 @@ function getEncode(word: string): string[] | null {
 	}
 
 	for (let i = letters.length - 1; i > 0; i--) {
-		if (Number(encodes[0][i]) > 0) {
-			
-		} else {
+		if (isNaN(parseInt(encodes[0][i]))) {
 			encodes[0].splice(i, 1);
 		}
 	}
@@ -153,7 +151,8 @@ export const game: IGameFile<ElgyemsNumberEncoder> = Games.copyTemplatePropertie
 	mascot: "Elgyem",
 	minigameCommand: 'numberencode',
 	minigameCommandAliases: ['nencode'],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess answers that are encrypted in numbers (eg. 19-20-21-14-6-9-19-11 = Stunfisk)!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess answers that are encrypted in numbers " +
+		"(eg. 19-20-21-14-6-9-19-11 = Stunfisk)!",
 	modes: ["collectiveteam", "spotlightteam", "survival"],
 	variants: [
 		{
