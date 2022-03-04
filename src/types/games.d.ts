@@ -105,7 +105,7 @@ export interface IGameTestAttributes {
 }
 
 type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
-	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
+	format: IGameFormat<T>, attributes: IGameTestAttributes) => Promise<void> | void);}>;
 
 export interface IRandomGameAnswer {
 	answers: readonly string[];
