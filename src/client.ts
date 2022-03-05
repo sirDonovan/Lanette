@@ -1763,7 +1763,7 @@ export class Client {
 					}
 				}
 			} else {
-				user.setIsLocked(messageArguments.rank);
+				user.setGlobalRank(messageArguments.rank);
 
 				if (isUhtml || isUhtmlChange) {
 					if (!isUhtmlChange) user.addUhtmlChatLog("", "html");
