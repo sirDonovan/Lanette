@@ -40,6 +40,8 @@ const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const ANNOUNCE_CHAT_COMMAND = '/announce ';
+const REQUEST_PM_LOG_COMMAND = '/text **PM log requested**: Do you allow staff to see PM logs between ';
+const ALLOWED_PM_LOG = '/text PM log approved: Staff may check PM logs between ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const TOURNAMENT_AUTOSTART_COMMAND = "/log (The tournament was set to autostart when the player cap is reached by ";
@@ -1775,13 +1777,41 @@ export class Client {
 
 					user.addChatLog(commandMessage);
 
-					const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
-						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
-					if (battleUrl) {
-						commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
-					}
+					if (commandMessage.startsWith(REQUEST_PM_LOG_COMMAND)) {
+						if (user.hasGlobalRank('driver')) {
+							const names = commandMessage.substr(REQUEST_PM_LOG_COMMAND.length).trim().split(" and ");
+							let otherUser = "";
+							for (const name of names) {
+								const id = Tools.toId(name);
+								if (id !== Users.self.id) {
+									otherUser = id;
+									break;
+								}
+							}
 
-					CommandParser.parse(user, user, commandMessage, now);
+							if (otherUser) {
+								this.send({
+									message: '|/allowpmlog ' + user.id + ', ' + otherUser,
+									type: 'allowpmlog',
+									userid: user.id,
+									measure: true,
+								});
+							}
+						}
+					} else if (commandMessage.startsWith(ALLOWED_PM_LOG)) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'allowpmlog' &&
+							this.lastOutgoingMessage.userid === user.id) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else {
+						const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
+							commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
+						if (battleUrl) {
+							commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
+						}
+
+						CommandParser.parse(user, user, commandMessage, now);
+					}
 				}
 			}
 			break;
