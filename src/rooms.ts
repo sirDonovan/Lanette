@@ -162,6 +162,13 @@ export class Room {
 		this.hiddenRoom = response.visibility === 'hidden';
 		this.publicRoom = response.visibility === 'public';
 		this.secretRoom = response.visibility === 'secret';
+
+		for (const usernameText of response.users) {
+			const rank = usernameText.charAt(0);
+			const {username} = Tools.parseUsernameText(usernameText.substr(1));
+			const user = Users.add(username, Tools.toId(username));
+			if (!this.users.has(user)) this.onUserJoin(user, rank);
+		}
 	}
 
 	onUserJoin(user: User, rank: string): void {
