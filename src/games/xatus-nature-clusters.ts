@@ -19,13 +19,12 @@ class XatusNatureClusters extends QuestionAndAnswer {
 		for (const key of Dex.getData().natureKeys) {
 			natures.push(Dex.getExistingNature(key));
 		}
-        for(const nature of natures){
-            if(nature.plus && nature.minus){
+        for (const nature of natures){
+            if (nature.plus && nature.minus){
                 hintKeys.push(nature.name);
                 hints[nature.name] = [];
             }
         }
-        
 
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
