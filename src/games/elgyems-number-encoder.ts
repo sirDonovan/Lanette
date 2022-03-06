@@ -1,40 +1,22 @@
 import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const upperCaseLetters: string[] = Tools.letters.toUpperCase().split("");
-const lowerCaseLetters: string[] = Tools.letters.split("");
+const upperCaseLetters = Tools.letters.toUpperCase();
 
-function getEncodedLetters(letter: string): [string] | null {
-	let index = upperCaseLetters.indexOf(letter);
-	if (index !== -1) {
-		return [(upperCaseLetters[index].charCodeAt(0) - 64).toString()];
-	} else {
-		index = lowerCaseLetters.indexOf(letter);
-		return [lowerCaseLetters[index]];
-	}
-}
-
-function getEncode(word: string): string[] | null {
+function getEncodedWord(word: string): string | null {
 	if (word.length < 3 || Tools.containsInteger(word)) return null;
 
 	const letters = word.split("");
-	const encodes: [string[]] = [letters.slice()];
-	for (let i = 0; i < letters.length; i++) {
-		if (!letters[i]) continue;
-		const letter = letters[i].toUpperCase();
-
-		const nextAndPreviousLetters = getEncodedLetters(letter);
-		if (!nextAndPreviousLetters) continue;
-
-		encodes[0][i] = nextAndPreviousLetters[0];
-	}
-
-	for (let i = letters.length - 1; i > 0; i--) {
-		if (isNaN(parseInt(encodes[0][i]))) {
-			encodes[0].splice(i, 1);
+	const encoded: number[] = [];
+	for (const letter of letters) {
+		if (!letter) continue;
+		const upperCaseLetter = letter.toUpperCase();
+		if (upperCaseLetters.includes(upperCaseLetter)) {
+			encoded.push(upperCaseLetter.charCodeAt(0) - 64);
 		}
 	}
-	return [encodes[0].join("-")];
+
+	return encoded.join("-");
 }
 
 class ElgyemsNumberEncoder extends QuestionAndAnswer {
@@ -63,76 +45,64 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
-			const encodes = getEncode(character);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Characters"])) {
-					categoryHints["Characters"][encode] = [];
-					categoryHintKeys["Characters"].push(encode);
-				}
-				categoryHints["Characters"][encode].push(character);
+			const encodedWord = getEncodedWord(character);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Characters"])) {
+				categoryHints["Characters"][encodedWord] = [];
+				categoryHintKeys["Characters"].push(encodedWord);
 			}
+			categoryHints["Characters"][encodedWord].push(character);
 		}
 
 		const locations = Dex.getLocations();
 		for (const location of locations) {
-			const encodes = getEncode(location);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Locations"])) {
-					categoryHints["Locations"][encode] = [];
-					categoryHintKeys["Locations"].push(encode);
-				}
-				categoryHints["Locations"][encode].push(location);
+			const encodedWord = getEncodedWord(location);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Locations"])) {
+				categoryHints["Locations"][encodedWord] = [];
+				categoryHintKeys["Locations"].push(encodedWord);
 			}
+			categoryHints["Locations"][encodedWord].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
-			const encodes = getEncode(pokemon.name);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Pokemon"])) {
-					categoryHints["Pokemon"][encode] = [];
-					categoryHintKeys["Pokemon"].push(encode);
-				}
-				categoryHints["Pokemon"][encode].push(pokemon.name);
+			const encodedWord = getEncodedWord(pokemon.name);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Pokemon"])) {
+				categoryHints["Pokemon"][encodedWord] = [];
+				categoryHintKeys["Pokemon"].push(encodedWord);
 			}
+			categoryHints["Pokemon"][encodedWord].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
-			const encodes = getEncode(ability.name);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Pokemon Abilities"])) {
-					categoryHints["Pokemon Abilities"][encode] = [];
-					categoryHintKeys["Pokemon Abilities"].push(encode);
-				}
-				categoryHints["Pokemon Abilities"][encode].push(ability.name);
+			const encodedWord = getEncodedWord(ability.name);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Pokemon Abilities"])) {
+				categoryHints["Pokemon Abilities"][encodedWord] = [];
+				categoryHintKeys["Pokemon Abilities"].push(encodedWord);
 			}
+			categoryHints["Pokemon Abilities"][encodedWord].push(ability.name);
 		}
 
 		for (const item of Games.getItemsList()) {
-			const encodes = getEncode(item.name);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Pokemon Items"])) {
-					categoryHints["Pokemon Items"][encode] = [];
-					categoryHintKeys["Pokemon Items"].push(encode);
-				}
-				categoryHints["Pokemon Items"][encode].push(item.name);
+			const encodedWord = getEncodedWord(item.name);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Pokemon Items"])) {
+				categoryHints["Pokemon Items"][encodedWord] = [];
+				categoryHintKeys["Pokemon Items"].push(encodedWord);
 			}
+			categoryHints["Pokemon Items"][encodedWord].push(item.name);
 		}
 
 		for (const move of Games.getMovesList()) {
-			const encodes = getEncode(move.name);
-			if (!encodes) continue;
-			for (const encode of encodes) {
-				if (!(encode in categoryHints["Pokemon Moves"])) {
-					categoryHints["Pokemon Moves"][encode] = [];
-					categoryHintKeys["Pokemon Moves"].push(encode);
-				}
-				categoryHints["Pokemon Moves"][encode].push(move.name);
+			const encodedWord = getEncodedWord(move.name);
+			if (!encodedWord) continue;
+			if (!(encodedWord in categoryHints["Pokemon Moves"])) {
+				categoryHints["Pokemon Moves"][encodedWord] = [];
+				categoryHintKeys["Pokemon Moves"].push(encodedWord);
 			}
+			categoryHints["Pokemon Moves"][encodedWord].push(move.name);
 		}
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
@@ -145,14 +115,14 @@ export const game: IGameFile<ElgyemsNumberEncoder> = Games.copyTemplatePropertie
 	category: 'identification-1',
 	class: ElgyemsNumberEncoder,
 	defaultOptions: ['points'],
-	description: "Players guess answers that are encrypted in numbers (eg. 19-20-21-14-6-9-19-11 = Stunfisk)!",
+	description: "Players guess answers that are encoded in numbers (e.g. 19-20-21-14-6-9-19-11 = Stunfisk)!",
 	freejoin: true,
 	name: "Elgyem's Number Encoder",
 	mascot: "Elgyem",
 	minigameCommand: 'numberencode',
 	minigameCommandAliases: ['nencode'],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess answers that are encrypted in numbers " +
-		"(eg. 19-20-21-14-6-9-19-11 = Stunfisk)!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the answer that is encoded in numbers " +
+		"(e.g. 19-20-21-14-6-9-19-11 = Stunfisk)!",
 	modes: ["collectiveteam", "spotlightteam", "survival"],
 	variants: [
 		{
