@@ -287,7 +287,9 @@ export class Users {
 	}
 
 	remove(user: User): void {
-		if (user === this.self || !(user.id in this.users)) return;
+		if (!(user.id in this.users)) throw new Error("User " + user.id + " not in users list");
+
+		if (user === this.self) return;
 
 		delete this.users[user.id];
 		user.destroy();

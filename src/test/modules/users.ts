@@ -1,4 +1,4 @@
-import { assertStrictEqual } from "../test-tools";
+import { assert, assertStrictEqual, createTestRoom } from "../test-tools";
 
 /* eslint-env mocha */
 
@@ -45,7 +45,10 @@ describe("Users", () => {
 		Users.remove(user);
 	});
 	it('should handle renames properly', () => {
+		const room = createTestRoom();
 		const user = Users.add("olduser", "olduser");
+		room.onUserJoin(user, " ");
+
 		Users.rename("newuser", 'olduser');
 		assertStrictEqual(user.name, "newuser");
 		assert(!Users.getUserIds().includes("olduser"));
@@ -61,6 +64,7 @@ describe("Users", () => {
 		}
 
 		const mergeUser = Users.add("mergeuser", "mergeuser");
+		room.onUserJoin(mergeUser, " ");
 		Users.rename("newuser", 'mergeuser');
 		assert(Users.getUserIds().includes("newuser"));
 		assert(!Users.getUserIds().includes("mergeuser"));

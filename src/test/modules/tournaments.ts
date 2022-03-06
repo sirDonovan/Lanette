@@ -1,6 +1,6 @@
 import type { IPastTournament } from "../../types/storage";
 import type { IRoomTournamentSchedule, ITournamentEndJson } from "../../types/tournaments";
-import { assert, assertStrictEqual } from "../test-tools";
+import { assert, assertStrictEqual, createTestRoom } from "../test-tools";
 
 /* eslint-env mocha */
 
@@ -9,7 +9,7 @@ const tournamentEndJson = '{"results":[["<Player 1>"]],"format":"gen8randombattl
 
 describe("Tournaments", () => {
 	it('should return proper values from isInPastTournaments()', () => {
-		const room = Rooms.get('mocha')!;
+		const room = createTestRoom();
 		const now = Date.now();
 		const pastTournaments: IPastTournament[] = [
 			{inputTarget: 'gen8ou', name: '[Gen 8] OU', time: now},
@@ -21,6 +21,8 @@ describe("Tournaments", () => {
 		assert(!Tournaments.isInPastTournaments(room, 'gen8randombattle', pastTournaments));
 		assert(Tournaments.isInPastTournaments(room, 'mocha', pastTournaments));
 		assert(!Tournaments.isInPastTournaments(room, 'gen8mocha', pastTournaments));
+
+		Rooms.remove(room);
 	});
 	it('should have valid formats in schedules', () => {
 		const date = new Date();
@@ -59,7 +61,7 @@ describe("Tournaments", () => {
 		assert(validated === scheduled, "\n\t" + errors.join("\n\t"));
 	});
 	it('should properly set scheduled formats according to configured times', () => {
-		const room = Rooms.get('mocha')!;
+		const room = createTestRoom();
 		const year = 2022;
 		const date = new Date();
 
@@ -216,6 +218,8 @@ describe("Tournaments", () => {
 			assertStrictEqual(scheduledTournaments[i].format, formats['2']);
 			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should properly calculate all point multiplers', () => {

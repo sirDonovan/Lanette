@@ -1286,7 +1286,7 @@ export class Client {
 
 			if (messageArguments.action === 'rename') {
 				const oldId = room.id;
-				Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
+				room = Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
 				Storage.renameRoom(room, oldId);
 
 				if (room.type === 'chat') this.getRoomInfo(room);

@@ -165,6 +165,8 @@ export class Room {
 	}
 
 	onUserJoin(user: User, rank: string): void {
+		if (this.users.has(user)) throw new Error("User " + user.name + " already in " + this.id + " users list");
+
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
@@ -175,6 +177,8 @@ export class Room {
 	}
 
 	onUserLeave(user: User): void {
+		if (!this.users.has(user)) throw new Error("User " + user.name + " not in " + this.id + " users list");
+
 		this.users.delete(user);
 		user.rooms.delete(this);
 		if (user.timers && this.id in user.timers) {
@@ -849,7 +853,7 @@ export class Rooms {
 	}
 
 	remove(room: Room): void {
-		if (!(room.id in this.rooms)) return;
+		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
 
 		delete this.rooms[room.id];
 		room.destroy();
@@ -869,11 +873,19 @@ export class Rooms {
 		return Object.keys(this.rooms);
 	}
 
-	renameRoom(room: Room, newId: string, newTitle: string): void {
+	renameRoom(room: Room, newId: string, newTitle: string): Room {
+		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
+
 		delete this.rooms[room.id];
+		if (newId in this.rooms) {
+			if (room !== this.rooms[newId]) room.destroy();
+			return this.rooms[newId];
+		}
+
 		this.rooms[newId] = room;
 		room.setId(newId);
 		room.setTitle(newTitle);
+		return room;
 	}
 
 	search(input: string): Room | undefined {
