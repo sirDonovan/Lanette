@@ -288,7 +288,8 @@ export class Tournament extends Activity {
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 
-			const showTrainerCard = winners.length === 1;
+			const showTrainerCard = winners.length === 1 && Config.showTournamentTrainerCards &&
+				Config.showTournamentTrainerCards.includes(this.room.id);
 			this.sayHtml("<div class='infobox-limited'" + (showTrainerCard ? " style='max-height:125px'" : "") + ">" + placesHtml +
 				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
 
