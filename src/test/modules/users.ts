@@ -48,13 +48,22 @@ describe("Users", () => {
 		const user = Users.add("olduser", "olduser");
 		Users.rename("newuser", 'olduser');
 		assertStrictEqual(user.name, "newuser");
+		assert(!Users.getUserIds().includes("olduser"));
+		assert(Users.getUserIds().includes("newuser"));
 
 		Users.rename("NEWUSER", 'newuser');
 		assertStrictEqual(user.name, "NEWUSER");
+		assert(Users.getUserIds().includes("newuser"));
 
 		for (const format of Users.getNameFormattingList()) {
 			Users.rename(format + "newUser" + format, 'newuser');
 			assertStrictEqual(user.name, "newUser");
 		}
+
+		const mergeUser = Users.add("mergeuser", "mergeuser");
+		Users.rename("newuser", 'mergeuser');
+		assert(Users.getUserIds().includes("newuser"));
+		assert(!Users.getUserIds().includes("mergeuser"));
+		assertStrictEqual(mergeUser.rooms, undefined);
 	});
 });

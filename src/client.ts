@@ -1402,6 +1402,7 @@ export class Client {
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
 			room.onUserLeave(user);
+			if (!user.rooms.size) Users.remove(user);
 			break;
 		}
 

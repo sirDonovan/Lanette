@@ -309,7 +309,10 @@ export class Users {
 
 		const user = this.users[oldId];
 		delete this.users[oldId];
-		if (id in this.users) return this.users[id];
+		if (id in this.users) {
+			if (user !== this.users[id]) user.destroy();
+			return this.users[id];
+		}
 
 		user.setName(name);
 		user.id = id;

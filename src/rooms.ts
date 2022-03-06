@@ -76,6 +76,7 @@ export class Room {
 		const users = Array.from(this.users.keys());
 		for (const user of users) {
 			this.onUserLeave(user);
+			if (!user.rooms.size) Users.remove(user);
 		}
 		this.users.clear();
 
@@ -186,8 +187,6 @@ export class Room {
 		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);
 		if (this.tournament && this.tournament.onUserLeaveRoom) this.tournament.onUserLeaveRoom(this, user);
 		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
-
-		if (!user.rooms.size) Users.remove(user);
 	}
 
 	onUserRename(user: User, rank: string): void {
