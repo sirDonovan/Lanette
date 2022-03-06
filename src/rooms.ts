@@ -76,6 +76,7 @@ export class Room {
 		const users = Array.from(this.users.keys());
 		for (const user of users) {
 			this.onUserLeave(user);
+			if (!user.rooms.size) Users.remove(user);
 		}
 		this.users.clear();
 
@@ -161,19 +162,30 @@ export class Room {
 		this.hiddenRoom = response.visibility === 'hidden';
 		this.publicRoom = response.visibility === 'public';
 		this.secretRoom = response.visibility === 'secret';
+
+		for (const usernameText of response.users) {
+			const rank = usernameText.charAt(0);
+			const {username} = Tools.parseUsernameText(usernameText.substr(1));
+			const user = Users.add(username, Tools.toId(username));
+			if (!this.users.has(user)) this.onUserJoin(user, rank);
+		}
 	}
 
-	onUserJoin(user: User, rank: string, onRename?: boolean): void {
+	onUserJoin(user: User, rank: string): void {
+		if (this.users.has(user)) throw new Error("User " + user.name + " already in " + this.id + " users list");
+
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
-		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
-		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user, onRename);
-		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user, onRename);
-		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user, onRename);
+		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user);
+		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user);
+		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user);
+		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user);
 	}
 
 	onUserLeave(user: User): void {
+		if (!this.users.has(user)) throw new Error("User " + user.name + " not in " + this.id + " users list");
+
 		this.users.delete(user);
 		user.rooms.delete(this);
 		if (user.timers && this.id in user.timers) {
@@ -186,8 +198,14 @@ export class Room {
 		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);
 		if (this.tournament && this.tournament.onUserLeaveRoom) this.tournament.onUserLeaveRoom(this, user);
 		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
+	}
 
-		if (!user.rooms.size) Users.remove(user);
+	onUserRename(user: User, rank: string): void {
+		if (!this.users.has(user)) {
+			this.onUserJoin(user, rank);
+		} else {
+			user.setRoomRank(this, rank);
+		}
 	}
 
 	canSendToUser(user: User): boolean {
@@ -842,7 +860,7 @@ export class Rooms {
 	}
 
 	remove(room: Room): void {
-		if (!(room.id in this.rooms)) return;
+		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
 
 		delete this.rooms[room.id];
 		room.destroy();
@@ -862,11 +880,19 @@ export class Rooms {
 		return Object.keys(this.rooms);
 	}
 
-	renameRoom(room: Room, newId: string, newTitle: string): void {
+	renameRoom(room: Room, newId: string, newTitle: string): Room {
+		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
+
 		delete this.rooms[room.id];
+		if (newId in this.rooms) {
+			if (room !== this.rooms[newId]) room.destroy();
+			return this.rooms[newId];
+		}
+
 		this.rooms[newId] = room;
 		room.setId(newId);
 		room.setTitle(newTitle);
+		return room;
 	}
 
 	search(input: string): Room | undefined {

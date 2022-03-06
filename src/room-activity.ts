@@ -530,7 +530,7 @@ export abstract class Activity {
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;
-	onUserJoinRoom?(room: Room, user: User, onRename?: boolean): void;
+	onUserJoinRoom?(room: Room, user: User): void;
 	onUserLeaveRoom?(room: Room, user: User): void;
 	onUserUpdateStatus?(user: User, status: string, away: boolean): void;
 }

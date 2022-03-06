@@ -5,11 +5,10 @@ import { PRNG } from '../../lib/prng';
 import type { ScriptedGame } from '../../room-game-scripted';
 import type { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual, runCommand, testOptions } from '../test-tools';
+import { assert, assertClientSendQueue, assertStrictEqual, createTestRoom, runCommand, testOptions } from '../test-tools';
 
 /* eslint-env mocha */
 
-const room = Rooms.get('mocha')!;
 const initialSeed: PRNGSeed | undefined = testOptions.gameSeed ? testOptions.gameSeed.split(',')
 	.map(x => parseInt(x.trim())) as PRNGSeed : undefined;
 
@@ -42,6 +41,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 }
 
 function createIndividualTestGame(format: IGameFormat): ScriptedGame {
+	const room = createTestRoom();
 	const game = Games.createGame(room, format, room, false, initialSeed) as ScriptedGame;
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
@@ -83,6 +83,10 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						console.log(e);
 						fail();
 					}
+
+					const room = Rooms.get('mocha')!;
+					if (room.game) room.game.deallocate(true);
+					Rooms.remove(room);
 				});
 			} else {
 				it(test, function(this: Mocha.Context) {
@@ -97,6 +101,10 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						console.log(e);
 						fail();
 					}
+
+					const room = Rooms.get('mocha')!;
+					if (room.game) room.game.deallocate(true);
+					Rooms.remove(room);
 				});
 			}
 		}
@@ -106,9 +114,9 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 for (const format of formatsToTest) {
 	if (format.tests) {
 		describe(format.nameWithOptions + " individual tests", () => {
-			afterEach(() => {
-				if (room.game) room.game.deallocate(true);
-			});
+			// afterEach(() => {
+			// 	if (room.game) room.game.deallocate(true);
+			// });
 
 			createIndividualTests(format, format.tests!);
 		});
@@ -117,9 +125,9 @@ for (const format of formatsToTest) {
 			for (const variant of format.variants) {
 				const variantFormat = Games.getExistingFormat(format.inputTarget + "," + variant.variantAliases[0]);
 				describe(variantFormat.nameWithOptions + " individual tests", () => {
-					afterEach(() => {
-						if (room.game) room.game.deallocate(true);
-					});
+					// afterEach(() => {
+					// 	if (room.game) room.game.deallocate(true);
+					// });
 
 					createIndividualTests(variantFormat, format.tests!);
 				});
@@ -146,9 +154,9 @@ for (const i in modes) {
 		for (const formatId of formats) {
 			const format = Games.getExistingFormat(formatId + ", " + mode.id);
 			describe(format.nameWithOptions + " individual tests", () => {
-				afterEach(() => {
-					if (room.game) room.game.deallocate(true);
-				});
+				// afterEach(() => {
+				// 	if (room.game) room.game.deallocate(true);
+				// });
 				createIndividualTests(format, mode.tests!);
 			});
 		}
@@ -181,9 +189,12 @@ describe("Games", () => {
 			}
 
 			if (format.canGetRandomAnswer) {
+				const room = createTestRoom();
 				const game = Games.createGame(room, format, room, false, initialSeed);
 				assert(game);
 				assertStrictEqual(typeof game.getRandomAnswer, 'function');
+				game.deallocate(true);
+				Rooms.remove(room);
 			}
 
 			if (format.category) {
@@ -213,6 +224,7 @@ describe("Games", () => {
 
 	it('should create games properly', () => {
 		for (const format of formatsToTest) {
+			const room = createTestRoom();
 			try {
 				Games.createGame(room, format, room, false, initialSeed);
 			} catch (e) {
@@ -220,6 +232,7 @@ describe("Games", () => {
 				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
 			}
 			if (room.game) room.game.deallocate(true);
+			Rooms.remove(room);
 		}
 
 		const formatsByMode: Dict<string[]> = {};
@@ -234,6 +247,7 @@ describe("Games", () => {
 		for (const mode in formatsByMode) {
 			for (const formatId of formatsByMode[mode]) {
 				const format = Games.getExistingFormat(formatId + "," + mode);
+				const room = createTestRoom();
 				try {
 					Games.createGame(room, format, room, false, initialSeed);
 				} catch (e) {
@@ -242,11 +256,13 @@ describe("Games", () => {
 						room.game.initialSeed + ")" : ""));
 				}
 				if (room.game) room.game.deallocate(true);
+				Rooms.remove(room);
 			}
 		}
 	});
 
 	it('should start games through commands', () => {
+		const room = createTestRoom();
 		runCommand("cg", "trivia", room, Users.self);
 		assert(room.game);
 		assertStrictEqual(room.game.name, "Slowking's Trivia");
@@ -263,6 +279,8 @@ describe("Games", () => {
 		assert(room.game.isMiniGame);
 		assertStrictEqual(room.game.name, "Pancham's Pairs");
 		room.game.deallocate(true);
+
+		Rooms.remove(room);
 	});
 
 	it('should allow generating random hints', () => {
@@ -270,6 +288,7 @@ describe("Games", () => {
 	});
 
 	it('should support setting the initial PRNG seed', () => {
+		const room = createTestRoom();
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
 			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed) as ScriptedGame;
@@ -278,6 +297,8 @@ describe("Games", () => {
 			}
 			if (room.game) room.game.deallocate(true);
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should return proper values from getFormat() and getUserHostedFormat()', () => {
@@ -372,6 +393,7 @@ describe("Games", () => {
 	});
 
 	it('should start signups for scripted games', () => {
+		const room = createTestRoom();
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
 			if (format.tournamentGame || format.searchChallenge) continue;
@@ -392,9 +414,12 @@ describe("Games", () => {
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
 			game.deallocate(true);
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should start signups for user-hosted games', () => {
+		const room = createTestRoom();
 		const roomPrefix = room.id + "|";
 		const userHostedFormats: IUserHostedFormat[] = [];
 		for (const i in Games.getUserHostedFormats()) {
@@ -422,9 +447,12 @@ describe("Games", () => {
 			assertClientSendQueue(startingSendQueueIndex, gameLog);
 			game.deallocate(true);
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should properly start one vs. one challenges', () => {
+		const room = createTestRoom();
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
 		room.onUserJoin(challenger, ' ');
@@ -469,12 +497,14 @@ describe("Games", () => {
 
 			childGame.deallocate(true);
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should properly start bot challenges', () => {
+		const room = createTestRoom();
 		const challenger = Users.add("Challenger", "challenger");
 		room.onUserJoin(challenger, ' ');
-		room.onUserJoin(Users.self, ' ');
 
 		const botChallengeFormat = Games.getInternalFormat('botchallenge') as IGameFormat;
 
@@ -508,9 +538,12 @@ describe("Games", () => {
 
 			childGame.deallocate(true);
 		}
+
+		Rooms.remove(room);
 	});
 
 	it('should properly set options', () => {
+		const room = createTestRoom();
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia'))!.name, "Slowking's Trivia");
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities'))!.name, "Slowking's Ability Trivia");
 		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival'))!.name, "Slowking's Trivia Survival");
@@ -519,6 +552,8 @@ describe("Games", () => {
 
 		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'),
 			Users.self.name).name, Users.self.name + "'s Mocha Test Game");
+
+		Rooms.remove(room);
 	});
 
 	it('should return proper values from isInPastGames()', () => {
@@ -528,12 +563,15 @@ describe("Games", () => {
 			{inputTarget: 'mocha', name: 'Mocha', time: now},
 		];
 
+		const room = createTestRoom();
 		assert(Games.isInPastGames(room, 'trivia', pastGames));
 		assert(Games.isInPastGames(room, "Slowking's Trivia", pastGames));
 		assert(Games.isInPastGames(room, 'trivia,Pokemon Moves', pastGames));
 		assert(!Games.isInPastGames(room, 'anagrams', pastGames));
 		assert(Games.isInPastGames(room, 'mocha', pastGames));
 		assert(Games.isInPastGames(room, 'Mocha', pastGames));
+
+		Rooms.remove(room);
 	});
 	it('should return proper values from getList methods', () => {
 		const abilities = Games.getAbilitiesList().map(x => x.name);
