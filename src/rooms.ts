@@ -163,14 +163,14 @@ export class Room {
 		this.secretRoom = response.visibility === 'secret';
 	}
 
-	onUserJoin(user: User, rank: string, onRename?: boolean): void {
+	onUserJoin(user: User, rank: string): void {
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
-		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user, onRename);
-		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user, onRename);
-		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user, onRename);
-		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user, onRename);
+		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user);
+		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user);
+		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user);
+		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user);
 	}
 
 	onUserLeave(user: User): void {
@@ -188,6 +188,14 @@ export class Room {
 		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
 
 		if (!user.rooms.size) Users.remove(user);
+	}
+
+	onUserRename(user: User, rank: string): void {
+		if (!this.users.has(user)) {
+			this.onUserJoin(user, rank);
+		} else {
+			user.setRoomRank(this, rank);
+		}
 	}
 
 	canSendToUser(user: User): boolean {

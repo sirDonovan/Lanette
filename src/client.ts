@@ -1416,7 +1416,7 @@ export class Client {
 
 			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
-			room.onUserJoin(user, messageArguments.rank, true);
+			room.onUserRename(user, messageArguments.rank);
 			user.updateStatus(status);
 
 			if (!user.away && Config.allowMail) {
