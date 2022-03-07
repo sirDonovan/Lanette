@@ -345,6 +345,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,
 			pagesLabel,
+			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
 			reRender: () => this.props.reRender(),
 		});
