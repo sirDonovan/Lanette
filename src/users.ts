@@ -11,6 +11,7 @@ export class User {
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
 	game: ScriptedGame | null = null;
+	globalRank: string = " ";
 	group: string | null = null;
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
@@ -76,6 +77,11 @@ export class User {
 		this.name = name;
 	}
 
+	setGlobalRank(rank: string): void {
+		this.globalRank = rank;
+		this.setIsLocked(rank);
+	}
+
 	setRoomRank(room: Room, rank: string): void {
 		const roomData = this.rooms.get(room);
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
@@ -110,10 +116,11 @@ export class User {
 
 	hasRank(room: Room, targetRank: GroupName): boolean {
 		if (!this.rooms.has(room)) return false;
-		const groupSymbols = Client.getGroupSymbols();
-		if (!(targetRank in groupSymbols)) return false;
-		const serverGroups = Client.getServerGroups();
-		return serverGroups[this.rooms.get(room)!.rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
+		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
+	}
+
+	hasGlobalRank(targetRank: GroupName): boolean {
+		return this.hasRankInternal(this.globalRank, targetRank);
 	}
 
 	isBot(room: Room): boolean {
@@ -244,6 +251,13 @@ export class User {
 
 		return botRoom;
 	}
+
+	private hasRankInternal(rank: string, targetRank: GroupName): boolean {
+		const groupSymbols = Client.getGroupSymbols();
+		if (!(targetRank in groupSymbols)) return false;
+		const serverGroups = Client.getServerGroups();
+		return serverGroups[rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
+	}
 }
 
 export class Users {
@@ -273,7 +287,9 @@ export class Users {
 	}
 
 	remove(user: User): void {
-		if (user === this.self || !(user.id in this.users)) return;
+		if (!(user.id in this.users)) throw new Error("User " + user.id + " not in users list");
+
+		if (user === this.self) return;
 
 		delete this.users[user.id];
 		user.destroy();
@@ -295,7 +311,10 @@ export class Users {
 
 		const user = this.users[oldId];
 		delete this.users[oldId];
-		if (id in this.users) return this.users[id];
+		if (id in this.users) {
+			if (user !== this.users[id]) user.destroy();
+			return this.users[id];
+		}
 
 		user.setName(name);
 		user.id = id;

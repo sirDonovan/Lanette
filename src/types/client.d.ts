@@ -21,7 +21,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' |
 	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' |
-	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar';
+	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog';
 
 export interface IOutgoingMessageAttributes {
 	filterSend?: () => boolean;

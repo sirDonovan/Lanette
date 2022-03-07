@@ -595,14 +595,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Elgyem's Number Encoder",
-			mascot: "Elgyem",
-			aliases: ['ENE', 'Elgyems'],
-			description: "Players guess answers that are encrypted in numbers (eg. 19-20-21-14-6-9-19-11 = Stunfisk)! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/elgyem-39-s-number-encoder-t820.html'>More info</a>",
-			freejoin: true,
-		},
-		{
 			name: "Exeggutor-Alola's Limbo",
 			mascot: "Exeggutor-Alola",
 			aliases: ['Alola Limbo', 'EAL', 'Exeggutors'],
