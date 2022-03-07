@@ -3,6 +3,10 @@ import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
+import {
+	defaultTrainers, genEightTrainers, genFiveTrainers, genFourTrainers, genOneTrainers, genSevenTrainers, genSixTrainers,
+	genThreeTrainers, genTwoTrainers, trainerGens
+} from "./trainer-picker";
 import type { Room } from "../../rooms";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import { PokemonPickerBase } from "./pokemon-picker-base";
@@ -16,13 +20,6 @@ const withFormes = 'yes';
 const withoutFormes = 'no';
 const setTypeCommand = 'settype';
 const randomTrainerGen = 'random';
-
-const newerTrainerGen = 'newer';
-const genOneTrainersGen = 'gen1';
-const genTwoTrainersGen = 'gen2';
-const genThreeTrainersGen = 'gen3';
-const genFourTrainersGen = 'gen4';
-const trainerGens: TrainerGeneration[] = [newerTrainerGen, genOneTrainersGen, genTwoTrainersGen, genThreeTrainersGen, genFourTrainersGen];
 
 export class RandomHostDisplay extends HostDisplayBase {
 	componentId: string = 'random-display';
@@ -476,24 +473,36 @@ export class RandomHostDisplay extends HostDisplayBase {
 
 			html += "<br /><br />";
 			if (allTrainers) {
-				const newerTrainers = this.currentTrainerGeneration === 'newer';
-				const genOneTrainers = this.currentTrainerGeneration === 'gen1';
-				const genTwoTrainers = this.currentTrainerGeneration === 'gen2';
-				const genThreeTrainers = this.currentTrainerGeneration === 'gen3';
-				const genFourTrainers = this.currentTrainerGeneration === 'gen4';
+				const currentDefaultTrainers = this.currentTrainerGeneration === defaultTrainers;
+				const currentGenOneTrainers = this.currentTrainerGeneration === genOneTrainers;
+				const currentGenTwoTrainers = this.currentTrainerGeneration === genTwoTrainers;
+				const currentGenThreeTrainers = this.currentTrainerGeneration === genThreeTrainers;
+				const currentGenFourTrainers = this.currentTrainerGeneration === genFourTrainers;
+				const currentGenFiveTrainers = this.currentTrainerGeneration === genFiveTrainers;
+				const currentGenSixTrainers = this.currentTrainerGeneration === genSixTrainers;
+				const currentGenSevenTrainers = this.currentTrainerGeneration === genSevenTrainers;
+				const currentGenEightTrainers = this.currentTrainerGeneration === genEightTrainers;
 
 				html += this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + randomTrainerGen,
 					"Random", this.currentTrainerGeneration === undefined);
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + newerTrainerGen,
-					"Newer gens", newerTrainers);
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genOneTrainersGen,
-					"Gen 1", genOneTrainers);
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genTwoTrainersGen,
-					"Gen 2", genTwoTrainers);
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genThreeTrainersGen,
-					"Gen 3", genThreeTrainers);
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genFourTrainersGen,
-					"Gen 4", genFourTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + defaultTrainers,
+					"Default", currentDefaultTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genOneTrainers,
+					"Gen 1", currentGenOneTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genTwoTrainers,
+					"Gen 2", currentGenTwoTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genThreeTrainers,
+					"Gen 3", currentGenThreeTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genFourTrainers,
+					"Gen 4", currentGenFourTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genFiveTrainers,
+					"Gen 5", currentGenFiveTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genSixTrainers,
+					"Gen 6", currentGenSixTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genSevenTrainers,
+					"Gen 7", currentGenSevenTrainers);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genEightTrainers,
+					"Gen 8", currentGenEightTrainers);
 			} else {
 				html += this.trainerPickers[this.trainerPickerIndex].render();
 			}
