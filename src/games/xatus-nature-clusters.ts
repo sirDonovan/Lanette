@@ -6,7 +6,7 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/qu
 class XatusNatureClusters extends QuestionAndAnswer {
 	static cachedData: IGameCachedData = {};
 
-	hintPrefix: string = "Randomly generated Nature";
+	hintPrefix: string = "Randomly generated nature";
 	oneGuessPerHint = true;
 	roundTime: number = 20 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
@@ -17,14 +17,13 @@ class XatusNatureClusters extends QuestionAndAnswer {
 
 		const natures: INature[] = [];
 		for (const key of Dex.getData().natureKeys) {
-			natures.push(Dex.getExistingNature(key));
+			const nature = Dex.getExistingNature(key);
+			if (nature.plus && nature.minus) {
+				hintKeys.push(nature.name);
+				hints[nature.name] = [];
+				natures.push(nature);
+			}
 		}
-        for (const nature of natures){
-            if (nature.plus && nature.minus){
-                hintKeys.push(nature.name);
-                hints[nature.name] = [];
-            }
-        }
 
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
@@ -49,34 +48,22 @@ class XatusNatureClusters extends QuestionAndAnswer {
 				}
 			}
 
-			const highestLowestCache: Dict<string[]> = {};
-			const combinationCache: Dict<string[]> = {};
-			const dataKey = highestStats.join(',') + "|" + lowestStats.join(',');
-			if (!(dataKey in highestLowestCache)) {
-				highestLowestCache[dataKey] = [];
+			const combinationCache: Dict<boolean> = {};
+			const permutations = Tools.getPermutations(highestStats.concat(lowestStats), 2, 2);
+			for (const permutation of permutations) {
+				const combinationKey = permutation.join(",");
+				if (!(combinationKey in combinationCache)) {
+					combinationCache[combinationKey] = true;
 
-				const permutations = Tools.getPermutations(highestStats.concat(lowestStats), 2, 2);
-				for (const permutation of permutations) {
-					const combinationKey = permutation.join(",");
-					if (!(combinationKey in combinationCache)) {
-						combinationCache[combinationKey] = [];
+					if (!highestStats.includes(permutation[0]) || !lowestStats.includes(permutation[1])) continue;
 
-						if (!highestStats.includes(permutation[0]) || !lowestStats.includes(permutation[1])) continue;
-
-						for (const nature of natures) {
-							if (nature.plus === permutation[0] && nature.minus === permutation[1]) {
-                                hints[nature.name].push(pokemon.name);
-								combinationCache[combinationKey].push(nature.name);
-							}
+					for (const nature of natures) {
+						if (nature.plus === permutation[0] && nature.minus === permutation[1]) {
+							hints[nature.name].push(pokemon.name);
 						}
 					}
-
-					highestLowestCache[dataKey] = highestLowestCache[dataKey].concat(combinationCache[combinationKey]);
 				}
 			}
-
-			if (!highestLowestCache[dataKey].length) continue;
-
 		}
 
 		this.cachedData.hintAnswers = hints;
@@ -90,14 +77,14 @@ export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties
 	class: XatusNatureClusters,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	defaultOptions: ['points'],
-	description: "Players guess Pokemon that get +10% to the highest stat and -10% to the lowest stat for each generated Nature!",
+	description: "Players guess Pokemon that get +10% to their highest stats and -10% to their lowest stats for each generated nature!",
 	freejoin: true,
 	name: "Xatu's Nature Clusters",
 	mascot: "Xatu",
 	minigameCommand: 'naturecluster',
 	minigameCommandAliases: ['ncluster'],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that gets +10% to the highest stat " +
-		"and -10% to the lowest stat for the generated Nature!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that gets +10% to its highest stat " +
+		"and -10% to its lowest stat for the generated nature!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
 		'survival': {
