@@ -3,12 +3,12 @@ import type { IGameCachedData, IGameFile } from "../types/games";
 import type { INature, StatID } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-class NatusNatureMinMax extends QuestionAndAnswer {
+class XatusNatureClusters extends QuestionAndAnswer {
 	static cachedData: IGameCachedData = {};
 
-	hintPrefix: string = "Randomly generated Pokemon";
+	hintPrefix: string = "Randomly generated nature";
 	oneGuessPerHint = true;
-	roundTime: number = 30 * 1000;
+	roundTime: number = 20 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {
@@ -19,11 +19,12 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 		for (const key of Dex.getData().natureKeys) {
 			const nature = Dex.getExistingNature(key);
 			if (nature.plus && nature.minus) {
+				hintKeys.push(nature.name);
+				hints[nature.name] = [];
 				natures.push(nature);
 			}
 		}
 
-		const highestLowestCache: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
 				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
@@ -47,34 +48,22 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 				}
 			}
 
-			const combinationCache: Dict<string[]> = {};
-			const dataKey = highestStats.join(',') + "|" + lowestStats.join(',');
-			if (!(dataKey in highestLowestCache)) {
-				highestLowestCache[dataKey] = [];
+			const combinationCache: Dict<boolean> = {};
+			const permutations = Tools.getPermutations(highestStats.concat(lowestStats), 2, 2);
+			for (const permutation of permutations) {
+				const combinationKey = permutation.join(",");
+				if (!(combinationKey in combinationCache)) {
+					combinationCache[combinationKey] = true;
 
-				const permutations = Tools.getPermutations(highestStats.concat(lowestStats), 2, 2);
-				for (const permutation of permutations) {
-					const combinationKey = permutation.join(",");
-					if (!(combinationKey in combinationCache)) {
-						combinationCache[combinationKey] = [];
+					if (!highestStats.includes(permutation[0]) || !lowestStats.includes(permutation[1])) continue;
 
-						if (!highestStats.includes(permutation[0]) || !lowestStats.includes(permutation[1])) continue;
-
-						for (const nature of natures) {
-							if (nature.plus === permutation[0] && nature.minus === permutation[1]) {
-								combinationCache[combinationKey].push(nature.name);
-							}
+					for (const nature of natures) {
+						if (nature.plus === permutation[0] && nature.minus === permutation[1]) {
+							hints[nature.name].push(pokemon.name);
 						}
 					}
-
-					highestLowestCache[dataKey] = highestLowestCache[dataKey].concat(combinationCache[combinationKey]);
 				}
 			}
-
-			if (!highestLowestCache[dataKey].length) continue;
-
-			hints[pokemon.name] = highestLowestCache[dataKey];
-			hintKeys.push(pokemon.name);
 		}
 
 		this.cachedData.hintAnswers = hints;
@@ -82,20 +71,20 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 	}
 }
 
-export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(questionAndAnswerGame, {
-	aliases: ['nnm', 'natus', 'natureminmax'],
+export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties(questionAndAnswerGame, {
+	aliases: ['xnc', 'xatus', 'naturecluster'],
 	category: 'knowledge-2',
-	class: NatusNatureMinMax,
-	commandDescriptions: [Config.commandCharacter + "g [nature]"],
+	class: XatusNatureClusters,
+	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	defaultOptions: ['points'],
-	description: "Players guess natures that give +10% to the highest stat and -10% to the lowest stat for each generated Pokemon!",
+	description: "Players guess Pokemon that get +10% to their highest stats and -10% to their lowest stats for each generated nature!",
 	freejoin: true,
-	name: "Natu's Nature Min-Max",
-	mascot: "Natu",
-	minigameCommand: 'natureminmax',
-	minigameCommandAliases: ['nminmax'],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a nature that gives +10% to the highest stat " +
-		"and -10% to the lowest stat for the generated Pokemon!",
+	name: "Xatu's Nature Clusters",
+	mascot: "Xatu",
+	minigameCommand: 'naturecluster',
+	minigameCommandAliases: ['ncluster'],
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that gets +10% to its highest stat " +
+		"and -10% to its lowest stat for the generated nature!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
 		'survival': {
@@ -108,11 +97,4 @@ export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(q
 			roundTime: 15 * 1000,
 		},
 	},
-	variants: [
-		{
-			name: "Natu's Nature Min-Max (GIFs)",
-			variantAliases: ["gif", "gifs"],
-			pokemonGifHints: true,
-		},
-	],
 });
