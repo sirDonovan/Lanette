@@ -705,6 +705,7 @@ export const game: IUserHostedFile = {
 			aliases: ['Meloettas'],
 			description: "Players guess themes from Pokemon games based on a given audio clip! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/meloetta-39-s-melodies-t785.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Metagross' Mind Mash",
@@ -805,6 +806,7 @@ export const game: IUserHostedFile = {
 			description: "Players search for a parameter that when entered into <code>/nds</code> with a given parameter, " +
 				"results in a specific amount of Pokemon! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/meloetta-39-s-melodies-t785.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Ralts' Ability Race",
@@ -877,6 +879,7 @@ export const game: IUserHostedFile = {
 			aliases: ['Sinisteas'],
 			description: "Players guess something Pokemon related that the given synonym is referring to! " +
 				"<a href='https://www.tapatalk.com/groups/ps_game_corner/sinistea-s-synonyms-t1154.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Spot The Reference",
