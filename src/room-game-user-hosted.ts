@@ -700,6 +700,14 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Meloetta's Melodies",
+			mascot: "Meloetta",
+			aliases: ['Meloettas'],
+			description: "Players guess themes from Pokemon games based on a given audio clip! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/meloetta-39-s-melodies-t785.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Metagross' Mind Mash",
 			mascot: "Metagross",
 			aliases: ['mmm', 'metagrosssmindmash'],
@@ -792,6 +800,15 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Purugly's Purfect Params",
+			mascot: "Purugly",
+			aliases: ['Puruglys'],
+			description: "Players search for a parameter that when entered into <code>/nds</code> with a given parameter, " +
+				"results in a specific amount of Pokemon! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/purugly-s-purfect-params-t1003.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Ralts' Ability Race",
 			mascot: "Ralts",
 			aliases: ['RAR', 'Ralts'],
@@ -855,6 +872,14 @@ export const game: IUserHostedFile = {
 			description: "Each round, the host will announce an action. If the action is preceded by 'Simon Says', players must do the " +
 				"action using <code>/me [action]</code>. If players do the action when it is not preceded by 'Simon Says', they are " +
 				"eliminated.",
+		},
+		{
+			name: "Sinistea's Synonyms",
+			mascot: "Sinistea",
+			aliases: ['Sinisteas'],
+			description: "Players guess something Pokemon related that the given synonym is referring to! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/sinistea-s-synonyms-t1154.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Spot The Reference",
