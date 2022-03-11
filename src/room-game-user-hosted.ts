@@ -805,7 +805,7 @@ export const game: IUserHostedFile = {
 			aliases: ['Puruglys'],
 			description: "Players search for a parameter that when entered into <code>/nds</code> with a given parameter, " +
 				"results in a specific amount of Pokemon! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/meloetta-39-s-melodies-t785.html'>More info</a>",
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/purugly-s-purfect-params-t1003.html'>More info</a>",
 			freejoin: true,
 		},
 		{
