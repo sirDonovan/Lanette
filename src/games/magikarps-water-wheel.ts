@@ -170,6 +170,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		this.offCommands(this.actionCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canSwim = false;
 
