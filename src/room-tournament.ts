@@ -187,7 +187,7 @@ export class Tournament extends Activity {
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
 
-		this.leaveBattleRooms();
+		this.cleanupBattleRooms();
 
 		// @ts-expect-error
 		this.room.tournament = undefined;
@@ -460,9 +460,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (this.joinBattles) {
-			if (room) room.leave();
-		}
+		if (room) this.leaveBattleRoom(room);
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {

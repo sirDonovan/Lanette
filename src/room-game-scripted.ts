@@ -724,7 +724,7 @@ export class ScriptedGame extends Game {
 
 		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
-		this.leaveBattleRooms();
+		this.cleanupBattleRooms();
 
 		if (this.onDeallocate) {
 			try {

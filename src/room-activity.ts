@@ -356,22 +356,24 @@ export abstract class Activity {
 		this.deallocate(false);
 	}
 
-	leaveBattleRooms(): void {
+	leaveBattleRoom(battleRoom: Room): void {
+		// @ts-expect-error
+		battleRoom.tournament = undefined;
+		// @ts-expect-error
+		battleRoom.game = undefined;
+
+		const currentRoom = Rooms.get(battleRoom.id);
+		if (currentRoom) currentRoom.leave();
+	}
+
+	cleanupBattleRooms(): void {
 		if (!this.battleData) return;
 
 		this.battleData.forEach((data, battleRoom) => {
-			// @ts-expect-error
-			battleRoom.tournament = undefined;
-			// @ts-expect-error
-			battleRoom.game = undefined;
-
-			if (battleRoom.id) {
-				const room = Rooms.get(battleRoom.id);
-				if (room) {
-					room.leave();
-				}
-			}
+			this.leaveBattleRoom(battleRoom);
 		});
+
+		this.battleData.clear();
 	}
 
 	getHtmlPageWithHeader(html: string): string {

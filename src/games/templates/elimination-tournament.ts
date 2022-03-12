@@ -1461,7 +1461,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 					playerAndReason.set(originalPlayer, reason);
 
 					this.disqualifyPlayers(playerAndReason);
-					room.leave();
+					this.leaveBattleRoom(room);
 				}
 			}
 			return;
@@ -1809,8 +1809,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
 		}
-
-		this.battleData.clear();
 	}
 
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;
@@ -1864,6 +1862,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 
 			const battleRoom = Rooms.add(battle.fullId);
 			battleRoom.game = this;
+			this.battleData.set(battleRoom, this.generateBattleData());
 
 			Client.joinRoom(battle.fullId);
 			return true;
