@@ -1120,7 +1120,7 @@ export class Games {
 			room.game = game;
 			return room.game;
 		} else {
-			game.deallocate(true);
+			if (!game.ended) game.deallocate(true);
 		}
 	}
 
