@@ -121,9 +121,52 @@ export abstract class EliminationTournament extends ScriptedGame {
 				return false;
 			}
 
+			const ruleTable = Dex.getRuleTable(battleFormat);
+			if (!ruleTable.has("teampreview")) {
+				this.say("You can only change the format to one that has Team Preview.");
+				return false;
+			}
+
 			if (battleFormat.gameType !== this.battleFormatType) {
 				this.say("You can only change the format to another " + this.battleFormatType + " format.");
 				return false;
+			}
+
+			const oneVsOne = this.startingTeamsLength === 1 && !this.additionsPerRound;
+			const twoVsTwo = this.startingTeamsLength === 2 && !this.additionsPerRound;
+
+			if (ruleTable.minTeamSize > this.startingTeamsLength) {
+				this.say("You can only change the format to one that allows bringing only " + this.startingTeamsLength + " Pokemon.");
+				return false;
+			}
+
+			if (twoVsTwo) {
+				if (ruleTable.maxTeamSize < 2) {
+					this.say("You can only change the format to one that allows bringing 2 or more Pokemon.");
+					return false;
+				}
+			} else if (!oneVsOne) {
+				if (ruleTable.maxTeamSize < 6) {
+					this.say("You can only change the format to one that allows bringing 6 or more Pokemon.");
+					return false;
+				}
+			}
+
+			if (oneVsOne) {
+				if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 1) {
+					this.say("You can only change the format to one that requires battling with 1 Pokemon.");
+					return false;
+				}
+			} else if (twoVsTwo) {
+				if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 2) {
+					this.say("You can only change the format to one that requires battling with 2 Pokemon.");
+					return false;
+				}
+			} else {
+				if (ruleTable.pickedTeamSize) {
+					this.say("You can only change the format to one that allows battling with a variable number of Pokemon.");
+					return false;
+				}
 			}
 
 			if (battleFormat.team) {
@@ -1956,6 +1999,13 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 };
 
 const tests: GameFileTests<EliminationTournament> = {
+	'should use a compatible format': {
+		test(game) {
+			const format = Dex.getExistingFormat(game.battleFormatId);
+			assert(!format.team);
+			assert(Dex.getRuleTable(format).has("teampreview"));
+		},
+	},
 	'should generate a Pokedex': {
 		test(game) {
 			assert(game.pokedex.length);
