@@ -423,6 +423,12 @@ export class Client {
 			error.startsWith('The search included ');
 	}
 
+	isHangmanCommandError(error: string): boolean {
+		return error.startsWith("Phrase must be less than ") || error.startsWith("Each word in the phrase must be less than ") ||
+			error.startsWith("Hint too long") || error.startsWith("Enter a valid word") ||
+			error.startsWith("You are not allowed to use filtered words") || error.startsWith("Hangman is disabled for this room");
+	}
+
 	/**Returns the description of the filter triggered by the message, if any */
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
@@ -2050,6 +2056,13 @@ export class Client {
 					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 					room.say(Tools.escapeHTML(messageArguments.error));
+				}
+			} else if (this.isHangmanCommandError(messageArguments.error)) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-start' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					const user = Users.get(this.lastOutgoingMessage.userid!);
+					this.clearLastOutgoingMessage(now);
+					if (user) user.say("Hangman error: " + Tools.escapeHTML(messageArguments.error));
 				}
 			}
 

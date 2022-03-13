@@ -793,11 +793,12 @@ export class Room {
 		});
 	}
 
-	startHangman(answer: string, hint: string): void {
+	startHangman(answer: string, hint: string, user: User): void {
 		this.say("/hangman create " + answer + ", " + hint, {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'hangman-start',
+			userid: user.id,
 		});
 	}
 

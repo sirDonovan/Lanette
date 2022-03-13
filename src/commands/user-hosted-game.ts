@@ -1617,7 +1617,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			gameRoom.startHangman(answer, hint + " [" + user.name + "]");
+			gameRoom.startHangman(answer, hint + " [" + user.name + "]", user);
 		},
 		pmOnly: true,
 		syntax: ["[room], [answer], [hint]"],
