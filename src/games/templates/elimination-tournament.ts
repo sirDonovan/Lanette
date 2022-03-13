@@ -1416,7 +1416,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
-		if (this.ended || this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
+		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players && !players.includes(this.players[user.id])) {
@@ -1438,8 +1438,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
-		if (this.ended) return;
-
 		const id = Tools.toId(username);
 		if (!id) return;
 
@@ -1484,8 +1482,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePokemon(room: Room, slot: string, details: string): boolean {
-		if (this.ended) return false;
-
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1500,8 +1496,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTeamPreview(room: Room): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1569,8 +1563,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleStart(room: Room): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1584,8 +1576,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleSwitch(room: Room, pokemon: string, details: string): boolean {
-		if (this.ended) return false;
-
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1600,8 +1590,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleFaint(room: Room, pokemonArgument: string): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1645,8 +1633,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleWin(room: Room, username: string): void {
-		if (this.ended) return;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return;
 
@@ -1680,8 +1666,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleExpire(room: Room): void {
-		if (this.ended) return;
-
 		this.checkedBattleRooms.push(room.publicId);
 
 		const players = this.getPlayersFromBattleData(room);
@@ -1695,8 +1679,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTie(room: Room): void {
-		if (this.ended) return;
-
 		this.checkedBattleRooms.push(room.publicId);
 	}
 

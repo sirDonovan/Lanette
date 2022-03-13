@@ -115,6 +115,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 						if (this.players[i] !== player) this.players[i].eliminated = true;
 					}
 					this.end();
+					return true;
 				} else {
 					this.say(falinksText + " " + this.currentPlayer.name + " advances to **" + points + "** point" +
 						(points > 1 ? "s" : "") + ".");
