@@ -633,13 +633,15 @@ export class Dex {
 
 		if (baseSpecies.otherFormes) {
 			for (const otherForme of baseSpecies.otherFormes) {
-				formes.push(this.getExistingPokemon(otherForme).name);
+				const forme = this.getExistingPokemon(otherForme);
+				if (forme.gen <= this.gen) formes.push(forme.name);
 			}
 		}
 
 		if (baseSpecies.cosmeticFormes) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
-				formes.push(this.getExistingPokemon(cosmeticForme).name);
+				const forme = this.getExistingPokemon(cosmeticForme);
+				if (forme.gen <= this.gen) formes.push(forme.name);
 			}
 		}
 

@@ -693,6 +693,18 @@ describe("Dex", () => {
 		assertStrictEqual(formes.length, 2);
 		assert(formes.includes("Gastrodon"));
 		assert(formes.includes("Gastrodon-East"));
+
+		formes = Dex.getDex("gen5").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 1);
+
+		formes = Dex.getDex("gen6").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 7);
+
+		formes = Dex.getDex("gen7").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 15);
+
+		formes = Dex.getDex("gen8").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 16);
 	});
 	it('should return proper values from getFormeCombinations()', () => {
 		let combinations = Dex.getFormeCombinations(['Bulbasaur']).map(x => x.join(","));
