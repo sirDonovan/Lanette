@@ -22,6 +22,31 @@ describe("Dex", () => {
 		assert(Object.keys(dexData.gifData).length > 1);
 		assert(Object.keys(dexData.gifDataBW).length > 1);
 
+		// data keys by gen
+
+		assert(Dex.getDex("gen1").getData().pokemonKeys.includes("bulbasaur"));
+		assert(!Dex.getDex("gen1").getData().pokemonKeys.includes("chikorita"));
+
+		assert(Dex.getDex("gen2").getData().pokemonKeys.includes("chikorita"));
+		assert(!Dex.getDex("gen2").getData().pokemonKeys.includes("treecko"));
+
+		assert(Dex.getDex("gen3").getData().pokemonKeys.includes("treecko"));
+		assert(!Dex.getDex("gen3").getData().pokemonKeys.includes("turtwig"));
+
+		assert(Dex.getDex("gen4").getData().pokemonKeys.includes("turtwig"));
+		assert(!Dex.getDex("gen4").getData().pokemonKeys.includes("snivy"));
+
+		assert(Dex.getDex("gen5").getData().pokemonKeys.includes("snivy"));
+		assert(!Dex.getDex("gen5").getData().pokemonKeys.includes("chespin"));
+
+		assert(Dex.getDex("gen6").getData().pokemonKeys.includes("chespin"));
+		assert(!Dex.getDex("gen6").getData().pokemonKeys.includes("rowlet"));
+
+		assert(Dex.getDex("gen7").getData().pokemonKeys.includes("rowlet"));
+		assert(!Dex.getDex("gen7").getData().pokemonKeys.includes("grookey"));
+
+		assert(Dex.getDex("gen8").getData().pokemonKeys.includes("grookey"));
+
 		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		let allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
