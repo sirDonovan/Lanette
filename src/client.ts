@@ -1369,13 +1369,17 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
-			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
-			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
-				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
-				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+			if (!room.battle) {
+				if (Config.allowMail) Storage.retrieveOfflineMessages(user);
+
+				if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
+					now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
+					if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+				}
 			}
+
 			break;
 		}
 
