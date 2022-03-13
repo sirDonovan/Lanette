@@ -506,6 +506,28 @@ export class Dex {
 		return learnsetData;
 	}
 
+	getLearnsetParent(pokemon: IPokemon): IPokemon {
+		let learnsetParent = pokemon;
+		const learnsetData = this.getLearnsetData(learnsetParent.id);
+		if (!learnsetData || !learnsetData.learnset) {
+			let forme: string | undefined;
+			if (learnsetParent.changesFrom) {
+				forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
+			} else {
+				forme = learnsetParent.baseSpecies;
+			}
+
+			if (forme && forme !== learnsetParent.name) {
+				// forme without its own learnset
+				learnsetParent = this.getPokemon(forme)!;
+				// warning: formes with their own learnset, like Wormadam, should NOT
+				// inherit from their base forme unless they're freely switchable
+			}
+		}
+
+		return learnsetParent;
+	}
+
 	/*
 		Moves
 	*/
@@ -653,7 +675,7 @@ export class Dex {
 
 	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
-		return this.allPossibleMovesCache[pokemon.id];
+		return this.allPossibleMovesCache[this.getLearnsetParent(pokemon).id];
 	}
 
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
@@ -1583,6 +1605,18 @@ export class Dex {
 				if (pokemon.requiredAbility) {
 					if (!usableAbilities.includes(pokemon.requiredAbility)) continue;
 					set.ability = pokemon.requiredAbility;
+				} else {
+					let usableAbility = false;
+					for (const i in pokemon.abilities) {
+						// @ts-expect-error
+						const ability = formatDex.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+						if (ability && usableAbilities.includes(ability.name)) {
+							usableAbility = true;
+							break;
+						}
+					}
+
+					if (!usableAbility) continue;
 				}
 
 				if (pokemon.requiredItem) {
@@ -1607,6 +1641,17 @@ export class Dex {
 					if (!usableMoves.includes(pokemon.requiredMove)) continue;
 					set.moves = [pokemon.requiredMove];
 				}
+
+				const allPossibleMoves = formatDex.getAllPossibleMoves(pokemon);
+				let usableMove = false;
+				for (const id of allPossibleMoves) {
+					const move = formatDex.getMove(id);
+					if (move && usableMoves.includes(move.name)) {
+						usableMove = true;
+						break;
+					}
+				}
+				if (!usableMove) continue;
 
 				if (validator.checkSpecies(set, pokemon, pokemon, {})) continue;
 
@@ -2522,8 +2567,19 @@ export class Dex {
 			const pokemon = this.getPokemon(key)!;
 			if (pokemon.gen > this.gen) continue;
 
-			this.cacheAllPossibleMoves(validator, pokemon, filteredTypeKeys);
-			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
+			const formes = [pokemon];
+			if (pokemon.cosmeticFormes) {
+				for (const name of pokemon.cosmeticFormes) {
+					const forme = this.getPokemon(name)!;
+					if (forme.gen <= this.gen && !pokemonKeys.includes(forme.id)) formes.push(forme);
+				}
+			}
+
+			for (const forme of formes) {
+				this.cacheAllPossibleMoves(validator, forme, filteredTypeKeys);
+				this.cacheIsPseudoLCPokemon(forme, lcFormat);
+			}
+
 			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
 
@@ -2691,18 +2747,9 @@ export class Dex {
 		while (learnsetParent && learnsetParent.gen <= this.gen) {
 			const learnsetData = this.getLearnsetData(learnsetParent.id);
 			if (!learnsetData || !learnsetData.learnset) {
-				let forme: string | undefined;
-				if (learnsetParent.changesFrom) {
-					forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
-				} else {
-					forme = learnsetParent.baseSpecies;
-				}
-
-				if (forme && forme !== learnsetParent.name) {
-					// forme without its own learnset
-					learnsetParent = this.getPokemon(forme)!;
-					// warning: formes with their own learnset, like Wormadam, should NOT
-					// inherit from their base forme unless they're freely switchable
+				const nextLearnsetParent = this.getLearnsetParent(learnsetParent);
+				if (nextLearnsetParent.name !== learnsetParent.name) {
+					learnsetParent = nextLearnsetParent;
 					continue;
 				}
 				break;

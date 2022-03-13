@@ -685,6 +685,10 @@ describe("Dex", () => {
 
 		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("nationaldexag"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Arceus-Bug').name));
+
+		// all abilities banned
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("aaa"));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Komala').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
 		let teams = [['Charmander', 'Squirtle']];
