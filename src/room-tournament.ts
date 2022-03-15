@@ -212,6 +212,8 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
+		if (this.room.groupchat) return;
+
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];
