@@ -1,10 +1,10 @@
 import type { IGameFile } from '../types/games';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
 
 const name = "Same Six";
 const description = "Every player battles with the same randomly generated team!";
 
-class SameSix extends EliminationTournament {
+class SameSix extends BattleElimination {
 	canChangeFormat = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
 	additionsPerRound = 0;

@@ -30,7 +30,7 @@ const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 10 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
-export abstract class EliminationTournament extends ScriptedGame {
+export abstract class BattleElimination extends ScriptedGame {
 	abstract baseTournamentName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
@@ -1840,7 +1840,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	meetsEvolutionCriteria?(pokemon: IPokemon): boolean;
 }
 
-const commands: GameCommandDefinitions<EliminationTournament> = {
+const commands: GameCommandDefinitions<BattleElimination> = {
 	check: {
 		command(target, room, user) {
 			const player = this.players[user.id];
@@ -1998,7 +1998,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	},
 };
 
-const tests: GameFileTests<EliminationTournament> = {
+const tests: GameFileTests<BattleElimination> = {
 	'should use a compatible format': {
 		test(game) {
 			const format = Dex.getExistingFormat(game.battleFormatId);
@@ -2254,8 +2254,8 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 };
 
-export const game: IGameTemplateFile<EliminationTournament> = {
-	category: 'elimination-tournament' as GameCategory,
+export const game: IGameTemplateFile<BattleElimination> = {
+	category: 'battle-elimination' as GameCategory,
 	commandDescriptions: [Config.commandCharacter + 'check [battle link]'],
 	commands,
 	tests,

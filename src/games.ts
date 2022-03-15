@@ -49,8 +49,8 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 };
 
 const categoryNames: GameCategoryNames = {
+	'battle-elimination': 'Battle Elimination',
 	'chain': 'Chain',
-	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
 	'identification-2': 'Identification Group 2',
 	'knowledge-1': 'Knowledge Group 1',
