@@ -593,7 +593,6 @@ export class Games {
 
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
-					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
 					delete format.resolvedInputProperties.options.points;
