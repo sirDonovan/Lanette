@@ -332,9 +332,10 @@ export class Users {
 	}
 
 	pruneUsers(): void {
-		for (const i in this.users) {
-			if (!this.users[i].rooms.size && !this.users[i].game) {
-				this.remove(this.users[i]);
+		const userKeys = Object.keys(this.users);
+		for (const key of userKeys) {
+			if (!this.users[key].rooms.size && !this.users[key].game) {
+				this.remove(this.users[key]);
 			}
 		}
 	}
