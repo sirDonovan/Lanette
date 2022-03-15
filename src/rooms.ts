@@ -21,6 +21,7 @@ export class Room {
 	groupchat: boolean | null = null;
 	hiddenRoom: boolean | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
+	initialized: boolean = false;
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
@@ -82,7 +83,7 @@ export class Room {
 
 		const keys = Object.getOwnPropertyNames(this);
 		for (const key of keys) {
-			if (key === 'id' || key === 'title') continue;
+			if (key === 'id' || key === 'title' || key === 'initialized') continue;
 
 			// @ts-expect-error
 			this[key] = undefined;
@@ -117,6 +118,7 @@ export class Room {
 	}
 
 	init(type: RoomType): void {
+		this.initialized = true;
 		this.type = type;
 	}
 
@@ -811,7 +813,7 @@ export class Room {
 	}
 
 	leave(): void {
-		if (this.leaving) return;
+		if (!this.initialized || this.leaving) return;
 
 		this.leaving = true;
 		this.say("/leave", {
