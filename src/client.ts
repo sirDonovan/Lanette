@@ -1270,6 +1270,12 @@ export class Client {
 
 				Tournaments.setScheduledTournament(room);
 			}
+
+			if (room.id in Rooms.createListeners) {
+				Rooms.createListeners[room.id](room);
+				delete Rooms.createListeners[room.id];
+			}
+
 			break;
 		}
 
