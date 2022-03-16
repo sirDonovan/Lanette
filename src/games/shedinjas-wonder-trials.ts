@@ -19,6 +19,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
+	firstPlayerUsedMove: boolean = false;
 	inactiveRoundLimit: number = 5;
 	inverseTypes: boolean = false;
 	lastTyping: string = '';
@@ -65,6 +66,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canUseMove = false;
+		this.firstPlayerUsedMove = false;
 		if (this.round > 1) {
 			let highestPoints = 0;
 			if (this.roundMoves.size) {
@@ -76,11 +78,20 @@ class ShedinjasWonderTrials extends ScriptedGame {
 					if (this.firstMove === undefined) {
 						if (wonderGuardWarrior) {
 							this.firstMove = player;
+							this.firstPlayerUsedMove = true;
 						} else {
 							this.firstMove = false;
 						}
 					} else {
-						if (this.firstMove && (this.firstMove !== player || !wonderGuardWarrior)) this.firstMove = false;
+						if (this.firstMove !== player) {
+							if (wonderGuardWarrior && this.firstPlayerUsedMove === false) this.firstMove = false;
+						} else {
+							if (!wonderGuardWarrior) {
+								this.firstMove = false;
+							} else {
+								this.firstPlayerUsedMove = true;
+							}
+						}
 					}
 
 					let points = this.points.get(player) || 0;
