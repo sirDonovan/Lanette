@@ -56,6 +56,15 @@ export class Room {
 		this.setTitle(id);
 
 		this.updateConfigSettings();
+
+		if (id.startsWith(Tools.groupchatPrefix)) {
+			const parts = id.split("-");
+			const parentRoom = global.Rooms.get(parts[1]);
+			if (parentRoom) {
+				this.parentRoom = parentRoom;
+				parentRoom.subRoom = this;
+			}
+		}
 	}
 
 	destroy(): void {
@@ -796,12 +805,12 @@ export class Room {
 
 	disqualifyFromTournament(userOrPlayer: User | Player): void {
 		this.say("/tour dq " + userOrPlayer.id, {
-			filterSend: () => this.tournament && userOrPlayer.id in this.tournament.players &&
-				!this.tournament.players[userOrPlayer.id].eliminated ? true : false,
+			filterSend: () => this.tournament && ((this.tournament.battleRoomGame &&
+				userOrPlayer.id in this.tournament.battleRoomGame.players) || (userOrPlayer.id in this.tournament.players &&
+				!this.tournament.players[userOrPlayer.id].eliminated)) ? true : false,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'tournament-disqualify',
-			userid: userOrPlayer.id,
 		});
 	}
 
@@ -958,7 +967,7 @@ export class Rooms {
 	pruneRooms(): void {
 		const roomKeys = Object.keys(this.rooms);
 		for (const key of roomKeys) {
-			if (!this.rooms[key].initialized && !this.rooms[key].parentRoom) {
+			if (!this.rooms[key].initialized && !this.rooms[key].parentRoom && !this.rooms[key].game && !this.rooms[key].tournament) {
 				this.remove(this.rooms[key]);
 			}
 		}

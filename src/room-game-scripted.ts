@@ -9,6 +9,7 @@ import type {
 	IGameNumberOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { GameActionLocations } from "./types/storage";
+import type { IClientTournamentData } from "./types/tournaments";
 import type { User } from "./users";
 
 const AUTO_START_VOTE_TIME = 5 * 1000;
@@ -39,6 +40,8 @@ export class ScriptedGame extends Game {
 	signupsRefreshed: boolean = false;
 	startTime: number = 0;
 	usesHtmlPage: boolean = false;
+	usesTournamentStart: boolean = false;
+	usesTournamentJoin: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
 
@@ -451,8 +454,9 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	start(): boolean {
-		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers)) return false;
+	start(tournamentStart?: boolean): boolean {
+		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
+			(this.usesTournamentStart && !tournamentStart)) return false;
 
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
@@ -735,21 +739,25 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		// @ts-expect-error
-		if ((this.room as Room).tournament && (this.room as Room).tournament.battleRoomGame === this) {
+		if (!this.isPmActivity(this.room)) {
+			if (this.room.tournament && this.room.tournament.battleRoomGame === this) {
+				this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
+
+			if (this.room.subRoom && this.room.subRoom.tournament && this.room.subRoom.tournament.battleRoomGame === this) {
+				this.room.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
+
 			// @ts-expect-error
-			this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			if (this.room.searchChallenge === this) {
+				// @ts-expect-error
+				this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
 		}
 
 		if (this.room.game === this) {
 			// @ts-expect-error
 			this.room.game = undefined;
-		}
-
-		// @ts-expect-error
-		if ((this.room as Room).searchChallenge === this) {
-			// @ts-expect-error
-			this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 		}
 
 		if (this.parentGame) {
@@ -805,7 +813,9 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	addPlayer(user: User): Player | undefined {
+	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+		if (this.usesTournamentJoin && !tournamentJoin) return;
+
 		if (this.options.freejoin || this.isMiniGame) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
@@ -1422,6 +1432,9 @@ export class ScriptedGame extends Game {
 	onTimeLimit?(): boolean;
 	onTournamentEnd?(): void;
 	onTournamentStart?(players: Dict<Player>): void;
+	onTournamentPlayerJoin?(player: Player, playerCount: number): void;
+	onTournamentPlayerLeave?(player: Player, playerCount: number): void;
+	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;

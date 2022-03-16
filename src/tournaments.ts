@@ -1,4 +1,5 @@
 import { EliminationNode } from "./lib/elimination-node";
+import type { Player } from "./room-activity";
 import type { ScriptedGame } from "./room-game-scripted";
 import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
@@ -28,7 +29,7 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<{format: IFormat; game?: ScriptedGame, scheduled?: boolean}> = {};
+	createListeners: Dict<{format: IFormat; game?: ScriptedGame, scheduled?: boolean, callback?: () => void}> = {};
 	private nextScheduledTournaments: Dict<IScheduledTournament> = {};
 	private scheduledTournaments: Dict<Dict<IScheduledTournament[]>> = {};
 	private readonly schedules: typeof tournamentSchedules = tournamentSchedules;
@@ -191,6 +192,10 @@ export class Tournaments {
 					room.setTournamentRules(tournament.format.customRules.join(","));
 				}
 
+				if (this.createListeners[room.id].callback) {
+					this.createListeners[room.id].callback!();
+				}
+
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
@@ -199,6 +204,7 @@ export class Tournaments {
 						Storage.exportDatabase(room.id);
 					}
 				}
+
 				delete this.createListeners[room.id];
 			}
 
@@ -370,16 +376,33 @@ export class Tournaments {
 		return format;
 	}
 
-	clientToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
+	resultsToEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
 		const eliminationNode = new EliminationNode({user: Tools.stripHtmlCharacters(clientNode.team)});
 
 		if (clientNode.children) {
 			const children: EliminationNode<string>[] = [];
 			for (const child of clientNode.children) {
-				if (child.team) children.push(this.clientToEliminationNode(child));
+				if (child.team) children.push(this.resultsToEliminationNode(child));
 			}
 
 			if (children.length === 2) eliminationNode.setChildren(children as [EliminationNode<string>, EliminationNode<string>]);
+		}
+
+		return eliminationNode;
+	}
+
+	bracketToEliminationNode(clientNode: IClientTournamentNode, players: Dict<Player>): EliminationNode<Player> {
+		const id = Tools.toId(clientNode.team);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		const eliminationNode = new EliminationNode({user: players[id] || null});
+
+		if (clientNode.children) {
+			const children: EliminationNode<Player>[] = [];
+			for (const child of clientNode.children) {
+				children.push(this.bracketToEliminationNode(child, players));
+			}
+
+			if (children.length === 2) eliminationNode.setChildren(children as [EliminationNode<Player>, EliminationNode<Player>]);
 		}
 
 		return eliminationNode;

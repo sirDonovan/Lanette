@@ -231,7 +231,7 @@ describe("Tournaments", () => {
 
 	it('should properly convert client nodes to elimination nodes', () => {
 		const tournamentEnd = JSON.parse(tournamentEndJson) as ITournamentEndJson;
-		const eliminationNode = Tournaments.clientToEliminationNode(tournamentEnd.bracketData.rootNode!);
+		const eliminationNode = Tournaments.resultsToEliminationNode(tournamentEnd.bracketData.rootNode!);
 		assertStrictEqual(eliminationNode.user, "Player 1");
 		assert(eliminationNode.children);
 
@@ -266,7 +266,7 @@ describe("Tournaments", () => {
 
 	it('should properly determine places from EliminationNode', () => {
 		const tournamentEnd = JSON.parse(tournamentEndJson) as ITournamentEndJson;
-		const eliminationNode = Tournaments.clientToEliminationNode(tournamentEnd.bracketData.rootNode!);
+		const eliminationNode = Tournaments.resultsToEliminationNode(tournamentEnd.bracketData.rootNode!);
 		const places = Tournaments.getPlacesFromTree(eliminationNode);
 		assert(places.winner);
 		assertStrictEqual(places.winner, "Player 1");

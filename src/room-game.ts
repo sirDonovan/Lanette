@@ -110,6 +110,15 @@ export abstract class Game extends Activity {
 		return true;
 	}
 
+	setPlayerCap(playerCap: number): void {
+		this.playerCap = playerCap;
+		if (this.playerCount >= playerCap) {
+			this.start();
+		} else {
+			this.say("The game's player cap has been set to **" + playerCap + "**.");
+		}
+	}
+
 	announceWinners(): void {
 		if (this.parentGame) return;
 
