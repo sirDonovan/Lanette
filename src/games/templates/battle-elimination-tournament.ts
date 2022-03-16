@@ -66,7 +66,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	onDeallocate(): void {
 		if (this.tournamentCreated && !this.tournamentEnded) {
 			this.tournamentEnded = true;
-			this.room.endTournament();
+			this.subRoom.endTournament();
 		}
 	}
 
