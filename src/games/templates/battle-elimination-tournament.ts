@@ -25,12 +25,15 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			this.subRoom = subRoom;
 			this.createTournament();
 		} else {
+			this.subRoom = Rooms.add(id);
+
 			Rooms.createListeners[id] = (room) => {
 				this.subRoom = room;
 				this.createTournament();
 			};
 
 			this.room.createSubRoomGroupchat(name);
+			Client.joinRoom(id);
 		}
 	}
 
