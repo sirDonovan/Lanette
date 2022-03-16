@@ -761,7 +761,7 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room)) return;
 			let game: ScriptedGame | UserHostedGame | undefined;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
 				game = room.game;
 			} else if (room.userHostedGame) {
 				if (!room.userHostedGame.isHost(user)) return;
@@ -771,15 +771,11 @@ export const commands: BaseCommandDefinitions = {
 			if (!game) return;
 
 			const cap = parseInt(target);
-			if (isNaN(cap) || cap < game.minPlayers) return this.say("You must specify a valid player cap.");
-			if (game.playerCount >= cap) {
-				this.run('startgame');
-				return;
-			}
-
+			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
+			if (cap < game.minPlayers) return this.say("The game requires at least " + game.minPlayers + " players.");
 			if (game.maxPlayers && cap > game.maxPlayers) return this.say("The game only supports up to " + game.maxPlayers + " players.");
-			game.playerCap = cap;
-			this.say("The game's player cap has been set to **" + cap + "**.");
+			if (cap === game.playerCap) return this.say("The game's player cap is already " + cap + ".");
+			game.setPlayerCap(cap);
 		},
 		chatOnly: true,
 		aliases: ['gcap'],
