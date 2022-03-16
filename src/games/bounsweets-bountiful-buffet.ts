@@ -44,6 +44,7 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		this.offCommands(['select']);
 		this.canSelect = false;
 
 		if (this.round > 1) {

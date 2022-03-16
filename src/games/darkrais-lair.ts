@@ -144,7 +144,7 @@ class DarkraisLair extends MapGame {
 					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
-				if (this.getRemainingPlayerCount() < 2) this.end();
+				if (this.getRemainingPlayerCount() < 2) return this.end();
 			}
 			break;
 		case 'shadowcolumn':
@@ -162,7 +162,7 @@ class DarkraisLair extends MapGame {
 					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
-				if (this.getRemainingPlayerCount() < 2) this.end();
+				if (this.getRemainingPlayerCount() < 2) return this.end();
 			}
 			break;
 		case 'shadowrow':
@@ -180,7 +180,7 @@ class DarkraisLair extends MapGame {
 					"damaged " + Tools.joinList(affected.map(x => x.name)) + "!");
 
 				delete this.placedShadowTraps[space.coordinates];
-				if (this.getRemainingPlayerCount() < 2) this.end();
+				if (this.getRemainingPlayerCount() < 2) return this.end();
 			}
 			break;
 		case 'shadowspike':

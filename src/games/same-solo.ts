@@ -1,10 +1,10 @@
 import type { IGameFile } from '../types/games';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
 
 const name = "Same Solo";
 const description = "Every player battles with the same randomly generated Pokemon!";
 
-class SameSolo extends EliminationTournament {
+class SameSolo extends BattleElimination {
 	canChangeFormat = true;
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;

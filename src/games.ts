@@ -49,8 +49,8 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 };
 
 const categoryNames: GameCategoryNames = {
+	'battle-elimination': 'Battle Elimination',
 	'chain': 'Chain',
-	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
 	'identification-2': 'Identification Group 2',
 	'knowledge-1': 'Knowledge Group 1',
@@ -593,7 +593,6 @@ export class Games {
 
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
-					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
 					delete format.resolvedInputProperties.options.points;
@@ -1120,7 +1119,7 @@ export class Games {
 			room.game = game;
 			return room.game;
 		} else {
-			game.deallocate(true);
+			if (!game.ended) game.deallocate(true);
 		}
 	}
 

@@ -22,7 +22,7 @@ export type LoadedGameCommands<T extends ScriptedGame = ScriptedGame> = LoadedCo
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 
-export type GameCategory = 'chain' | 'elimination-tournament' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
+export type GameCategory = 'battle-elimination' | 'chain' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
 	'knowledge-3' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'search-challenge' | 'speed' | 'tabletop';
 
 export type GameMode = 'abridged' | 'collectiveteam' | 'multianswer' | 'pmtimeattack' | 'prolix' | 'spotlightteam' | 'survival' |

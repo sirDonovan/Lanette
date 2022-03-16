@@ -1,13 +1,13 @@
 import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
 
 const name = "Release and Evolve";
 const description = "Every player is given a randomly generated team to start out. Each battle that you win, you " +
 	"must 'release' 1 of your Pokemon (remove it from your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
-class ReleaseAndEvolve extends EliminationTournament {
+class ReleaseAndEvolve extends BattleElimination {
 	canChangeFormat = true;
 	dropsPerRound = 1;
 	evolutionsPerRound = 1;

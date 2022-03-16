@@ -119,6 +119,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 	selectCharmedPokemon(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands(['select']);
 
 		this.canSelect = false;
 		for (const id in this.players) {

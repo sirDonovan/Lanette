@@ -423,6 +423,12 @@ export class Client {
 			error.startsWith('The search included ');
 	}
 
+	isHangmanCommandError(error: string): boolean {
+		return error.startsWith("Phrase must be less than ") || error.startsWith("Each word in the phrase must be less than ") ||
+			error.startsWith("Hint too long") || error.startsWith("Enter a valid word") ||
+			error.startsWith("You are not allowed to use filtered words") || error.startsWith("Hangman is disabled for this room");
+	}
+
 	/**Returns the description of the filter triggered by the message, if any */
 	checkFilters(message: string, room?: Room): string | undefined {
 		if (room) {
@@ -1264,6 +1270,12 @@ export class Client {
 
 				Tournaments.setScheduledTournament(room);
 			}
+
+			if (room.id in Rooms.createListeners) {
+				Rooms.createListeners[room.id](room);
+				delete Rooms.createListeners[room.id];
+			}
+
 			break;
 		}
 
@@ -1369,13 +1381,17 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
-			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
-			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
-				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
-				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+			if (!room.battle) {
+				if (Config.allowMail) Storage.retrieveOfflineMessages(user);
+
+				if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
+					now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
+					if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+				}
 			}
+
 			break;
 		}
 
@@ -2047,6 +2063,13 @@ export class Client {
 					this.clearLastOutgoingMessage(now);
 					room.say(Tools.escapeHTML(messageArguments.error));
 				}
+			} else if (this.isHangmanCommandError(messageArguments.error)) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-start' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					const user = Users.get(this.lastOutgoingMessage.userid!);
+					this.clearLastOutgoingMessage(now);
+					if (user) user.say("Hangman error: " + Tools.escapeHTML(messageArguments.error));
+				}
 			}
 
 			break;
@@ -2286,7 +2309,7 @@ export class Client {
 		 * Tournament messages
 		 */
 		case 'tournament': {
-			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
+			if (!room.groupchat && (!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
 
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
@@ -2497,7 +2520,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2506,7 +2529,7 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2515,7 +2538,7 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2531,7 +2554,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2547,7 +2570,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleMove && !room.game.onBattleMove(room, messageArguments.pokemon, messageArguments.move,
 					messageArguments.target)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2564,7 +2587,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2581,7 +2604,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2594,7 +2617,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleMessage && !room.game.onBattleMessage(room, messageArguments.message)) {
-					room.leave();
+					room.game.leaveBattleRoom(room);
 				}
 			}
 
@@ -2608,7 +2631,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
-				room.leave();
+				room.game.leaveBattleRoom(room);
 			}
 
 			break;
@@ -2617,7 +2640,7 @@ export class Client {
 		case 'tie': {
 			if (room.game) {
 				if (room.game.onBattleTie) room.game.onBattleTie(room);
-				room.leave();
+				room.game.leaveBattleRoom(room);
 			}
 
 			break;

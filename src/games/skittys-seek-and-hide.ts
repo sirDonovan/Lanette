@@ -119,6 +119,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 
 	tallySelectedPokemon(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands(['select']);
 
 		this.canSelect = false;
 

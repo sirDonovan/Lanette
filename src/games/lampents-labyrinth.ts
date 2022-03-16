@@ -62,6 +62,7 @@ class LampentsLabyrinth extends MapGame  {
 	}
 
 	onNextRound(): void {
+		this.offCommands(this.moveCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 
 		const len = this.getRemainingPlayerCount();

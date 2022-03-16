@@ -1,12 +1,12 @@
 import type { IGameFile } from '../types/games';
 import type { GameType } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
 
 const name = "Doubles Catch and Evolve";
 const description = "Every player is given 2 randomly generated Pokemon to use as their starters. Each battle that you win, you " +
 	"must 'catch' 2 of your opponent's Pokemon (add them to your team) and then evolve 2 Pokemon on your team.";
 
-class DoublesCatchAndEvolve extends EliminationTournament {
+class DoublesCatchAndEvolve extends BattleElimination {
 	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 2;

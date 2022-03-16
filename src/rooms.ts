@@ -21,11 +21,13 @@ export class Room {
 	groupchat: boolean | null = null;
 	hiddenRoom: boolean | null = null;
 	readonly htmlMessageListeners: Dict<MessageListener> = {};
+	initialized: boolean = false;
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
 	modchat: string = 'off';
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	parentRoom: Room | null = null;
 	publicRoom: boolean = false;
 	repeatedMessages: Dict<IRepeatedMessage> | null = null;
 	searchChallenge: SearchChallenge | null = null;
@@ -33,6 +35,7 @@ export class Room {
 	serverBannedWords: string[] | null = null;
 	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | null = null;
+	subRoom: Room | null = null;
 	timers: Dict<NodeJS.Timer> | null = null;
 	tournament: Tournament | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<MessageListener>> = {};
@@ -56,6 +59,14 @@ export class Room {
 	}
 
 	destroy(): void {
+		if (this.parentRoom) {
+			this.parentRoom.subRoom = null;
+		}
+
+		if (this.subRoom) {
+			this.subRoom.parentRoom = null;
+		}
+
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
 		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
@@ -82,7 +93,7 @@ export class Room {
 
 		const keys = Object.getOwnPropertyNames(this);
 		for (const key of keys) {
-			if (key === 'id' || key === 'title') continue;
+			if (key === 'id' || key === 'title' || key === 'initialized') continue;
 
 			// @ts-expect-error
 			this[key] = undefined;
@@ -117,6 +128,7 @@ export class Room {
 	}
 
 	init(type: RoomType): void {
+		this.initialized = true;
 		this.type = type;
 	}
 
@@ -793,11 +805,12 @@ export class Room {
 		});
 	}
 
-	startHangman(answer: string, hint: string): void {
+	startHangman(answer: string, hint: string, user: User): void {
 		this.say("/hangman create " + answer + ", " + hint, {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'hangman-start',
+			userid: user.id,
 		});
 	}
 
@@ -809,8 +822,29 @@ export class Room {
 		});
 	}
 
+	getSubRoomGroupchatId(name: string): string {
+		return Tools.groupchatPrefix + this.id + "-" + Tools.toId(name);
+	}
+
+	createSubRoomGroupchat(name: string): Room {
+		const groupchatId = this.getSubRoomGroupchatId(name);
+		const groupchat = global.Rooms.add(groupchatId);
+		groupchat.parentRoom = this;
+
+		this.subRoom = groupchat;
+
+		this.say("/subroomgroupchat " + name, {
+			dontCheckFilter: true,
+			dontPrepare: true,
+			type: 'join-room',
+			roomid: groupchatId,
+		});
+
+		return groupchat;
+	}
+
 	leave(): void {
-		if (this.leaving) return;
+		if (!this.initialized || this.leaving) return;
 
 		this.leaving = true;
 		this.say("/leave", {
@@ -852,7 +886,14 @@ export class Room {
 }
 
 export class Rooms {
+	createListeners: Dict<(room: Room) => void> = {};
 	private rooms: Dict<Room> = {};
+
+	private pruneRoomsInterval: NodeJS.Timer;
+
+	constructor() {
+		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 5 * 60 * 1000);
+	}
 
 	add(id: string): Room {
 		if (!(id in this.rooms)) this.rooms[id] = new Room(id);
@@ -911,6 +952,15 @@ export class Rooms {
 		const publicRooms = Client.getPublicRooms();
 		for (const i in this.rooms) {
 			this.rooms[i].setPublicRoom(publicRooms.includes(this.rooms[i].id));
+		}
+	}
+
+	pruneRooms(): void {
+		const roomKeys = Object.keys(this.rooms);
+		for (const key of roomKeys) {
+			if (!this.rooms[key].initialized && !this.rooms[key].parentRoom) {
+				this.remove(this.rooms[key]);
+			}
 		}
 	}
 }

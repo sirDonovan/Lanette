@@ -939,7 +939,6 @@ export interface IPokemonShowdownDex {
 		Pokedex: Dict<unknown>;
 		TypeChart: Dict<unknown>;
 	}
-	dexes: Dict<IPokemonShowdownDex>;
 	gen: number;
 	abilities: {
 		get: (name: string | IPSAbility) => IPSAbility;
@@ -980,6 +979,8 @@ export interface IPokemonShowdownDex {
 		all: () => readonly IPSTypeData[];
 		names: () => readonly string[];
 	}
+	forFormat: (format: IFormat) => IPokemonShowdownDex;
+	includeMods: () => void;
 	includeModData: () => void;
 	mod: (mod: string) => IPokemonShowdownDex;
 }

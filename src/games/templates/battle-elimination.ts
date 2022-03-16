@@ -30,7 +30,7 @@ const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
 const ADVERTISEMENT_TIME = 10 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
-export abstract class EliminationTournament extends ScriptedGame {
+export abstract class BattleElimination extends ScriptedGame {
 	abstract baseTournamentName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
@@ -121,9 +121,52 @@ export abstract class EliminationTournament extends ScriptedGame {
 				return false;
 			}
 
+			const ruleTable = Dex.getRuleTable(battleFormat);
+			if (!ruleTable.has("teampreview")) {
+				this.say("You can only change the format to one that has Team Preview.");
+				return false;
+			}
+
 			if (battleFormat.gameType !== this.battleFormatType) {
 				this.say("You can only change the format to another " + this.battleFormatType + " format.");
 				return false;
+			}
+
+			const oneVsOne = this.startingTeamsLength === 1 && !this.additionsPerRound;
+			const twoVsTwo = this.startingTeamsLength === 2 && !this.additionsPerRound;
+
+			if (ruleTable.minTeamSize > this.startingTeamsLength) {
+				this.say("You can only change the format to one that allows bringing only " + this.startingTeamsLength + " Pokemon.");
+				return false;
+			}
+
+			if (twoVsTwo) {
+				if (ruleTable.maxTeamSize < 2) {
+					this.say("You can only change the format to one that allows bringing 2 or more Pokemon.");
+					return false;
+				}
+			} else if (!oneVsOne) {
+				if (ruleTable.maxTeamSize < 6) {
+					this.say("You can only change the format to one that allows bringing 6 or more Pokemon.");
+					return false;
+				}
+			}
+
+			if (oneVsOne) {
+				if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 1) {
+					this.say("You can only change the format to one that requires battling with 1 Pokemon.");
+					return false;
+				}
+			} else if (twoVsTwo) {
+				if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 2) {
+					this.say("You can only change the format to one that requires battling with 2 Pokemon.");
+					return false;
+				}
+			} else {
+				if (ruleTable.pickedTeamSize) {
+					this.say("You can only change the format to one that allows battling with a variable number of Pokemon.");
+					return false;
+				}
 			}
 
 			if (battleFormat.team) {
@@ -1416,7 +1459,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
-		if (this.ended || this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
+		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players && !players.includes(this.players[user.id])) {
@@ -1438,8 +1481,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
-		if (this.ended) return;
-
 		const id = Tools.toId(username);
 		if (!id) return;
 
@@ -1461,7 +1502,7 @@ export abstract class EliminationTournament extends ScriptedGame {
 					playerAndReason.set(originalPlayer, reason);
 
 					this.disqualifyPlayers(playerAndReason);
-					room.leave();
+					this.leaveBattleRoom(room);
 				}
 			}
 			return;
@@ -1484,8 +1525,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattlePokemon(room: Room, slot: string, details: string): boolean {
-		if (this.ended) return false;
-
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1500,8 +1539,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTeamPreview(room: Room): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1569,8 +1606,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleStart(room: Room): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1584,8 +1619,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleSwitch(room: Room, pokemon: string, details: string): boolean {
-		if (this.ended) return false;
-
 		const battleData = this.battleData.get(room);
 		if (!battleData) return false;
 
@@ -1600,8 +1633,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleFaint(room: Room, pokemonArgument: string): boolean {
-		if (this.ended) return false;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
 
@@ -1645,8 +1676,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleWin(room: Room, username: string): void {
-		if (this.ended) return;
-
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return;
 
@@ -1680,8 +1709,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleExpire(room: Room): void {
-		if (this.ended) return;
-
 		this.checkedBattleRooms.push(room.publicId);
 
 		const players = this.getPlayersFromBattleData(room);
@@ -1695,8 +1722,6 @@ export abstract class EliminationTournament extends ScriptedGame {
 	}
 
 	onBattleTie(room: Room): void {
-		if (this.ended) return;
-
 		this.checkedBattleRooms.push(room.publicId);
 	}
 
@@ -1809,15 +1834,13 @@ export abstract class EliminationTournament extends ScriptedGame {
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
 		}
-
-		this.battleData.clear();
 	}
 
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;
 	meetsEvolutionCriteria?(pokemon: IPokemon): boolean;
 }
 
-const commands: GameCommandDefinitions<EliminationTournament> = {
+const commands: GameCommandDefinitions<BattleElimination> = {
 	check: {
 		command(target, room, user) {
 			const player = this.players[user.id];
@@ -1864,6 +1887,7 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 
 			const battleRoom = Rooms.add(battle.fullId);
 			battleRoom.game = this;
+			this.battleData.set(battleRoom, this.generateBattleData());
 
 			Client.joinRoom(battle.fullId);
 			return true;
@@ -1974,7 +1998,14 @@ const commands: GameCommandDefinitions<EliminationTournament> = {
 	},
 };
 
-const tests: GameFileTests<EliminationTournament> = {
+const tests: GameFileTests<BattleElimination> = {
+	'should use a compatible format': {
+		test(game) {
+			const format = Dex.getExistingFormat(game.battleFormatId);
+			assert(!format.team);
+			assert(Dex.getRuleTable(format).has("teampreview"));
+		},
+	},
 	'should generate a Pokedex': {
 		test(game) {
 			assert(game.pokedex.length);
@@ -2223,8 +2254,8 @@ const tests: GameFileTests<EliminationTournament> = {
 	},
 };
 
-export const game: IGameTemplateFile<EliminationTournament> = {
-	category: 'elimination-tournament' as GameCategory,
+export const game: IGameTemplateFile<BattleElimination> = {
+	category: 'battle-elimination' as GameCategory,
 	commandDescriptions: [Config.commandCharacter + 'check [battle link]'],
 	commands,
 	tests,

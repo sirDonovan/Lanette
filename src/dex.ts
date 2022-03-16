@@ -253,6 +253,7 @@ export class Dex {
 	private readonly clientDataDirectory: string;
 	private readonly gen: number;
 	private readonly isBase: boolean;
+	private readonly mod: string;
 	private readonly pokemonShowdownDex: IPokemonShowdownDex;
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 
@@ -308,6 +309,7 @@ export class Dex {
 
 		this.clientDataDirectory = path.join(Tools.rootFolder, 'client-data');
 		this.gen = gen;
+		this.mod = mod;
 		this.isBase = isBase;
 	}
 
@@ -504,6 +506,28 @@ export class Dex {
 		return learnsetData;
 	}
 
+	getLearnsetParent(pokemon: IPokemon): IPokemon {
+		let learnsetParent = pokemon;
+		const learnsetData = this.getLearnsetData(learnsetParent.id);
+		if (!learnsetData || !learnsetData.learnset) {
+			let forme: string | undefined;
+			if (learnsetParent.changesFrom) {
+				forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
+			} else {
+				forme = learnsetParent.baseSpecies;
+			}
+
+			if (forme && forme !== learnsetParent.name) {
+				// forme without its own learnset
+				learnsetParent = this.getPokemon(forme)!;
+				// warning: formes with their own learnset, like Wormadam, should NOT
+				// inherit from their base forme unless they're freely switchable
+			}
+		}
+
+		return learnsetParent;
+	}
+
 	/*
 		Moves
 	*/
@@ -633,13 +657,15 @@ export class Dex {
 
 		if (baseSpecies.otherFormes) {
 			for (const otherForme of baseSpecies.otherFormes) {
-				formes.push(this.getExistingPokemon(otherForme).name);
+				const forme = this.getExistingPokemon(otherForme);
+				if (forme.gen <= this.gen) formes.push(forme.name);
 			}
 		}
 
 		if (baseSpecies.cosmeticFormes) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
-				formes.push(this.getExistingPokemon(cosmeticForme).name);
+				const forme = this.getExistingPokemon(cosmeticForme);
+				if (forme.gen <= this.gen) formes.push(forme.name);
 			}
 		}
 
@@ -649,7 +675,7 @@ export class Dex {
 
 	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
-		return this.allPossibleMovesCache[pokemon.id];
+		return this.allPossibleMovesCache[this.getLearnsetParent(pokemon).id];
 	}
 
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
@@ -1568,8 +1594,8 @@ export class Dex {
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const littleCup = ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
-		for (const i of formatDex.getData().pokemonKeys) {
-			const formes = formatDex.getFormes(formatDex.getExistingPokemon(i));
+		for (const key of formatDex.getData().pokemonKeys) {
+			const formes = formatDex.getFormes(formatDex.getExistingPokemon(key));
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
 				const pokemon = formatDex.pokemonShowdownDex.species.get(forme);
@@ -1579,6 +1605,18 @@ export class Dex {
 				if (pokemon.requiredAbility) {
 					if (!usableAbilities.includes(pokemon.requiredAbility)) continue;
 					set.ability = pokemon.requiredAbility;
+				} else {
+					let usableAbility = false;
+					for (const i in pokemon.abilities) {
+						// @ts-expect-error
+						const ability = formatDex.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+						if (ability && usableAbilities.includes(ability.name)) {
+							usableAbility = true;
+							break;
+						}
+					}
+
+					if (!usableAbility) continue;
 				}
 
 				if (pokemon.requiredItem) {
@@ -1604,6 +1642,17 @@ export class Dex {
 					set.moves = [pokemon.requiredMove];
 				}
 
+				const allPossibleMoves = formatDex.getAllPossibleMoves(pokemon);
+				let usableMove = false;
+				for (const id of allPossibleMoves) {
+					const move = formatDex.getMove(id);
+					if (move && usableMoves.includes(move.name)) {
+						usableMove = true;
+						break;
+					}
+				}
+				if (!usableMove) continue;
+
 				if (validator.checkSpecies(set, pokemon, pokemon, {})) continue;
 
 				if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
@@ -1625,7 +1674,7 @@ export class Dex {
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const usableAbilities: string[] = [];
 		for (const i of formatDex.getData().abilityKeys) {
-			// PS move.id compatibility
+			// PS ability.id compatibility
 			const ability = formatDex.pokemonShowdownDex.abilities.get(i);
 			if (!validator.checkAbility({}, ability, {})) {
 				usableAbilities.push(ability.name);
@@ -1645,7 +1694,7 @@ export class Dex {
 		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
 		const usableItems: string[] = [];
 		for (const i of formatDex.getData().itemKeys) {
-			// PS move.id compatibility
+			// PS item.id compatibility
 			const item = formatDex.pokemonShowdownDex.items.get(i);
 			if (!validator.checkItem({}, item, {})) {
 				usableItems.push(item.name);
@@ -2396,38 +2445,25 @@ export class Dex {
 	}
 
 	private onReload(previous: Dex): void {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (previous.pokemonShowdownDex) {
-			const pokemonShowdownDexes = previous.pokemonShowdownDex.dexes;
-			for (const mod in pokemonShowdownDexes) {
-				const dex = pokemonShowdownDexes[mod];
+		const previousDexes = previous.getDexes();
+		for (const mod in previousDexes) {
+			const dex = previousDexes[mod];
+			const pokemonShowdownDexKeys = Object.getOwnPropertyNames(dex.pokemonShowdownDex);
+			for (const key of pokemonShowdownDexKeys) {
+				// @ts-expect-error
+				dex.pokemonShowdownDex[key] = undefined;
+			}
+
+			if (dex !== previous) {
 				const keys = Object.getOwnPropertyNames(dex);
 				for (const key of keys) {
 					// @ts-expect-error
 					dex[key] = undefined;
 				}
-
-				// @ts-expect-error
-				pokemonShowdownDexes[mod] = undefined;
 			}
-		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (previous.getDexes) {
-			const previousDexes = previous.getDexes();
-			for (const mod in previousDexes) {
-				if (previousDexes[mod] !== previous) {
-					const dex = previousDexes[mod];
-					const keys = Object.getOwnPropertyNames(dex);
-					for (const key of keys) {
-						// @ts-expect-error
-						dex[key] = undefined;
-					}
-				}
-
-				// @ts-expect-error
-				previousDexes[mod] = undefined;
-			}
+			// @ts-expect-error
+			previousDexes[mod] = undefined;
 		}
 
 		const keys = Object.getOwnPropertyNames(previous);
@@ -2443,6 +2479,7 @@ export class Dex {
 		if (this.dataCache) return;
 
 		if (this.isBase) {
+			this.pokemonShowdownDex.includeMods();
 			this.pokemonShowdownDex.includeModData();
 
 			const baseCustomRuleFormats = Object.keys(customRuleFormats);
@@ -2525,11 +2562,24 @@ export class Dex {
 		const colors: Dict<string> = {};
 		const eggGroups: Dict<string> = {};
 		for (const key of pokemonKeys) {
+			if (!key) continue;
+
 			const pokemon = this.getPokemon(key)!;
 			if (pokemon.gen > this.gen) continue;
 
-			this.cacheAllPossibleMoves(validator, pokemon, filteredTypeKeys);
-			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
+			const formes = [pokemon];
+			if (pokemon.cosmeticFormes) {
+				for (const name of pokemon.cosmeticFormes) {
+					const forme = this.getPokemon(name)!;
+					if (forme.gen <= this.gen && !pokemonKeys.includes(forme.id)) formes.push(forme);
+				}
+			}
+
+			for (const forme of formes) {
+				this.cacheAllPossibleMoves(validator, forme, filteredTypeKeys);
+				this.cacheIsPseudoLCPokemon(forme, lcFormat);
+			}
+
 			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
 
@@ -2601,6 +2651,11 @@ export class Dex {
 		if (this.isBase) {
 			for (const key of data.formatKeys) {
 				const format = this.getExistingFormat(key);
+				if (format.mod && !(format.mod in dexes)) {
+					dexes[format.mod] = new Dex(this.pokemonShowdownDex.forFormat(format).gen, format.mod);
+					dexes[format.mod].loadData();
+				}
+
 				if (format.section === OM_OF_THE_MONTH) {
 					omotms.push(format.id);
 				} else if (format.section === ROA_SPOTLIGHT) {
@@ -2692,18 +2747,9 @@ export class Dex {
 		while (learnsetParent && learnsetParent.gen <= this.gen) {
 			const learnsetData = this.getLearnsetData(learnsetParent.id);
 			if (!learnsetData || !learnsetData.learnset) {
-				let forme: string | undefined;
-				if (learnsetParent.changesFrom) {
-					forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
-				} else {
-					forme = learnsetParent.baseSpecies;
-				}
-
-				if (forme && forme !== learnsetParent.name) {
-					// forme without its own learnset
-					learnsetParent = this.getPokemon(forme)!;
-					// warning: formes with their own learnset, like Wormadam, should NOT
-					// inherit from their base forme unless they're freely switchable
+				const nextLearnsetParent = this.getLearnsetParent(learnsetParent);
+				if (nextLearnsetParent.name !== learnsetParent.name) {
+					learnsetParent = nextLearnsetParent;
 					continue;
 				}
 				break;
@@ -2733,9 +2779,19 @@ export class Dex {
 		for (const i of possibleMoves) {
 			const move = this.getExistingMove(i);
 			// PS move.id compatibility
-			if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
-				!validator.checkCanLearn(this.pokemonShowdownDex.moves.get(i), pokemon)) {
-				checkedMoves.push(move.id);
+			try {
+				if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
+					!validator.checkCanLearn(this.pokemonShowdownDex.moves.get(i), pokemon)) {
+					checkedMoves.push(move.id);
+				}
+			} catch (e) {
+				const error = (e as Error).message;
+				if (!error.startsWith("Species with no learnset data: ")) {
+					console.log(error);
+					throw e;
+				}
+
+				break;
 			}
 		}
 

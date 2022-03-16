@@ -780,8 +780,6 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
-
 			const gameCategories = Games.getCategoryNames();
 			let category = Tools.toId(target);
 			let variant = "";

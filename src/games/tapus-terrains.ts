@@ -251,6 +251,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 							if (this.players[i] !== player) this.players[i].eliminated = true;
 						}
 						this.end();
+						return true;
 					} else {
 						this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
 						this.timeout = setTimeout(() => {
