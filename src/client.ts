@@ -2520,7 +2520,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2529,7 +2529,7 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2538,7 +2538,7 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2554,7 +2554,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2570,7 +2570,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleMove && !room.game.onBattleMove(room, messageArguments.pokemon, messageArguments.move,
 					messageArguments.target)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2587,7 +2587,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2604,7 +2604,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2617,7 +2617,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleMessage && !room.game.onBattleMessage(room, messageArguments.message)) {
-					room.game.leaveBattleRoom(room);
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 
@@ -2631,7 +2631,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
-				room.game.leaveBattleRoom(room);
+				if (room.game) room.game.leaveBattleRoom(room);
 			}
 
 			break;
@@ -2640,7 +2640,7 @@ export class Client {
 		case 'tie': {
 			if (room.game) {
 				if (room.game.onBattleTie) room.game.onBattleTie(room);
-				room.game.leaveBattleRoom(room);
+				if (room.game) room.game.leaveBattleRoom(room);
 			}
 
 			break;
