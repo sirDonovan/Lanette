@@ -375,6 +375,11 @@ export class Client {
 			code.replace(NEWLINE, "<br />") + '</details></div>';
 	}
 
+	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="' + command + '">' + label + '</button>';
+	}
+
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
 			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' +
@@ -2428,7 +2433,7 @@ export class Client {
 				const messageArguments: ITournamentMessageTypes['join'] = {
 					username: messageParts[0],
 				};
-				room.tournament.createPlayer(messageArguments.username);
+				room.tournament.addPlayer(messageArguments.username);
 				break;
 			}
 
@@ -2448,7 +2453,7 @@ export class Client {
 
 				if (!room.tournament) return;
 
-				room.tournament.destroyPlayer(messageArguments.username);
+				room.tournament.removePlayer(messageArguments.username);
 				break;
 			}
 
@@ -2520,6 +2525,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2529,6 +2535,7 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2538,6 +2545,7 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2554,6 +2562,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2570,6 +2579,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleMove && !room.game.onBattleMove(room, messageArguments.pokemon, messageArguments.move,
 					messageArguments.target)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2587,6 +2597,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2604,6 +2615,7 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2617,6 +2629,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleMessage && !room.game.onBattleMessage(room, messageArguments.message)) {
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
@@ -2631,6 +2644,7 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (room.game) room.game.leaveBattleRoom(room);
 			}
 
@@ -2640,6 +2654,7 @@ export class Client {
 		case 'tie': {
 			if (room.game) {
 				if (room.game.onBattleTie) room.game.onBattleTie(room);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (room.game) room.game.leaveBattleRoom(room);
 			}
 

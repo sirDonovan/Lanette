@@ -1,11 +1,12 @@
 import type { IGameFile } from '../types/games';
 import type { GameType } from '../types/pokemon-showdown';
-import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Same Duo";
 const description = "Every player battles with the same randomly generated Pokemon duo!";
 
-class SameDuo extends BattleElimination {
+class SameDuo extends BattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 0;

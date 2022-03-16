@@ -201,6 +201,25 @@ export class Tournament extends Activity {
 		}
 	}
 
+	addPlayer(name: string): void {
+		const player = this.createPlayer(name) || this.players[Tools.toId(name)];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (player) {
+			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerJoin) {
+				this.battleRoomGame.onTournamentPlayerJoin(player, this.playerCount);
+			}
+		}
+	}
+
+	removePlayer(name: string): void {
+		const player = this.destroyPlayer(name);
+		if (player) {
+			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
+				this.battleRoomGame.onTournamentPlayerLeave(player, this.playerCount);
+			}
+		}
+	}
+
 	start(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
@@ -231,7 +250,7 @@ export class Tournament extends Activity {
 		let semiFinalists: string[] = [];
 		if (this.info.bracketData.type === 'tree') {
 			if (this.info.bracketData.rootNode) {
-				const places = Tournaments.getPlacesFromTree(Tournaments.clientToEliminationNode(this.info.bracketData.rootNode));
+				const places = Tournaments.getPlacesFromTree(Tournaments.resultsToEliminationNode(this.info.bracketData.rootNode));
 				if (places.winner) winners = [places.winner];
 				if (places.runnerup) runnersUp = [places.runnerup];
 				if (places.semifinalists) semiFinalists = places.semifinalists;
@@ -341,6 +360,10 @@ export class Tournament extends Activity {
 					this.manuallyNamed = true;
 				}
 			}
+		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
+			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted && this.started);
 		}
 
 		this.updates = {};

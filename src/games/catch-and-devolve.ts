@@ -1,12 +1,13 @@
 import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/pokemon-showdown';
-import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Catch and De-volve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
 	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then de-volve 1 Pokemon on your team.";
 
-class CatchAndDevolve extends BattleElimination {
+class CatchAndDevolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = -1;

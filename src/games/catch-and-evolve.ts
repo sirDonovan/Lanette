@@ -1,13 +1,14 @@
 import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/pokemon-showdown';
-import { BattleElimination, game as eliminationTournamentGame } from './templates/battle-elimination';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Catch and Evolve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
 	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
-class CatchAndEvolve extends BattleElimination {
+class CatchAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = 1;
