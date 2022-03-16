@@ -664,7 +664,7 @@ export const commands: BaseCommandDefinitions = {
 	createtournamentgame: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
-			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
 			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
 				return this.sayError(['disabledTournamentGameFeatures', room.title]);
 			}
@@ -816,7 +816,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	creategame: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (this.isPm(room) || (!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -901,7 +901,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice') || room.game.started) return;
+				if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game.started) return;
 				if (!room.game.start()) this.say("Not enough players have joined the game.");
 			} else if (room.userHostedGame) {
 				const isHost = room.userHostedGame.isHost(user);
@@ -921,7 +921,7 @@ export const commands: BaseCommandDefinitions = {
 					room.game.forceEnd(user, target.trim());
 				}
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
 				if (room.game) {
 					room.game.forceEnd(user, target.trim());
 				} else if (room.userHostedGame) {
