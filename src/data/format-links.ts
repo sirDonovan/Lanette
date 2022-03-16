@@ -173,7 +173,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen7lc': {
 		info: 'https://www.smogon.com/dex/sm/formats/lc',
-		teams: 'https://www.smogon.com/forums/threads/3639319/#post-7853577',
+		teams: 'https://www.smogon.com/forums/threads/sm-lc.3698490',
 		viability: 'https://www.smogon.com/forums/threads/3621440',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen7lc',
 	},
