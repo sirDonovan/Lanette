@@ -84,7 +84,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 						}
 					} else {
 						if (this.firstMove !== player) {
-							if (wonderGuardWarrior && this.firstPlayerUsedMove === false) this.firstMove = false;
+							if (wonderGuardWarrior && !this.firstPlayerUsedMove) this.firstMove = false;
 						} else {
 							if (!wonderGuardWarrior) {
 								this.firstMove = false;
