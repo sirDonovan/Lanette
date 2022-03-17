@@ -142,7 +142,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		super.startElimination();
 
 		this.startAutoDqTimer = setTimeout(() => {
-			this.subRoom.setTournamentAutoDq((this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000);
+			const minutes = (this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000;
+			this.subRoom.setTournamentAutoDq(minutes);
+			this.subRoom.tournament!.setAutoDqMinutes(minutes);
 		}, this.firstRoundTime);
 
 		const database = Storage.getDatabase(this.room);

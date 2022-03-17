@@ -2394,6 +2394,18 @@ export class Client {
 					this.lastOutgoingMessage.type === 'tournament-autodq') {
 					this.clearLastOutgoingMessage(now);
 				}
+
+				if (!room.tournament) return;
+
+				const messageArguments: ITournamentMessageTypes['autodq'] = {
+					status: messageParts[0],
+					time: parseInt(messageParts[1]),
+				};
+
+				if (Tools.toId(messageArguments.status) === "on" && !isNaN(messageArguments.time)) {
+					room.tournament.setAutoDqMinutes(messageArguments.time / 60 / 1000);
+				}
+
 				break;
 			}
 

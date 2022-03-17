@@ -439,7 +439,10 @@ export interface ITournamentMessageTypes {
 
 	forceend: null;
 
-	autodq: null;
+	autodq: {
+		readonly status: string;
+		readonly time: number;
+	}
 
 	autostart: null;
 

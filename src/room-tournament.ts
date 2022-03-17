@@ -148,6 +148,7 @@ export class Tournament extends Activity {
 
 	setAutoDqMinutes(minutes: number): void {
 		this.runAutoDqTime = (minutes * 60 * 1000) - AUTO_DQ_WARNING_TIMEOUT;
+		if (this.started) this.setRunAutoDqTimeout();
 	}
 
 	setRunAutoDqTimeout(): void {
