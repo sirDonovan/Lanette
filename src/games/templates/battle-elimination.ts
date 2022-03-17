@@ -98,6 +98,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	tournamentDescription: string = '';
 	tournamentName: string = '';
 	tournamentPlayers = new Set<Player>();
+	tournamentDisqualifiedPlayers: Player[] = [];
 	treeRoot: EliminationNode<Player> | null = null;
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
@@ -583,7 +584,10 @@ export abstract class BattleElimination extends ScriptedGame {
 
 				for (const player of players) {
 					this.updatePlayerHtmlPage(player);
-					this.subRoom.disqualifyFromTournament(player);
+					if (!this.tournamentDisqualifiedPlayers.includes(player)) {
+						this.tournamentDisqualifiedPlayers.push(player);
+						this.subRoom.disqualifyFromTournament(player);
+					}
 				}
 			}
 

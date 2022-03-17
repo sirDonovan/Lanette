@@ -100,6 +100,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
 				player.eliminated = true;
+				this.tournamentDisqualifiedPlayers.push(player);
 				this.onRemovePlayer(player);
 			}
 		} else {
