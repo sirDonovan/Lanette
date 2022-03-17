@@ -26,6 +26,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			this.createTournament();
 		} else {
 			this.subRoom = Rooms.add(id);
+			Client.joinRoom(id);
 
 			Rooms.createListeners[id] = (room) => {
 				this.subRoom = room;
@@ -33,7 +34,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			};
 
 			this.room.createSubRoomGroupchat(name);
-			Client.joinRoom(id);
 		}
 	}
 
@@ -66,7 +66,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	onDeallocate(): void {
 		if (this.tournamentCreated && !this.tournamentEnded) {
 			this.tournamentEnded = true;
-			this.room.endTournament();
+			this.subRoom.endTournament();
 		}
 	}
 
@@ -78,7 +78,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (this.tournamentEnded) return;
 
 		this.tournamentEnded = true;
-		this.end();
+		if (!this.ended) this.end();
 	}
 
 	onTournamentPlayerJoin(tournamentPlayer: Player, playerCount: number): void {
@@ -116,6 +116,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	onTournamentBracketUpdate(players: Dict<Player>, bracketData: IClientTournamentData, tournamentStarted: boolean): void {
 		if (!tournamentStarted || this.treeRoot || !bracketData.rootNode) return;
 
+		this.playerCount = 0;
 		for (const i in players) {
 			this.addPlayer(Users.add(players[i].name, players[i].id), true);
 		}
@@ -159,11 +160,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			this.disqualifyPlayers(playersAndReasons);
 		}
-	}
-
-	onEnd(): void {
-		super.onEnd();
-		this.tournamentEnded = true;
 	}
 
 	setTournamentAutoDq(): void {
