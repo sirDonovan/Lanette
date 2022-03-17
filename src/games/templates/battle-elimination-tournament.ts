@@ -141,11 +141,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	startElimination(): void {
 		super.startElimination();
 
-		if (this.firstRoundExtraTime) {
-			this.startAutoDqTimer = setTimeout(() => this.setTournamentAutoDq(), this.firstRoundExtraTime);
-		} else {
-			this.setTournamentAutoDq();
-		}
+		this.startAutoDqTimer = setTimeout(() => {
+			this.subRoom.setTournamentAutoDq((this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000);
+		}, this.firstRoundTime);
 
 		const database = Storage.getDatabase(this.room);
 		const eliminatedPlayers: Player[] = [];
@@ -172,11 +170,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			this.disqualifyPlayers(playersAndReasons);
 		}
-	}
-
-	setTournamentAutoDq(): void {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (this.subRoom) this.subRoom.setTournamentAutoDq((this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000);
 	}
 
 	setPlayerCap(playerCap: number): void {
