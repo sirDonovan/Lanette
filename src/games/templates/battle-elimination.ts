@@ -1,5 +1,5 @@
 import { EliminationNode } from "../../lib/elimination-node";
-import type { Player } from "../../room-activity";
+import { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
@@ -312,10 +312,10 @@ export abstract class BattleElimination extends ScriptedGame {
 		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies)))).map(x => x.name);
 	}
 
-	generateBracket(): void {
+	generateBracket(players?: Player[]): void {
 		let tree: IEliminationTree<Player> | null = null;
 
-		const players = this.shufflePlayers();
+		if (!players) players = this.shufflePlayers();
 		for (const player of players) {
 			if (!tree) {
 				tree = {
@@ -2090,12 +2090,17 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 	},
 };
 
+const disableTournamentProperties = (game: BattleElimination): void => {
+	game.subRoom = null;
+	game.usesTournamentStart = false;
+	game.usesTournamentJoin = false;
+};
+
 const tests: GameFileTests<BattleElimination> = {
 	'should use a compatible format': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			const format = Dex.getExistingFormat(game.battleFormatId);
 			assert(!format.team);
 			assert(Dex.getRuleTable(format).has("teampreview"));
@@ -2103,20 +2108,198 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should generate a Pokedex': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
 			assert(game.started);
 			game.startElimination();
 		},
 	},
+	'should generate a bracket - 4 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 4; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(!root.children[0].children[0].children);
+			assert(!root.children[0].children[1].children);
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 5 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 5; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(!root.children[0].children[1].children);
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 6 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 6; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 7 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 7; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user, null);
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(root.children[1].children[0].children);
+			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 8 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 8; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user, null);
+			assertStrictEqual(root.children[1].children[1].user, null);
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(root.children[1].children[0].children);
+			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
+			assert(root.children[1].children[1].children);
+			assert(root.children[1].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[1].children[0].user!.name, "Mocha Player 4");
+			assertStrictEqual(root.children[1].children[1].children[1].user!.name, "Mocha Player 8");
+		},
+	},
 	'should properly list matches by round - 4 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 4);
 			game.start();
@@ -2143,9 +2326,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 5 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 5);
 			game.start();
@@ -2184,9 +2366,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 6 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 6);
 			game.start();
@@ -2229,9 +2410,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 7 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 7);
 			game.start();
@@ -2274,9 +2454,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 8 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 8);
 			if (!game.started) game.start();
@@ -2316,9 +2495,8 @@ const tests: GameFileTests<BattleElimination> = {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
 
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();
@@ -2350,9 +2528,8 @@ const tests: GameFileTests<BattleElimination> = {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
 
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();
