@@ -38,6 +38,12 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	}
 
 	createTournament(): void {
+		if (this.subRoom.tournament) {
+			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament in " + this.subRoom.title + " to end.");
+			this.deallocate(true);
+			return;
+		}
+
 		Tournaments.createListeners[this.subRoom.id] = {
 			format: this.battleFormat,
 			game: this,
@@ -63,9 +69,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (this.subRoom) this.subRoom.setTournamentCap(this.playerCap);
 	}
 
-	onDeallocate(): void {
-		if (this.tournamentCreated && !this.tournamentEnded) {
-			this.tournamentEnded = true;
+	onDeallocate(forceEnd?: boolean): void {
+		if (forceEnd && this.tournamentCreated && !this.tournamentEnded) {
 			this.subRoom.endTournament();
 		}
 	}
@@ -74,11 +79,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		this.tournamentStarted = true;
 	}
 
-	onTournamentEnd(): void {
-		if (this.tournamentEnded) return;
-
+	onTournamentEnd(forceEnd?: boolean): void {
 		this.tournamentEnded = true;
-		if (!this.ended) this.end();
+		if (forceEnd && !this.ended) this.end();
 	}
 
 	onTournamentPlayerJoin(tournamentPlayer: Player, playerCount: number): void {

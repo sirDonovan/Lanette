@@ -723,6 +723,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		if (!this.ended && this.getRemainingPlayerCount() < 2) {
+			this.eliminationEnded = true;
 			this.end();
 		}
 
@@ -1845,11 +1846,10 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.eliminationEnded = true;
+		if (!this.treeRoot || !this.eliminationEnded) return;
+
 		this.updateBracketHtml();
 		this.updateHtmlPages();
-
-		if (!this.treeRoot) return;
 
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
