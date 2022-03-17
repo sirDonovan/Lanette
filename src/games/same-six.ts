@@ -12,8 +12,8 @@ class SameSix extends BattleEliminationTournament {
 	evolutionsPerRound = 0;
 	startingTeamsLength = 6;
 	maxPlayers = 16;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;

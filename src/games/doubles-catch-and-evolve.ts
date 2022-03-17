@@ -19,8 +19,8 @@ class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
 		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
 }

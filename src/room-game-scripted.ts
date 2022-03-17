@@ -1430,7 +1430,7 @@ export class ScriptedGame extends Game {
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
-	onTournamentEnd?(): void;
+	onTournamentEnd?(forceEnd?: boolean): void;
 	onTournamentStart?(players: Dict<Player>): void;
 	onTournamentPlayerJoin?(player: Player, playerCount: number): void;
 	onTournamentPlayerLeave?(player: Player, playerCount: number): void;

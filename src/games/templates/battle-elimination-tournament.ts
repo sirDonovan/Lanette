@@ -7,6 +7,7 @@ import { game as battleEliminationGame, BattleElimination } from "./battle-elimi
 const GROUPCHAT_SUFFIX = "Games";
 
 export abstract class BattleEliminationTournament extends BattleElimination {
+	requiresAutoconfirmed = false;
 	startAutoDqTimer: NodeJS.Timer | undefined;
 	tournamentCreated: boolean = false;
 	tournamentEnded: boolean = false;
@@ -126,6 +127,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	onTournamentBracketUpdate(players: Dict<Player>, bracketData: IClientTournamentData, tournamentStarted: boolean): void {
 		if (!tournamentStarted || this.treeRoot || !bracketData.rootNode) return;
 
+		this.playerCap = 0;
 		this.playerCount = 0;
 		for (const i in players) {
 			this.addPlayer(Users.add(players[i].name, players[i].id), true);

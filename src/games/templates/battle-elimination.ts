@@ -31,7 +31,7 @@ const ADVERTISEMENT_TIME = 10 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
 export abstract class BattleElimination extends ScriptedGame {
-	abstract baseTournamentName: string;
+	abstract baseHtmlPageGameName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
 	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
@@ -58,6 +58,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	disqualifiedPlayers = new Map<Player, string>();
 	dontAutoCloseHtmlPages: boolean = true;
 	dropsPerRound: number = 0;
+	eliminationPlayers = new Set<Player>();
 	eliminationEnded: boolean = false;
 	eliminationStarted: boolean = false;
 	evolutionsPerRound: number = 0;
@@ -68,6 +69,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
 	hasSpeciesClause: boolean = false;
+	htmlPageGameDescription: string = '';
+	htmlPageGameName: string = '';
 	internalGame = true;
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
@@ -95,9 +98,6 @@ export abstract class BattleElimination extends ScriptedGame {
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
 	totalRounds: number = 0;
-	tournamentDescription: string = '';
-	tournamentName: string = '';
-	tournamentPlayers = new Set<Player>();
 	tournamentDisqualifiedPlayers: Player[] = [];
 	treeRoot: EliminationNode<Player> | null = null;
 	type: string | null = null;
@@ -744,13 +744,13 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (!onStart) {
 				const notificationTitle = "New " + this.name + " opponent!";
-				player.sendHighlight(notificationTitle);
-				opponent.sendHighlight(notificationTitle);
+				if (!player.eliminated) player.sendHighlight(notificationTitle);
+				if (!opponent.eliminated) opponent.sendHighlight(notificationTitle);
 			}
 
 			if (this.subRoom) {
-				this.updatePlayerHtmlPage(player);
-				this.updatePlayerHtmlPage(opponent);
+				if (!player.eliminated) this.updatePlayerHtmlPage(player);
+				if (!opponent.eliminated) this.updatePlayerHtmlPage(opponent);
 			}
 
 			let activityWarning = this.activityWarnTimeout;
@@ -1153,7 +1153,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><b>" + Users.self.name + " is hosting a " + this.name + " tournament!</b>";
-		if (this.tournamentDescription) html += "<br />" + this.tournamentDescription;
+		if (this.htmlPageGameDescription) html += "<br />" + this.htmlPageGameDescription;
 		html += "<br /><br />";
 		if (this.started) {
 			html += "(the tournament has started)";
@@ -1195,7 +1195,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				colorKeys.shift();
 				pokedex = this.createPokedex();
 			}
-			this.tournamentName = "Mono-" + this.color + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
 		} else if (this.monoType) {
 			const types = this.shuffle(Dex.getData().typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
@@ -1207,7 +1207,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				types.shift();
 				pokedex = this.createPokedex();
 			}
-			this.tournamentName = "Mono-" + this.type + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + this.type + " " + this.baseHtmlPageGameName;
 		} else if (this.monoRegion) {
 			const currentGen = Dex.getGen();
 			let gens: number[] = [];
@@ -1245,13 +1245,13 @@ export abstract class BattleElimination extends ScriptedGame {
 				region = 'Galar';
 			}
 
-			this.tournamentName = "Mono-" + region + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + region + " " + this.baseHtmlPageGameName;
 		} else {
 			pokedex = this.createPokedex();
 			if (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				throw new Error(this.battleFormat.name + " does not have at least " + minimumPokemon + " Pokemon");
 			}
-			this.tournamentName = this.format.nameWithOptions || this.format.name;
+			this.htmlPageGameName = this.format.nameWithOptions || this.format.name;
 		}
 
 		this.pokedex = this.shuffle(pokedex);
@@ -1259,7 +1259,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	onSignups(): void {
 		this.generatePokedex();
-		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2><hr />";
+		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.htmlPageGameName + "</h2><hr />";
 
 		const maxPlayers = this.getMaxPlayers(this.pokedex.length);
 		if (maxPlayers < this.maxPlayers) this.maxPlayers = maxPlayers;
@@ -1384,7 +1384,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				}
 			}
 
-			if (this.tournamentPlayers.has(player) && !this.canRejoin) {
+			if (this.eliminationPlayers.has(player) && !this.canRejoin) {
 				player.say("You cannot re-join the tournament after leaving it.");
 				return false;
 			}
@@ -1396,11 +1396,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		player.round = 1;
-		this.tournamentPlayers.add(player);
+		this.eliminationPlayers.add(player);
 
 		if (!this.joinNotices.has(player.id)) {
 			player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you " +
-				"may use the command ``" + Config.commandCharacter + "leavegame " + this.room.title + "``.");
+				"may use the command ``" + (this.subRoom ? "/tour leave" : Config.commandCharacter + "leavegame " + this.room.title) +
+				"``.");
 			this.joinNotices.add(player.id);
 		}
 
@@ -1427,7 +1428,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	onRemovePlayer(player: Player, notAutoconfirmed?: boolean): void {
 		// allow rejoining on an autoconfirmed account
-		if (notAutoconfirmed) this.tournamentPlayers.delete(player);
+		if (notAutoconfirmed) this.eliminationPlayers.delete(player);
 
 		if (!this.started) {
 			const starterPokemon = this.starterPokemon.get(player);

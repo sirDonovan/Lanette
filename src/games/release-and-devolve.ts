@@ -17,8 +17,8 @@ class ReleaseAndDevolve extends BattleEliminationTournament {
 	requiredEvolution = true;
 	canReroll = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		return pokemon.evos.length <= 1;

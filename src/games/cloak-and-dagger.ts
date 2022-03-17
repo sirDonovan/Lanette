@@ -11,8 +11,8 @@ class CloakAndDagger extends BattleEliminationTournament {
 	firstRoundExtraTime = 3 * 60 * 1000;
 	startingTeamsLength = 1;
 	allowsFormes = false;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
 }

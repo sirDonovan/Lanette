@@ -166,7 +166,7 @@ export class Tournament extends Activity {
 		}, this.runAutoDqTime);
 	}
 
-	deallocate(): void {
+	deallocate(forceEnd?: boolean): void {
 		if (this.adjustCapTimer) {
 			clearTimeout(this.adjustCapTimer);
 			// @ts-expect-error
@@ -185,7 +185,7 @@ export class Tournament extends Activity {
 			this.runAutoDqTimeout = undefined;
 		}
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd(forceEnd);
 
 		this.cleanupBattleRooms();
 
@@ -330,7 +330,7 @@ export class Tournament extends Activity {
 
 	forceEnd(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.deallocate();
+		this.deallocate(true);
 	}
 
 	update(json: Partial<ITournamentUpdateJson & ITournamentEndJson>): void {
