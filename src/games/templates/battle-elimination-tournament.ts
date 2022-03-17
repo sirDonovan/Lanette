@@ -113,6 +113,12 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		}
 	}
 
+	onTournamentPlayerRename(player: Player, oldId: string): void {
+		if (oldId in this.players && (!(player.id in this.players) || this.players[player.id].name !== player.name)) {
+			this.renamePlayer(player.name, player.id, oldId);
+		}
+	}
+
 	onTournamentBracketUpdate(players: Dict<Player>, bracketData: IClientTournamentData, tournamentStarted: boolean): void {
 		if (!tournamentStarted || this.treeRoot || !bracketData.rootNode) return;
 

@@ -289,10 +289,10 @@ export abstract class Activity {
 		return player;
 	}
 
-	renamePlayer(user: User, oldId: string): void {
+	renamePlayer(name: string, id: string, oldId: string): void {
 		let pastPlayer = false;
 		if (oldId in this.players) {
-			if (user.id in this.players && oldId !== user.id) return;
+			if (id in this.players && oldId !== id) return;
 		} else {
 			if (!(oldId in this.pastPlayers)) return;
 			pastPlayer = true;
@@ -300,10 +300,10 @@ export abstract class Activity {
 
 		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 		// @ts-expect-error
-		player.name = user.name;
-		if (player.id === user.id) return;
+		player.name = name;
+		if (player.id === id) return;
 		// @ts-expect-error
-		player.id = user.id;
+		player.id = id;
 
 		if (pastPlayer) {
 			this.pastPlayers[player.id] = player;

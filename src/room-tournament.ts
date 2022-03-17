@@ -220,6 +220,12 @@ export class Tournament extends Activity {
 		}
 	}
 
+	onRenamePlayer(player: Player, oldId: string): void {
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerRename) {
+			this.battleRoomGame.onTournamentPlayerRename(player, oldId);
+		}
+	}
+
 	start(): void {
 		if (this.adjustCapTimer) clearTimeout(this.adjustCapTimer);
 		if (this.startTimer) clearTimeout(this.startTimer);
