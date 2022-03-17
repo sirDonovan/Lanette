@@ -678,7 +678,7 @@ export class Room {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'room-deauth',
-			userid: Tools.toId(name),
+			deauthedUserid: Tools.toId(name),
 		});
 	}
 
@@ -811,6 +811,7 @@ export class Room {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'tournament-disqualify',
+			disqualifiedUserid: userOrPlayer.id,
 		});
 	}
 

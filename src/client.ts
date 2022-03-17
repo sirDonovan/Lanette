@@ -1582,7 +1582,7 @@ export class Client {
 					} else if (this.lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
-							if (Tools.toId(demoted) === this.lastOutgoingMessage.userid) this.clearLastOutgoingMessage(now);
+							if (Tools.toId(demoted) === this.lastOutgoingMessage.deauthedUserid) this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
@@ -2445,7 +2445,7 @@ export class Client {
 
 				if (type === 'disqualify' && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
 					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
-					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.userid) {
+					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.disqualifiedUserid) {
 					this.clearLastOutgoingMessage(now);
 				}
 
