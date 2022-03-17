@@ -2490,6 +2490,21 @@ export class Client {
 					messageArguments.roomid);
 				break;
 			}
+
+			case 'error': {
+				const messageArguments: ITournamentMessageTypes['error'] = {
+					errorType: messageParts[0],
+					errorMessage: messageParts[1],
+				};
+
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
+					Tools.toId(messageArguments.errorType) === "alreadydisqualified" &&
+					Tools.toId(messageArguments.errorMessage) === this.lastOutgoingMessage.disqualifiedUserid) {
+					this.clearLastOutgoingMessage(now);
+				}
+				break;
+			}
 			}
 			break;
 		}
