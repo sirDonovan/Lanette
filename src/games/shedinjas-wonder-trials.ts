@@ -19,7 +19,6 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	canUseMove: boolean = false;
 	currentPokemon: IPokemon | null = null;
 	firstMove: Player | false | undefined;
-	firstPlayerUsedMove: boolean = false;
 	inactiveRoundLimit: number = 5;
 	inverseTypes: boolean = false;
 	lastTyping: string = '';
@@ -66,31 +65,26 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canUseMove = false;
-		this.firstPlayerUsedMove = false;
 		if (this.round > 1) {
 			let highestPoints = 0;
 			if (this.roundMoves.size) {
 				if (this.inactiveRounds) this.inactiveRounds = 0;
 
 				const effectivenessScale: Dict<string> = {'1': '2x', '2': '4x', '-1': '0.5x', '-2': '0.25x', 'immune': '0x', '0': '1x'};
+				let firstPlayer: Player | undefined;
 				this.roundMoves.forEach((effectiveness, player) => {
-					const wonderGuardWarrior = effectiveness === '1' || effectiveness === '2';
-					if (this.firstMove === undefined) {
-						if (wonderGuardWarrior) {
-							this.firstMove = player;
-							this.firstPlayerUsedMove = true;
-						} else {
-							this.firstMove = false;
-						}
-					} else {
-						if (this.firstMove !== player) {
-							if (wonderGuardWarrior && !this.firstPlayerUsedMove) this.firstMove = false;
-						} else {
-							if (!wonderGuardWarrior) {
-								this.firstMove = false;
+					if (!firstPlayer) {
+						firstPlayer = player;
+
+						const wonderGuardWarrior = effectiveness === '1' || effectiveness === '2';
+						if (this.firstMove === undefined) {
+							if (wonderGuardWarrior) {
+								this.firstMove = player;
 							} else {
-								this.firstPlayerUsedMove = true;
+								this.firstMove = false;
 							}
+						} else {
+							if (this.firstMove && (this.firstMove !== player || !wonderGuardWarrior)) this.firstMove = false;
 						}
 					}
 
