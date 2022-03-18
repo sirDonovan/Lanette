@@ -102,7 +102,7 @@ export class Room {
 
 		const keys = Object.getOwnPropertyNames(this);
 		for (const key of keys) {
-			if (key === 'id' || key === 'title' || key === 'initialized') continue;
+			if (key === 'id' || key === 'title' || key === 'initialized' || key === 'leaving') continue;
 
 			// @ts-expect-error
 			this[key] = undefined;
@@ -854,7 +854,7 @@ export class Room {
 	}
 
 	leave(): void {
-		if (!this.initialized || this.leaving) return;
+		if (this.leaving) return;
 
 		this.leaving = true;
 		this.say("/leave", {

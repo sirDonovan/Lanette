@@ -537,7 +537,7 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'leave-room') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
