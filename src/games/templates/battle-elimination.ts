@@ -530,6 +530,11 @@ export abstract class BattleElimination extends ScriptedGame {
 			player.eliminated = true;
 			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
 
+			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
+				this.tournamentDisqualifiedPlayers.push(player);
+				this.subRoom.disqualifyFromTournament(player);
+			}
+
 			/**
 			 * The user either has a single available battle or no available battles
 			 */
@@ -576,21 +581,17 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		}
 
-		if (this.subRoom) {
-			for (const winner of winners) {
-				this.updatePlayerHtmlPage(winner);
-			}
+		if (!this.ended) {
+			if (this.subRoom) {
+				for (const winner of winners) {
+					this.updatePlayerHtmlPage(winner);
+				}
 
-			for (const player of players) {
-				this.updatePlayerHtmlPage(player);
-				if (!this.tournamentDisqualifiedPlayers.includes(player)) {
-					this.tournamentDisqualifiedPlayers.push(player);
-					this.subRoom.disqualifyFromTournament(player);
+				for (const player of players) {
+					this.updatePlayerHtmlPage(player);
 				}
 			}
-		}
 
-		if (!this.ended) {
 			this.updateMatches();
 		}
 	}
