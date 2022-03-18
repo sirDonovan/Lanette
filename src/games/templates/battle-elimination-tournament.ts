@@ -7,6 +7,7 @@ import { game as battleEliminationGame, BattleElimination } from "./battle-elimi
 const GROUPCHAT_SUFFIX = "Games";
 
 export abstract class BattleEliminationTournament extends BattleElimination {
+	earlyBattles: [Player, Player][] = [];
 	requiresAutoconfirmed = false;
 	startAutoDqTimer: NodeJS.Timer | undefined;
 	tournamentCreated: boolean = false;
@@ -139,6 +140,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		this.start(true);
 	}
 
+	onTournamentBattleStart(tournamentPlayer: Player, opponentPlayer: Player, room: Room): void {
+		if (!this.eliminationStarted && tournamentPlayer.id in this.players && opponentPlayer.id in this.players) {
+			this.leaveBattleRoom(room);
+			this.earlyBattles.push([this.players[tournamentPlayer.id], this.players[opponentPlayer.id]]);
+		}
+	}
+
 	startElimination(): void {
 		super.startElimination();
 
@@ -170,6 +178,16 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			for (const player of eliminatedPlayers) {
 				playersAndReasons.set(player, "You left the " + this.name + " tournament.");
 			}
+
+			this.disqualifyPlayers(playersAndReasons);
+		}
+
+		// handle battles that started before all starting Pokemon were distributed
+		const reason = "You started battling before all Pokemon were distributed!";
+		for (const earlyBattle of this.earlyBattles) {
+			const playersAndReasons = new Map<Player, string>();
+			playersAndReasons.set(earlyBattle[0], reason);
+			playersAndReasons.set(earlyBattle[1], reason);
 
 			this.disqualifyPlayers(playersAndReasons);
 		}

@@ -470,6 +470,10 @@ export class Tournament extends Activity {
 
 			Client.joinRoom(room.id);
 		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {
+			this.battleRoomGame.onTournamentBattleStart(this.players[idA], this.players[idB], room);
+		}
 	}
 
 	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {

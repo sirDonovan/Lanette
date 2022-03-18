@@ -1436,6 +1436,7 @@ export class ScriptedGame extends Game {
 	onTournamentPlayerLeave?(player: Player, playerCount: number): void;
 	onTournamentPlayerRename?(player: Player, oldId: string): void;
 	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
+	onTournamentBattleStart?(player: Player, opponent: Player, room: Room): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
