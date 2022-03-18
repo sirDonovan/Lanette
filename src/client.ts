@@ -1011,6 +1011,8 @@ export class Client {
 
 					if (page || chat) return;
 				}
+
+				if (room.leaving) return;
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException);
