@@ -1747,7 +1747,15 @@ export abstract class BattleElimination extends ScriptedGame {
 				battleData.faintedCloakedPokemon[slot]++;
 				if (battleData.faintedCloakedPokemon[slot] === cloakedPokemon.length) {
 					room.say(player.name + " your cloaked Pokemon " + (cloakedPokemon.length > 1 ? "have" : "has") + " fainted!");
-					this.onBattleWin(room, opponent.name);
+
+					if (this.subRoom) {
+						const playersAndReasons = new Map<Player, string>();
+						playersAndReasons.set(player, "You lost your cloaked Pokemon");
+						this.disqualifyPlayers(playersAndReasons);
+					} else {
+						this.onBattleWin(room, opponent.name);
+					}
+
 					return false;
 				}
 			}
