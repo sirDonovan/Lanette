@@ -576,21 +576,21 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		}
 
-		if (!this.ended) {
-			if (this.subRoom) {
-				for (const winner of winners) {
-					this.updatePlayerHtmlPage(winner);
-				}
-
-				for (const player of players) {
-					this.updatePlayerHtmlPage(player);
-					if (!this.tournamentDisqualifiedPlayers.includes(player)) {
-						this.tournamentDisqualifiedPlayers.push(player);
-						this.subRoom.disqualifyFromTournament(player);
-					}
-				}
+		if (this.subRoom) {
+			for (const winner of winners) {
+				this.updatePlayerHtmlPage(winner);
 			}
 
+			for (const player of players) {
+				this.updatePlayerHtmlPage(player);
+				if (!this.tournamentDisqualifiedPlayers.includes(player)) {
+					this.tournamentDisqualifiedPlayers.push(player);
+					this.subRoom.disqualifyFromTournament(player);
+				}
+			}
+		}
+
+		if (!this.ended) {
 			this.updateMatches();
 		}
 	}
