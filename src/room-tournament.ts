@@ -40,8 +40,6 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	isSingleElimination: boolean = false;
-	lastUpdateEndTime: number = 0;
-	lastRunAutoDqTime: number = 0;
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
@@ -158,12 +156,8 @@ export class Tournament extends Activity {
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.runAutoDqTimeout = null;
 
-			if (!this.lastUpdateEndTime || !this.lastRunAutoDqTime || this.lastUpdateEndTime > this.lastRunAutoDqTime) {
-				this.room.runTournamentAutoDq();
-				this.lastRunAutoDqTime = Date.now();
-
-				if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
-			}
+			this.room.runTournamentAutoDq();
+			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
 		}, this.runAutoDqTime);
 	}
 
@@ -374,7 +368,6 @@ export class Tournament extends Activity {
 		}
 
 		this.updates = {};
-		this.lastUpdateEndTime = Date.now();
 	}
 
 	updateBracket(): void {
