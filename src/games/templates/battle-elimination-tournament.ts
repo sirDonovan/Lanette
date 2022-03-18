@@ -50,6 +50,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			game: this,
 			callback: () => {
 				this.subRoom.nameTournament(this.name);
+				this.subRoom.forcePublicTournament();
 				this.subRoom.forceTimerTournament();
 				this.subRoom.disallowTournamentScouting();
 				this.subRoom.disallowTournamentModjoin();
