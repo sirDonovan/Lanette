@@ -772,17 +772,17 @@ export abstract class BattleElimination extends ScriptedGame {
 				player.say(reminderPM);
 				opponent.say(reminderPM);
 
-				const dqTimeout = setTimeout(() => {
-					const inactivePlayers = this.checkInactivePlayers(player, opponent);
-					if (inactivePlayers.length) {
-						this.eliminateInactivePlayers(player, opponent, inactivePlayers);
-					} else if (this.subRoom) {
-						this.subRoom.runTournamentAutoDq();
-					} else {
-						this.checkChallenges(node, player, opponent);
-					}
-				}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
-				this.activityTimers.set(node, dqTimeout);
+				if (!this.subRoom) {
+					const dqTimeout = setTimeout(() => {
+						const inactivePlayers = this.checkInactivePlayers(player, opponent);
+						if (inactivePlayers.length) {
+							this.eliminateInactivePlayers(player, opponent, inactivePlayers);
+						} else {
+							this.checkChallenges(node, player, opponent);
+						}
+					}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
+					this.activityTimers.set(node, dqTimeout);
+				}
 			}, activityWarning + UPDATE_HTML_PAGE_DELAY);
 			this.activityTimers.set(node, warningTimeout);
 		}
