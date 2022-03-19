@@ -780,10 +780,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			const gameCategories = Games.getCategoryNames();
+			const gameCategories = Object.keys(Games.getCategoryNames()).map(x => Tools.toId(x));
 			let category = Tools.toId(target);
 			let variant = "";
-			if (!(category in gameCategories)) {
+			if (!gameCategories.includes(category)) {
 				variant = category;
 				category = "";
 			}
