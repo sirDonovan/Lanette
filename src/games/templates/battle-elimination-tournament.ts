@@ -5,6 +5,7 @@ import type { IClientTournamentData } from "../../types/tournaments";
 import { game as battleEliminationGame, BattleElimination } from "./battle-elimination";
 
 const GROUPCHAT_SUFFIX = "Games";
+const AUTO_DQ_MINUTES = 3;
 
 export abstract class BattleEliminationTournament extends BattleElimination {
 	earlyBattles: [Player, Player][] = [];
@@ -19,6 +20,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	afterInitialize(): void {
 		super.afterInitialize();
+
+		this.firstRoundTime = (AUTO_DQ_MINUTES * 60 * 1000) + this.firstRoundExtraTime;
 
 		const name = this.room.title + " " + GROUPCHAT_SUFFIX;
 		const id = this.room.getSubRoomGroupchatId(name);
@@ -151,9 +154,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		super.startElimination();
 
 		this.startAutoDqTimer = setTimeout(() => {
-			const minutes = (this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000;
-			this.subRoom.setTournamentAutoDq(minutes);
-			this.subRoom.tournament!.setAutoDqMinutes(minutes);
+			this.subRoom.setTournamentAutoDq(AUTO_DQ_MINUTES);
+			this.subRoom.tournament!.setAutoDqMinutes(AUTO_DQ_MINUTES);
 		}, this.firstRoundTime);
 
 		const database = Storage.getDatabase(this.room);

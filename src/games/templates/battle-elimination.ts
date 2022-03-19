@@ -27,7 +27,7 @@ const REROLL_COMMAND = "reroll";
 const REROLL_START_DELAY = 30 * 1000;
 const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
-const ADVERTISEMENT_TIME = 10 * 60 * 1000;
+const ADVERTISEMENT_TIME = 5 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
 export abstract class BattleElimination extends ScriptedGame {
