@@ -393,6 +393,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 				if (!player.eliminated) {
 					player.say("You were given a first round bye so check the tournament page for additional team changes!");
+					if (this.subRoom) this.updatePlayerHtmlPage(player);
 				}
 			}
 		});
