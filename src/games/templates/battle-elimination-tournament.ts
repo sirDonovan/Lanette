@@ -100,9 +100,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		}
 	}
 
-	onTournamentPlayerLeave(tournamentPlayer: Player, playerCount: number): void {
+	onTournamentPlayerLeave(name: string, playerCount: number): void {
 		if (this.started) {
-			const player = this.players[tournamentPlayer.id];
+			const player = this.players[Tools.toId(name)];
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
 				player.eliminated = true;

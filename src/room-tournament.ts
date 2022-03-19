@@ -43,7 +43,9 @@ export class Tournament extends Activity {
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
+	playerBattleRooms = new Map<Player, Room>();
 	playerLosses = new Map<Player, number>();
+	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
 	scheduled: boolean = false;
@@ -209,9 +211,23 @@ export class Tournament extends Activity {
 	removePlayer(name: string): void {
 		const player = this.destroyPlayer(name);
 		if (player) {
-			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
-				this.battleRoomGame.onTournamentPlayerLeave(player, this.playerCount);
+			const opponent = this.playerOpponents.get(player);
+			if (opponent) {
+				for (let i = 0; i < this.currentBattles.length; i++) {
+					if ((this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent) ||
+						(this.currentBattles[i].playerA === opponent && this.currentBattles[i].playerB === player)) {
+						this.currentBattles.splice(i, 1);
+						break;
+					}
+				}
 			}
+
+			const battleRoom = this.playerBattleRooms.get(player);
+			if (battleRoom && !this.battleRoomGame) this.leaveBattleRoom(battleRoom);
+		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
+			this.battleRoomGame.onTournamentPlayerLeave(name, this.playerCount);
 		}
 	}
 
@@ -364,7 +380,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
-			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted && this.started);
+			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
 		}
 
 		this.updates = {};
@@ -416,7 +432,10 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (!this.totalPlayers) this.totalPlayers = Object.keys(players).length;
+		if (!this.totalPlayers) {
+			this.totalPlayers = Object.keys(players).length;
+			this.playerCount = this.totalPlayers;
+		}
 
 		// clear users who are now guests (currently can't be tracked)
 		for (const i in this.players) {
@@ -436,21 +455,32 @@ export class Tournament extends Activity {
 		}
 	}
 
-	onBattleStart(usernameA: string, usernameB: string, roomid: string): void {
+	onBattleStart(playerName: string, opponentName: string, roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in " + roomid);
 		}
 
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid);
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
 		const room = Rooms.add(roomid);
+		this.playerBattleRooms.set(player, room);
+		this.playerBattleRooms.set(opponent, room);
+
+		this.playerOpponents.set(player, opponent);
+		this.playerOpponents.set(opponent, player);
 
 		this.currentBattles.push({
-			playerA: this.players[idA],
-			playerB: this.players[idB],
+			playerA: player,
+			playerB: opponent,
 			room,
 		});
 
@@ -468,24 +498,36 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {
-			this.battleRoomGame.onTournamentBattleStart(this.players[idA], this.players[idB], room);
+			this.battleRoomGame.onTournamentBattleStart(player, opponent, room);
 		}
 	}
 
-	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {
+	onBattleEnd(playerName: string, opponentName: string, score: [string, string], roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in " + roomid);
 		}
+
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid);
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
+		this.playerBattleRooms.delete(player);
+		this.playerBattleRooms.delete(opponent);
+
+		this.playerOpponents.delete(player);
+		this.playerOpponents.delete(opponent);
 
 		const room = Rooms.get(roomid);
 
 		for (let i = 0; i < this.currentBattles.length; i++) {
-			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] &&
+			if (this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent &&
 				this.currentBattles[i].room === room) {
 				this.currentBattles.splice(i, 1);
 				break;
