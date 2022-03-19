@@ -77,6 +77,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	monoColor: boolean = false;
 	monoRegion: boolean = false;
 	monoType: boolean = false;
+	playerBattleRooms = new Map<Player, Room>();
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
 	playerRequiredPokemon = new Map<Player, readonly string[][]>();
@@ -531,6 +532,9 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
 			this.playerOpponents.delete(player);
 
+			const battleRoom = this.playerBattleRooms.get(player);
+			if (battleRoom) battleRoom.leave();
+
 			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
 				this.tournamentDisqualifiedPlayers.push(player);
 				this.subRoom.disqualifyFromTournament(player);
@@ -659,6 +663,9 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		this.playerOpponents.delete(p1);
 		this.playerOpponents.delete(p2);
+
+		this.playerBattleRooms.delete(p1);
+		this.playerBattleRooms.delete(p2);
 
 		targetNode.state = 'finished';
 		targetNode.result = result;
@@ -1621,6 +1628,9 @@ export abstract class BattleElimination extends ScriptedGame {
 	onBattleTeamPreview(room: Room): boolean {
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
+
+		this.playerBattleRooms.set(players[0], room);
+		this.playerBattleRooms.set(players[1], room);
 
 		const playersAndReasons = new Map<Player, string>();
 		const reason = this.getDisqualifyReasonText("for using an incorrect team");
