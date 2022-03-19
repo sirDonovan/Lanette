@@ -58,54 +58,55 @@ export class Player {
 	}
 
 	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmHtml(this, html, additionalAttributes);
+		this.activity.getPmRoom().pmHtml(this, html, additionalAttributes);
 	}
 
 	sayUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
+		this.activity.getPmRoom().pmUhtml(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
 	sayUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
+		this.activity.getPmRoom().pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
 	sayPrivateHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateHtml(this, html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateHtml(this, html, additionalAttributes);
 	}
 
 	sayPrivateUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
 	}
 
 	sayPrivateUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html,
+			additionalAttributes);
 	}
 
 	clearPrivateUhtml(name: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml) return;
 
-		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>", additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtml(this, name, "<div></div>", additionalAttributes);
 	}
 
 	sendHtmlPage(html: string, pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) this.sentHtmlPage = true;
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
+		this.activity.getPmRoom().sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
 			additionalAttributes);
 	}
 
 	closeHtmlPage(pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) return;
 
-		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
+		this.activity.getPmRoom().closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
 	}
 
 	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string,
 		additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (this.sentHtmlPage) {
-			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
+			this.activity.getPmRoom().sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
 				additionalAttributes);
 		} else {
 			this.sendRoomHighlight(notificationTitle, highlightPhrase, additionalAttributes);
@@ -113,7 +114,7 @@ export class Player {
 	}
 
 	sendRoomHighlight(notificationTitle: string, highlightPhrase?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
+		this.activity.getPmRoom().notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
 	}
 
 	useCommand(command: string, target?: string): void {
@@ -205,6 +206,7 @@ export abstract class Activity {
 	started: boolean = false;
 	startTime: number | null = null;
 	startTimer: NodeJS.Timer | null = null;
+	subRoom: Room | null = null;
 	timeout: NodeJS.Timer | null = null;
 	uhtmlMessageListeners: Dict<string[]> = {};
 
@@ -230,6 +232,10 @@ export abstract class Activity {
 	abstract deallocate(forceEnd: boolean): void;
 	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
+
+	getPmRoom(): Room {
+		return this.subRoom || this.pmRoom;
+	}
 
 	destroyPlayers(): void {
 		for (const i in this.players) {

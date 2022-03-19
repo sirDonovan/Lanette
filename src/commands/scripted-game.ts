@@ -972,13 +972,13 @@ export const commands: BaseCommandDefinitions = {
 				if (!chatRoom) return;
 
 				if (chatRoom.game) {
-					chatRoom.game.removePlayer(user);
+					if (!chatRoom.game.usesTournamentJoin) chatRoom.game.removePlayer(user);
 				} else if (chatRoom.userHostedGame) {
 					chatRoom.userHostedGame.removePlayer(user);
 				}
 			} else {
 				if (room.game) {
-					room.game.removePlayer(user);
+					if (!room.game.usesTournamentJoin)room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.removePlayer(user);
 				}
