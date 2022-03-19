@@ -381,23 +381,26 @@ export class Tournament extends Activity {
 				queue.shift();
 				if (!node.children) continue;
 
+				let userA;
+				let userB;
+
 				if (node.children[0] && node.children[0].team) {
-					const userA = Tools.toId(node.children[0].team);
+					userA = Tools.toId(node.children[0].team);
 					if (!players[userA]) players[userA] = Tools.stripHtmlCharacters(node.children[0].team);
+				}
 
-					if (node.children[1] && node.children[1].team) {
-						const userB = Tools.toId(node.children[1].team);
-						if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				if (node.children[1] && node.children[1].team) {
+					userB = Tools.toId(node.children[1].team);
+					if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				}
 
-						if (node.state === 'finished') {
-							if (node.result === 'win') {
-								if (!losses[userB]) losses[userB] = 0;
-								losses[userB]++;
-							} else if (node.result === 'loss') {
-								if (!losses[userA]) losses[userA] = 0;
-								losses[userA]++;
-							}
-						}
+				if (userA && userB && node.state === 'finished') {
+					if (node.result === 'win') {
+						if (!losses[userB]) losses[userB] = 0;
+						losses[userB]++;
+					} else if (node.result === 'loss') {
+						if (!losses[userA]) losses[userA] = 0;
+						losses[userA]++;
 					}
 				}
 
