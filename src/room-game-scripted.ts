@@ -1431,9 +1431,9 @@ export class ScriptedGame extends Game {
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
 	onTournamentEnd?(forceEnd?: boolean): void;
-	onTournamentStart?(players: Dict<Player>): void;
-	onTournamentPlayerJoin?(player: Player, playerCount: number): void;
-	onTournamentPlayerLeave?(name: string, playerCount: number): void;
+	onTournamentStart?(players: Dict<Player>, rootNode?: IClientTournamentData, ): void;
+	onTournamentPlayerJoin?(player: Player): void;
+	onTournamentPlayerLeave?(name: string): void;
 	onTournamentPlayerRename?(player: Player, oldId: string): void;
 	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
 	onTournamentBattleStart?(player: Player, opponent: Player, room: Room): void;

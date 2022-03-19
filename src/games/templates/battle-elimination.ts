@@ -63,6 +63,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	eliminationStarted: boolean = false;
 	evolutionsPerRound: number = 0;
 	firstRoundByes = new Set<Player>();
+	firstRoundByeAdditions = new Map<Player, string[]>();
 	firstRoundExtraTime: number = 0;
 	firstRoundTime: number = 0;
 	fullyEvolved: boolean = false;
@@ -95,7 +96,6 @@ export abstract class BattleElimination extends ScriptedGame {
 	spectatorUsers = new Set<string>();
 	starterPokemon = new Map<Player, readonly string[]>();
 	startingTeamsLength: number = 6;
-	subRoom: Room | null = null;
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
 	totalRounds: number = 0;
@@ -389,6 +389,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				};
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
+				this.firstRoundByeAdditions.set(player, pokemon);
 				this.updatePossibleTeams(player, pokemon);
 
 				if (!player.eliminated) {
@@ -761,16 +762,13 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (this.subRoom) {
 				if (!player.eliminated) this.updatePlayerHtmlPage(player);
 				if (!opponent.eliminated) this.updatePlayerHtmlPage(opponent);
-			}
-
-			let activityWarning = this.activityWarnTimeout;
-			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
-				if (this.firstRoundExtraTime) activityWarning += this.firstRoundExtraTime;
-			}
-			this.givenFirstRoundExtraTime.add(player);
-			this.givenFirstRoundExtraTime.add(opponent);
-
-			if (!this.subRoom) {
+			} else {
+				let activityWarning = this.activityWarnTimeout;
+				if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
+					if (this.firstRoundExtraTime) activityWarning += this.firstRoundExtraTime;
+				}
+				this.givenFirstRoundExtraTime.add(player);
+				this.givenFirstRoundExtraTime.add(opponent);
 				const warningTimeout = setTimeout(() => {
 					const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
 						this.room.title + "! Please send me the link to the battle or leave your pending challenge up. Make sure " +
@@ -1134,9 +1132,14 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.playerRequiredPokemon.set(player, formeCombinations);
 		} else {
 			this.possibleTeams.set(player, formeCombinations);
+
+			if (this.firstRoundByeAdditions.has(player)) {
+				this.updatePossibleTeams(player, this.firstRoundByeAdditions.get(player)!);
+			}
 		}
 
 		this.starterPokemon.set(player, team);
+
 		this.updatePlayerHtmlPage(player);
 	}
 
@@ -1338,8 +1341,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		const html = this.getSignupsHtml();
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.canReroll) {
-				const text = "The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
-					" left to PM me the command ``" + Config.commandCharacter + REROLL_COMMAND + "`` to get a new " +
+				let text = "";
+				if (!this.subRoom) {
+					text += "The " + this.name + " tournament is about to start! ";
+				}
+				text += "There are " + Tools.toDurationString(REROLL_START_DELAY) + " left to PM me the command ``" +
+					Config.commandCharacter + REROLL_COMMAND + "`` to get a new " +
 					(this.startingTeamsLength === 1 ? "starter" : "team") + " (cannot be undone).";
 
 				if (this.subRoom) {
@@ -1348,7 +1355,15 @@ export abstract class BattleElimination extends ScriptedGame {
 					this.say(text);
 				}
 
-				this.timeout = setTimeout(() => this.startElimination(), REROLL_START_DELAY);
+				if (this.subRoom) {
+					this.startElimination();
+
+					this.timeout = setTimeout(() => {
+						this.canReroll = false;
+					}, REROLL_START_DELAY);
+				} else {
+					this.timeout = setTimeout(() => this.startElimination(), REROLL_START_DELAY);
+				}
 			} else {
 				this.startElimination();
 			}
@@ -1358,12 +1373,13 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	startElimination(): void {
-		this.canReroll = false;
 		this.eliminationStarted = true;
 
 		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
 			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle.";
 		if (!this.subRoom) {
+			this.canReroll = false;
+
 			html += " Please refer to the tournament page on the left for your opponents.";
 			html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
 			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
@@ -1391,39 +1407,47 @@ export abstract class BattleElimination extends ScriptedGame {
 				}
 			}
 
-			if (this.eliminationPlayers.has(player) && !this.canRejoin) {
-				player.say("You cannot re-join the tournament after leaving it.");
-				return false;
-			}
-
 			if (Client.checkFilters(player.name, this.room)) {
 				player.say("You cannot participate in the tournament with your current username.");
 				return false;
 			}
 		}
 
-		player.round = 1;
-		this.eliminationPlayers.add(player);
+		if (this.eliminationPlayers.has(player) && !this.canRejoin) {
+			let text = "You cannot re-join the tournament after leaving it.";
+			if (this.subRoom) {
+				player.eliminated = true;
+				text += " You will be disqualified at the start of the tournament.";
+			}
+			player.say(text);
 
-		if (!this.joinNotices.has(player.id)) {
-			player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you " +
-				"may use the command ``" + (this.subRoom ? "/tour leave" : Config.commandCharacter + "leavegame " + this.room.title) +
-				"``.");
-			this.joinNotices.add(player.id);
+			if (!this.subRoom) return false;
 		}
 
-		if (!this.subRoom && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.signupsHtmlTimeout = null;
-			}, this.getSignupsUpdateDelay());
-		}
+		if (!player.eliminated) {
+			player.round = 1;
+			this.eliminationPlayers.add(player);
 
-		this.giveStartingTeam(player);
+			if (!this.joinNotices.has(player.id)) {
+				player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any " +
+					"time, you may use the command ``" + (this.subRoom ? "/tour leave" :
+					Config.commandCharacter + "leavegame " + this.room.title) + "``.");
+				this.joinNotices.add(player.id);
+			}
 
-		if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
-			player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
-				Config.commandCharacter + REROLL_COMMAND + "`` or keep your team!");
+			if (!this.started && !this.signupsHtmlTimeout) {
+				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.signupsHtmlTimeout = null;
+				}, this.getSignupsUpdateDelay());
+			}
+
+			this.giveStartingTeam(player);
+
+			if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
+				player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
+					Config.commandCharacter + REROLL_COMMAND + "`` or keep your team!");
+			}
 		}
 
 		return true;
@@ -2027,7 +2051,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			const id = Tools.toId(target);
 			if (id) {
 				if (!user.isDeveloper() && !user.hasRank(this.room, 'driver')) return false;
-				if (user.id in this.players) {
+				if (user.id in this.players && !(this.players[user.id].eliminated && user.isDeveloper())) {
 					user.say("You cannot use this command while participating in the tournament.");
 					return false;
 				}
@@ -2062,12 +2086,14 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 		command(target, room, user) {
 			if (!this.canReroll || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
-			if (this.rerolls.has(player)) return false;
+			if (this.rerolls.has(player) || this.playerBattleRooms.has(player)) return false;
+
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;
 			for (const pokemon of starterPokemon) {
 				this.pokedex.push(pokemon);
 			}
+
 			this.rerolls.set(player, true);
 			this.giveStartingTeam(player);
 			return true;

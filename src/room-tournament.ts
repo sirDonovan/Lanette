@@ -203,7 +203,7 @@ export class Tournament extends Activity {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (player) {
 			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerJoin) {
-				this.battleRoomGame.onTournamentPlayerJoin(player, this.playerCount);
+				this.battleRoomGame.onTournamentPlayerJoin(player);
 			}
 		}
 	}
@@ -227,7 +227,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
-			this.battleRoomGame.onTournamentPlayerLeave(name, this.playerCount);
+			this.battleRoomGame.onTournamentPlayerLeave(name);
 		}
 	}
 
@@ -244,7 +244,9 @@ export class Tournament extends Activity {
 		this.startTime = Date.now();
 		this.setRunAutoDqTimeout();
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) this.battleRoomGame.onTournamentStart(this.players);
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) {
+			this.battleRoomGame.onTournamentStart(this.players, this.info.isStarted ? this.info.bracketData : undefined);
+		}
 	}
 
 	onEnd(): void {
@@ -380,7 +382,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
-			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
+			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.started && this.info.isStarted);
 		}
 
 		this.updates = {};
