@@ -354,7 +354,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		});
 
-		this.totalRounds = this.getNumberOfRounds(this.getRemainingPlayerCount());
+		this.totalRounds = this.getNumberOfRounds(this.playerCount);
 
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
@@ -529,6 +529,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		for (const player of players) {
 			player.eliminated = true;
 			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
+			this.playerOpponents.delete(player);
 
 			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
 				this.tournamentDisqualifiedPlayers.push(player);
@@ -715,9 +716,9 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (userA && userB) {
 				targetNode.parent.state = 'available';
 
-				if (this.disqualifiedPlayers.has(userA)) {
+				if (userA.eliminated) {
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'loss', [0, 1]));
-				} else if (this.disqualifiedPlayers.has(userB)) {
+				} else if (userB.eliminated) {
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'win', [1, 0]));
 				}
 			}
@@ -761,18 +762,15 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.givenFirstRoundExtraTime.add(player);
 			this.givenFirstRoundExtraTime.add(opponent);
 
-			const warningTimeout = setTimeout(() => {
-				let reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
-					(this.subRoom ? this.subRoom.title : this.room.title) + "!";
-				if (!this.subRoom) {
-					reminderPM += " Please send me the link to the battle or leave your pending challenge up. Make sure you have " +
-						"challenged in the **" + this.battleFormat.name + "** format!";
-				}
+			if (!this.subRoom) {
+				const warningTimeout = setTimeout(() => {
+					const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
+						this.room.title + "! Please send me the link to the battle or leave your pending challenge up. Make sure " +
+						"you have challenged in the **" + this.battleFormat.name + "** format!";
 
-				player.say(reminderPM);
-				opponent.say(reminderPM);
+					player.say(reminderPM);
+					opponent.say(reminderPM);
 
-				if (!this.subRoom) {
 					const dqTimeout = setTimeout(() => {
 						const inactivePlayers = this.checkInactivePlayers(player, opponent);
 						if (inactivePlayers.length) {
@@ -782,9 +780,9 @@ export abstract class BattleElimination extends ScriptedGame {
 						}
 					}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
 					this.activityTimers.set(node, dqTimeout);
-				}
-			}, activityWarning + UPDATE_HTML_PAGE_DELAY);
-			this.activityTimers.set(node, warningTimeout);
+				}, activityWarning + UPDATE_HTML_PAGE_DELAY);
+				this.activityTimers.set(node, warningTimeout);
+			}
 		}
 
 		for (const i in this.players) {
@@ -1557,7 +1555,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		const players = battleData.slots.keys();
 		const p1 = players.next().value as Player;
 		const p2 = players.next().value as Player;
-		if (this.playerOpponents.get(p1) !== p2) return null;
+		if (this.playerOpponents.get(p1) !== p2 || this.playerOpponents.get(p2) !== p1) return null;
 
 		return [p1, p2];
 	}

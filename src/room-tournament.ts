@@ -534,7 +534,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (room) this.leaveBattleRoom(room);
+		if (room && !this.battleRoomGame) this.leaveBattleRoom(room);
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {
