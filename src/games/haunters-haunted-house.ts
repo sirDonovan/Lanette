@@ -92,6 +92,12 @@ class Ghost {
 const setupBoardAttempts = 100;
 const moveGhostAttempts = 1000;
 const boardConnectivity = 3;
+const maxCandyCount = 6;
+const minCandyCount = 3;
+const haunterCount = 4;
+const mimikyuCount = 1;
+const gengarCount = 2;
+const dusclopsCount = 1;
 const candyLimit = 3000;
 
 // how far we will check in each direction for room connectivity
@@ -225,11 +231,12 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return [Math.min(x, y), Math.max(x, y)];
 	}
 
-	setTile(board: number[][], roomPositions: number[][][], roomOptions: number[], tileValue: number, noRepeats: boolean): number[] {
+	setTile(board: number[][], roomPositions: number[][][], roomOptions: number[], maxTiles: number, tileValue: number,
+		noRepeats: boolean): number[] {
 		const setRooms: number[] = [];
 
 		let attempts = 0;
-		while (roomOptions.length && attempts < setupBoardAttempts) {
+		while (roomOptions.length && setRooms.length < maxTiles && attempts < setupBoardAttempts) {
 			attempts++;
 
 			const room = this.sampleOne(roomOptions);
@@ -521,14 +528,15 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		let candyRooms = this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, tileValues.candy, true);
-
+		let candyRooms = this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, maxCandyCount, tileValues.candy, true);
 		attempts = 0;
-		while (candyRooms.length < 3 && attempts < setupBoardAttempts) {
+		while (candyRooms.length < minCandyCount && attempts < setupBoardAttempts) {
 			attempts++;
 
-			candyRooms = candyRooms.concat(this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, tileValues.candy, true));
+			candyRooms = candyRooms.concat(this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, 1, tileValues.candy, true));
 		}
+
+		if (candyRooms.length < minCandyCount) return;
 
 		let ghostRoomOptions: number[] = [];
 		for (let i = 2; i < connectedDistances.length; i++) {
@@ -537,9 +545,11 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.dusclops, true);
-		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.gengar, false);
-		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.mimikyu, false);
+		if (!this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, dusclopsCount, tileValues.dusclops, true).length) return;
+
+		if (!this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, gengarCount, tileValues.gengar, false).length) return;
+
+		if (!this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, mimikyuCount, tileValues.mimikyu, false).length) return;
 
 		ghostRoomOptions = [];
 		for (let i = 1; i < Math.min(4, connectedDistances.length); i++) {
@@ -548,7 +558,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.haunter, false);
+		if (!this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, haunterCount, tileValues.haunter, false).length) return;
 		return board;
 	}
 
