@@ -26,6 +26,8 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 export interface IOutgoingMessageAttributes {
 	filterSend?: () => boolean;
 	announcement?: string;
+	deauthedUserid?: string;
+	disqualifiedUserid?: string;
 	format?: string;
 	html?: string;
 	measure?: boolean;
@@ -437,7 +439,10 @@ export interface ITournamentMessageTypes {
 
 	forceend: null;
 
-	autodq: null;
+	autodq: {
+		readonly status: string;
+		readonly time: number;
+	}
 
 	autostart: null;
 
@@ -484,4 +489,12 @@ export interface ITournamentMessageTypes {
 		readonly recorded: 'success' | 'fail';
 		readonly roomid: string;
 	};
+
+	/**
+	 * errorType|errorMessage
+	 */
+	error: {
+		readonly errorType: string;
+		readonly errorMessage: string;
+	}
 }

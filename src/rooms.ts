@@ -102,7 +102,7 @@ export class Room {
 
 		const keys = Object.getOwnPropertyNames(this);
 		for (const key of keys) {
-			if (key === 'id' || key === 'title' || key === 'initialized') continue;
+			if (key === 'id' || key === 'title' || key === 'initialized' || key === 'leaving') continue;
 
 			// @ts-expect-error
 			this[key] = undefined;
@@ -678,7 +678,7 @@ export class Room {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'room-deauth',
-			userid: Tools.toId(name),
+			deauthedUserid: Tools.toId(name),
 		});
 	}
 
@@ -811,6 +811,7 @@ export class Room {
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'tournament-disqualify',
+			disqualifiedUserid: userOrPlayer.id,
 		});
 	}
 
@@ -853,7 +854,7 @@ export class Room {
 	}
 
 	leave(): void {
-		if (!this.initialized || this.leaving) return;
+		if (this.leaving) return;
 
 		this.leaving = true;
 		this.say("/leave", {

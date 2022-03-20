@@ -322,10 +322,12 @@ export class Users {
 
 		this.users[id] = user;
 		user.rooms.forEach((value, room) => {
-			if (room.game) room.game.renamePlayer(user, oldId);
-			if (room.searchChallenge) room.searchChallenge.renamePlayer(user, oldId);
-			if (room.tournament) room.tournament.renamePlayer(user, oldId);
-			if (room.userHostedGame) room.userHostedGame.renamePlayer(user, oldId);
+			if (room.game) room.game.renamePlayer(user.name, user.id, oldId);
+			if (room.searchChallenge) room.searchChallenge.renamePlayer(user.name, user.id, oldId);
+			if (room.userHostedGame) room.userHostedGame.renamePlayer(user.name, user.id, oldId);
+
+			// tournament should rename last to avoid double renames in onTournamentPlayerRename()
+			if (room.tournament) room.tournament.renamePlayer(user.name, user.id, oldId);
 		});
 
 		return user;

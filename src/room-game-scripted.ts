@@ -1430,11 +1430,13 @@ export class ScriptedGame extends Game {
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
-	onTournamentEnd?(): void;
-	onTournamentStart?(players: Dict<Player>): void;
-	onTournamentPlayerJoin?(player: Player, playerCount: number): void;
-	onTournamentPlayerLeave?(player: Player, playerCount: number): void;
+	onTournamentEnd?(forceEnd?: boolean): void;
+	onTournamentStart?(players: Dict<Player>, rootNode?: IClientTournamentData, ): void;
+	onTournamentPlayerJoin?(player: Player): void;
+	onTournamentPlayerLeave?(name: string): void;
+	onTournamentPlayerRename?(player: Player, oldId: string): void;
 	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
+	onTournamentBattleStart?(player: Player, opponent: Player, room: Room): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;

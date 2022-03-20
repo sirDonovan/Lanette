@@ -537,7 +537,7 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'leave-room') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
@@ -1011,6 +1011,8 @@ export class Client {
 
 					if (page || chat) return;
 				}
+
+				if (room.leaving) return;
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException);
@@ -1582,7 +1584,7 @@ export class Client {
 					} else if (this.lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
-							if (Tools.toId(demoted) === this.lastOutgoingMessage.userid) this.clearLastOutgoingMessage(now);
+							if (Tools.toId(demoted) === this.lastOutgoingMessage.deauthedUserid) this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
@@ -2394,6 +2396,18 @@ export class Client {
 					this.lastOutgoingMessage.type === 'tournament-autodq') {
 					this.clearLastOutgoingMessage(now);
 				}
+
+				if (!room.tournament) return;
+
+				const messageArguments: ITournamentMessageTypes['autodq'] = {
+					status: messageParts[0],
+					time: parseInt(messageParts[1]),
+				};
+
+				if (Tools.toId(messageArguments.status) === "on" && !isNaN(messageArguments.time)) {
+					room.tournament.setAutoDqMinutes(messageArguments.time / 60 / 1000);
+				}
+
 				break;
 			}
 
@@ -2445,7 +2459,7 @@ export class Client {
 
 				if (type === 'disqualify' && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
 					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
-					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.userid) {
+					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.disqualifiedUserid) {
 					this.clearLastOutgoingMessage(now);
 				}
 
@@ -2488,6 +2502,21 @@ export class Client {
 
 				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score,
 					messageArguments.roomid);
+				break;
+			}
+
+			case 'error': {
+				const messageArguments: ITournamentMessageTypes['error'] = {
+					errorType: messageParts[0],
+					errorMessage: messageParts[1],
+				};
+
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
+					Tools.toId(messageArguments.errorType) === "alreadydisqualified" &&
+					Tools.toId(messageArguments.errorMessage) === this.lastOutgoingMessage.disqualifiedUserid) {
+					this.clearLastOutgoingMessage(now);
+				}
 				break;
 			}
 			}

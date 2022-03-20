@@ -1,5 +1,5 @@
 import { EliminationNode } from "../../lib/elimination-node";
-import type { Player } from "../../room-activity";
+import { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
 import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
@@ -27,11 +27,11 @@ const REROLL_COMMAND = "reroll";
 const REROLL_START_DELAY = 30 * 1000;
 const UPDATE_HTML_PAGE_DELAY = 5 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
-const ADVERTISEMENT_TIME = 10 * 60 * 1000;
+const ADVERTISEMENT_TIME = 5 * 60 * 1000;
 const POTENTIAL_MAX_PLAYERS: number[] = [12, 16, 24, 32, 48, 64];
 
 export abstract class BattleElimination extends ScriptedGame {
-	abstract baseTournamentName: string;
+	abstract baseHtmlPageGameName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
 	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
@@ -58,22 +58,27 @@ export abstract class BattleElimination extends ScriptedGame {
 	disqualifiedPlayers = new Map<Player, string>();
 	dontAutoCloseHtmlPages: boolean = true;
 	dropsPerRound: number = 0;
+	eliminationPlayers = new Set<Player>();
 	eliminationEnded: boolean = false;
 	eliminationStarted: boolean = false;
 	evolutionsPerRound: number = 0;
 	firstRoundByes = new Set<Player>();
+	firstRoundByeAdditions = new Map<Player, string[]>();
 	firstRoundExtraTime: number = 0;
 	firstRoundTime: number = 0;
 	fullyEvolved: boolean = false;
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
 	hasSpeciesClause: boolean = false;
+	htmlPageGameDescription: string = '';
+	htmlPageGameName: string = '';
 	internalGame = true;
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
 	monoColor: boolean = false;
 	monoRegion: boolean = false;
 	monoType: boolean = false;
+	playerBattleRooms = new Map<Player, Room>();
 	playerCap: number = 0;
 	playerOpponents = new Map<Player, Player>();
 	playerRequiredPokemon = new Map<Player, readonly string[][]>();
@@ -91,13 +96,10 @@ export abstract class BattleElimination extends ScriptedGame {
 	spectatorUsers = new Set<string>();
 	starterPokemon = new Map<Player, readonly string[]>();
 	startingTeamsLength: number = 6;
-	subRoom: Room | null = null;
 	teamChanges = new Map<Player, ITeamChange[]>();
 	totalAdvertisementTime: number = 0;
 	totalRounds: number = 0;
-	tournamentDescription: string = '';
-	tournamentName: string = '';
-	tournamentPlayers = new Set<Player>();
+	tournamentDisqualifiedPlayers: Player[] = [];
 	treeRoot: EliminationNode<Player> | null = null;
 	type: string | null = null;
 	usesCloakedPokemon: boolean = false;
@@ -312,10 +314,10 @@ export abstract class BattleElimination extends ScriptedGame {
 		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies)))).map(x => x.name);
 	}
 
-	generateBracket(): void {
+	generateBracket(players?: Player[]): void {
 		let tree: IEliminationTree<Player> | null = null;
 
-		const players = this.shufflePlayers();
+		if (!players) players = this.shufflePlayers();
 		for (const player of players) {
 			if (!tree) {
 				tree = {
@@ -353,7 +355,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		});
 
-		this.totalRounds = this.getNumberOfRounds(this.getRemainingPlayerCount());
+		this.totalRounds = this.getNumberOfRounds(this.playerCount);
 
 		const matchesByRound = this.getMatchesByRound();
 		const matchRounds = Object.keys(matchesByRound).sort();
@@ -387,10 +389,12 @@ export abstract class BattleElimination extends ScriptedGame {
 				};
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
+				this.firstRoundByeAdditions.set(player, pokemon);
 				this.updatePossibleTeams(player, pokemon);
 
 				if (!player.eliminated) {
 					player.say("You were given a first round bye so check the tournament page for additional team changes!");
+					if (this.subRoom) this.updatePlayerHtmlPage(player);
 				}
 			}
 		});
@@ -528,6 +532,15 @@ export abstract class BattleElimination extends ScriptedGame {
 		for (const player of players) {
 			player.eliminated = true;
 			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
+			this.playerOpponents.delete(player);
+
+			const battleRoom = this.playerBattleRooms.get(player);
+			if (battleRoom) battleRoom.leave();
+
+			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
+				this.tournamentDisqualifiedPlayers.push(player);
+				this.subRoom.disqualifyFromTournament(player);
+			}
 
 			/**
 			 * The user either has a single available battle or no available battles
@@ -583,7 +596,6 @@ export abstract class BattleElimination extends ScriptedGame {
 
 				for (const player of players) {
 					this.updatePlayerHtmlPage(player);
-					this.subRoom.disqualifyFromTournament(player);
 				}
 			}
 
@@ -654,6 +666,9 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.playerOpponents.delete(p1);
 		this.playerOpponents.delete(p2);
 
+		this.playerBattleRooms.delete(p1);
+		this.playerBattleRooms.delete(p2);
+
 		targetNode.state = 'finished';
 		targetNode.result = result;
 		targetNode.score = score.slice();
@@ -710,15 +725,16 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (userA && userB) {
 				targetNode.parent.state = 'available';
 
-				if (this.disqualifiedPlayers.has(userA)) {
+				if (userA.eliminated) {
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'loss', [0, 1]));
-				} else if (this.disqualifiedPlayers.has(userB)) {
+				} else if (userB.eliminated) {
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'win', [1, 0]));
 				}
 			}
 		}
 
 		if (!this.ended && this.getRemainingPlayerCount() < 2) {
+			this.eliminationEnded = true;
 			this.end();
 		}
 
@@ -739,46 +755,40 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (!onStart) {
 				const notificationTitle = "New " + this.name + " opponent!";
-				player.sendHighlight(notificationTitle);
-				opponent.sendHighlight(notificationTitle);
+				if (!player.eliminated) player.sendHighlight(notificationTitle);
+				if (!opponent.eliminated) opponent.sendHighlight(notificationTitle);
 			}
 
 			if (this.subRoom) {
-				this.updatePlayerHtmlPage(player);
-				this.updatePlayerHtmlPage(opponent);
-			}
-
-			let activityWarning = this.activityWarnTimeout;
-			if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
-				if (this.firstRoundExtraTime) activityWarning += this.firstRoundExtraTime;
-			}
-			this.givenFirstRoundExtraTime.add(player);
-			this.givenFirstRoundExtraTime.add(opponent);
-
-			const warningTimeout = setTimeout(() => {
-				let reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
-					(this.subRoom ? this.subRoom.title : this.room.title) + "!";
-				if (!this.subRoom) {
-					reminderPM += " Please send me the link to the battle or leave your pending challenge up. Make sure you have " +
-						"challenged in the **" + this.battleFormat.name + "** format!";
+				if (!player.eliminated) this.updatePlayerHtmlPage(player);
+				if (!opponent.eliminated) this.updatePlayerHtmlPage(opponent);
+			} else {
+				let activityWarning = this.activityWarnTimeout;
+				if (!this.givenFirstRoundExtraTime.has(player) && !this.givenFirstRoundExtraTime.has(opponent)) {
+					if (this.firstRoundExtraTime) activityWarning += this.firstRoundExtraTime;
 				}
+				this.givenFirstRoundExtraTime.add(player);
+				this.givenFirstRoundExtraTime.add(opponent);
+				const warningTimeout = setTimeout(() => {
+					const reminderPM = "You still need to battle your new opponent for the " + this.name + " tournament in " +
+						this.room.title + "! Please send me the link to the battle or leave your pending challenge up. Make sure " +
+						"you have challenged in the **" + this.battleFormat.name + "** format!";
 
-				player.say(reminderPM);
-				opponent.say(reminderPM);
+					player.say(reminderPM);
+					opponent.say(reminderPM);
 
-				const dqTimeout = setTimeout(() => {
-					const inactivePlayers = this.checkInactivePlayers(player, opponent);
-					if (inactivePlayers.length) {
-						this.eliminateInactivePlayers(player, opponent, inactivePlayers);
-					} else if (this.subRoom) {
-						this.subRoom.runTournamentAutoDq();
-					} else {
-						this.checkChallenges(node, player, opponent);
-					}
-				}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
-				this.activityTimers.set(node, dqTimeout);
-			}, activityWarning + UPDATE_HTML_PAGE_DELAY);
-			this.activityTimers.set(node, warningTimeout);
+					const dqTimeout = setTimeout(() => {
+						const inactivePlayers = this.checkInactivePlayers(player, opponent);
+						if (inactivePlayers.length) {
+							this.eliminateInactivePlayers(player, opponent, inactivePlayers);
+						} else {
+							this.checkChallenges(node, player, opponent);
+						}
+					}, this.activityDQTimeout + UPDATE_HTML_PAGE_DELAY);
+					this.activityTimers.set(node, dqTimeout);
+				}, activityWarning + UPDATE_HTML_PAGE_DELAY);
+				this.activityTimers.set(node, warningTimeout);
+			}
 		}
 
 		for (const i in this.players) {
@@ -1122,9 +1132,14 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.playerRequiredPokemon.set(player, formeCombinations);
 		} else {
 			this.possibleTeams.set(player, formeCombinations);
+
+			if (this.firstRoundByeAdditions.has(player)) {
+				this.updatePossibleTeams(player, this.firstRoundByeAdditions.get(player)!);
+			}
 		}
 
 		this.starterPokemon.set(player, team);
+
 		this.updatePlayerHtmlPage(player);
 	}
 
@@ -1148,7 +1163,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	getSignupsHtml(): string {
 		let html = "<div class='infobox'><b>" + Users.self.name + " is hosting a " + this.name + " tournament!</b>";
-		if (this.tournamentDescription) html += "<br />" + this.tournamentDescription;
+		if (this.htmlPageGameDescription) html += "<br />" + this.htmlPageGameDescription;
 		html += "<br /><br />";
 		if (this.started) {
 			html += "(the tournament has started)";
@@ -1190,7 +1205,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				colorKeys.shift();
 				pokedex = this.createPokedex();
 			}
-			this.tournamentName = "Mono-" + this.color + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
 		} else if (this.monoType) {
 			const types = this.shuffle(Dex.getData().typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
@@ -1202,7 +1217,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				types.shift();
 				pokedex = this.createPokedex();
 			}
-			this.tournamentName = "Mono-" + this.type + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + this.type + " " + this.baseHtmlPageGameName;
 		} else if (this.monoRegion) {
 			const currentGen = Dex.getGen();
 			let gens: number[] = [];
@@ -1240,13 +1255,13 @@ export abstract class BattleElimination extends ScriptedGame {
 				region = 'Galar';
 			}
 
-			this.tournamentName = "Mono-" + region + " " + this.baseTournamentName;
+			this.htmlPageGameName = "Mono-" + region + " " + this.baseHtmlPageGameName;
 		} else {
 			pokedex = this.createPokedex();
 			if (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				throw new Error(this.battleFormat.name + " does not have at least " + minimumPokemon + " Pokemon");
 			}
-			this.tournamentName = this.format.nameWithOptions || this.format.name;
+			this.htmlPageGameName = this.format.nameWithOptions || this.format.name;
 		}
 
 		this.pokedex = this.shuffle(pokedex);
@@ -1254,7 +1269,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	onSignups(): void {
 		this.generatePokedex();
-		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.tournamentName + "</h2><hr />";
+		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.htmlPageGameName + "</h2><hr />";
 
 		const maxPlayers = this.getMaxPlayers(this.pokedex.length);
 		if (maxPlayers < this.maxPlayers) this.maxPlayers = maxPlayers;
@@ -1326,8 +1341,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		const html = this.getSignupsHtml();
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.canReroll) {
-				const text = "The " + this.name + " tournament is about to start! There are " + Tools.toDurationString(REROLL_START_DELAY) +
-					" left to PM me the command ``" + Config.commandCharacter + REROLL_COMMAND + "`` to get a new " +
+				let text = "";
+				if (!this.subRoom) {
+					text += "The " + this.name + " tournament is about to start! ";
+				}
+				text += "There are " + Tools.toDurationString(REROLL_START_DELAY) + " left to PM me the command ``" +
+					Config.commandCharacter + REROLL_COMMAND + "`` to get a new " +
 					(this.startingTeamsLength === 1 ? "starter" : "team") + " (cannot be undone).";
 
 				if (this.subRoom) {
@@ -1336,7 +1355,15 @@ export abstract class BattleElimination extends ScriptedGame {
 					this.say(text);
 				}
 
-				this.timeout = setTimeout(() => this.startElimination(), REROLL_START_DELAY);
+				if (this.subRoom) {
+					this.startElimination();
+
+					this.timeout = setTimeout(() => {
+						this.canReroll = false;
+					}, REROLL_START_DELAY);
+				} else {
+					this.timeout = setTimeout(() => this.startElimination(), REROLL_START_DELAY);
+				}
 			} else {
 				this.startElimination();
 			}
@@ -1346,12 +1373,13 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	startElimination(): void {
-		this.canReroll = false;
 		this.eliminationStarted = true;
 
 		let html = Users.self.name + "'s " + this.name + " tournament has started! You have " +
 			Tools.toDurationString(this.firstRoundTime) + " to build your team and start the first battle.";
 		if (!this.subRoom) {
+			this.canReroll = false;
+
 			html += " Please refer to the tournament page on the left for your opponents.";
 			html += "<br /><br /><b>Remember that you must PM " + Users.self.name + " the link to each battle</b>! If you cannot copy " +
 			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
@@ -1379,38 +1407,47 @@ export abstract class BattleElimination extends ScriptedGame {
 				}
 			}
 
-			if (this.tournamentPlayers.has(player) && !this.canRejoin) {
-				player.say("You cannot re-join the tournament after leaving it.");
-				return false;
-			}
-
 			if (Client.checkFilters(player.name, this.room)) {
 				player.say("You cannot participate in the tournament with your current username.");
 				return false;
 			}
 		}
 
-		player.round = 1;
-		this.tournamentPlayers.add(player);
+		if (this.eliminationPlayers.has(player) && !this.canRejoin) {
+			let text = "You cannot re-join the tournament after leaving it.";
+			if (this.subRoom) {
+				player.eliminated = true;
+				text += " You will be disqualified at the start of the tournament.";
+			}
+			player.say(text);
 
-		if (!this.joinNotices.has(player.id)) {
-			player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any time, you " +
-				"may use the command ``" + Config.commandCharacter + "leavegame " + this.room.title + "``.");
-			this.joinNotices.add(player.id);
+			if (!this.subRoom) return false;
 		}
 
-		if (!this.subRoom && !this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.signupsHtmlTimeout = null;
-			}, this.getSignupsUpdateDelay());
-		}
+		if (!player.eliminated) {
+			player.round = 1;
+			this.eliminationPlayers.add(player);
 
-		this.giveStartingTeam(player);
+			if (!this.joinNotices.has(player.id)) {
+				player.say("Thanks for joining the " + this.name + " tournament! If you would like to leave the tournament at any " +
+					"time, you may use the command ``" + (this.subRoom ? "/tour leave" :
+					Config.commandCharacter + "leavegame " + this.room.title) + "``.");
+				this.joinNotices.add(player.id);
+			}
 
-		if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
-			player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
-				Config.commandCharacter + REROLL_COMMAND + "`` or keep your team!");
+			if (!this.started && !this.signupsHtmlTimeout) {
+				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+				this.signupsHtmlTimeout = setTimeout(() => {
+					this.signupsHtmlTimeout = null;
+				}, this.getSignupsUpdateDelay());
+			}
+
+			this.giveStartingTeam(player);
+
+			if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
+				player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
+					Config.commandCharacter + REROLL_COMMAND + "`` or keep your team!");
+			}
 		}
 
 		return true;
@@ -1422,7 +1459,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	onRemovePlayer(player: Player, notAutoconfirmed?: boolean): void {
 		// allow rejoining on an autoconfirmed account
-		if (notAutoconfirmed) this.tournamentPlayers.delete(player);
+		if (notAutoconfirmed) this.eliminationPlayers.delete(player);
 
 		if (!this.started) {
 			const starterPokemon = this.starterPokemon.get(player);
@@ -1550,7 +1587,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		const players = battleData.slots.keys();
 		const p1 = players.next().value as Player;
 		const p2 = players.next().value as Player;
-		if (this.playerOpponents.get(p1) !== p2) return null;
+		if (this.playerOpponents.get(p1) !== p2 || this.playerOpponents.get(p2) !== p1) return null;
 
 		return [p1, p2];
 	}
@@ -1616,6 +1653,9 @@ export abstract class BattleElimination extends ScriptedGame {
 	onBattleTeamPreview(room: Room): boolean {
 		const players = this.getPlayersFromBattleData(room);
 		if (!players) return false;
+
+		this.playerBattleRooms.set(players[0], room);
+		this.playerBattleRooms.set(players[1], room);
 
 		const playersAndReasons = new Map<Player, string>();
 		const reason = this.getDisqualifyReasonText("for using an incorrect team");
@@ -1741,7 +1781,15 @@ export abstract class BattleElimination extends ScriptedGame {
 				battleData.faintedCloakedPokemon[slot]++;
 				if (battleData.faintedCloakedPokemon[slot] === cloakedPokemon.length) {
 					room.say(player.name + " your cloaked Pokemon " + (cloakedPokemon.length > 1 ? "have" : "has") + " fainted!");
-					this.onBattleWin(room, opponent.name);
+
+					if (this.subRoom) {
+						const playersAndReasons = new Map<Player, string>();
+						playersAndReasons.set(player, "You lost your cloaked Pokemon");
+						this.disqualifyPlayers(playersAndReasons);
+					} else {
+						this.onBattleWin(room, opponent.name);
+					}
+
 					return false;
 				}
 			}
@@ -1841,11 +1889,10 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.eliminationEnded = true;
+		if (!this.treeRoot || !this.eliminationEnded) return;
+
 		this.updateBracketHtml();
 		this.updateHtmlPages();
-
-		if (!this.treeRoot) return;
 
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
@@ -2004,7 +2051,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			const id = Tools.toId(target);
 			if (id) {
 				if (!user.isDeveloper() && !user.hasRank(this.room, 'driver')) return false;
-				if (user.id in this.players) {
+				if (user.id in this.players && !(this.players[user.id].eliminated && user.isDeveloper())) {
 					user.say("You cannot use this command while participating in the tournament.");
 					return false;
 				}
@@ -2039,12 +2086,14 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 		command(target, room, user) {
 			if (!this.canReroll || !(user.id in this.players)) return false;
 			const player = this.players[user.id];
-			if (this.rerolls.has(player)) return false;
+			if (this.rerolls.has(player) || this.playerBattleRooms.has(player)) return false;
+
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;
 			for (const pokemon of starterPokemon) {
 				this.pokedex.push(pokemon);
 			}
+
 			this.rerolls.set(player, true);
 			this.giveStartingTeam(player);
 			return true;
@@ -2090,12 +2139,17 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 	},
 };
 
+const disableTournamentProperties = (game: BattleElimination): void => {
+	game.subRoom = null;
+	game.usesTournamentStart = false;
+	game.usesTournamentJoin = false;
+};
+
 const tests: GameFileTests<BattleElimination> = {
 	'should use a compatible format': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			const format = Dex.getExistingFormat(game.battleFormatId);
 			assert(!format.team);
 			assert(Dex.getRuleTable(format).has("teampreview"));
@@ -2103,20 +2157,198 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should generate a Pokedex': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			assert(game.pokedex.length);
 			addPlayers(game, game.maxPlayers);
 			assert(game.started);
 			game.startElimination();
 		},
 	},
+	'should generate a bracket - 4 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 4; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(!root.children[0].children[0].children);
+			assert(!root.children[0].children[1].children);
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 5 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 5; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(!root.children[0].children[1].children);
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 6 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 6; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(!root.children[1].children[0].children);
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 7 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 7; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user, null);
+			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(root.children[1].children[0].children);
+			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
+			assert(!root.children[1].children[1].children);
+		},
+	},
+	'should generate a bracket - 8 players': {
+		test(game) {
+			disableTournamentProperties(game);
+
+			const players: Player[] = [];
+			for (let i = 1; i <= 8; i++) {
+				players.push(new Player("Mocha Player " + i, game));
+			}
+
+			game.generateBracket(players);
+			const root = game.treeRoot!;
+			assertStrictEqual(root.user, null);
+			assert(root.children);
+			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].user, null);
+			assertStrictEqual(root.children[1].user, null);
+			assert(root.children[0].children);
+			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].user, null);
+			assertStrictEqual(root.children[0].children[1].user, null);
+			assert(root.children[1].children);
+			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].user, null);
+			assertStrictEqual(root.children[1].children[1].user, null);
+			assert(root.children[0].children[0].children);
+			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
+			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
+			assert(root.children[0].children[1].children);
+			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
+			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
+			assert(root.children[1].children[0].children);
+			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
+			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
+			assert(root.children[1].children[1].children);
+			assert(root.children[1].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[1].children[0].user!.name, "Mocha Player 4");
+			assertStrictEqual(root.children[1].children[1].children[1].user!.name, "Mocha Player 8");
+		},
+	},
 	'should properly list matches by round - 4 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 4);
 			game.start();
@@ -2143,9 +2375,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 5 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 5);
 			game.start();
@@ -2184,9 +2415,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 6 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 6);
 			game.start();
@@ -2229,9 +2459,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 7 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 7);
 			game.start();
@@ -2274,9 +2503,8 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 8 players': {
 		test(game) {
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 8);
 			if (!game.started) game.start();
@@ -2316,9 +2544,8 @@ const tests: GameFileTests<BattleElimination> = {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
 
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();
@@ -2350,9 +2577,8 @@ const tests: GameFileTests<BattleElimination> = {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
 
-			game.subRoom = null;
-			game.usesTournamentStart = false;
-			game.usesTournamentJoin = false;
+			disableTournamentProperties(game);
+
 			game.canReroll = false;
 			addPlayers(game, 64);
 			if (!game.started) game.start();

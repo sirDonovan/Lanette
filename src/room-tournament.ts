@@ -40,12 +40,12 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	isSingleElimination: boolean = false;
-	lastUpdateEndTime: number = 0;
-	lastRunAutoDqTime: number = 0;
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
+	playerBattleRooms = new Map<Player, Room>();
 	playerLosses = new Map<Player, number>();
+	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
 	scheduled: boolean = false;
@@ -148,6 +148,7 @@ export class Tournament extends Activity {
 
 	setAutoDqMinutes(minutes: number): void {
 		this.runAutoDqTime = (minutes * 60 * 1000) - AUTO_DQ_WARNING_TIMEOUT;
+		if (this.started) this.setRunAutoDqTimeout();
 	}
 
 	setRunAutoDqTimeout(): void {
@@ -157,16 +158,12 @@ export class Tournament extends Activity {
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.runAutoDqTimeout = null;
 
-			if (!this.lastUpdateEndTime || !this.lastRunAutoDqTime || this.lastUpdateEndTime > this.lastRunAutoDqTime) {
-				this.room.runTournamentAutoDq();
-				this.lastRunAutoDqTime = Date.now();
-
-				if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
-			}
+			this.room.runTournamentAutoDq();
+			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
 		}, this.runAutoDqTime);
 	}
 
-	deallocate(): void {
+	deallocate(forceEnd?: boolean): void {
 		if (this.adjustCapTimer) {
 			clearTimeout(this.adjustCapTimer);
 			// @ts-expect-error
@@ -185,7 +182,7 @@ export class Tournament extends Activity {
 			this.runAutoDqTimeout = undefined;
 		}
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd(forceEnd);
 
 		this.cleanupBattleRooms();
 
@@ -206,7 +203,7 @@ export class Tournament extends Activity {
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (player) {
 			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerJoin) {
-				this.battleRoomGame.onTournamentPlayerJoin(player, this.playerCount);
+				this.battleRoomGame.onTournamentPlayerJoin(player);
 			}
 		}
 	}
@@ -214,9 +211,29 @@ export class Tournament extends Activity {
 	removePlayer(name: string): void {
 		const player = this.destroyPlayer(name);
 		if (player) {
-			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
-				this.battleRoomGame.onTournamentPlayerLeave(player, this.playerCount);
+			const opponent = this.playerOpponents.get(player);
+			if (opponent) {
+				for (let i = 0; i < this.currentBattles.length; i++) {
+					if ((this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent) ||
+						(this.currentBattles[i].playerA === opponent && this.currentBattles[i].playerB === player)) {
+						this.currentBattles.splice(i, 1);
+						break;
+					}
+				}
 			}
+
+			const battleRoom = this.playerBattleRooms.get(player);
+			if (battleRoom && !this.battleRoomGame) this.leaveBattleRoom(battleRoom);
+		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
+			this.battleRoomGame.onTournamentPlayerLeave(name);
+		}
+	}
+
+	onRenamePlayer(player: Player, oldId: string): void {
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerRename) {
+			this.battleRoomGame.onTournamentPlayerRename(player, oldId);
 		}
 	}
 
@@ -227,7 +244,9 @@ export class Tournament extends Activity {
 		this.startTime = Date.now();
 		this.setRunAutoDqTimeout();
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) this.battleRoomGame.onTournamentStart(this.players);
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) {
+			this.battleRoomGame.onTournamentStart(this.players, this.info.isStarted ? this.info.bracketData : undefined);
+		}
 	}
 
 	onEnd(): void {
@@ -324,7 +343,7 @@ export class Tournament extends Activity {
 
 	forceEnd(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.deallocate();
+		this.deallocate(true);
 	}
 
 	update(json: Partial<ITournamentUpdateJson & ITournamentEndJson>): void {
@@ -363,11 +382,10 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
-			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted && this.started);
+			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.started && this.info.isStarted);
 		}
 
 		this.updates = {};
-		this.lastUpdateEndTime = Date.now();
 	}
 
 	updateBracket(): void {
@@ -381,23 +399,26 @@ export class Tournament extends Activity {
 				queue.shift();
 				if (!node.children) continue;
 
+				let userA;
+				let userB;
+
 				if (node.children[0] && node.children[0].team) {
-					const userA = Tools.toId(node.children[0].team);
+					userA = Tools.toId(node.children[0].team);
 					if (!players[userA]) players[userA] = Tools.stripHtmlCharacters(node.children[0].team);
+				}
 
-					if (node.children[1] && node.children[1].team) {
-						const userB = Tools.toId(node.children[1].team);
-						if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				if (node.children[1] && node.children[1].team) {
+					userB = Tools.toId(node.children[1].team);
+					if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				}
 
-						if (node.state === 'finished') {
-							if (node.result === 'win') {
-								if (!losses[userB]) losses[userB] = 0;
-								losses[userB]++;
-							} else if (node.result === 'loss') {
-								if (!losses[userA]) losses[userA] = 0;
-								losses[userA]++;
-							}
-						}
+				if (userA && userB && node.state === 'finished') {
+					if (node.result === 'win') {
+						if (!losses[userB]) losses[userB] = 0;
+						losses[userB]++;
+					} else if (node.result === 'loss') {
+						if (!losses[userA]) losses[userA] = 0;
+						losses[userA]++;
 					}
 				}
 
@@ -413,7 +434,10 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (!this.totalPlayers) this.totalPlayers = Object.keys(players).length;
+		if (!this.totalPlayers) {
+			this.totalPlayers = Object.keys(players).length;
+			this.playerCount = this.totalPlayers;
+		}
 
 		// clear users who are now guests (currently can't be tracked)
 		for (const i in this.players) {
@@ -433,21 +457,32 @@ export class Tournament extends Activity {
 		}
 	}
 
-	onBattleStart(usernameA: string, usernameB: string, roomid: string): void {
+	onBattleStart(playerName: string, opponentName: string, roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in " + roomid);
 		}
 
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid);
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
 		const room = Rooms.add(roomid);
+		this.playerBattleRooms.set(player, room);
+		this.playerBattleRooms.set(opponent, room);
+
+		this.playerOpponents.set(player, opponent);
+		this.playerOpponents.set(opponent, player);
 
 		this.currentBattles.push({
-			playerA: this.players[idA],
-			playerB: this.players[idB],
+			playerA: player,
+			playerB: opponent,
 			room,
 		});
 
@@ -463,29 +498,45 @@ export class Tournament extends Activity {
 
 			Client.joinRoom(room.id);
 		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {
+			this.battleRoomGame.onTournamentBattleStart(player, opponent, room);
+		}
 	}
 
-	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {
+	onBattleEnd(playerName: string, opponentName: string, score: [string, string], roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in " + roomid);
 		}
+
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid);
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
+		this.playerBattleRooms.delete(player);
+		this.playerBattleRooms.delete(opponent);
+
+		this.playerOpponents.delete(player);
+		this.playerOpponents.delete(opponent);
 
 		const room = Rooms.get(roomid);
 
 		for (let i = 0; i < this.currentBattles.length; i++) {
-			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] &&
+			if (this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent &&
 				this.currentBattles[i].room === room) {
 				this.currentBattles.splice(i, 1);
 				break;
 			}
 		}
 
-		if (room) this.leaveBattleRoom(room);
+		if (room && !this.battleRoomGame) this.leaveBattleRoom(room);
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {

@@ -780,10 +780,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			const gameCategories = Games.getCategoryNames();
+			const gameCategories = Object.keys(Games.getCategoryNames()).map(x => Tools.toId(x));
 			let category = Tools.toId(target);
 			let variant = "";
-			if (!(category in gameCategories)) {
+			if (!gameCategories.includes(category)) {
 				variant = category;
 				category = "";
 			}
@@ -972,13 +972,13 @@ export const commands: BaseCommandDefinitions = {
 				if (!chatRoom) return;
 
 				if (chatRoom.game) {
-					chatRoom.game.removePlayer(user);
+					if (!chatRoom.game.usesTournamentJoin) chatRoom.game.removePlayer(user);
 				} else if (chatRoom.userHostedGame) {
 					chatRoom.userHostedGame.removePlayer(user);
 				}
 			} else {
 				if (room.game) {
-					room.game.removePlayer(user);
+					if (!room.game.usesTournamentJoin)room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.removePlayer(user);
 				}

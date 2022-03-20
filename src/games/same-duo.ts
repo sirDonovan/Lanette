@@ -12,8 +12,8 @@ class SameDuo extends BattleEliminationTournament {
 	additionsPerRound = 0;
 	evolutionsPerRound = 0;
 	startingTeamsLength = 2;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	fullyEvolved = true;
 	sharedTeams = true;
 	canRejoin = true;

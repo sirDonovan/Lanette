@@ -16,8 +16,8 @@ class CatchAndDevolve extends BattleEliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		return pokemon.evos.length <= 1;

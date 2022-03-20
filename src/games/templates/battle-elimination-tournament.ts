@@ -5,8 +5,10 @@ import type { IClientTournamentData } from "../../types/tournaments";
 import { game as battleEliminationGame, BattleElimination } from "./battle-elimination";
 
 const GROUPCHAT_SUFFIX = "Games";
+const AUTO_DQ_MINUTES = 3;
 
 export abstract class BattleEliminationTournament extends BattleElimination {
+	requiresAutoconfirmed = false;
 	startAutoDqTimer: NodeJS.Timer | undefined;
 	tournamentCreated: boolean = false;
 	tournamentEnded: boolean = false;
@@ -17,6 +19,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	afterInitialize(): void {
 		super.afterInitialize();
+
+		this.firstRoundTime = (AUTO_DQ_MINUTES * 60 * 1000) + this.firstRoundExtraTime;
 
 		const name = this.room.title + " " + GROUPCHAT_SUFFIX;
 		const id = this.room.getSubRoomGroupchatId(name);
@@ -38,16 +42,23 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	}
 
 	createTournament(): void {
+		if (this.subRoom.tournament) {
+			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament in " + this.subRoom.title + " to end.");
+			this.deallocate(true);
+			return;
+		}
+
 		Tournaments.createListeners[this.subRoom.id] = {
 			format: this.battleFormat,
 			game: this,
 			callback: () => {
 				this.subRoom.nameTournament(this.name);
+				this.subRoom.forcePublicTournament();
 				this.subRoom.forceTimerTournament();
 				this.subRoom.disallowTournamentScouting();
 				this.subRoom.disallowTournamentModjoin();
 
-				this.subRoom.announce("You must join the tournament in this room to play!");
+				this.subRoom.announce("You must join the tournament in this room to play! Once you leave, you cannot re-join.");
 
 				this.tournamentCreated = true;
 			},
@@ -63,65 +74,67 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (this.subRoom) this.subRoom.setTournamentCap(this.playerCap);
 	}
 
-	onDeallocate(): void {
-		if (this.tournamentCreated && !this.tournamentEnded) {
-			this.tournamentEnded = true;
+	onDeallocate(forceEnd?: boolean): void {
+		if (forceEnd && this.tournamentCreated && !this.tournamentEnded) {
 			this.subRoom.endTournament();
 		}
 	}
 
-	onTournamentStart(): void {
+	onTournamentStart(players: Dict<Player>, bracketData?: IClientTournamentData): void {
 		this.tournamentStarted = true;
+		this.createBracketFromClientData(players, bracketData);
 	}
 
-	onTournamentEnd(): void {
-		if (this.tournamentEnded) return;
-
+	onTournamentEnd(forceEnd?: boolean): void {
 		this.tournamentEnded = true;
-		if (!this.ended) this.end();
+		if (forceEnd && !this.ended) this.end();
 	}
 
-	onTournamentPlayerJoin(tournamentPlayer: Player, playerCount: number): void {
-		this.playerCount = playerCount;
-		tournamentPlayer.sayPrivateUhtml("<b>You will receive your " + (this.startingTeamsLength === 1 ? "starter" : "team") +
-			" once the tournament begins!</b>", this.uhtmlBaseName + "-tournament-join");
-
-		if (!this.started && !this.signupsHtmlTimeout) {
-			this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.signupsHtmlTimeout = null;
-			}, this.getSignupsUpdateDelay());
-		}
+	onTournamentPlayerJoin(tournamentPlayer: Player): void {
+		this.addPlayer(Users.add(tournamentPlayer.name, tournamentPlayer.id), true);
 	}
 
-	onTournamentPlayerLeave(tournamentPlayer: Player, playerCount: number): void {
+	onTournamentPlayerLeave(name: string): void {
 		if (this.started) {
-			const player = this.players[tournamentPlayer.id];
+			const player = this.players[Tools.toId(name)];
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
 				player.eliminated = true;
+				this.tournamentDisqualifiedPlayers.push(player);
 				this.onRemovePlayer(player);
 			}
 		} else {
-			this.playerCount = playerCount;
-			if (!this.signupsHtmlTimeout) {
-				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
+			this.removePlayer(name);
 		}
 	}
 
-	onTournamentBracketUpdate(players: Dict<Player>, bracketData: IClientTournamentData, tournamentStarted: boolean): void {
-		if (!tournamentStarted || this.treeRoot || !bracketData.rootNode) return;
+	onTournamentPlayerRename(player: Player, oldId: string): void {
+		if (oldId in this.players && (!(player.id in this.players) || this.players[player.id].name !== player.name)) {
+			this.renamePlayer(player.name, player.id, oldId);
+		}
+	}
 
-		this.playerCount = 0;
+	onTournamentBracketUpdate(players: Dict<Player>, clientTournamentData: IClientTournamentData, tournamentStarted: boolean): void {
+		if (tournamentStarted) this.createBracketFromClientData(players, clientTournamentData);
+	}
+
+	createBracketFromClientData(players: Dict<Player>, clientTournamentData?: IClientTournamentData): void {
+		if (this.treeRoot || !clientTournamentData || !clientTournamentData.rootNode) return;
+
+		this.playerCap = 0;
 		for (const i in players) {
-			this.addPlayer(Users.add(players[i].name, players[i].id), true);
+			if (!(players[i].id in this.players)) {
+				this.addPlayer(Users.add(players[i].name, players[i].id), true);
+			}
 		}
 
-		this.treeRoot = Tournaments.bracketToEliminationNode(bracketData.rootNode, this.players);
+		for (const i in this.players) {
+			if (!(this.players[i].id in players)) {
+				this.removePlayer(this.players[i].name, true);
+			}
+		}
+
+		this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
 
 		this.start(true);
 	}
@@ -129,11 +142,10 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	startElimination(): void {
 		super.startElimination();
 
-		if (this.firstRoundExtraTime) {
-			this.startAutoDqTimer = setTimeout(() => this.setTournamentAutoDq(), this.firstRoundExtraTime);
-		} else {
-			this.setTournamentAutoDq();
-		}
+		this.startAutoDqTimer = setTimeout(() => {
+			this.subRoom.setTournamentAutoDq(AUTO_DQ_MINUTES);
+			this.subRoom.tournament!.setAutoDqMinutes(AUTO_DQ_MINUTES);
+		}, this.firstRoundTime);
 
 		const database = Storage.getDatabase(this.room);
 		const eliminatedPlayers: Player[] = [];
@@ -160,11 +172,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			this.disqualifyPlayers(playersAndReasons);
 		}
-	}
-
-	setTournamentAutoDq(): void {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (this.subRoom) this.subRoom.setTournamentAutoDq((this.activityWarnTimeout + this.activityDQTimeout) / 60 / 1000);
 	}
 
 	setPlayerCap(playerCap: number): void {

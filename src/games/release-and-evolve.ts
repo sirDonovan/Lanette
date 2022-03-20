@@ -18,8 +18,8 @@ class ReleaseAndEvolve extends BattleEliminationTournament {
 	requiredEvolution = true;
 	canReroll = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
 		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
 
