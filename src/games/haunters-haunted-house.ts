@@ -1117,7 +1117,6 @@ const tests: GameFileTests<HauntersHauntedHouse> = {
 };
 
 export const game: IGameFile<HauntersHauntedHouse> = {
-	disabled: true,
 	category: 'map',
 	class: HauntersHauntedHouse,
 	commands,
