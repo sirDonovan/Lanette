@@ -473,26 +473,31 @@ export class Tournament extends Activity {
 		const player = this.players[playerId];
 		const opponent = this.players[opponentId];
 
-		const room = Rooms.add(roomid);
-		this.playerBattleRooms.set(player, room);
-		this.playerBattleRooms.set(opponent, room);
-
 		this.playerOpponents.set(player, opponent);
 		this.playerOpponents.set(opponent, player);
 
 		this.currentBattles.push({
 			playerA: player,
 			playerB: opponent,
-			room,
+			roomid,
 		});
 
-		this.battleRooms.push(room.publicId);
+		let publicId = roomid;
+		const extractedBattleId = Client.extractBattleId(roomid);
+		if (extractedBattleId) {
+			publicId = extractedBattleId.publicId;
+		}
+		this.battleRooms.push(publicId);
 
 		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
-			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
+			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 		}
 
 		if (this.joinBattles || this.battleRoomGame) {
+			const room = Rooms.add(roomid);
+			this.playerBattleRooms.set(player, room);
+			this.playerBattleRooms.set(opponent, room);
+
 			if (this.joinBattles) room.tournament = this;
 			if (this.battleRoomGame) room.game = this.battleRoomGame;
 
@@ -500,7 +505,7 @@ export class Tournament extends Activity {
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {
-			this.battleRoomGame.onTournamentBattleStart(player, opponent, room);
+			this.battleRoomGame.onTournamentBattleStart(player, opponent, roomid);
 		}
 	}
 
@@ -526,16 +531,15 @@ export class Tournament extends Activity {
 		this.playerOpponents.delete(player);
 		this.playerOpponents.delete(opponent);
 
-		const room = Rooms.get(roomid);
-
 		for (let i = 0; i < this.currentBattles.length; i++) {
 			if (this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent &&
-				this.currentBattles[i].room === room) {
+				this.currentBattles[i].roomid === roomid) {
 				this.currentBattles.splice(i, 1);
 				break;
 			}
 		}
 
+		const room = Rooms.get(roomid);
 		if (room && !this.battleRoomGame) this.leaveBattleRoom(room);
 	}
 

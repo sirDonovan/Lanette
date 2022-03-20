@@ -144,18 +144,21 @@ export const commands: BaseCommandDefinitions = {
 				return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
 			}
 
-			let currentBattle: IBattleGameData | undefined;
-			for (const battle of tournamentRoom.tournament.currentBattles) {
-				if (battle.playerA === targetPlayer || battle.playerB === targetPlayer) {
-					currentBattle = tournamentRoom.tournament.battleData.get(battle.room);
-					break;
+			let playerBattle: IBattleGameData | undefined;
+			for (const currentBattle of tournamentRoom.tournament.currentBattles) {
+				if (currentBattle.playerA === targetPlayer || currentBattle.playerB === targetPlayer) {
+					const battleRoom = Rooms.get(currentBattle.roomid);
+					if (battleRoom) {
+						playerBattle = tournamentRoom.tournament.battleData.get(battleRoom);
+						break;
+					}
 				}
 			}
 
-			if (!currentBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
-			const slots = Tools.shuffle(Object.keys(currentBattle.remainingPokemon));
+			if (!playerBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
+			const slots = Tools.shuffle(Object.keys(playerBattle.remainingPokemon));
 			this.say("The score of " + targetPlayer.name + "'s current battle is " + (slots.length < 2 ? "not yet available" :
-				currentBattle.remainingPokemon[slots[0]] + " - " + currentBattle.remainingPokemon[slots[1]]) + ".");
+				playerBattle.remainingPokemon[slots[0]] + " - " + playerBattle.remainingPokemon[slots[1]]) + ".");
 		},
 		aliases: ['tbscore', 'tbattlescore'],
 		syntax: ["[user]"],
