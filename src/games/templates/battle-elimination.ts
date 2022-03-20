@@ -582,9 +582,11 @@ export abstract class BattleElimination extends ScriptedGame {
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				if (this.ended) break;
 
-				this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
+				if (!players.includes(winner)) {
+					this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 
-				if (!winners.includes(winner) && !players.includes(winner)) winners.push(winner);
+					if (!winners.includes(winner)) winners.push(winner);
+				}
 			}
 		}
 
