@@ -1,6 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import type { GameCommandDefinitions, IGameFile, PlayerList } from "../types/games";
+import { addPlayers, assert } from "../test/test-tools";
+import type { GameCommandDefinitions, GameFileTests, IGameFile, PlayerList } from "../types/games";
 import type { IHexCodeData, NamedHexCode } from "../types/tools";
 
 class Location {
@@ -88,22 +89,15 @@ class Ghost {
 	}
 }
 
-const boardSize = 13;
-const lastRowIndex = boardSize - 1;
-const lastColumnIndex = boardSize - 1;
-const generateWallAttempts = 70;
+const setupBoardAttempts = 100;
+const moveGhostAttempts = 1000;
 const boardConnectivity = 3;
-const generateCandyAttempts = 6;
-const generateHaunterAttempts = 4;
-const generateMimikyuAttempts = 1;
-const generateGengarAttempts = 2;
-const generateDusclopsAttempts = 1;
 const candyLimit = 3000;
 
 // how far we will check in each direction for room connectivity
 const roomConnectivityChecks = [-2, -1, 1, 2];
 // right/left/down/up
-const directions = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+const moveDirections = [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
 interface ITileColors {
 	players: NamedHexCode;
@@ -152,6 +146,9 @@ const canMoveThroughSymbol = "-";
 class HauntersHauntedHouse extends ScriptedGame {
 	actionCommands: string[] = ['up', 'down', 'left', 'right', 'wait'];
 	board: Location[][] = [];
+	boardSize: number = 13;
+	lastRowIndex: number = 0;
+	lastColumnIndex: number = 0;
 	candyLocations: CandyLocation[] = [];
 	canMove: boolean = false;
 	collectedCandy: number = 0;
@@ -208,7 +205,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 	}
 
 	inOnBoard(row: number, column: number): boolean {
-		return row >= 0 && column >= 0 && row < boardSize && column < boardSize;
+		return row >= 0 && column >= 0 && row < this.boardSize && column < this.boardSize;
 	}
 
 	countBlankTileDistance(board: number[][], row: number, column: number, value: number, positions: number[][][]): void {
@@ -216,7 +213,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		positions[value].push([row, column]);
 		board[row][column] = value;
-		for (const direction of directions) {
+		for (const direction of moveDirections) {
 			const newRow = row + direction[0];
 			const newColumn = column + direction[1];
 			if (!this.inOnBoard(newRow, newColumn)) continue;
@@ -228,21 +225,16 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return [Math.min(x, y), Math.max(x, y)];
 	}
 
-	setTile(board: number[][], roomPositions: number[][][], attempts: number, roomOptions: number[], tileValue: number,
-		noRepeats: boolean): number[] {
-		const settingCandy = tileValue === tileValues.candy;
+	setTile(board: number[][], roomPositions: number[][][], roomOptions: number[], tileValue: number, noRepeats: boolean): number[] {
 		const setRooms: number[] = [];
-		while (attempts) {
-			if (!roomOptions.length) break;
-			attempts--;
+
+		let attempts = 0;
+		while (roomOptions.length && attempts < setupBoardAttempts) {
+			attempts++;
+
 			const room = this.sampleOne(roomOptions);
 			const position = this.sampleOne(roomPositions[room]);
-			if (board[position[0]][position[1]] < tileValues.blank) {
-				if (settingCandy) {
-					attempts++;
-				}
-				continue;
-			}
+			if (board[position[0]][position[1]] < tileValues.blank) continue;
 
 			board[position[0]][position[1]] = tileValue;
 			if (noRepeats) {
@@ -267,20 +259,18 @@ class HauntersHauntedHouse extends ScriptedGame {
 				i--;
 			}
 
-			if (row < lastRowIndex) {
+			if (row < this.lastRowIndex) {
 				i = row + 1;
 				while (board[i][column] !== tileValues.wall) {
 					board[i][column] = tileValues.wall;
-					if (i === lastRowIndex) break;
+					if (i === this.lastRowIndex) break;
 					i++;
 				}
 			}
 		} else {
 			for (const amount of roomConnectivityChecks) {
 				const newRow = row + amount;
-				if (!this.inOnBoard(newRow, column) || board[newRow][column] === tileValues.wall) {
-					return;
-				}
+				if (!this.inOnBoard(newRow, column) || board[newRow][column] === tileValues.wall) return;
 			}
 			let j = column;
 			while (board[row][j] !== tileValues.wall) {
@@ -289,11 +279,11 @@ class HauntersHauntedHouse extends ScriptedGame {
 				j--;
 			}
 
-			if (column < lastColumnIndex) {
+			if (column < this.lastColumnIndex) {
 				j = column + 1;
 				while (board[row][j] !== tileValues.wall) {
 					board[row][j] = tileValues.wall;
-					if (j === lastColumnIndex) break;
+					if (j === this.lastColumnIndex) break;
 					j++;
 				}
 			}
@@ -301,29 +291,31 @@ class HauntersHauntedHouse extends ScriptedGame {
 	}
 
 	isBorderTile(x: number, y: number): boolean {
-		if (x > 0 && x < lastRowIndex) return false;
-		if (y > 0 && y < lastColumnIndex) return false;
+		if (x > 0 && x < this.lastRowIndex) return false;
+		if (y > 0 && y < this.lastColumnIndex) return false;
 		return true;
 	}
 
-	setupBoardTiles(): number[][] {
+	generateWallsAndTiles(): number[][] | undefined {
 		const board: number[][] = [];
 		// initialize board
-		for (let i = 0; i < boardSize; i++) {
+		for (let i = 0; i < this.boardSize; i++) {
 			board.push([]);
-			for (let j = 0; j < boardSize; j++) {
+			for (let j = 0; j < this.boardSize; j++) {
 				board[i].push(tileValues.blank);
 			}
 		}
 
 		// generate walls
-		let triesRemaining = generateWallAttempts;
-		while (triesRemaining) {
-			triesRemaining--;
-			const x = this.random(boardSize);
-			const y = this.random(boardSize);
-			if (x === lastRowIndex && y === Math.floor(lastColumnIndex / 2)) continue;
+		let attempts = 0;
+		while (attempts < setupBoardAttempts) {
+			attempts++;
+
+			const x = this.random(this.boardSize);
+			const y = this.random(this.boardSize);
 			if (board[x][y] === tileValues.wall) continue;
+			if (x === this.lastRowIndex && y === Math.floor(this.lastColumnIndex / 2)) continue;
+
 			let xDistance = 0;
 			let yDistance = 0;
 
@@ -335,12 +327,12 @@ class HauntersHauntedHouse extends ScriptedGame {
 				i--;
 			}
 
-			if (x < lastRowIndex) {
+			if (x < this.lastRowIndex) {
 				i = x + 1;
 				while (board[i][y] !== tileValues.wall) {
 					if (this.isBorderTile(i, y)) break;
 					xDistance++;
-					if (i === lastRowIndex) break;
+					if (i === this.lastRowIndex) break;
 					i++;
 				}
 			}
@@ -353,12 +345,12 @@ class HauntersHauntedHouse extends ScriptedGame {
 				j--;
 			}
 
-			if (y < lastColumnIndex) {
+			if (y < this.lastColumnIndex) {
 				j = y + 1;
 				while (board[x][j] !== tileValues.wall) {
 					if (this.isBorderTile(x, j)) break;
 					yDistance++;
-					if (j === lastColumnIndex) break;
+					if (j === this.lastColumnIndex) break;
 					j++;
 				}
 			}
@@ -375,8 +367,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		// count distance between blank tiles and get wall coordinates
 		let blankTileDistance = 1;
-		for (let i = 0; i < boardSize; i++) {
-			for (let j = 0; j < boardSize; j++) {
+		for (let i = 0; i < this.boardSize; i++) {
+			for (let j = 0; j < this.boardSize; j++) {
 				if (board[i][j] === tileValues.blank) {
 					blankTilePositionsByDistance.push([]);
 					this.countBlankTileDistance(board, i, j, blankTileDistance, blankTilePositionsByDistance);
@@ -387,12 +379,12 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		const startPosition = [lastRowIndex, Math.floor(boardSize / 2)];
+		const startPosition = [this.lastRowIndex, Math.floor(this.boardSize / 2)];
 		if (board[startPosition[0]][startPosition[1]] === tileValues.wall) {
 			startPosition[1] = startPosition[1] + 1;
-			if (startPosition[1] > lastColumnIndex) {
+			if (startPosition[1] > this.lastColumnIndex) {
 				startPosition[0] = startPosition[0] - 1;
-				startPosition[1] = Math.floor(boardSize / 2);
+				startPosition[1] = Math.floor(this.boardSize / 2);
 			}
 		}
 
@@ -402,7 +394,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const adjacentTiles: [distance: number, location: [number, number]][][] = [];
 		const distanceAmounts: number[] = [];
 		const distances: number[] = [];
-		const maxDistance = boardSize * boardSize;
+		const maxDistance = this.boardSize * this.boardSize;
 		for (let i = 0; i < blankTileDistance; i++) {
 			distanceAmounts.push(i);
 			adjacentTiles.push([]);
@@ -454,11 +446,16 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const validDoors: [number, number[]][] = [];
 
 		const tilesAndDistances: number[][] = [[startTile, 0]];
-		while (tilesAndDistances.length > 0) {
+
+		attempts = 0;
+		while (tilesAndDistances.length && attempts < setupBoardAttempts) {
+			attempts++;
+
 			const tile = tilesAndDistances[0][0];
 			const distance = tilesAndDistances[0][1];
 			tilesAndDistances.shift();
 			if (distances[tile] < distance) continue;
+
 			let endRoom = true;
 			for (const distanceAndLocation of adjacentTiles[tile]) {
 				const adjacentDistance = distanceAndLocation[0];
@@ -489,21 +486,17 @@ class HauntersHauntedHouse extends ScriptedGame {
 			connectedDistances[distances[i]].push(i);
 		}
 
-		let invalidDoors = 0;
 		let doorNumbers = 100;
 		let doorCount = 0;
-		while (doorCount < 5) {
+
+		attempts = 0;
+		while (doorCount < 5 && attempts < setupBoardAttempts) {
+			attempts++;
+
 			const validDoor = this.sampleOne(validDoors);
 			const doorLocation = validDoor[1];
-			if (board[doorLocation[0]][doorLocation[1]] >= 100 || validDoor[0] <= 0) {
-				invalidDoors++;
-				if (invalidDoors > 10) {
-					break;
-				}
-				continue;
-			}
+			if (board[doorLocation[0]][doorLocation[1]] >= 100 || validDoor[0] <= 0) continue;
 
-			invalidDoors = 0;
 			const validDistances: number[] = [];
 			for (let i = 1; i <= validDoor[0]; i++) {
 				for (const connectedDistance of connectedDistances[i]) {
@@ -528,9 +521,13 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		let candyRooms = this.setTile(board, blankTilePositionsByDistance, generateCandyAttempts, candyRoomOptions, tileValues.candy, true);
-		while (candyRooms.length < 3) {
-			candyRooms = candyRooms.concat(this.setTile(board, blankTilePositionsByDistance, 1, candyRoomOptions, tileValues.candy, true));
+		let candyRooms = this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, tileValues.candy, true);
+
+		attempts = 0;
+		while (candyRooms.length < 3 && attempts < setupBoardAttempts) {
+			attempts++;
+
+			candyRooms = candyRooms.concat(this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, tileValues.candy, true));
 		}
 
 		let ghostRoomOptions: number[] = [];
@@ -540,9 +537,9 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		this.setTile(board, blankTilePositionsByDistance, generateDusclopsAttempts, ghostRoomOptions, tileValues.dusclops, true);
-		this.setTile(board, blankTilePositionsByDistance, generateGengarAttempts, ghostRoomOptions, tileValues.gengar, false);
-		this.setTile(board, blankTilePositionsByDistance, generateMimikyuAttempts, ghostRoomOptions, tileValues.mimikyu, false);
+		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.dusclops, true);
+		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.gengar, false);
+		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.mimikyu, false);
 
 		ghostRoomOptions = [];
 		for (let i = 1; i < Math.min(4, connectedDistances.length); i++) {
@@ -551,7 +548,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 			}
 		}
 
-		this.setTile(board, blankTilePositionsByDistance, generateHaunterAttempts, ghostRoomOptions, tileValues.haunter, false);
+		this.setTile(board, blankTilePositionsByDistance, ghostRoomOptions, tileValues.haunter, false);
 		return board;
 	}
 
@@ -614,16 +611,18 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return html;
 	}
 
-	setupBoard(): void {
+	placeGhostsAndCandy(): boolean {
 		this.board = [];
 		this.candyLocations = [];
 		this.ghosts = [];
 
-		const tiles = this.setupBoardTiles();
+		const tiles = this.generateWallsAndTiles();
+		if (!tiles) return false;
+
 		const switchLocations: {door: [number, number], tile: [number, number]}[] = [];
-		for (let i = 0; i < boardSize; i++) {
+		for (let i = 0; i < this.boardSize; i++) {
 			this.board.push([]);
-			for (let j = 0; j < boardSize; j++) {
+			for (let j = 0; j < this.boardSize; j++) {
 				const tile = tiles[i][j];
 				if (tile === tileValues.haunter) {
 					this.ghosts.push(this.createHaunter(i, j));
@@ -646,8 +645,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 				} else if (tile >= 100) {
 					this.board[i].push(new Door(tile - 99));
 				} else if (tile <= -100) {
-					for (let row = 0; row < boardSize; row++) {
-						for (let column = 0; column < boardSize; column++) {
+					for (let row = 0; row < this.boardSize; row++) {
+						for (let column = 0; column < this.boardSize; column++) {
 							if (tiles[row][column] === (tile * -1)) {
 								switchLocations.push({door: [row, column], tile: [i, j]});
 								this.board[i].push(this.createBlankLocation());
@@ -670,9 +669,54 @@ class HauntersHauntedHouse extends ScriptedGame {
 			if (b.name > a.name) return -1;
 			return 0;
 		}).reverse();
+
+		return true;
+	}
+
+	setupBoard(players: Player[]): [number, number] | undefined {
+		let startingLocation: [number, number] | undefined;
+
+		let attempts = 0;
+		while (!this.remainingGhostMoves && attempts < setupBoardAttempts) {
+			attempts++;
+
+			if (!this.placeGhostsAndCandy()) continue;
+			this.setCandyLocations();
+
+			let validStartingLocation = true;
+			const possibleLocation = [Math.floor(this.lastRowIndex / 2), Math.floor(this.lastColumnIndex / 2)];
+			while (!this.board[possibleLocation[0]][possibleLocation[1]].canMoveThrough) {
+				possibleLocation[1] = possibleLocation[1] + 1;
+				if (possibleLocation[1] > this.lastColumnIndex) {
+					possibleLocation[1] = 0;
+					possibleLocation[0] = possibleLocation[0] - 1;
+					if (possibleLocation[0] < 0) {
+						validStartingLocation = false;
+						break;
+					}
+				}
+			}
+
+			if (!validStartingLocation) continue;
+
+			for (const player of players) {
+				this.playerLocations.set(player, possibleLocation.slice() as [number, number]);
+			}
+
+			for (const ghost of this.ghosts) {
+				this.moveGhost(ghost, true);
+			}
+
+			startingLocation = possibleLocation as [number, number];
+		}
+
+		return startingLocation;
 	}
 
 	onStart(): void {
+		this.lastRowIndex = this.boardSize - 1;
+		this.lastColumnIndex = this.lastRowIndex;
+
 		let playerNumber = 1;
 		const players = this.shufflePlayers();
 		for (const player of players) {
@@ -680,27 +724,11 @@ class HauntersHauntedHouse extends ScriptedGame {
 			playerNumber++;
 		}
 
-		let startingLocation: [number, number] = [0, 0];
-		while (!this.remainingGhostMoves) {
-			this.setupBoard();
-			this.setCandyLocations();
-
-			startingLocation = [lastRowIndex, Math.floor(lastColumnIndex / 2)];
-			while (!this.board[startingLocation[0]][startingLocation[1]].canMoveThrough) {
-				startingLocation[1] = startingLocation[1] + 1;
-				if (startingLocation[1] > lastColumnIndex) {
-					startingLocation[0] = startingLocation[0] - 1;
-					startingLocation[1] = 0;
-				}
-			}
-
-			for (const player of players) {
-				this.playerLocations.set(player, startingLocation.slice() as [number, number]);
-			}
-
-			for (const ghost of this.ghosts) {
-				this.moveGhost(ghost, true);
-			}
+		const startingLocation = this.setupBoard(players);
+		if (!startingLocation) {
+			Tools.logMessage(this.name + " failed to generate a valid board (starting seed = " + this.prng.initialSeed + ")");
+			this.errorEnd();
+			return;
 		}
 
 		this.remainingGhostMoves = 0;
@@ -814,18 +842,22 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const boardCopy = this.copyBoard(this.board);
 		const frontierPaths: number[][][] = [[]];
 		const frontierLocations: number[][] = [[ghost.row, ghost.column]];
-		while (frontierPaths.length > 0) {
+
+		let attempts = 0;
+		while (frontierPaths.length && attempts < moveGhostAttempts) {
+			attempts++;
+
 			const path = frontierPaths.shift();
 			const location = frontierLocations.shift();
 			if (!location || !path) return;
 
-			const shuffledDirections = this.shuffle(directions);
+			const shuffledDirections = this.shuffle(moveDirections);
 			for (const shuffledDirection of shuffledDirections) {
 				const locationCopy = location.slice();
 				locationCopy[0] += shuffledDirection[0];
 				locationCopy[1] += shuffledDirection[1];
-				if (locationCopy[0] >= 0 && locationCopy[1] >= 0 && locationCopy[0] <= lastRowIndex && locationCopy[1] <= lastColumnIndex &&
-					boardCopy[locationCopy[0]][locationCopy[1]] === canMoveThroughSymbol) {
+				if (locationCopy[0] >= 0 && locationCopy[1] >= 0 && locationCopy[0] <= this.lastRowIndex &&
+					locationCopy[1] <= this.lastColumnIndex && boardCopy[locationCopy[0]][locationCopy[1]] === canMoveThroughSymbol) {
 					const players = this.getPlayersOnTile(locationCopy[0], locationCopy[1]);
 					if (players.length) {
 						this.remainingGhostMoves++;
@@ -975,7 +1007,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		for (let i = 0; i < spaces; i++) {
 			location[0] += movement[0];
 			location[1] += movement[1];
-			if (location[0] < 0 || location[1] < 0 || location[0] > lastRowIndex || location[1] > lastColumnIndex) {
+			if (location[0] < 0 || location[1] < 0 || location[0] > this.lastRowIndex || location[1] > this.lastColumnIndex) {
 				player.say("Oops! Moving " + direction + " " + spaces + " space" + (spaces > 1 ? "s" : "") + " would put you over the " +
 					"board!");
 				return;
@@ -1047,6 +1079,43 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 	},
 };
 
+const tests: GameFileTests<HauntersHauntedHouse> = {
+	'should properly setup the board': {
+		test(game) {
+			const players = addPlayers(game, game.maxPlayers);
+			assert(game.started);
+			if (game.timeout) clearTimeout(game.timeout);
+			assert(game.setupBoard(players));
+			assert(game.remainingGhostMoves);
+		},
+	},
+	'should properly move players and ghosts': {
+		test(game) {
+			const players = addPlayers(game, game.maxPlayers);
+			assert(game.started);
+			game.nextRound();
+
+			const directions = ['up', 'down', 'left', 'right'];
+			for (let i = 0; i < 100; i++) {
+				if (game.timeout) clearTimeout(game.timeout);
+				game.canMove = true;
+
+				for (const player of players) {
+					if (player.eliminated) continue;
+
+					const direction = game.sampleOne(directions);
+					player.useCommand(direction, "1");
+					player.useCommand(direction, "2");
+					player.useCommand(direction, "3");
+				}
+
+				game.moveGhosts();
+				if (game.ended) break;
+			}
+		},
+	},
+};
+
 export const game: IGameFile<HauntersHauntedHouse> = {
 	disabled: true,
 	category: 'map',
@@ -1073,4 +1142,5 @@ export const game: IGameFile<HauntersHauntedHouse> = {
 		'<div style="display: inline-block;width: 10px;height: 10px;' +
 		'background: ' + Tools.getNamedHexCode(tileColors.candy).gradient + '">&nbsp;</div> - Candy<br /></details>',
 	scriptedOnly: true,
+	tests,
 };
