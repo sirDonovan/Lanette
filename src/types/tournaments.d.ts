@@ -1,5 +1,4 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 
@@ -96,7 +95,7 @@ export interface ITournamentCreateJson {
 interface ICurrentTournamentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
-	readonly room: Room;
+	readonly roomid: string;
 }
 
 export interface ITournamentTimerData {
