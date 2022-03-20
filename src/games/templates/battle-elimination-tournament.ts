@@ -58,7 +58,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.subRoom.disallowTournamentScouting();
 				this.subRoom.disallowTournamentModjoin();
 
-				this.subRoom.announce("You must join the tournament in this room to play! Once you leave, you cannot re-join.");
+				this.subRoom.announce("You must join the tournament in this room to play!" +
+					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
 
 				this.tournamentCreated = true;
 			},
