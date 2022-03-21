@@ -933,15 +933,23 @@ export class Tournaments {
 			if (!database.tournamentTrainerCards || !(id in database.tournamentTrainerCards)) {
 				const user = Users.get(name);
 				if (user) {
-					Client.getUserDetails(user, (checkedUser) => {
-						const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
-						if (trainerSpriteId) {
-							Storage.createTournamentTrainerCard(database, user.name);
-							database.tournamentTrainerCards![id].avatar = trainerSpriteId as TrainerSpriteId;
-							const trainerCard = this.getTrainerCardHtml(room, user.name);
-							if (trainerCard) room.sayHtml(trainerCard);
-						}
-					});
+					const createTrainerCard = (avatar: string) => {
+						Storage.createTournamentTrainerCard(database, user.name);
+						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
+						const trainerCard = this.getTrainerCardHtml(room, user.name);
+						if (trainerCard) room.sayHtml(trainerCard);
+					};
+
+					if (user.avatar) {
+						createTrainerCard(user.avatar);
+					} else {
+						Client.getUserDetails(user, (checkedUser) => {
+							const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
+							if (trainerSpriteId) {
+								createTrainerCard(trainerSpriteId);
+							}
+						});
+					}
 				}
 			} else {
 				const trainerCard = this.getTrainerCardHtml(room, name);

@@ -76,6 +76,17 @@ const DATA_COMMANDS: string[] = [
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
 ];
 
+const DEFAULT_TRAINER_SPRITES: Dict<string> = {
+	"1": "lucas",
+	"2": "dawn",
+	"101": "ethan",
+	"102": "lyra",
+	"169": "hilbert",
+	"170": "hilda",
+	"265": "rosa",
+	"266": "nate",
+};
+
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
 const FILTERS_REGEX_N = /\u039d/g;
@@ -1230,8 +1241,13 @@ export class Client {
 					}
 
 					if (user) {
+						let avatar = "" + response.avatar;
+						if (avatar in DEFAULT_TRAINER_SPRITES) {
+							avatar = DEFAULT_TRAINER_SPRITES[avatar];
+						}
+						user.avatar = avatar;
+
 						user.autoconfirmed = response.autoconfirmed;
-						user.avatar = response.avatar;
 						user.group = response.group;
 						user.status = response.status;
 

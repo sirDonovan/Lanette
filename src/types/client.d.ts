@@ -109,7 +109,7 @@ export interface IRoomsResponse {
 
 export interface IUserDetailsResponse {
 	autoconfirmed: boolean;
-	avatar: string;
+	avatar: number | string;
 	customgroup: string | undefined;
 	group: string;
 	name: string;
