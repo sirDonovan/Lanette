@@ -2316,7 +2316,8 @@ export class Client {
 		 * Tournament messages
 		 */
 		case 'tournament': {
-			if (!room.groupchat && (!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
+			if (!room.tournament && !(room.id in Tournaments.createListeners) &&
+				(!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
 
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();

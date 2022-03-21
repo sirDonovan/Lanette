@@ -744,8 +744,8 @@ export class ScriptedGame extends Game {
 				this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 			}
 
-			if (this.room.subRoom && this.room.subRoom.tournament && this.room.subRoom.tournament.battleRoomGame === this) {
-				this.room.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			if (this.subRoom && this.subRoom.tournament && this.subRoom.tournament.battleRoomGame === this) {
+				this.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 			}
 
 			// @ts-expect-error

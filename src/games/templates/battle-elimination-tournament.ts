@@ -22,22 +22,34 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		this.firstRoundTime = (AUTO_DQ_MINUTES * 60 * 1000) + this.firstRoundExtraTime;
 
-		const name = this.room.title + " " + GROUPCHAT_SUFFIX;
-		const id = this.room.getSubRoomGroupchatId(name);
-		const subRoom = Rooms.get(id);
-		if (subRoom) {
+		if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
+			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
+			if (!subRoom) {
+				this.say(Users.self.name + " must first join the room '" + Config.tournamentGamesSubRoom[this.room.id] + "'.");
+				this.deallocate(true);
+				return;
+			}
+
 			this.subRoom = subRoom;
 			this.createTournament();
 		} else {
-			this.subRoom = Rooms.add(id);
-			Client.joinRoom(id);
-
-			Rooms.createListeners[id] = (room) => {
-				this.subRoom = room;
+			const name = this.room.title + " " + GROUPCHAT_SUFFIX;
+			const id = this.room.getSubRoomGroupchatId(name);
+			const subRoom = Rooms.get(id);
+			if (subRoom) {
+				this.subRoom = subRoom;
 				this.createTournament();
-			};
+			} else {
+				this.subRoom = Rooms.add(id);
+				Client.joinRoom(id);
 
-			this.room.createSubRoomGroupchat(name);
+				Rooms.createListeners[id] = (room) => {
+					this.subRoom = room;
+					this.createTournament();
+				};
+
+				this.room.createSubRoomGroupchat(name);
+			}
 		}
 	}
 

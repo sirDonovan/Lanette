@@ -250,7 +250,7 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
-		if (this.room.groupchat) return;
+		if (!Config.allowTournaments || !Config.allowTournaments.includes(this.room.id)) return;
 
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);

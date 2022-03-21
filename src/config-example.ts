@@ -288,6 +288,11 @@ export let allowSearchChallenges: string[] = [];
 export let allowGameAchievements: string[] = [];
 
 /**
+ * For each room in the object, the subroomid that should be used for tournament games
+ */
+ export let tournamentGamesSubRoom: Dict<string> = {};
+
+/**
  * A list of rooms (roomids) where game trainer cards are shown for winners
  */
 export let showGameTrainerCards: string[] = [];
