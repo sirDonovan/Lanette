@@ -341,7 +341,7 @@ export class ScriptedGame extends Game {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
-				if (this.format.id in database.gameScriptedBoxes[id].formatBoxes!) {
+				if (database.gameScriptedBoxes[id].formatBoxes && this.format.id in database.gameScriptedBoxes[id].formatBoxes!) {
 					this.customBox = database.gameScriptedBoxes[id].formatBoxes![this.format.id];
 				} else {
 					this.customBox = database.gameScriptedBoxes[id];
