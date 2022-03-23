@@ -321,11 +321,13 @@ export class Storage {
 	createGameScriptedBox(database: IDatabase, name: string): void {
 		const id = Tools.toId(name);
 		if (!database.gameScriptedBoxes) database.gameScriptedBoxes = {};
-		if (id in database.gameScriptedBoxes) return;
+		if (!(id in database.gameScriptedBoxes)) {
+			database.gameScriptedBoxes[id] = {
+				pokemon: [],
+			};
+		}
 
-		database.gameScriptedBoxes[id] = {
-			pokemon: [],
-		};
+		if (!database.gameScriptedBoxes[id].formatBoxes) database.gameScriptedBoxes[id].formatBoxes = {};
 	}
 
 	createOfflineMessagesEntry(name: string): void {

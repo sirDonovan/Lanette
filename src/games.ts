@@ -7,6 +7,7 @@ import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
+import type { ModelGeneration } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, GameNumberOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
@@ -14,7 +15,7 @@ import type {
 	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
+import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
@@ -1627,39 +1628,46 @@ export class Games {
 		return buttonStyle;
 	}
 
-	getScriptedBoxHtml(room: Room, gameName: string, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
+	getScriptedBoxHtml(room: Room, format: IGameFormat, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
 		highlightPhrase?: string, modeHighlightPhrase?: string): string {
-		let scriptedBox: IGameScriptedBox | undefined;
+		let scriptedBox: IGameCustomBox | undefined;
+		let mascotGeneration: ModelGeneration | undefined;
+
 		if (voter) {
 			const user = Users.get(voter);
 			if (user) voter = user.name;
 
 			const id = Tools.toId(voter);
 			const database = Storage.getDatabase(room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
+			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+				mascotGeneration = database.gameScriptedBoxes[id].mascotGeneration;
+
+				if (database.gameScriptedBoxes[id].formatBoxes && format.id in database.gameScriptedBoxes[id].formatBoxes!) {
+					scriptedBox = database.gameScriptedBoxes[id].formatBoxes![format.id];
+				} else {
+					scriptedBox = database.gameScriptedBoxes[id];
+				}
+			}
 		}
 
 		let content = "";
 		if (voter) {
-			let iconHtml = "";
-			if (scriptedBox) {
-				const icons: string[] = [];
-				for (const pokemon of scriptedBox.pokemon) {
-					const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
-					if (icon) icons.push(icon);
-				}
-
-				if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
-			}
-
-			content += iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
+			content += "<b>" + voter + "</b>'s pick<br />";
 		}
 
 		if (mascot) {
-			const gif = Dex.getPokemonModel(mascot, undefined, undefined, shinyMascot);
+			let generation: ModelGeneration | undefined;
+			if (mascotGeneration) {
+				const maxGeneration = Dex.getModelGenerationMaxGen(mascotGeneration);
+				if (mascot.gen <= maxGeneration) {
+					generation = mascotGeneration;
+				}
+			}
+
+			const gif = Dex.getPokemonModel(mascot, generation, undefined, shinyMascot);
 			if (gif) content += gif;
 		}
-		content += "<h3>" + gameName + "</h3>";
+		content += "<h3>" + format.name + "</h3>";
 		if (description) content += description;
 
 		const buttonStyle = this.getCustomBoxButtonStyle(scriptedBox);

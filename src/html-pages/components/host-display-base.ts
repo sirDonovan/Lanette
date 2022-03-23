@@ -131,8 +131,6 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 		const pokemonPickerProps: IPokemonPickerProps = {
 			gif: false,
-			maxGifs: props.maxGifs,
-			maxIcons: props.maxIcons,
 			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(dontRender),
 			onPickGeneration: (index, generation, dontRender) => this.pickPokemonGeneration(index, generation, dontRender),
 			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(index, shininess, dontRender),

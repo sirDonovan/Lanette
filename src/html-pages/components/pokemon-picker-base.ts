@@ -11,8 +11,6 @@ export interface IPokemonPick {
 
 export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	gif: boolean;
-	maxGifs: number;
-	maxIcons: number;
 	onPickLetter: (pickerIndex: number, letter: string, dontRender: boolean | undefined) => void;
 	onPickGeneration: (pickerIndex: number, generation: ModelGeneration, dontRender: boolean | undefined) => void;
 	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender: boolean | undefined) => void;
