@@ -87,13 +87,14 @@ class GameScriptedBox extends HtmlPageBase {
 	pokemonAvatarPicker!: PokemonTextInput;
 	currentPicker: 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'game-background' | 'game-buttons' |
 		'background-border' | 'buttons-border' | 'signups-background-border' | 'signups-buttons-border' |
-		'mascot-generation' | 'pokemon-avatar' | 'game-background-border' | 'game-buttons-border' = 'pokemon-avatar';
+		'mascot-generation' | 'pokemon-avatar' | 'game-background-border' | 'game-buttons-border';
 	currentView: 'signups' | 'game' = 'signups';
 
 	constructor(room: Room, user: User, pokemonAvatar: boolean) {
 		super(room, user, baseCommand);
 
 		this.pokemonAvatar = pokemonAvatar;
+		this.currentPicker = pokemonAvatar ? 'pokemon-avatar' : 'background';
 
 		const database = this.getDatabase();
 
@@ -890,9 +891,12 @@ class GameScriptedBox extends HtmlPageBase {
 			const signupsBackgroundBorder = this.currentPicker === 'signups-background-border';
 			const signupsButtonsBorder = this.currentPicker === 'signups-buttons-border';
 
-			html += this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonAvatarPicker, "Pokemon avatar",
-				pokemonAvatar);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseMascotGenerationPicker, "Mascot generation",
+			if (this.pokemonAvatar) {
+				html += this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonAvatarPicker, "Pokemon avatar",
+				pokemonAvatar) + "&nbsp;";
+			}
+
+			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseMascotGenerationPicker, "Mascot generation",
 				mascotGeneration);
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
 				background);
