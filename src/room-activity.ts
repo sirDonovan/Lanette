@@ -201,6 +201,7 @@ export abstract class Activity {
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
+	playerAvatars: Dict<string> = {};
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -528,7 +529,10 @@ export abstract class Activity {
 	}
 
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => {
+			const id = Tools.toId(x);
+			return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + x + "</username>";
+		}).join(', ');
 	}
 
 	getPlayerNamesText(players?: PlayerList): string[] {

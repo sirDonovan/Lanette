@@ -1741,10 +1741,10 @@ export class Games {
 		return "<center>" + this.getCustomBoxDiv(content, hostBox) + "</center>";
 	}
 
-	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
-		string {
-		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, "<br /><b>Players (" + playerCount + ")</b>: " +
-			playerNames);
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number,
+		playerNames: string, pokemonAvatars?: boolean): string {
+		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
+			"<b>Players (" + playerCount + ")</b>: " + playerNames);
 	}
 
 	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {

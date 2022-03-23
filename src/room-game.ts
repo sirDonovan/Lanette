@@ -208,7 +208,7 @@ export abstract class Game extends Activity {
 
 	getSignupsPlayersHtml(): string {
 		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerNames());
+			this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
 	}
 
 	getJoinButtonHtml(lateJoin?: boolean): string {

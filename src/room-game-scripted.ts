@@ -889,6 +889,14 @@ export class ScriptedGame extends Game {
 				return;
 			}
 
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
+				database.gameScriptedBoxes[player.id].pokemonAvatar) {
+				const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
+				const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
+				if (icon) this.playerAvatars[player.id] = icon;
+			}
+
 			if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
 				this.lateJoinQueue.push(player);
 
