@@ -2,7 +2,7 @@ import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { ModelGeneration } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { IDatabase, IGameCustomBox } from "../types/storage";
+import type { IDatabase, IGameScriptedBox } from "../types/storage";
 import type { BorderType } from "../types/tools";
 import type { User } from "../users";
 import { BorderStyle } from "./components/border-style";
@@ -98,7 +98,12 @@ class GameScriptedBox extends HtmlPageBase {
 
 		const database = this.getDatabase();
 
-		const previewFormat = database.gameScriptedBoxes![this.userId].previewFormat || "";
+		let previewFormat = "";
+		if (database.gameScriptedBoxes![this.userId].previewFormat) {
+			const format = Games.getFormat(database.gameScriptedBoxes![this.userId].previewFormat!);
+			if (!Array.isArray(format)) previewFormat = format.id;
+		}
+
 		this.activeGameFormat = previewFormat;
 		this.gameFormat = previewFormat;
 		this.lastUsedGameFormat = previewFormat;
@@ -531,7 +536,10 @@ class GameScriptedBox extends HtmlPageBase {
 		const database = this.getDatabase();
 		database.gameScriptedBoxes![this.userId].previewFormat = this.gameFormat;
 
-		database.gameFormatScriptedBoxes![this.userId][this.gameFormat] = Tools.deepClone(this.getScriptedBox(this.lastUsedGameFormat));
+		const copiedFormat = Tools.deepClone(this.getScriptedBox(this.lastUsedGameFormat));
+		delete copiedFormat.pokemonAvatar;
+		delete copiedFormat.previewFormat;
+		database.gameFormatScriptedBoxes![this.userId][this.gameFormat] = copiedFormat;
 
 		this.activeGameFormat = this.gameFormat;
 		this.lastCopiedGameFormat = this.gameFormat;
@@ -556,7 +564,7 @@ class GameScriptedBox extends HtmlPageBase {
 		if (!dontRender) this.send();
 	}
 
-	getScriptedBox(format?: string): IGameCustomBox {
+	getScriptedBox(format?: string): IGameScriptedBox {
 		if (!format) format = this.activeGameFormat;
 
 		const database = this.getDatabase();
