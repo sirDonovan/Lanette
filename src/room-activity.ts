@@ -528,11 +528,13 @@ export abstract class Activity {
 		return playerAttributes;
 	}
 
+	getPlayerUsernameHtml(name: string): string {
+		const id = Tools.toId(name);
+		return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + name + "</username>";
+	}
+
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => {
-			const id = Tools.toId(x);
-			return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + x + "</username>";
-		}).join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => this.getPlayerUsernameHtml(x)).join(', ');
 	}
 
 	getPlayerNamesText(players?: PlayerList): string[] {

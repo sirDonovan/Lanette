@@ -152,7 +152,7 @@ export abstract class Game extends Activity {
 					if (trainerCard) {
 						trainerCards.push(trainerCard);
 					} else {
-						noTrainerCards.push("<username>" + player.name + "</username>");
+						noTrainerCards.push(this.getPlayerUsernameHtml(player.name));
 					}
 				});
 
@@ -575,7 +575,7 @@ export abstract class Game extends Activity {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
 			const pointsDisplay = this.getPointsDisplay(points);
-			return "<username>" + player.name + "</username>" + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -590,7 +590,7 @@ export abstract class Game extends Activity {
 	getPlayerWins(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.winners.get(player);
-			return "<username>" + player.name + "</username>" + (wins ? " (" + wins + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (wins ? " (" + wins + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -603,7 +603,7 @@ export abstract class Game extends Activity {
 			const team = this.teams[i];
 			teamPlayers[team.id] = [];
 			for (const player of team.players) {
-				if (players.includes(player)) teamPlayers[team.id].push("<username>" + player.name + "</username>");
+				if (players.includes(player)) teamPlayers[team.id].push(this.getPlayerUsernameHtml(player.name));
 			}
 		}
 

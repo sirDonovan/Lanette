@@ -1329,7 +1329,7 @@ export class ScriptedGame extends Game {
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
-			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 

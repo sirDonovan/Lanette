@@ -239,7 +239,7 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	getPlayerLetters(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => "<username>" + player.name + "</username> (" + this.playerLetters.get(player) + ")",
+		return this.getPlayerAttributes(player => this.getPlayerUsernameHtml(player.name) + " (" + this.playerLetters.get(player) + ")",
 			players).join(', ');
 	}
 
