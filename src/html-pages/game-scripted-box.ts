@@ -2,7 +2,7 @@ import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { ModelGeneration } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
-import type { IDatabase, IGameCustomBox, IGameScriptedBox } from "../types/storage";
+import type { IDatabase, IGameCustomBox } from "../types/storage";
 import type { BorderType } from "../types/tools";
 import type { User } from "../users";
 import { BorderStyle } from "./components/border-style";
@@ -514,8 +514,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		const database = this.getDatabase();
 		database.gameScriptedBoxes![this.userId].previewFormat = this.gameFormat;
-		if (!(this.gameFormat in database.gameScriptedBoxes![this.userId].formatBoxes!)) {
-			database.gameScriptedBoxes![this.userId].formatBoxes![this.gameFormat] = {};
+		if (!(this.gameFormat in database.gameFormatScriptedBoxes![this.userId])) {
+			database.gameFormatScriptedBoxes![this.userId][this.gameFormat] = {};
 		}
 
 		this.activeGameFormat = this.gameFormat;
@@ -531,9 +531,7 @@ class GameScriptedBox extends HtmlPageBase {
 		const database = this.getDatabase();
 		database.gameScriptedBoxes![this.userId].previewFormat = this.gameFormat;
 
-		const currentScriptedBox = Tools.deepClone(this.getScriptedBox(this.lastUsedGameFormat));
-		delete (currentScriptedBox as IGameScriptedBox).formatBoxes;
-		database.gameScriptedBoxes![this.userId].formatBoxes![this.gameFormat] = Tools.deepClone(currentScriptedBox);
+		database.gameFormatScriptedBoxes![this.userId][this.gameFormat] = Tools.deepClone(this.getScriptedBox(this.lastUsedGameFormat));
 
 		this.activeGameFormat = this.gameFormat;
 		this.lastCopiedGameFormat = this.gameFormat;
@@ -544,7 +542,7 @@ class GameScriptedBox extends HtmlPageBase {
 
 	deleteFormat(): void {
 		const database = this.getDatabase();
-		delete database.gameScriptedBoxes![this.userId].formatBoxes![this.gameFormat];
+		delete database.gameFormatScriptedBoxes![this.userId][this.gameFormat];
 
 		this.resetComponents();
 		this.send();
@@ -563,12 +561,11 @@ class GameScriptedBox extends HtmlPageBase {
 
 		const database = this.getDatabase();
 		if (format) {
-			if (!database.gameScriptedBoxes![this.userId].formatBoxes) database.gameScriptedBoxes![this.userId].formatBoxes = {};
-			if (!(format in database.gameScriptedBoxes![this.userId].formatBoxes!)) {
-				database.gameScriptedBoxes![this.userId].formatBoxes![format] = {};
+			if (!(format in database.gameFormatScriptedBoxes![this.userId])) {
+				database.gameFormatScriptedBoxes![this.userId][format] = {};
 			}
 
-			return database.gameScriptedBoxes![this.userId].formatBoxes![format];
+			return database.gameFormatScriptedBoxes![this.userId][format];
 		}
 
 		return database.gameScriptedBoxes![this.userId];
@@ -664,22 +661,6 @@ class GameScriptedBox extends HtmlPageBase {
 		scriptedBox.gameButtons = color.hexCode;
 
 		if (!dontRender) this.send();
-	}
-
-	clearSignupsPokemon(): void {
-		const database = this.getDatabase();
-
-		database.gameScriptedBoxes![this.userId].pokemon = [];
-
-		this.send();
-	}
-
-	selectSignupsPokemon(pokemon: PokemonChoices): void {
-		const database = this.getDatabase();
-
-		database.gameScriptedBoxes![this.userId].pokemon = pokemon.map(x => x!.pokemon);
-
-		this.send();
 	}
 
 	clearGamePokemonAvatar(): void {
@@ -844,7 +825,7 @@ class GameScriptedBox extends HtmlPageBase {
 		const signups = this.currentView === 'signups';
 		const game = this.currentView === 'game';
 
-		const formatBoxExists = this.gameFormat in database.gameScriptedBoxes![this.userId].formatBoxes!;
+		const formatBoxExists = this.gameFormat in database.gameFormatScriptedBoxes![this.userId];
 
 		let formatView = "<b>Change games</b>";
 		formatView += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteFormatCommand, "Delete",
@@ -862,7 +843,7 @@ class GameScriptedBox extends HtmlPageBase {
 		html += "<br />";
 
 		if (signups) {
-			html += Games.getScriptedBoxHtml(this.room, format, name, format.description, mascot);
+			html += Games.getScriptedBoxHtml(this.room, format.nameWithOptions, format.id, name, format.description, mascot);
 			html += "</center><br />";
 
 			const selectedPokemonAvatar = database.gameScriptedBoxes![this.userId].pokemonAvatar;

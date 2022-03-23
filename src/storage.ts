@@ -322,12 +322,13 @@ export class Storage {
 		const id = Tools.toId(name);
 		if (!database.gameScriptedBoxes) database.gameScriptedBoxes = {};
 		if (!(id in database.gameScriptedBoxes)) {
-			database.gameScriptedBoxes[id] = {
-				pokemon: [],
-			};
+			database.gameScriptedBoxes[id] = {};
 		}
 
-		if (!database.gameScriptedBoxes[id].formatBoxes) database.gameScriptedBoxes[id].formatBoxes = {};
+		if (!database.gameFormatScriptedBoxes) database.gameFormatScriptedBoxes = {};
+		if (!(id in database.gameFormatScriptedBoxes)) {
+			database.gameFormatScriptedBoxes[id] = {};
+		}
 	}
 
 	createOfflineMessagesEntry(name: string): void {

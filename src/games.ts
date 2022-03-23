@@ -1628,8 +1628,8 @@ export class Games {
 		return buttonStyle;
 	}
 
-	getScriptedBoxHtml(room: Room, format: IGameFormat, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
-		highlightPhrase?: string, modeHighlightPhrase?: string): string {
+	getScriptedBoxHtml(room: Room, gameName: string, formatId: string, voter?: string, description?: string, mascot?: IPokemon,
+		shinyMascot?: boolean, highlightPhrase?: string, modeHighlightPhrase?: string): string {
 		let scriptedBox: IGameCustomBox | undefined;
 		let mascotGeneration: ModelGeneration | undefined;
 
@@ -1642,8 +1642,9 @@ export class Games {
 			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
 				mascotGeneration = database.gameScriptedBoxes[id].mascotGeneration;
 
-				if (database.gameScriptedBoxes[id].formatBoxes && format.id in database.gameScriptedBoxes[id].formatBoxes!) {
-					scriptedBox = database.gameScriptedBoxes[id].formatBoxes![format.id];
+				if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+					formatId in database.gameFormatScriptedBoxes[id]) {
+					scriptedBox = database.gameFormatScriptedBoxes[id][formatId];
 				} else {
 					scriptedBox = database.gameScriptedBoxes[id];
 				}
@@ -1667,7 +1668,7 @@ export class Games {
 			const gif = Dex.getPokemonModel(mascot, generation, undefined, shinyMascot);
 			if (gif) content += gif;
 		}
-		content += "<h3>" + format.name + "</h3>";
+		content += "<h3>" + gameName + "</h3>";
 		if (description) content += description;
 
 		const buttonStyle = this.getCustomBoxButtonStyle(scriptedBox);

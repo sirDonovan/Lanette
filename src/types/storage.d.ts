@@ -84,10 +84,8 @@ export interface IGameHostBox extends IGameCustomBox {
 
 export interface IGameScriptedBox extends IGameCustomBox {
 	mascotGeneration?: ModelGeneration;
-	pokemon: string[];
 	pokemonAvatar?: string;
 	previewFormat?: string;
-	formatBoxes?: Dict<Omit<IGameScriptedBox, 'formatBoxes' | 'pokemon' | 'pokemonAvatar' | 'previewFormat'>>;
 }
 
 export type GifIcon = 'gif' | 'icon';
@@ -199,6 +197,7 @@ export interface IDatabase {
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameHostDisplays?: Dict<IGameHostDisplay>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
+	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;

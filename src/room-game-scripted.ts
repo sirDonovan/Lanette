@@ -340,17 +340,16 @@ export class ScriptedGame extends Game {
 		if (this.format.voter) {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
-				if (database.gameScriptedBoxes[id].formatBoxes && this.format.id in database.gameScriptedBoxes[id].formatBoxes!) {
-					this.customBox = database.gameScriptedBoxes[id].formatBoxes![this.format.id];
-				} else {
-					this.customBox = database.gameScriptedBoxes[id];
-				}
+			if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+				this.format.id in database.gameFormatScriptedBoxes[id]) {
+				this.customBox = database.gameFormatScriptedBoxes[id][this.format.id];
+			} else if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+				this.customBox = database.gameScriptedBoxes[id];
 			}
 		}
 
-		return Games.getScriptedBoxHtml(this.room as Room, this.format, this.format.voter, description, this.mascot, this.shinyMascot,
-			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
+		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.id, this.format.voter, description, this.mascot,
+			this.shinyMascot, !this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
 			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
