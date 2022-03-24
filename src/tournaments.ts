@@ -1016,12 +1016,13 @@ export class Tournaments {
 }
 
 export const instantiate = (): void => {
-	const oldTournaments = global.Tournaments as Tournaments | undefined;
+	let oldTournaments = global.Tournaments as Tournaments | undefined;
 
 	global.Tournaments = new Tournaments();
 
 	if (oldTournaments) {
 		// @ts-expect-error
 		global.Tournaments.onReload(oldTournaments);
+		oldTournaments = undefined;
 	}
 };

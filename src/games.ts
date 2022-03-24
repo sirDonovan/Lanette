@@ -2271,12 +2271,13 @@ export class Games {
 }
 
 export const instantiate = (): void => {
-	const oldGames = global.Games as Games | undefined;
+	let oldGames = global.Games as Games | undefined;
 
 	global.Games = new Games();
 
 	if (oldGames) {
 		// @ts-expect-error
 		global.Games.onReload(oldGames);
+		oldGames = undefined;
 	}
 };

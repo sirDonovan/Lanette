@@ -326,25 +326,25 @@ export class CommandParser {
 		return "";
 	}
 
-	private onReload(previous: Partial<CommandParser>): void {
-		for (const i in this.commandGuides) {
-			for (const j in this.commandGuides[i]) {
+	private onReload(previous: CommandParser): void {
+		for (const i in previous.commandGuides) {
+			for (const j in previous.commandGuides[i]) {
 				// @ts-expect-error
-				this.commandGuides[i][j] = undefined;
+				previous.commandGuides[i][j] = undefined;
 			}
 			// @ts-expect-error
-			this.commandGuides[i] = undefined;
+			previous.commandGuides[i] = undefined;
 		}
 
-		for (const i in this.htmlPages) {
-			for (const user in this.htmlPages[i]) {
-				this.htmlPages[i][user].destroy();
+		for (const i in previous.htmlPages) {
+			for (const user in previous.htmlPages[i]) {
+				previous.htmlPages[i][user].destroy();
 
 				// @ts-expect-error
-				this.htmlPages[i][user] = undefined;
+				previous.htmlPages[i][user] = undefined;
 			}
 			// @ts-expect-error
-			this.htmlPages[i] = undefined;
+			previous.htmlPages[i] = undefined;
 		}
 
 		const keys = Object.getOwnPropertyNames(previous);
@@ -402,12 +402,13 @@ export class CommandParser {
 }
 
 export const instantiate = (): void => {
-	const oldCommandParser = global.CommandParser as CommandParser | undefined;
+	let oldCommandParser = global.CommandParser as CommandParser | undefined;
 
 	global.CommandParser = new CommandParser();
 
 	if (oldCommandParser) {
 		// @ts-expect-error
 		global.CommandParser.onReload(oldCommandParser);
+		oldCommandParser = undefined;
 	}
 };

@@ -2884,7 +2884,7 @@ export class Dex {
 }
 
 export const instantiate = (): void => {
-	const oldDex = global.Dex as Dex | undefined;
+	let oldDex = global.Dex as Dex | undefined;
 
 	global.Dex = new Dex();
 	for (let i = CURRENT_GEN - 1; i >= 1; i--) {
@@ -2895,5 +2895,6 @@ export const instantiate = (): void => {
 	if (oldDex) {
 		// @ts-expect-error
 		global.Dex.onReload(oldDex);
+		oldDex = undefined;
 	}
 };

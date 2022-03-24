@@ -884,11 +884,12 @@ export class Storage {
 }
 
 export const instantiate = (): void => {
-	const oldStorage = global.Storage as Storage | undefined;
+	let oldStorage = global.Storage as Storage | undefined;
 
 	global.Storage = new Storage();
 
 	if (oldStorage) {
 		global.Storage.onReload(oldStorage);
+		oldStorage = undefined;
 	}
 };

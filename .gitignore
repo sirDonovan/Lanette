@@ -90,3 +90,4 @@ src/local-scripts/*
 src/message-parsers/private/*
 !src/message-parsers/private/README.md
 src/plugins/private.ts
+*.sh

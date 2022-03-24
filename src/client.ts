@@ -3137,7 +3137,7 @@ export class Client {
 }
 
 export const instantiate = (): void => {
-	const oldClient = global.Client as Client | undefined;
+	let oldClient = global.Client as Client | undefined;
 	if (oldClient) {
 		// @ts-expect-error
 		oldClient.beforeReload();
@@ -3148,5 +3148,6 @@ export const instantiate = (): void => {
 	if (oldClient) {
 		// @ts-expect-error
 		global.Client.onReload(oldClient);
+		oldClient = undefined;
 	}
 };

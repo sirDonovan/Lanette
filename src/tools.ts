@@ -823,25 +823,41 @@ export class Tools {
 	}
 
 	uncacheTree(root: string): void {
-		const filepaths = [require.resolve(root)];
-		while (filepaths.length) {
-			const filepath = filepaths[0];
-			filepaths.shift();
-			if (filepath in require.cache) {
-				const cachedModule = require.cache[filepath]!;
-				for (const child of cachedModule.children) {
-					if (!child.id.endsWith('.node')) filepaths.push(child.filename);
-				}
+		const rootFilepath = require.resolve(root);
+		if (!(rootFilepath in require.cache)) return;
 
-				cachedModule.exports = {};
-				cachedModule.children = [];
-				if (cachedModule.parent) {
-					const index = cachedModule.parent.children.indexOf(cachedModule);
-					if (index !== -1) cachedModule.parent.children.splice(index, 1);
-				}
+		const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
+		const cachedModules: NodeModule[] = [];
+		while (modulesList.length) {
+			const currentModule = modulesList[0];
+			modulesList.shift();
 
-				delete require.cache[filepath];
+			if (!cachedModules.includes(currentModule) && !currentModule.id.endsWith('.node')) {
+				cachedModules.push(currentModule);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (currentModule.children) {
+					for (const child of currentModule.children) {
+						if (!child.id.endsWith('.node')) modulesList.push(child);
+					}
+				}
 			}
+		}
+
+		for (const filename in require.cache) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (require.cache[filename]!.children) {
+				for (const cachedModule of cachedModules) {
+					const index = require.cache[filename]!.children.indexOf(cachedModule);
+					if (index !== -1) require.cache[filename]!.children.splice(index, 1);
+				}
+			}
+		}
+
+		for (const cachedModule of cachedModules) {
+			delete require.cache[cachedModule.filename];
+			cachedModule.parent = undefined;
+			cachedModule.children = [];
+			cachedModule.exports = undefined;
 		}
 	}
 
@@ -1162,11 +1178,12 @@ export class Tools {
 }
 
 export const instantiate = (): void => {
-	const oldTools = global.Tools as Tools | undefined;
+	let oldTools = global.Tools as Tools | undefined;
 
 	global.Tools = new Tools();
 
 	if (oldTools) {
 		global.Tools.onReload(oldTools);
+		oldTools = undefined;
 	}
 };
