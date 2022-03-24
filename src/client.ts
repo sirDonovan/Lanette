@@ -768,11 +768,11 @@ export class Client {
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const messageParser of previous.messageParsers) {
+			Tools.unrefProperties(messageParser);
 		}
+
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 

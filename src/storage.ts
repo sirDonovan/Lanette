@@ -57,11 +57,7 @@ export class Storage {
 
 		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		Tools.unrefProperties(previous);
 	}
 
 	getDatabase(room: Room): IDatabase {

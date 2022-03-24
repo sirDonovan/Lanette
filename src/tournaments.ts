@@ -1006,11 +1006,8 @@ export class Tournaments {
 			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		Tools.unrefProperties(previous.schedules);
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 }

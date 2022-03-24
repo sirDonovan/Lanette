@@ -191,11 +191,7 @@ export class Tournament extends Activity {
 
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 
 	addPlayer(name: string): void {

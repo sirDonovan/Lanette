@@ -100,13 +100,7 @@ export class Room {
 		}
 		this.users.clear();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === 'id' || key === 'title' || key === 'initialized' || key === 'leaving') continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "title", "initialized", "leaving"]);
 	}
 
 	setId(id: string): void {

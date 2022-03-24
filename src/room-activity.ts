@@ -45,11 +45,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
@@ -137,11 +133,7 @@ export class PlayerTeam {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	addPlayer(player: Player): boolean {

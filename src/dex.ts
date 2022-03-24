@@ -12,7 +12,8 @@ import type {
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData, RuleTable, ValidatedRule
+	IPokemonShowdownDex, IPokemonShowdownDexModule, IPokemonShowdownValidator, IPokemonShowdownValidatorModule, IPSFormat, ITypeData,
+	RuleTable, ValidatedRule
 } from './types/pokemon-showdown';
 import type { IParsedSmogonLink } from './types/tools';
 
@@ -200,7 +201,6 @@ const omotms: string[] = [];
 const roaSpotlights: string[] = [];
 
 type Dexes = Dict<Dex>;
-const dexes: Dexes = {};
 
 type CharacterTypes = readonly CharacterType[];
 const characterTypes: CharacterTypes = ['player', 'rival', 'gymleader', 'elitefour', 'champion', 'frontierbrain', 'professor',
@@ -254,7 +254,9 @@ export class Dex {
 	private readonly gen: number;
 	private readonly isBase: boolean;
 	private readonly mod: string;
+	private readonly pokemonShowdownDexModule: IPokemonShowdownDexModule;
 	private readonly pokemonShowdownDex: IPokemonShowdownDex;
+	private readonly pokemonShowdownValidatorModule: IPokemonShowdownValidatorModule;
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -262,6 +264,7 @@ export class Dex {
 	private readonly abilityCache: Dict<IAbility> = Object.create(null);
 	private readonly allPossibleMovesCache: Dict<string[]> = Object.create(null);
 	private readonly dataCache: IDataTable | null = null;
+	private readonly dexes: Dict<Dex> = Object.create(null);
 	private readonly effectivenessCache: Dict<Dict<number>> = Object.create(null);
 	private readonly evolutionLinesCache: Dict<string[][]> = Object.create(null);
 	private readonly evolutionLinesFormesCache: Dict<Dict<string[][]>> = Object.create(null);
@@ -289,22 +292,25 @@ export class Dex {
 		if (!gen) gen = CURRENT_GEN;
 		if (!mod) mod = 'base';
 
-		const simDist = ".sim-dist";
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const pokemonShowdownDexBase = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")).Dex as IPokemonShowdownDex;
-
 		const isBase = mod === 'base';
 		if (isBase) {
-			dexes['base'] = this;
-			dexes[CURRENT_GEN_STRING] = this;
-			this.pokemonShowdownDex = pokemonShowdownDexBase;
+			this.dexes['base'] = this;
+			this.dexes[CURRENT_GEN_STRING] = this;
+
+			const simDist = ".sim-dist";
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-			this.pokemonShowdownValidator = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js"))
-				.TeamValidator as IPokemonShowdownValidator;
+			this.pokemonShowdownDexModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")) as IPokemonShowdownDexModule;
+			this.pokemonShowdownDex = this.pokemonShowdownDexModule.Dex;
+
+			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			this.pokemonShowdownValidatorModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js")) as IPokemonShowdownValidatorModule;
+			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
 		} else {
-			this.pokemonShowdownDex = pokemonShowdownDexBase.mod(mod);
-			this.pokemonShowdownValidator = dexes['base'].pokemonShowdownValidator;
+			this.pokemonShowdownDexModule = global.Dex.pokemonShowdownDexModule;
+			this.pokemonShowdownDex = global.Dex.pokemonShowdownDex.mod(mod);
+			this.pokemonShowdownValidatorModule = global.Dex.pokemonShowdownValidatorModule;
+			this.pokemonShowdownValidator = global.Dex.pokemonShowdownValidator;
 		}
 
 		this.clientDataDirectory = path.join(Tools.rootFolder, 'client-data');
@@ -314,8 +320,13 @@ export class Dex {
 	}
 
 	loadAllData(): void {
-		for (const mod in dexes) {
-			dexes[mod].loadData();
+		if (!this.isBase) return;
+
+		this.loadData();
+
+		const keys = Object.keys(this.dexes);
+		for (const key of keys) {
+			if (this.dexes[key] !== this) this.dexes[key].loadData();
 		}
 	}
 
@@ -368,7 +379,11 @@ export class Dex {
 	}
 
 	getDexes(): Readonly<Dexes> {
-		return dexes;
+		if (this.isBase) {
+			return this.dexes;
+		} else {
+			return global.Dex.dexes;
+		}
 	}
 
 	getTrainerSpriteDimensions(): number {
@@ -381,7 +396,7 @@ export class Dex {
 
 	getDex(mod?: string): Dex {
 		if (!mod) mod = CURRENT_GEN_STRING;
-		return dexes[mod];
+		return this.getDexes()[mod];
 	}
 
 	getData(): IDataTable {
@@ -1094,7 +1109,7 @@ export class Dex {
 		if (generation === 'rs') return 3;
 		if (generation === 'dp') return 4;
 		if (generation === 'bw') return 5;
-		return dexes.base.gen;
+		return this.getDexes().base.gen;
 	}
 
 	hasModelData(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back'): boolean {
@@ -1560,6 +1575,7 @@ export class Dex {
 			ruleName = ruleName.substr(index + 1);
 		}
 
+		const dexes = this.getDexes();
 		if (tag === 'ability') {
 			ruleName = dexes['base'].getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
@@ -1583,6 +1599,7 @@ export class Dex {
 	getUsablePokemon(format: IFormat): string[] {
 		if (format.usablePokemon) return format.usablePokemon;
 
+		const dexes = this.getDexes();
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 		const ruleTable = this.getRuleTable(format);
@@ -1668,6 +1685,7 @@ export class Dex {
 	getUsableAbilities(format: IFormat): string[] {
 		if (format.usableAbilities) return format.usableAbilities;
 
+		const dexes = this.getDexes();
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
@@ -1688,6 +1706,7 @@ export class Dex {
 	getUsableItems(format: IFormat): string[] {
 		if (format.usableItems) return format.usableItems;
 
+		const dexes = this.getDexes();
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
@@ -1708,6 +1727,7 @@ export class Dex {
 	getUsableMoves(format: IFormat): string[] {
 		if (format.usableMoves) return format.usableMoves;
 
+		const dexes = this.getDexes();
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
 		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
 
@@ -2447,30 +2467,28 @@ export class Dex {
 	private onReload(previous: Dex): void {
 		const previousDexes = previous.getDexes();
 		for (const mod in previousDexes) {
-			const dex = previousDexes[mod];
-			const pokemonShowdownDexKeys = Object.getOwnPropertyNames(dex.pokemonShowdownDex);
-			for (const key of pokemonShowdownDexKeys) {
+			let keys = Object.getOwnPropertyNames(previousDexes[mod].pokemonShowdownDex);
+			for (const key of keys) {
 				// @ts-expect-error
-				dex.pokemonShowdownDex[key] = undefined;
+				Tools.unrefProperties(previousDexes[mod].pokemonShowdownDex[key]);
 			}
+			Tools.unrefProperties(previousDexes[mod].pokemonShowdownDex);
 
-			if (dex !== previous) {
-				const keys = Object.getOwnPropertyNames(dex);
-				for (const key of keys) {
-					// @ts-expect-error
-					dex[key] = undefined;
-				}
+			keys = Object.getOwnPropertyNames(previousDexes[mod].pokemonShowdownValidator);
+			for (const key of keys) {
+				// @ts-expect-error
+				Tools.unrefProperties(previousDexes[mod].pokemonShowdownValidator[key]);
 			}
+			Tools.unrefProperties(previousDexes[mod].pokemonShowdownValidator);
 
-			// @ts-expect-error
-			previousDexes[mod] = undefined;
+			if (previousDexes[mod] !== previous) {
+				Tools.unrefProperties(previousDexes[mod]);
+			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		Tools.unrefProperties(previous.pokemonShowdownDexModule);
+		Tools.unrefProperties(previous.pokemonShowdownValidatorModule);
+		Tools.unrefProperties(previous);
 
 		this.loadAllData();
 	}
@@ -2551,6 +2569,7 @@ export class Dex {
 			filteredTypeKeys.push(key);
 		}
 
+		const dexes = this.getDexes();
 		const validator = new this.pokemonShowdownValidator(this.gen === 8 ? "gen8nationaldex" : "gen" + this.gen + "ou",
 			dexes['base'].pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
@@ -2652,8 +2671,8 @@ export class Dex {
 			for (const key of data.formatKeys) {
 				const format = this.getExistingFormat(key);
 				if (format.mod && !(format.mod in dexes)) {
-					dexes[format.mod] = new Dex(this.pokemonShowdownDex.forFormat(format).gen, format.mod);
-					dexes[format.mod].loadData();
+					this.dexes[format.mod] = new Dex(this.pokemonShowdownDex.forFormat(format).gen, format.mod);
+					this.dexes[format.mod].loadData();
 				}
 
 				if (format.section === OM_OF_THE_MONTH) {
@@ -2889,7 +2908,9 @@ export const instantiate = (): void => {
 	global.Dex = new Dex();
 	for (let i = CURRENT_GEN - 1; i >= 1; i--) {
 		const mod = 'gen' + i;
-		dexes[mod] = new Dex(i, mod);
+		const dex = new Dex(i, mod);
+		// @ts-expect-error
+		global.Dex.dexes[mod] = dex;
 	}
 
 	if (oldDex) {

@@ -7,17 +7,6 @@ import type { ReloadableModule } from './types/app';
 import type { IGamesWorkers } from './types/games';
 import * as users from './users';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const unrefExports = (classObject: any) => {
-	const keys = Object.getOwnPropertyNames(classObject);
-	for (const key of keys) {
-		try {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-			classObject[key] = undefined;
-		} catch (e) {} // eslint-disable-line no-empty
-	}
-};
-
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments', 'games'];
 const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 	client: 'client',
@@ -141,12 +130,12 @@ module.exports = (): void => {
 		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
 			for (const moduleId of modules) {
 				if (moduleId === 'client') {
-					unrefExports(client);
+					global.Tools.unrefProperties(client);
 
 					client = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
 					client.instantiate();
 				} else if (moduleId === 'commandparser') {
-					unrefExports(commandParser);
+					global.Tools.unrefProperties(commandParser);
 
 					commandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
 					commandParser.instantiate();
@@ -160,12 +149,12 @@ module.exports = (): void => {
 					global.Client.updateConfigSettings();
 					global.Rooms.updateConfigSettings();
 
-					unrefExports(oldConfig);
+					global.Tools.unrefProperties(oldConfig);
 
 					// @ts-expect-error
 					oldConfig = undefined;
 				} else if (moduleId === 'dex') {
-					unrefExports(dex);
+					global.Tools.unrefProperties(dex);
 
 					dex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');
 					dex.instantiate();
@@ -173,22 +162,22 @@ module.exports = (): void => {
 				} else if (moduleId === 'games') {
 					global.Games.unrefWorkers();
 
-					unrefExports(games);
+					global.Tools.unrefProperties(games);
 
 					games = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
 					games.instantiate();
 				} else if (moduleId === 'storage') {
-					unrefExports(storage);
+					global.Tools.unrefProperties(storage);
 
 					storage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');
 					storage.instantiate();
 				} else if (moduleId === 'tools') {
-					unrefExports(tools);
+					global.Tools.unrefProperties(tools);
 
 					tools = require('./' + moduleFilenames[moduleId]) as typeof import('./tools');
 					tools.instantiate();
 				} else if (moduleId === 'tournaments') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-					unrefExports(tournaments);
+					global.Tools.unrefProperties(tournaments);
 
 					tournaments = require('./' + moduleFilenames[moduleId]) as typeof import('./tournaments');
 					tournaments.instantiate();

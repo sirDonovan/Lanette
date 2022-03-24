@@ -28,11 +28,7 @@ export abstract class HtmlPageBase {
 	abstract render(onOpen?: boolean): string;
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	open(): void {

@@ -117,11 +117,13 @@ export class Tools {
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		this.unrefProperties(previous.eggGroupHexCodes);
+		this.unrefProperties(previous.hexCodes);
+		this.unrefProperties(previous.namedHexCodes);
+		this.unrefProperties(previous.pokemonColorHexCodes);
+		this.unrefProperties(previous.moveCategoryHexCodes);
+		this.unrefProperties(previous.typeHexCodes);
+		this.unrefProperties(previous);
 	}
 
 	checkHtml(room: Room, htmlContent: string): boolean {
@@ -820,6 +822,21 @@ export class Tools {
 			clone[key] = this.deepClone(obj[key]);
 		}
 		return clone as DeepMutable<T>;
+	}
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	unrefProperties(objectInstance: any, skippedKeys?: string[]) {
+		if (!objectInstance) return;
+
+		const keys = Object.getOwnPropertyNames(objectInstance);
+		for (const key of keys) {
+			if (skippedKeys && skippedKeys.includes(key)) continue;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				objectInstance[key] = undefined;
+			} catch (e) {} // eslint-disable-line no-empty
+		}
 	}
 
 	uncacheTree(root: string): void {

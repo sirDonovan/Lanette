@@ -107,6 +107,7 @@ export class Games {
 	private autoCreateTimers: Dict<NodeJS.Timer> = {};
 	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	private readonly formats: Formats = {};
+	private readonly formatModules: NodeModule[] = [];
 	private readonly freejoinFormatTargets: string[] = [];
 	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
@@ -253,30 +254,40 @@ export class Games {
 	}
 
 	loadFormats(): void {
+		const userHostedModule = require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+		typeof import('./room-game-user-hosted');
+
 		// @ts-expect-error
-		this.userHosted = (require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-			typeof import('./room-game-user-hosted')).game;
+		this.formatModules.push(userHostedModule);
+
+		// @ts-expect-error
+		this.userHosted = userHostedModule.game;
 
 		const internalGameKeys = Object.keys(internalGamePaths) as InternalGame[];
 		for (const key of internalGameKeys) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + internalGamePaths[key]);
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 				for (const i in commands) {
 					if (i in BaseCommands) {
-						throw new Error("Internal game " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Internal game " + game.name + " command '" + i + "' already exists as a regular command.");
 					}
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.internalFormats[key] = Object.assign({}, file, {commands, id: Tools.toId(file.name)});
+			this.internalFormats[key] = Object.assign({}, game, {commands, id: Tools.toId(game.name)});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -284,50 +295,60 @@ export class Games {
 		for (const fileName of modeFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(modePath).mode as DeepImmutable<IGameModeFile> | undefined;
-			if (!file) throw new Error("No mode exported from " + modePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(modePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const mode = file.mode as DeepImmutable<IGameModeFile> | undefined;
+			if (!mode) throw new Error("No mode exported from " + modePath);
 
-			if (file.commands) {
-				for (const i in file.commands) {
+			const id = Tools.toId(mode.name);
+			if (id in this.modes) throw new Error("The name '" + mode.name + "' is already used by another mode.");
+
+			if (mode.commands) {
+				for (const i in mode.commands) {
 					if (i in BaseCommands) {
-						throw new Error("Mode " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Mode " + mode.name + " command '" + i + "' already exists as a regular command.");
 					}
-					if (!(i in this.commands)) this.commands[i] = file.commands[i];
+					if (!(i in this.commands)) this.commands[i] = mode.commands[i];
 				}
 			}
 
-			if (file.aliases) {
-				for (const alias of file.aliases) {
+			if (mode.aliases) {
+				for (const alias of mode.aliases) {
 					const aliasId = Tools.toId(alias);
 					if (aliasId in this.modeAliases) {
-						throw new Error(file.name + " mode's alias '" + alias + " is already used by " +
+						throw new Error(mode.name + " mode's alias '" + alias + " is already used by " +
 							this.modes[this.modeAliases[aliasId]].name + ".");
 					}
 					this.modeAliases[aliasId] = id;
 				}
 			}
 
-			this.modes[id] = Object.assign({}, file as IGameMode, {id});
+			this.modes[id] = Object.assign({}, mode as IGameMode, {id});
 		}
 
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (const fileName of gameFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(gamePath).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + gamePath);
+
+			const id = Tools.toId(game.name);
+			if (id in this.formats) throw new Error("The name '" + game.name + "' is already used by another game.");
 
 			let challengeSettings: GameChallengeSettings | undefined;
-			if (file.challengeSettings) {
-				challengeSettings = Tools.deepClone(file.challengeSettings);
+			if (game.challengeSettings) {
+				challengeSettings = Tools.deepClone(game.challengeSettings);
 				for (const gameChallenge of gameChallenges) {
 					if (!challengeSettings[gameChallenge]) continue;
 					if (challengeSettings[gameChallenge]!.options) {
@@ -342,31 +363,31 @@ export class Games {
 			}
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 			}
 
 			let variants;
-			if (file.variants) {
-				variants = Tools.deepClone(file.variants);
+			if (game.variants) {
+				variants = Tools.deepClone(game.variants);
 				for (const variant of variants) {
 					variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
 				}
 			}
 
 			let modes: string[] | undefined;
-			if (file.modes) {
+			if (game.modes) {
 				modes = [];
-				for (const mode of file.modes) {
+				for (const mode of game.modes) {
 					const modeId = Tools.toId(mode);
-					if (!(modeId in this.modes)) throw new Error(file.name + "'s mode '" + mode + "' is not a valid mode.");
+					if (!(modeId in this.modes)) throw new Error(game.name + "'s mode '" + mode + "' is not a valid mode.");
 					modes.push(modeId);
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.formats[id] = Object.assign({}, file, {challengeSettings, commands, id, modes, variants});
+			this.formats[id] = Object.assign({}, game, {challengeSettings, commands, id, modes, variants});
 		}
 
 		for (const format of this.userHosted.formats) {
@@ -2221,11 +2242,16 @@ export class Games {
 			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const formatModule of previous.formatModules) {
+			Tools.unrefProperties(formatModule);
 		}
+
+		for (const i in previous.workers) {
+			// @ts-expect-error
+			Tools.unrefProperties(previous.workers[i]);
+		}
+
+		Tools.unrefProperties(previous);
 
 		this.loadFormats();
 		if (Config.gameCatalogGists) {
