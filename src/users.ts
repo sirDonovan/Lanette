@@ -47,13 +47,7 @@ export class User {
 		}
 		this.rooms.clear();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === 'id' || key === 'name') continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "name"]);
 	}
 
 	setName(name: string): void {

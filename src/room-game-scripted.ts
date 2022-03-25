@@ -340,13 +340,16 @@ export class ScriptedGame extends Game {
 		if (this.format.voter) {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+			if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+				this.format.id in database.gameFormatScriptedBoxes[id]) {
+				this.customBox = database.gameFormatScriptedBoxes[id][this.format.id];
+			} else if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
 				this.customBox = database.gameScriptedBoxes[id];
 			}
 		}
 
-		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.voter, description, this.mascot, this.shinyMascot,
-			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
+		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.id, this.format.voter, description, this.mascot,
+			this.shinyMascot, !this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
 			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
@@ -785,13 +788,7 @@ export class ScriptedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === "ended" || key === "id" || key === "name") continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -887,6 +884,14 @@ export class ScriptedGame extends Game {
 			if (!addPlayerResult) {
 				this.destroyPlayer(user, true);
 				return;
+			}
+
+			const database = Storage.getDatabase(this.room as Room);
+			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
+				database.gameScriptedBoxes[player.id].pokemonAvatar) {
+				const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
+				const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
+				if (icon) this.playerAvatars[player.id] = icon;
 			}
 
 			if (this.started && this.queueLateJoins && (!this.tryQueueLateJoin || !this.tryQueueLateJoin(player))) {
@@ -1317,7 +1322,7 @@ export class ScriptedGame extends Game {
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
-			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 

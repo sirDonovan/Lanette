@@ -57,11 +57,7 @@ export class Storage {
 
 		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		Tools.unrefProperties(previous);
 	}
 
 	getDatabase(room: Room): IDatabase {
@@ -321,11 +317,14 @@ export class Storage {
 	createGameScriptedBox(database: IDatabase, name: string): void {
 		const id = Tools.toId(name);
 		if (!database.gameScriptedBoxes) database.gameScriptedBoxes = {};
-		if (id in database.gameScriptedBoxes) return;
+		if (!(id in database.gameScriptedBoxes)) {
+			database.gameScriptedBoxes[id] = {};
+		}
 
-		database.gameScriptedBoxes[id] = {
-			pokemon: [],
-		};
+		if (!database.gameFormatScriptedBoxes) database.gameFormatScriptedBoxes = {};
+		if (!(id in database.gameFormatScriptedBoxes)) {
+			database.gameFormatScriptedBoxes[id] = {};
+		}
 	}
 
 	createOfflineMessagesEntry(name: string): void {
@@ -881,11 +880,12 @@ export class Storage {
 }
 
 export const instantiate = (): void => {
-	const oldStorage = global.Storage as Storage | undefined;
+	let oldStorage = global.Storage as Storage | undefined;
 
 	global.Storage = new Storage();
 
 	if (oldStorage) {
 		global.Storage.onReload(oldStorage);
+		oldStorage = undefined;
 	}
 };

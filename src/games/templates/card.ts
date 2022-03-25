@@ -452,7 +452,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	getPlayerCards(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const cards = this.playerCards.get(player);
-			return "<username>" + player.name + "</username>" + (cards ? " (" + cards.length + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (cards ? " (" + cards.length + ")" : "");
 		}, players).join(', ');
 	}
 

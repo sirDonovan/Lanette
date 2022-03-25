@@ -320,7 +320,7 @@ export let showGameScriptedBoxes: string[] = [];
 /**
  * For each room in the object, the number of bits that must be earned to customize a game scripted box
  */
-export let gameScriptedBoxRequirements: Dict<number> = {};
+export let gameScriptedBoxRequirements: Dict<{background: number, pokemonAvatar: number}> = {};
 
 /**
  * A list of rooms (roomids) where games cannot be hosted back-to-back

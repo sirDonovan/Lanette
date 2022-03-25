@@ -928,6 +928,10 @@ export interface IPSTypeData extends ITypeData {
 	exists: boolean;
 }
 
+export interface IPokemonShowdownDexModule {
+	Dex: IPokemonShowdownDex;
+}
+
 export interface IPokemonShowdownDex {
 	data: {
 		Abilities: Dict<unknown>;
@@ -983,6 +987,10 @@ export interface IPokemonShowdownDex {
 	includeMods: () => void;
 	includeModData: () => void;
 	mod: (mod: string) => IPokemonShowdownDex;
+}
+
+export interface IPokemonShowdownValidatorModule {
+	TeamValidator: IPokemonShowdownValidator;
 }
 
 export interface IPokemonShowdownValidator {

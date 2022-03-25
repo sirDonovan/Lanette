@@ -1,6 +1,6 @@
 import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
 import type { ITrainerPick } from "../html-pages/components/trainer-picker";
-import type { TrainerSpriteId } from "./dex";
+import type { ModelGeneration, TrainerSpriteId } from "./dex";
 import type { BorderType, HexCode, TimeZone } from "./tools";
 
 interface IEventInformation {
@@ -83,7 +83,8 @@ export interface IGameHostBox extends IGameCustomBox {
 }
 
 export interface IGameScriptedBox extends IGameCustomBox {
-	pokemon: string[];
+	mascotGeneration?: ModelGeneration;
+	pokemonAvatar?: string;
 	previewFormat?: string;
 }
 
@@ -196,6 +197,7 @@ export interface IDatabase {
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameHostDisplays?: Dict<IGameHostDisplay>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
+	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;

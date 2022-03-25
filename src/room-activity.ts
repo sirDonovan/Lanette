@@ -45,11 +45,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
@@ -137,11 +133,7 @@ export class PlayerTeam {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	addPlayer(player: Player): boolean {
@@ -201,6 +193,7 @@ export abstract class Activity {
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
+	playerAvatars: Dict<string> = {};
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -527,8 +520,13 @@ export abstract class Activity {
 		return playerAttributes;
 	}
 
+	getPlayerUsernameHtml(name: string): string {
+		const id = Tools.toId(name);
+		return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + name + "</username>";
+	}
+
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => this.getPlayerUsernameHtml(x)).join(', ');
 	}
 
 	getPlayerNamesText(players?: PlayerList): string[] {

@@ -768,11 +768,11 @@ export class Client {
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const messageParser of previous.messageParsers) {
+			Tools.unrefProperties(messageParser);
 		}
+
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 
@@ -3137,7 +3137,7 @@ export class Client {
 }
 
 export const instantiate = (): void => {
-	const oldClient = global.Client as Client | undefined;
+	let oldClient = global.Client as Client | undefined;
 	if (oldClient) {
 		// @ts-expect-error
 		oldClient.beforeReload();
@@ -3148,5 +3148,6 @@ export const instantiate = (): void => {
 	if (oldClient) {
 		// @ts-expect-error
 		global.Client.onReload(oldClient);
+		oldClient = undefined;
 	}
 };
