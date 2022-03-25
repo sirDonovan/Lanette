@@ -281,10 +281,15 @@ export abstract class Activity {
 		const id = Tools.toId(user);
 		if (id in this.players) return null;
 
-		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
+		const isPastPlayer = id in this.pastPlayers;
+		const player = isPastPlayer ? this.pastPlayers[id] : new Player(user, this);
+		if (isPastPlayer) delete this.pastPlayers[id];
+
 		this.players[id] = player;
-		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
+
+		if (this.onCreatePlayer) this.onCreatePlayer(player, isPastPlayer);
+
 		return player;
 	}
 
@@ -533,6 +538,7 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players);
 	}
 
+	onCreatePlayer?(player: Player, isPastPlayer: boolean): void;
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;

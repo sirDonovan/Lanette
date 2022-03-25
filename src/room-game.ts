@@ -119,6 +119,16 @@ export abstract class Game extends Activity {
 		}
 	}
 
+	onCreatePlayer(player: Player): void {
+		const database = Storage.getDatabase(this.room as Room);
+		if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
+			database.gameScriptedBoxes[player.id].pokemonAvatar) {
+			const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
+			const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
+			if (icon) this.playerAvatars[player.id] = icon;
+		}
+	}
+
 	announceWinners(): void {
 		if (this.parentGame) return;
 
