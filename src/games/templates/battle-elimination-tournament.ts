@@ -64,6 +64,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			format: this.battleFormat,
 			game: this,
 			callback: () => {
+				if (this.timeout) clearTimeout(this.timeout);
+
 				this.subRoom.nameTournament(this.name);
 				this.subRoom.forcePublicTournament();
 				this.subRoom.forceTimerTournament();
@@ -76,6 +78,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.tournamentCreated = true;
 			},
 		};
+
+		this.timeout = setTimeout(() => {
+			if (!this.subRoom.tournament) {
+				this.say("The tournament could not be created.");
+				this.deallocate(true);
+			}
+		}, 15 * 1000);
 
 		this.subRoom.createTournament(this.battleFormat, 'elimination', this.playerCap);
 	}
