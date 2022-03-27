@@ -550,11 +550,12 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'leave-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
-			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'banword-list') {
+			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'leave-room' &&
+				outgoingMessage.type !== 'banword-list') {
 				room.serverBannedWords = [];
 
 				this.send({
@@ -2710,7 +2711,11 @@ export class Client {
 		}
 
 		case 'expire': {
-			if (room.game && room.game.onBattleExpire) room.game.onBattleExpire(room);
+			if (room.game && room.game.onBattleExpire) {
+				room.game.onBattleExpire(room);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (room.game) room.game.leaveBattleRoom(room);
+			}
 			break;
 		}
 		}
