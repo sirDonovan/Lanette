@@ -989,7 +989,6 @@ export class Client {
 		}
 
 		const room = Rooms.add(roomid);
-		if (room.leaving) return;
 
 		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
 			this.lastOutgoingMessage.roomid === room.id) {
@@ -997,26 +996,31 @@ export class Client {
 		}
 
 		for (let i = 0; i < lines.length; i++) {
-			if (!lines[i]) continue;
+			const line = lines[i].trim();
+			if (!line) continue;
+
+			if (room.leaving && !line.startsWith('|deinit') && !line.startsWith('|noinit')) continue;
 
 			try {
-				this.parseMessage(room, lines[i].trim(), now);
+				this.parseMessage(room, line, now);
 
-				if (lines[i].startsWith('|init|')) {
+				if (line.startsWith('|init|')) {
 					const page = room.type === 'html';
 					const chat = !page && room.type === 'chat';
 					for (let j = i + 1; j < lines.length; j++) {
+						let nextLine = lines[j].trim();
 						if (page) {
-							if (lines[j].startsWith('|pagehtml|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|pagehtml|')) {
+								this.parseMessage(room, nextLine, now);
 								break;
 							}
 						} else if (chat) {
-							if (lines[j].startsWith('|users|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|users|')) {
+								this.parseMessage(room, nextLine.trim(), now);
 								for (let k = j + 1; k < lines.length; k++) {
-									if (lines[k].startsWith('|:|')) {
-										this.parseMessage(room, lines[k].trim(), now);
+									nextLine = lines[k].trim();
+									if (nextLine.startsWith('|:|')) {
+										this.parseMessage(room, nextLine, now);
 										break;
 									}
 								}
@@ -1027,9 +1031,6 @@ export class Client {
 
 					if (page || chat) return;
 				}
-
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (room.leaving) return;
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException);
