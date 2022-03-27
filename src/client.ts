@@ -989,6 +989,8 @@ export class Client {
 		}
 
 		const room = Rooms.add(roomid);
+		if (room.leaving) return;
+
 		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
 			this.lastOutgoingMessage.roomid === room.id) {
 			this.clearLastOutgoingMessage(now);
@@ -1026,6 +1028,7 @@ export class Client {
 					if (page || chat) return;
 				}
 
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (room.leaving) return;
 			} catch (e) {
 				console.log(e);
