@@ -425,10 +425,15 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.abilityCache, id)) return this.abilityCache[id];
 
 		const ability = this.pokemonShowdownDex.abilities.get(name);
-		if (!ability.exists) return undefined;
+		if (!ability.exists || ability.gen > this.gen) return undefined;
 
-		this.abilityCache[id] = ability;
-		return ability;
+		if (Object.prototype.hasOwnProperty.call(this.abilityCache, ability.id)) {
+			this.abilityCache[id] = this.abilityCache[ability.id];
+		} else {
+			this.abilityCache[id] = Tools.deepClone(ability);
+		}
+
+		return this.abilityCache[id];
 	}
 
 	getExistingAbility(name: string): IAbility {
@@ -449,7 +454,7 @@ export class Dex {
 		for (const i of this.getData().abilityKeys) {
 			const ability = this.getExistingAbility(i);
 			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
-				ability.id === 'noability' || ability.gen > this.gen) continue;
+				ability.id === 'noability') continue;
 			abilities.push(ability);
 		}
 
@@ -472,10 +477,15 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.itemCache, id)) return this.itemCache[id];
 
 		const item = this.pokemonShowdownDex.items.get(name);
-		if (!item.exists) return undefined;
+		if (!item.exists || item.gen > this.gen) return undefined;
 
-		this.itemCache[id] = item;
-		return item;
+		if (Object.prototype.hasOwnProperty.call(this.itemCache, item.id)) {
+			this.itemCache[id] = this.itemCache[item.id];
+		} else {
+			this.itemCache[id] = Tools.deepClone(item);
+		}
+
+		return this.itemCache[id];
 	}
 
 	getExistingItem(name: string): IItem {
@@ -495,7 +505,7 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i of this.getData().itemKeys) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
+			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' ||
 				(this.gen !== 2 && gen2Items.includes(item.id))) continue;
 			items.push(item);
 		}
@@ -551,17 +561,21 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.moveCache, id)) return this.moveCache[id];
 
-		let move = this.pokemonShowdownDex.moves.get(name);
-		if (!move.exists) return undefined;
+		let move = this.pokemonShowdownDex.moves.get(name) as IMoveCopy;
+		if (!move.exists || move.gen > this.gen) return undefined;
 
-		if (move.realMove && Tools.toId(move.realMove) === 'hiddenpower') {
+		if (Object.prototype.hasOwnProperty.call(this.moveCache, move.name)) {
+			this.moveCache[id] = this.moveCache[move.name];
+		} else {
 			move = Tools.deepClone(move);
-			// @ts-expect-error
-			move.id = Tools.toId(move.name);
+			if (move.realMove && Tools.toId(move.realMove) === 'hiddenpower') {
+				move.id = Tools.toId(move.name);
+			}
+			this.moveCache[id] = move;
+			this.moveCache[move.name] = move;
 		}
 
-		this.moveCache[id] = move;
-		return move;
+		return this.moveCache[id];
 	}
 
 	getExistingMove(name: string): IMove {
@@ -581,8 +595,7 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i of this.getData().moveKeys) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' ||
-				move.gen > this.gen) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom') continue;
 			moves.push(move);
 		}
 
@@ -609,23 +622,28 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, id)) return this.pokemonCache[id];
 
-		const pokemon = Tools.deepClone(this.pokemonShowdownDex.species.get(name));
-		if (!pokemon.exists) return undefined;
+		let pokemon = this.pokemonShowdownDex.species.get(name) as IPokemonCopy;
+		if (!pokemon.exists || pokemon.gen > this.gen) return undefined;
 
-		if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
-			pokemon.spriteid += '-' + Tools.toId(pokemon.forme);
+		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, pokemon.id)) {
+			this.pokemonCache[id] = this.pokemonCache[pokemon.id];
+		} else {
+			pokemon = Tools.deepClone(pokemon);
+			if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
+				pokemon.spriteid += '-' + Tools.toId(pokemon.forme);
+			}
+
+			if (pokemon.tier === '(Uber)') {
+				pokemon.tier = 'Uber';
+			} else if (pokemon.tier === '(NU)') {
+				pokemon.tier = 'PU';
+			} else if (pokemon.tier === '(PU)') {
+				pokemon.tier = 'ZU';
+			}
+			this.pokemonCache[id] = pokemon;
 		}
 
-		if (pokemon.tier === '(Uber)') {
-			pokemon.tier = 'Uber';
-		} else if (pokemon.tier === '(NU)') {
-			pokemon.tier = 'PU';
-		} else if (pokemon.tier === '(PU)') {
-			pokemon.tier = 'ZU';
-		}
-
-		this.pokemonCache[id] = pokemon;
-		return pokemon;
+		return this.pokemonCache[id];
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -646,7 +664,7 @@ export class Dex {
 		for (const i of this.getData().pokemonKeys) {
 			const pokemon = this.getExistingPokemon(i);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.isNonstandard === 'Unobtainable' || pokemon.gen > this.gen) continue;
+				pokemon.isNonstandard === 'Unobtainable') continue;
 			pokedex.push(pokemon);
 		}
 
@@ -672,15 +690,15 @@ export class Dex {
 
 		if (baseSpecies.otherFormes) {
 			for (const otherForme of baseSpecies.otherFormes) {
-				const forme = this.getExistingPokemon(otherForme);
-				if (forme.gen <= this.gen) formes.push(forme.name);
+				const forme = this.getPokemon(otherForme);
+				if (forme) formes.push(forme.name);
 			}
 		}
 
 		if (baseSpecies.cosmeticFormes) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
-				const forme = this.getExistingPokemon(cosmeticForme);
-				if (forme.gen <= this.gen) formes.push(forme.name);
+				const forme = this.getPokemon(cosmeticForme);
+				if (forme) formes.push(forme.name);
 			}
 		}
 
@@ -711,15 +729,17 @@ export class Dex {
 		const formesToCheck: string[] = [pokemon.name];
 		if (sortedFormes) {
 			for (const name of sortedFormes) {
-				const forme = this.getExistingPokemon(name);
-				const formeEvolutionLines = this.getAllEvolutionLines(forme);
-				for (const line of formeEvolutionLines) {
-					if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
-						potentialEvolutionLines.push(line);
+				const forme = this.getPokemon(name);
+				if (forme) {
+					const formeEvolutionLines = this.getAllEvolutionLines(forme);
+					for (const line of formeEvolutionLines) {
+						if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
+							potentialEvolutionLines.push(line);
+						}
 					}
-				}
 
-				formesToCheck.push(forme.name);
+					formesToCheck.push(forme.name);
+				}
 			}
 		}
 
@@ -754,7 +774,13 @@ export class Dex {
 		const evolutionLines: (readonly string[][])[] = [];
 
 		for (const species of speciesList) {
-			evolutionLines.push(this.getEvolutionLines(this.getExistingPokemon(species)));
+			const pokemon = this.getPokemon(species);
+			if (!pokemon) {
+				this.isEvolutionFamilyCache[cacheKey] = false;
+				return false;
+			}
+
+			evolutionLines.push(this.getEvolutionLines(pokemon));
 		}
 
 		evolutionLines.sort((a, b) => a.length - b.length);
@@ -806,7 +832,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.natureCache, id)) return this.natureCache[id];
 
 		const nature = this.pokemonShowdownDex.natures.get(name);
-		if (!nature.exists) return undefined;
+		if (!nature.exists || nature.gen > this.gen) return undefined;
 
 		this.natureCache[id] = nature;
 		return nature;
@@ -2139,44 +2165,48 @@ export class Dex {
 						if (evolve) {
 							if (pokemon.evos.length) {
 								for (const evoName of pokemon.evos) {
-									const evo = this.getExistingPokemon(evoName);
-									let evos: string[];
-									if (options.allowFormes) {
-										evos = this.getFormes(evo);
-									} else {
-										if (evo.forme) continue;
-										evos = [evo.name];
-									}
-
-									if (options.usablePokemon) {
-										for (const forme of evos) {
-											if (options.usablePokemon.includes(forme)) {
-												evolutionFormes.push(forme);
-											}
+									const evo = this.getPokemon(evoName);
+									if (evo) {
+										let evos: string[];
+										if (options.allowFormes) {
+											evos = this.getFormes(evo);
+										} else {
+											if (evo.forme) continue;
+											evos = [evo.name];
 										}
-									} else {
-										evolutionFormes = evolutionFormes.concat(evos);
+
+										if (options.usablePokemon) {
+											for (const forme of evos) {
+												if (options.usablePokemon.includes(forme)) {
+													evolutionFormes.push(forme);
+												}
+											}
+										} else {
+											evolutionFormes = evolutionFormes.concat(evos);
+										}
 									}
 								}
 							}
 						} else {
 							if (pokemon.prevo) {
-								const prevo = this.getExistingPokemon(pokemon.prevo);
-								let prevos: string[] = [];
-								if (options.allowFormes) {
-									prevos = this.getFormes(prevo);
-								} else {
-									if (!prevo.forme) prevos = [prevo.name];
-								}
-
-								if (options.usablePokemon) {
-									for (const forme of prevos) {
-										if (options.usablePokemon.includes(forme)) {
-											evolutionFormes.push(forme);
-										}
+								const prevo = this.getPokemon(pokemon.prevo);
+								if (prevo) {
+									let prevos: string[] = [];
+									if (options.allowFormes) {
+										prevos = this.getFormes(prevo);
+									} else {
+										if (!prevo.forme) prevos = [prevo.name];
 									}
-								} else {
-									evolutionFormes = evolutionFormes.concat(prevos);
+
+									if (options.usablePokemon) {
+										for (const forme of prevos) {
+											if (options.usablePokemon.includes(forme)) {
+												evolutionFormes.push(forme);
+											}
+										}
+									} else {
+										evolutionFormes = evolutionFormes.concat(prevos);
+									}
 								}
 							}
 						}
@@ -2543,8 +2573,8 @@ export class Dex {
 		const abilityKeys = this.pokemonShowdownDex.abilities.all().map(x => x.id);
 		const filteredAbilityKeys: string[] = [];
 		for (const key of abilityKeys) {
-			const ability = this.getAbility(key)!;
-			if (ability.gen > this.gen) continue;
+			const ability = this.getAbility(key);
+			if (!ability) continue;
 
 			filteredAbilityKeys.push(key);
 		}
@@ -2552,8 +2582,8 @@ export class Dex {
 		const itemKeys = this.pokemonShowdownDex.items.all().map(x => x.id);
 		const filteredItemKeys: string[] = [];
 		for (const key of itemKeys) {
-			const item = this.getItem(key)!;
-			if (item.gen > this.gen) continue;
+			const item = this.getItem(key);
+			if (!item) continue;
 
 			filteredItemKeys.push(key);
 		}
@@ -2581,14 +2611,14 @@ export class Dex {
 		for (const key of pokemonKeys) {
 			if (!key) continue;
 
-			const pokemon = this.getPokemon(key)!;
-			if (pokemon.gen > this.gen) continue;
+			const pokemon = this.getPokemon(key);
+			if (!pokemon) continue;
 
 			const formes = [pokemon];
 			if (pokemon.cosmeticFormes) {
 				for (const name of pokemon.cosmeticFormes) {
-					const forme = this.getPokemon(name)!;
-					if (forme.gen <= this.gen && !pokemonKeys.includes(forme.id)) formes.push(forme);
+					const forme = this.getPokemon(name);
+					if (forme && !pokemonKeys.includes(forme.id)) formes.push(forme);
 				}
 			}
 
@@ -2625,8 +2655,8 @@ export class Dex {
 		});
 		const filteredMoveKeys: string[] = [];
 		for (const key of moveKeys) {
-			const move = this.getMove(key)!;
-			if (move.gen > this.gen) continue;
+			const move = this.getMove(key);
+			if (!move) continue;
 
 			this.cacheMoveAvailability(move, moveAvailbilityPokemonList);
 			filteredMoveKeys.push(key);
@@ -2635,9 +2665,16 @@ export class Dex {
 		const natureKeys = this.pokemonShowdownDex.natures.all().map(x => x.id);
 		const filteredNatureKeys: string[] = [];
 		for (const key of natureKeys) {
-			const nature = this.getNature(key)!;
-			if (nature.gen > this.gen) continue;
+			const nature = this.getNature(key);
+			if (!nature) continue;
 			filteredNatureKeys.push(key);
+		}
+
+		for (const alias in this.pokemonShowdownDex.data.Aliases) {
+			if (this.getPokemon(alias)) continue;
+			if (this.getMove(alias)) continue;
+			if (this.getAbility(alias)) continue;
+			if (this.getItem(alias)) continue;
 		}
 
 		const data: IDataTable = {
@@ -2794,7 +2831,9 @@ export class Dex {
 
 		const checkedMoves: string[] = [];
 		for (const i of possibleMoves) {
-			const move = this.getExistingMove(i);
+			const move = this.getMove(i);
+			if (!move) continue;
+
 			// PS move.id compatibility
 			try {
 				if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
