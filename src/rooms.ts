@@ -904,8 +904,9 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
-	remove(room: Room): void {
+	remove(room: Room, removeAll?: boolean): void {
 		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
+		if (room.id === Client.defaultMessageRoom && !removeAll) return;
 
 		delete this.rooms[room.id];
 		room.destroy();
@@ -913,7 +914,7 @@ export class Rooms {
 
 	removeAll(): void {
 		for (const i in this.rooms) {
-			this.remove(this.rooms[i]);
+			this.remove(this.rooms[i], true);
 		}
 	}
 

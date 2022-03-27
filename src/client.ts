@@ -239,6 +239,8 @@ let closeListener: ((event: ws.CloseEvent) => void) | null;
 let pongListener: (() => void) | null;
 
 export class Client {
+	defaultMessageRoom: string = 'lobby';
+
 	private battleFilterRegularExpressions: RegExp[] | null = null;
 	private botGreetingCooldowns: Dict<number> = {};
 	private challstr: string = '';
@@ -918,8 +920,8 @@ export class Client {
 		Tools.logMessage("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();
-		if (Config.rooms && !Config.rooms.includes('lobby')) {
-			const index = this.roomsToRejoin.indexOf('lobby');
+		if (Config.rooms && !Config.rooms.includes(this.defaultMessageRoom)) {
+			const index = this.roomsToRejoin.indexOf(this.defaultMessageRoom);
 			if (index !== -1) this.roomsToRejoin.splice(index, 1);
 		}
 
@@ -982,7 +984,7 @@ export class Client {
 			roomid = lines[0].substr(1).trim();
 			lines.shift();
 		} else {
-			roomid = 'lobby';
+			roomid = this.defaultMessageRoom;
 		}
 
 		const room = Rooms.add(roomid);
