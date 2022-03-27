@@ -816,7 +816,7 @@ export class Tools {
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
 		const clone = Object.create(Object.getPrototypeOf(obj));
-		const keys = Object.keys(obj) as (keyof T)[];
+		const keys = Object.getOwnPropertyNames(obj) as (keyof T)[];
 		for (const key of keys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			clone[key] = this.deepClone(obj[key]);
