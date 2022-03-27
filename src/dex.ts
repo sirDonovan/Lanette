@@ -1075,8 +1075,6 @@ export class Dex {
 
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
-			if (pokemon.gen > 5) return undefined;
-
 			const gifDataBW = this.getData().gifDataBW;
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id) && gifDataBW[pokemon.id]![direction]) {
 				return gifDataBW[pokemon.id]![direction];
