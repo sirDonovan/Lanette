@@ -683,7 +683,7 @@ export class Dex {
 	}
 
 	getFormes(pokemon: IPokemon, nonCosmeticOnly?: boolean): string[] {
-		if (Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
+		if (!nonCosmeticOnly && Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
 
 		const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
 		const formes: string[] = [baseSpecies.name];
@@ -702,7 +702,7 @@ export class Dex {
 			}
 		}
 
-		this.formesCache[pokemon.name] = formes;
+		if (!nonCosmeticOnly) this.formesCache[pokemon.name] = formes;
 		return formes;
 	}
 
