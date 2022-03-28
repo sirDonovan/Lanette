@@ -241,7 +241,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		for (const name of this.pokedex) {
 			const pokemon = Dex.getExistingPokemon(name);
 
-			const formes = this.allowsFormes ? Dex.getFormes(pokemon) : [];
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [];
 			const usableFormes: string[] = [];
 			for (const forme of formes) {
 				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
@@ -318,7 +318,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (checkEvolutions) {
 				// filter out formes such as battleOnly that don't have a prevo and give an advantage
 				if (deEvolution && pokemon.prevo) {
-					const formes = Dex.getFormes(pokemon);
+					const formes = Dex.getFormes(pokemon, true);
 					for (const forme of formes) {
 						if (!Dex.getExistingPokemon(forme).prevo) continue outer;
 					}

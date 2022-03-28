@@ -682,7 +682,7 @@ export class Dex {
 		return this.getData().categories[pokemon.id] || '';
 	}
 
-	getFormes(pokemon: IPokemon): string[] {
+	getFormes(pokemon: IPokemon, nonCosmeticOnly?: boolean): string[] {
 		if (Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
 
 		const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
@@ -695,7 +695,7 @@ export class Dex {
 			}
 		}
 
-		if (baseSpecies.cosmeticFormes) {
+		if (baseSpecies.cosmeticFormes && !nonCosmeticOnly) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
 				const forme = this.getPokemon(cosmeticForme);
 				if (forme) formes.push(forme.name);
