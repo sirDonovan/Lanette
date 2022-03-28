@@ -1,28 +1,19 @@
 import type { IGameFile } from '../types/games';
-import { game as eliminationTournamentGame } from './templates/battle-elimination';
-import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
+import {
+	game as sameBattleEliminationTournamentGame, SameBattleEliminationTournament
+} from './templates/same-battle-elimination-tournament';
 
 const name = "Same Solo";
 const description = "Every player battles with the same randomly generated Pokemon!";
 
-class SameSolo extends BattleEliminationTournament {
-	canChangeFormat = true;
-	additionsPerRound = 0;
-	evolutionsPerRound = 0;
+class SameSolo extends SameBattleEliminationTournament {
 	startingTeamsLength = 1;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
-	fullyEvolved = true;
-	sharedTeams = true;
-	canRejoin = true;
 	battleFormatId = '1v1';
-
-	getStartingTeam(): readonly string[] {
-		return this.pokedex.slice(0, this.startingTeamsLength);
-	}
 }
 
-export const game: IGameFile<SameSolo> = Games.copyTemplateProperties(eliminationTournamentGame, {
+export const game: IGameFile<SameSolo> = Games.copyTemplateProperties(sameBattleEliminationTournamentGame, {
 	aliases: ['ssolo'],
 	class: SameSolo,
 	description,

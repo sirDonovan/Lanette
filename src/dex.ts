@@ -714,7 +714,7 @@ export class Dex {
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
 		let sortedFormes: string[] | undefined;
 		let cacheKey: string | undefined;
-		if (includedFormes) {
+		if (includedFormes && includedFormes.length) {
 			sortedFormes = includedFormes.slice().sort();
 			cacheKey = sortedFormes.join(',');
 			if (Object.prototype.hasOwnProperty.call(this.evolutionLinesFormesCache, pokemon.id) &&
@@ -1826,7 +1826,7 @@ export class Dex {
 		return {addedbans, removedbans, addedrestrictions, addedrules, removedrules};
 	}
 
-	getCustomRulesForPokemonList(pokemon: string[]): string[] {
+	getCustomRulesForPokemonList(pokemon: readonly string[]): string[] {
 		return ["-All Pokemon"].concat(pokemon.map(x => "+" + x));
 	}
 

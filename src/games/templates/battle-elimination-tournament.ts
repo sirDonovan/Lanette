@@ -31,21 +31,19 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			}
 
 			this.subRoom = subRoom;
-			this.createTournament();
 		} else {
 			const name = this.room.title + " " + GROUPCHAT_SUFFIX;
 			const id = this.room.getSubRoomGroupchatId(name);
 			const subRoom = Rooms.get(id);
 			if (subRoom) {
 				this.subRoom = subRoom;
-				this.createTournament();
 			} else {
 				this.subRoom = Rooms.add(id);
 				Client.joinRoom(id);
 
 				Rooms.createListeners[id] = (room) => {
 					this.subRoom = room;
-					this.createTournament();
+					if (this.signupsStarted) this.createTournament();
 				};
 
 				this.room.createSubRoomGroupchat(name);
@@ -72,6 +70,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.subRoom.disallowTournamentScouting();
 				this.subRoom.disallowTournamentModjoin();
 
+				const customRules = this.getCustomRules();
+				if (customRules.length) this.subRoom.setTournamentRules(customRules.join(","));
+
 				this.subRoom.announce("You must join the tournament in this room to play!" +
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
 
@@ -93,7 +94,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		super.onSignups();
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (this.subRoom) this.subRoom.setTournamentCap(this.playerCap);
+		if (this.subRoom && this.subRoom.initialized) {
+			this.createTournament();
+		}
 	}
 
 	onDeallocate(forceEnd?: boolean): void {
@@ -266,9 +269,5 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	}
 }
 
-export const game: IGameTemplateFile<BattleEliminationTournament> = Object.assign(Tools.deepClone(battleEliminationGame), {
-	modes: undefined,
-	modeProperties: undefined,
-	tests: undefined,
-	variants: undefined,
-});
+// @ts-expect-error
+export const game: IGameTemplateFile<BattleEliminationTournament> = Tools.deepClone(battleEliminationGame);

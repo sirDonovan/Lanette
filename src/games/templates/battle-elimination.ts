@@ -235,6 +235,42 @@ export abstract class BattleElimination extends ScriptedGame {
 		return maxPlayers;
 	}
 
+	getCustomRules(): string[] {
+		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
+		const allPokemon: string[] = [];
+		for (const name of this.pokedex) {
+			const pokemon = Dex.getExistingPokemon(name);
+
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon) : [];
+			const usableFormes: string[] = [];
+			for (const forme of formes) {
+				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
+			}
+
+			if (this.evolutionsPerRound) {
+				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
+				for (const line of evolutionLines) {
+					for (const stage of line) {
+						if (this.battleFormat.usablePokemon!.includes(stage) && !allPokemon.includes(stage)) allPokemon.push(stage);
+					}
+				}
+			} else {
+				if (!allPokemon.includes(pokemon.name)) allPokemon.push(pokemon.name);
+
+				for (const forme of usableFormes) {
+					if (!allPokemon.includes(forme)) allPokemon.push(forme);
+				}
+			}
+		}
+
+		const pokemonListRules = Dex.getCustomRulesForPokemonList(allPokemon);
+		for (const rule of pokemonListRules) {
+			if (!customRules.includes(rule)) customRules.push(rule);
+		}
+
+		return customRules;
+	}
+
 	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution', bannedFormes: readonly string[]): boolean {
 		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
 			(this.type && !pokemon.types.includes(this.type)) || bannedFormes.includes(pokemon.name) ||
@@ -1268,6 +1304,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
+
+		// limit pokedex size for custom rules
+		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
+			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
+		if (this.pokedex.length > maxPokemon) this.pokedex = this.pokedex.slice(0, maxPokemon);
 	}
 
 	onSignups(): void {
@@ -1465,10 +1506,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (notAutoconfirmed) this.eliminationPlayers.delete(player);
 
 		if (!this.started) {
-			const starterPokemon = this.starterPokemon.get(player);
-			if (starterPokemon) {
-				for (const pokemon of starterPokemon) {
-					this.pokedex.push(pokemon);
+			if (!this.sharedTeams) {
+				const starterPokemon = this.starterPokemon.get(player);
+				if (starterPokemon) {
+					for (const pokemon of starterPokemon) {
+						this.pokedex.push(pokemon);
+					}
 				}
 			}
 
