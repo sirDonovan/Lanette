@@ -539,7 +539,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
 				this.tournamentDisqualifiedPlayers.push(player);
-				this.subRoom.disqualifyFromTournament(player);
+				this.subRoom.disqualifyFromTournament(player.name);
 			}
 
 			/**

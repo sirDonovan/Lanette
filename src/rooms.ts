@@ -797,15 +797,16 @@ export class Room {
 		});
 	}
 
-	disqualifyFromTournament(userOrPlayer: User | Player): void {
-		this.say("/tour dq " + userOrPlayer.id, {
-			filterSend: () => this.tournament && ((this.tournament.battleRoomGame &&
-				userOrPlayer.id in this.tournament.battleRoomGame.players) || (userOrPlayer.id in this.tournament.players &&
-				!this.tournament.players[userOrPlayer.id].eliminated)) ? true : false,
+	disqualifyFromTournament(name: string): void {
+		const id = Tools.toId(name);
+		this.say("/tour dq " + id, {
+			filterSend: () => this.tournament && (id.startsWith('guest') || (this.tournament.battleRoomGame &&
+				id in this.tournament.battleRoomGame.players) || (id in this.tournament.players &&
+				!this.tournament.players[id].eliminated)) ? true : false,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'tournament-disqualify',
-			disqualifiedUserid: userOrPlayer.id,
+			disqualifiedUserid: id,
 		});
 	}
 
