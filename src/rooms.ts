@@ -11,9 +11,12 @@ import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/ro
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
+const DEFAULT_MODCHAT = 'off';
+
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	battle: boolean | null = null;
+	chatBlockedByModchat: boolean = false;
 	chatLog: IChatLogEntry[] = [];
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
@@ -25,7 +28,7 @@ export class Room {
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
-	modchat: string = 'off';
+	modchat: string = DEFAULT_MODCHAT;
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	parentRoom: Room | null = null;
 	publicRoom: boolean = false;
@@ -130,6 +133,24 @@ export class Room {
 		this.publicRoom = publicRoom;
 	}
 
+	setModchat(modchat: string): void {
+		this.modchat = modchat;
+
+		if (this.modchat && this.modchat !== DEFAULT_MODCHAT && this.modchat !== 'autoconfirmed') {
+			const groupSymbols = Client.getGroupSymbols();
+			const keys = Object.keys(groupSymbols) as GroupName[];
+			let groupName: GroupName | undefined;
+			for (const key of keys) {
+				if (groupSymbols[key] === this.modchat) {
+					groupName = key;
+					break;
+				}
+			}
+
+			this.chatBlockedByModchat = groupName && !Users.self.hasRank(this, groupName) ? true : false;
+		}
+	}
+
 	init(type: RoomType): void {
 		this.initialized = true;
 		this.type = type;
@@ -171,7 +192,6 @@ export class Room {
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse): void {
-		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.setTitle(response.title);
 
 		this.hiddenRoom = response.visibility === 'hidden';
@@ -184,6 +204,8 @@ export class Room {
 			const user = Users.add(username, Tools.toId(username));
 			if (!this.users.has(user)) this.onUserJoin(user, rank);
 		}
+
+		this.setModchat(response.modchat === false ? DEFAULT_MODCHAT : response.modchat);
 	}
 
 	onUserJoin(user: User, rank: string): void {
@@ -238,7 +260,7 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
-		if (global.Rooms.get(this.id) !== this) return;
+		if (global.Rooms.get(this.id) !== this || this.chatBlockedByModchat) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {
@@ -646,7 +668,7 @@ export class Room {
 			(highlightPhrase ? "," + highlightPhrase : ""), options);
 	}
 
-	setModchat(level: string): void {
+	setRoomModchat(level: string): void {
 		if (!level) return;
 
 		this.say("/modchat " + level, {

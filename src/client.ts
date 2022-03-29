@@ -2135,8 +2135,8 @@ export class Client {
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 				this.startSendTimeout(this.chatQueueSendThrottle);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
-					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+				room.setModchat(messageArguments.html.split('<div class="broadcast-red">' +
+					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0]);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'modchat' &&
 					this.lastOutgoingMessage.modchatLevel === room.modchat) {
 					this.clearLastOutgoingMessage(now);
@@ -2145,7 +2145,7 @@ export class Client {
 				messageArguments.html.startsWith('<div class="broadcast-red"><strong>This room is now invite only!</strong>')) {
 				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
-				room.modchat = 'off';
+				room.setModchat('off');
 			} else if (messageArguments.html.startsWith('<div class="infobox infobox-limited">This tournament includes:<br />')) {
 				if (room.tournament) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-rules' &&
