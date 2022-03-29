@@ -117,6 +117,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8inheritance': {
 		teams: 'https://www.smogon.com/forums/threads/3656811/#post-8292871',
 	},
+	'gen8godlygift': {
+		teams: 'https://www.smogon.com/forums/threads/3660461/post-8376501',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
