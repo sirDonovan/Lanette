@@ -999,7 +999,8 @@ export class Client {
 			const line = lines[i].trim();
 			if (!line) continue;
 
-			if (room.leaving && !line.startsWith('|deinit') && !line.startsWith('|noinit')) continue;
+			if (room.leaving && !(this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) &&
+				!line.startsWith('|deinit') && !line.startsWith('|noinit')) continue;
 
 			try {
 				this.parseMessage(room, line, now);
