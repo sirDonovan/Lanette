@@ -148,6 +148,8 @@ export class Room {
 			}
 
 			this.chatBlockedByModchat = groupName && !Users.self.hasRank(this, groupName) ? true : false;
+		} else {
+			this.chatBlockedByModchat = false;
 		}
 	}
 
