@@ -315,7 +315,7 @@ export class CommandParser {
 		} else if (error[0] === 'invalidUsernameLength') {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {
-			return Users.self.name + " is currently updating. Please try again shortly!";
+			return Users.self.name + " is preparing to update. Please try again soon!";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
 		} else if (error[0] === 'noPmGameRoom') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
