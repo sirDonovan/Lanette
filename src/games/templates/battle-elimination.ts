@@ -1901,13 +1901,22 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	clearNodeTimers(node: EliminationNode<Player>): void {
 		const activityTimer = this.activityTimers.get(node);
-		if (activityTimer) clearTimeout(activityTimer);
+		if (activityTimer) {
+			clearTimeout(activityTimer);
+			this.activityTimers.delete(node);
+		}
 
 		const checkChallengesTimer = this.checkChallengesTimers.get(node);
-		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+		if (checkChallengesTimer) {
+			clearTimeout(checkChallengesTimer);
+			this.checkChallengesTimers.delete(node);
+		}
 
 		const checkChallengesInactiveTimer = this.checkChallengesInactiveTimers.get(node);
-		if (checkChallengesInactiveTimer) clearTimeout(checkChallengesInactiveTimer);
+		if (checkChallengesInactiveTimer) {
+			clearTimeout(checkChallengesInactiveTimer);
+			this.checkChallengesInactiveTimers.delete(node);
+		}
 	}
 
 	cleanupTimers(): void {
@@ -1927,10 +1936,6 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.treeRoot.traverse(node => {
 				this.clearNodeTimers(node);
 			});
-
-			this.activityTimers.clear();
-			this.checkChallengesTimers.clear();
-			this.checkChallengesInactiveTimers.clear();
 		}
 	}
 
