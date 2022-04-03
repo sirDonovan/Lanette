@@ -1,3 +1,5 @@
+import path = require('path');
+
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore - generated after first run
 import * as config from './config';
@@ -18,6 +20,7 @@ const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 	tools: 'tools',
 	tournaments: 'tournaments',
 };
+const configLoaderFilename = 'config-loader';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
@@ -108,7 +111,6 @@ module.exports = (): void => {
 		}
 
 		if (modules.includes('dex') || modules.includes('games')) Games.setReloadInProgress(true);
-		if (modules.includes('storage')) Storage.reloadInProgress = true;
 
 		const buildOptions: Dict<boolean> = {
 			incrementalBuild: true,
@@ -118,34 +120,40 @@ module.exports = (): void => {
 		if (user) user.say("Running ``tsc``...");
 
 		for (const moduleId of modules) {
-			Tools.uncacheTree('./' + moduleFilenames[moduleId]);
+			Tools.uncacheTree(path.join(Tools.builtFolder, moduleFilenames[moduleId] + '.js'));
 		}
-		if (modules.includes('config')) Tools.uncacheTree('./config-loader');
-		if (modules.includes('games') || modules.includes('tournaments')) Tools.uncacheTree('./room-activity');
 
-		const path = require('path') as typeof import('path');
+		if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.builtFolder, configLoaderFilename + '.js'));
+		if (modules.includes('games') || modules.includes('tournaments')) {
+			Tools.uncacheTree(path.join(Tools.builtFolder, 'room-activity.js'));
+		}
+
 		const buildScript = path.join(Tools.rootFolder, 'build.js');
 		Tools.uncacheTree(buildScript);
+		Tools.uncacheTree(path.join(Tools.rootFolder, 'get-options.js'));
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
 			for (const moduleId of modules) {
+				const modulePath = path.join(Tools.builtFolder, moduleFilenames[moduleId] + '.js');
+
 				if (moduleId === 'client') {
 					global.Tools.unrefProperties(client);
 
-					client = require('./' + moduleFilenames[moduleId]) as typeof import('./client');
+					client = require(modulePath) as typeof import('./client');
 					client.instantiate();
 				} else if (moduleId === 'commandparser') {
 					global.Tools.unrefProperties(commandParser);
 
-					commandParser = require('./' + moduleFilenames[moduleId]) as typeof import('./command-parser');
+					commandParser = require(modulePath) as typeof import('./command-parser');
 					commandParser.instantiate();
 
 					if (!modules.includes('games')) global.Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
 					let oldConfig = global.Config;
-					const configLoader = require('./config-loader') as typeof import('./config-loader');
-					const newConfig = configLoader.load(require('./config') as typeof import('./config-example'));
+					const configLoader = require(path.join(Tools.builtFolder,
+						configLoaderFilename + '.js')) as typeof import('./config-loader');
+					const newConfig = configLoader.load(require(modulePath) as typeof import('./config-example'));
 					global.Config = newConfig;
 					global.Client.updateConfigSettings();
 					global.Rooms.updateConfigSettings();
@@ -157,7 +165,7 @@ module.exports = (): void => {
 				} else if (moduleId === 'dex') {
 					global.Tools.unrefProperties(dex);
 
-					dex = require('./' + moduleFilenames[moduleId]) as typeof import('./dex');
+					dex = require(modulePath) as typeof import('./dex');
 					dex.instantiate();
 					if (!modules.includes('games')) global.Games.setReloadInProgress(false);
 				} else if (moduleId === 'games') {
@@ -165,22 +173,24 @@ module.exports = (): void => {
 
 					global.Tools.unrefProperties(games);
 
-					games = require('./' + moduleFilenames[moduleId]) as typeof import('./games');
+					games = require(modulePath) as typeof import('./games');
 					games.instantiate();
 				} else if (moduleId === 'storage') {
+					clearInterval(global.Storage.globalDatabaseExportInterval);
+
 					global.Tools.unrefProperties(storage);
 
-					storage = require('./' + moduleFilenames[moduleId]) as typeof import('./storage');
+					storage = require(modulePath) as typeof import('./storage');
 					storage.instantiate();
 				} else if (moduleId === 'tools') {
 					global.Tools.unrefProperties(tools);
 
-					tools = require('./' + moduleFilenames[moduleId]) as typeof import('./tools');
+					tools = require(modulePath) as typeof import('./tools');
 					tools.instantiate();
 				} else if (moduleId === 'tournaments') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 					global.Tools.unrefProperties(tournaments);
 
-					tournaments = require('./' + moduleFilenames[moduleId]) as typeof import('./tournaments');
+					tournaments = require(modulePath) as typeof import('./tournaments');
 					tournaments.instantiate();
 				}
 			}
@@ -194,7 +204,6 @@ module.exports = (): void => {
 
 			global.__reloadInProgress = false;
 			if (global.Games.isReloadInProgress()) global.Games.setReloadInProgress(false);
-			if (global.Storage.reloadInProgress) global.Storage.reloadInProgress = false;
 
 			user = global.Users.get(username);
 			if (user) user.say((e as Error).message);

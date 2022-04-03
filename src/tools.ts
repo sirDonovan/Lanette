@@ -845,40 +845,44 @@ export class Tools {
 	}
 
 	uncacheTree(root: string): void {
-		const rootFilepath = require.resolve(root);
-		if (!(rootFilepath in require.cache)) return;
+		try {
+			const rootFilepath = require.resolve(root);
+			if (!(rootFilepath in require.cache)) return;
 
-		const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
-		const cachedModules: NodeModule[] = [];
-		while (modulesList.length) {
-			const currentModule = modulesList[0];
-			modulesList.shift();
+			const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
+			const cachedModules: NodeModule[] = [];
+			while (modulesList.length) {
+				const currentModule = modulesList[0];
+				modulesList.shift();
 
-			if (!cachedModules.includes(currentModule) && !currentModule.id.endsWith('.node')) {
-				cachedModules.push(currentModule);
-				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (currentModule.children) {
-					for (const child of currentModule.children) {
-						if (!child.id.endsWith('.node')) modulesList.push(child);
+				if (!cachedModules.includes(currentModule) && !currentModule.id.endsWith('.node')) {
+					cachedModules.push(currentModule);
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (currentModule.children) {
+						for (const child of currentModule.children) {
+							if (!child.id.endsWith('.node')) modulesList.push(child);
+						}
 					}
 				}
 			}
-		}
 
-		for (const filename in require.cache) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			if (require.cache[filename]!.children) {
-				for (const cachedModule of cachedModules) {
-					const index = require.cache[filename]!.children.indexOf(cachedModule);
-					if (index !== -1) require.cache[filename]!.children.splice(index, 1);
+			for (const filename in require.cache) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (require.cache[filename]!.children) {
+					for (const cachedModule of cachedModules) {
+						const index = require.cache[filename]!.children.indexOf(cachedModule);
+						if (index !== -1) require.cache[filename]!.children.splice(index, 1);
+					}
 				}
 			}
-		}
 
-		for (const cachedModule of cachedModules) {
-			delete require.cache[cachedModule.filename];
+			for (const cachedModule of cachedModules) {
+				delete require.cache[cachedModule.filename];
 
-			this.unrefProperties(cachedModule);
+				this.unrefProperties(cachedModule);
+			}
+		} catch (e) {
+			console.log(e);
 		}
 	}
 

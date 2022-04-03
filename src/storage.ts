@@ -32,7 +32,6 @@ export class Storage {
 	leaderboardsAnnualPointBreakdownsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedPointsBreakdown[]>> = {};
 	leaderboardsPointBreakdownsCache: Dict<Dict<PartialKeyedDict<LeaderboardType, ICachedPointsBreakdown[]>>> = {};
 	loadedDatabases: boolean = false;
-	reloadInProgress: boolean = false;
 
 	allLeaderboardTypes: LeaderboardType[];
 	globalDatabaseExportInterval: NodeJS.Timer;
@@ -55,7 +54,6 @@ export class Storage {
 
 		if (previous.loadedDatabases) this.loadedDatabases = !!previous.loadedDatabases;
 
-		if (previous.globalDatabaseExportInterval) clearInterval(previous.globalDatabaseExportInterval);
 
 		Tools.unrefProperties(previous);
 	}
