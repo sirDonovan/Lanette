@@ -173,7 +173,7 @@ export class Storage {
 	}
 
 	renameRoom(room: Room, oldId: string): void {
-		if (oldId in this.databases) {
+		if (oldId in this.databases && room.id !== oldId) {
 			this.databases[room.id] = this.databases[oldId];
 			delete this.databases[oldId];
 		}
