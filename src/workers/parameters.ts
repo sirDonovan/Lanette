@@ -1,9 +1,10 @@
 import path = require('path');
 
 import type { PRNGSeed } from '../lib/prng';
+import type { WorkerBaseMessageId } from './worker-base';
 import { WorkerBase } from './worker-base';
 
-export type ParametersId = 'search' | 'intersect';
+export type ParametersId = WorkerBaseMessageId | 'search' | 'intersect';
 
 export type ParamType = 'ability' | 'color' | 'egggroup' | 'gen' | 'letter' | 'move' | 'resistance' | 'tier' | 'type' | 'weakness';
 
