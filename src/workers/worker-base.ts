@@ -95,6 +95,11 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}
 	}
 
+	async getMemoryUsage(): Promise<ThreadResponse | null> {
+		// @ts-expect-error
+		return this.sendMessage('getMemoryUsage');
+	}
+
 	unref(): void {
 		this.sendMessages = false;
 
@@ -105,18 +110,17 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 
 		if (this.unrefTimer) {
 			clearTimeout(this.unrefTimer);
-			delete this.unrefTimer;
+			this.unrefTimer = undefined;
 		}
 
 		if (this.workers) {
 			for (const worker of this.workers) {
-				worker.unref();
+				void worker.terminate().then(() => worker.unref());
 			}
-			delete this.workers;
+			this.workers = undefined;
 		}
 
-		for (const i in this) {
-			delete this[i];
-		}
+		Tools.unrefProperties(this.workerData);
+		Tools.unrefProperties(this);
 	}
 }

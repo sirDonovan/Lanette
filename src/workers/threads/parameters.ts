@@ -162,7 +162,12 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const message = parts.slice(2).join("|");
 	let response: IParametersResponse | null = null;
 	try {
-		if (id === 'search') {
+		// @ts-expect-error
+		if (id === 'getMemoryUsage') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			const memUsage = process.memoryUsage();
+			// @ts-expect-error
+			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (id === 'search') {
 			const options = JSON.parse(message) as IParametersSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);

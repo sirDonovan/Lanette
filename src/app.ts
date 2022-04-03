@@ -67,9 +67,10 @@ module.exports = (): void => {
 		for (const target of targets) {
 			const id = Tools.toId(target) as ReloadableModule;
 			if (id === 'games') {
-				const workers = Object.keys(Games.getWorkers()) as (keyof IGamesWorkers)[];
-				for (const worker of workers) {
-					if (Games.getWorkers()[worker].isBusy) {
+				const workers = Games.getWorkers();
+				const workerKeys = Object.keys(workers) as (keyof IGamesWorkers)[];
+				for (const worker of workerKeys) {
+					if (workers[worker].isBusy) {
 						if (user) user.say("You must wait for all " + worker + " requests to finish first.");
 						return;
 					}
