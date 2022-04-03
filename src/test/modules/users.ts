@@ -46,16 +46,19 @@ describe("Users", () => {
 	});
 	it('should handle renames properly', () => {
 		const room = createTestRoom();
-		const user = Users.add("olduser", "olduser");
+		const user = Users.add("Old User", "olduser");
 		room.onUserJoin(user, " ");
 
-		Users.rename("newuser", 'olduser');
-		assertStrictEqual(user.name, "newuser");
+		const newUser = Users.rename("New User", 'olduser');
+		assertStrictEqual(user, newUser);
+		assertStrictEqual(newUser.name, "New User");
+		assertStrictEqual(newUser.id, "newuser");
 		assert(!Users.getUserIds().includes("olduser"));
 		assert(Users.getUserIds().includes("newuser"));
 
-		Users.rename("NEWUSER", 'newuser');
-		assertStrictEqual(user.name, "NEWUSER");
+		const caseChange = Users.rename("NEWUSER", 'newuser');
+		assertStrictEqual(newUser, caseChange);
+		assertStrictEqual(caseChange.name, "NEWUSER");
 		assert(Users.getUserIds().includes("newuser"));
 
 		for (const format of Users.getNameFormattingList()) {
@@ -63,11 +66,13 @@ describe("Users", () => {
 			assertStrictEqual(user.name, "newUser");
 		}
 
-		const mergeUser = Users.add("mergeuser", "mergeuser");
-		room.onUserJoin(mergeUser, " ");
-		Users.rename("newuser", 'mergeuser');
+		const userToMerge = Users.add("mergeuser", "mergeuser");
+		room.onUserJoin(userToMerge, " ");
+
+		const mergedUser = Users.rename("newuser", 'mergeuser');
+		assertStrictEqual(newUser, mergedUser);
 		assert(Users.getUserIds().includes("newuser"));
 		assert(!Users.getUserIds().includes("mergeuser"));
-		assertStrictEqual(mergeUser.rooms, undefined);
+		assertStrictEqual(userToMerge.rooms, undefined);
 	});
 });

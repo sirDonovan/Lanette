@@ -490,14 +490,15 @@ export class Tournament extends Activity {
 		}
 
 		if (this.joinBattles || this.battleRoomGame) {
-			const room = Rooms.add(roomid);
-			this.playerBattleRooms.set(player, room);
-			this.playerBattleRooms.set(opponent, room);
+			Rooms.addCreateListener(roomid, room => {
+				this.playerBattleRooms.set(player, room);
+				this.playerBattleRooms.set(opponent, room);
 
-			if (this.joinBattles) room.tournament = this;
-			if (this.battleRoomGame) room.game = this.battleRoomGame;
+				if (this.joinBattles) room.tournament = this;
+				if (this.battleRoomGame) room.game = this.battleRoomGame;
+			});
 
-			Client.joinRoom(room.id);
+			Client.joinRoom(roomid);
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {

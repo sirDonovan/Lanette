@@ -550,7 +550,7 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'create-groupchat') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
@@ -990,17 +990,14 @@ export class Client {
 
 		const room = Rooms.add(roomid);
 
-		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
-			this.lastOutgoingMessage.roomid === room.id) {
+		if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id && (this.lastOutgoingMessage.type === 'join-room' ||
+			this.lastOutgoingMessage.type === 'create-groupchat')) {
 			this.clearLastOutgoingMessage(now);
 		}
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i].trim();
 			if (!line) continue;
-
-			if (room.leaving && !(this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) &&
-				!line.startsWith('|deinit') && !line.startsWith('|noinit')) continue;
 
 			try {
 				this.parseMessage(room, line, now);
@@ -1303,7 +1300,9 @@ export class Client {
 			}
 
 			if (room.id in Rooms.createListeners) {
-				Rooms.createListeners[room.id](room);
+				for (const listener of Rooms.createListeners[room.id]) {
+					listener(room);
+				}
 				delete Rooms.createListeners[room.id];
 			}
 
@@ -1334,6 +1333,11 @@ export class Client {
 
 				if (room.type === 'chat') this.getRoomInfo(room);
 			} else {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				Rooms.remove(room);
 			}
 
@@ -2086,6 +2090,10 @@ export class Client {
 					(this.lastOutgoingMessage.type === 'pm-html' || this.lastOutgoingMessage.type === 'pm-uhtml' ||
 					this.lastOutgoingMessage.type === 'htmlpage' || this.lastOutgoingMessage.type === 'htmlpageselector' ||
 					this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'closehtmlpage')) {
+					this.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('A group chat named ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'create-groupchat') {
 					this.clearLastOutgoingMessage(now);
 				}
 			} else if (this.isDataCommandError(messageArguments.error)) {

@@ -14,6 +14,14 @@ describe("Rooms", () => {
 		roomB.onUserJoin(userA, " ");
 		roomB.onUserJoin(userB, " ");
 
+		assertStrictEqual(roomA.users.size, 2);
+		assertStrictEqual(roomB.users.size, 3);
+
+		roomA.onUserLeave(Users.self);
+		roomB.onUserLeave(Users.self);
+		assertStrictEqual(roomA.users.size, 1);
+		assertStrictEqual(roomB.users.size, 2);
+
 		Rooms.remove(roomB);
 		assert(!Users.get("B"));
 		assertStrictEqual(Users.get("A"), userA);
@@ -24,20 +32,24 @@ describe("Rooms", () => {
 
 	it('should handle renames properly', () => {
 		const room = createTestRoom("oldroom", "Old Room");
-		Rooms.renameRoom(room, "newroom", "New Room");
-		assertStrictEqual(room.id, "newroom");
-		assertStrictEqual(room.title, "New Room");
+
+		const newName = Rooms.renameRoom(room, "newroom", "New Room");
+		assertStrictEqual(room, newName);
+		assertStrictEqual(newName.id, "newroom");
+		assertStrictEqual(newName.title, "New Room");
 		assert(!Rooms.getRoomIds().includes("oldroom"));
 		assert(Rooms.getRoomIds().includes("newroom"));
 
-		Rooms.renameRoom(room, "newroom", "NEW ROOM");
-		assertStrictEqual(room.id, "newroom");
-		assertStrictEqual(room.title, "NEW ROOM");
+		const caseChange = Rooms.renameRoom(room, "newroom", "NEW ROOM");
+		assertStrictEqual(newName, caseChange);
+		assertStrictEqual(caseChange.id, "newroom");
+		assertStrictEqual(caseChange.title, "NEW ROOM");
 		assert(Rooms.getRoomIds().includes("newroom"));
 
-		const mergeRoom = createTestRoom("mergeroom", "Merge Room");
-		Rooms.renameRoom(mergeRoom, "newroom", "New Room");
+		const roomToMerge = createTestRoom("mergeroom", "Merge Room");
+		const mergedRoom = Rooms.renameRoom(roomToMerge, "newroom", "New Room");
+		assertStrictEqual(mergedRoom, newName);
 		assert(!Rooms.getRoomIds().includes("mergeroom"));
-		assertStrictEqual(mergeRoom.users, undefined);
+		assertStrictEqual(roomToMerge.users, undefined);
 	});
 });

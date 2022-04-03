@@ -11,6 +11,8 @@ import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/ro
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
+type RoomCreateListener = (room: Room) => void;
+
 const DEFAULT_MODCHAT = 'off';
 
 export class Room {
@@ -211,8 +213,6 @@ export class Room {
 	}
 
 	onUserJoin(user: User, rank: string): void {
-		if (this.users.has(user)) throw new Error("User " + user.name + " already in " + this.id + " users list");
-
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
@@ -223,8 +223,6 @@ export class Room {
 	}
 
 	onUserLeave(user: User): void {
-		if (!this.users.has(user)) throw new Error("User " + user.name + " not in " + this.id + " users list");
-
 		this.users.delete(user);
 		user.rooms.delete(this);
 		if (user.timers && this.id in user.timers) {
@@ -274,7 +272,7 @@ export class Room {
 		}
 
 		const baseOutgoingMessage: Partial<IOutgoingMessage> = {
-			roomid: this.id,
+			roomid: options && options.roomid ? options.roomid : this.id,
 			message: this.getMessageWithClientPrefix(message),
 			type: options && options.type ? options.type : 'chat',
 		};
@@ -855,21 +853,19 @@ export class Room {
 		return Tools.groupchatPrefix + this.id + "-" + Tools.toId(name);
 	}
 
-	createSubRoomGroupchat(name: string): Room {
+	createSubRoomGroupchat(name: string): void {
 		const groupchatId = this.getSubRoomGroupchatId(name);
-		const groupchat = global.Rooms.add(groupchatId);
-		groupchat.parentRoom = this;
-
-		this.subRoom = groupchat;
+		global.Rooms.addCreateListener(groupchatId, room => {
+			room.parentRoom = this;
+			this.subRoom = room;
+		});
 
 		this.say("/subroomgroupchat " + name, {
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'join-room',
+			type: 'create-groupchat',
 			roomid: groupchatId,
 		});
-
-		return groupchat;
 	}
 
 	leave(): void {
@@ -915,7 +911,7 @@ export class Room {
 }
 
 export class Rooms {
-	createListeners: Dict<(room: Room) => void> = {};
+	createListeners: Dict<RoomCreateListener[]> = {};
 	private rooms: Dict<Room> = {};
 
 	private pruneRoomsInterval: NodeJS.Timer;
@@ -927,6 +923,11 @@ export class Rooms {
 	add(id: string): Room {
 		if (!(id in this.rooms)) this.rooms[id] = new Room(id);
 		return this.rooms[id];
+	}
+
+	addCreateListener(id: string, listener: RoomCreateListener): void {
+		if (!(id in this.createListeners)) this.createListeners[id] = [];
+		this.createListeners[id].push(listener);
 	}
 
 	remove(room: Room, removeAll?: boolean): void {
@@ -988,7 +989,7 @@ export class Rooms {
 	pruneRooms(): void {
 		const roomKeys = Object.keys(this.rooms);
 		for (const key of roomKeys) {
-			if (!this.rooms[key].initialized && !this.rooms[key].parentRoom && !this.rooms[key].game && !this.rooms[key].tournament) {
+			if (!this.rooms[key].users.size) {
 				this.remove(this.rooms[key]);
 			}
 		}

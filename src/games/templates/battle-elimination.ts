@@ -2065,9 +2065,10 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 				return false;
 			}
 
-			const battleRoom = Rooms.add(battle.fullId);
-			battleRoom.game = this;
-			this.battleData.set(battleRoom, this.generateBattleData());
+			Rooms.addCreateListener(battle.fullId, battleRoom => {
+				battleRoom.game = this;
+				this.battleData.set(battleRoom, this.generateBattleData());
+			});
 
 			Client.joinRoom(battle.fullId);
 			return true;

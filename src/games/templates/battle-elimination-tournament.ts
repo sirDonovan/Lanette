@@ -38,13 +38,12 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			if (subRoom) {
 				this.subRoom = subRoom;
 			} else {
-				this.subRoom = Rooms.add(id);
-				Client.joinRoom(id);
-
-				Rooms.createListeners[id] = (room) => {
+				Rooms.addCreateListener(id, room => {
 					this.subRoom = room;
 					if (this.signupsStarted) this.createTournament();
-				};
+				});
+
+				Client.joinRoom(id);
 
 				this.room.createSubRoomGroupchat(name);
 			}
@@ -115,8 +114,20 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (forceEnd && !this.ended) this.end();
 	}
 
+	addTournamentPlayer(tournamentPlayer: Player): void {
+		let user = Users.get(tournamentPlayer.name);
+		let expiredUser = false;
+		if (!user) {
+			expiredUser = true;
+			user = Users.add(tournamentPlayer.name, tournamentPlayer.id);
+		}
+
+		this.addPlayer(user, true);
+		if (expiredUser) Users.remove(user);
+	}
+
 	onTournamentPlayerJoin(tournamentPlayer: Player): void {
-		this.addPlayer(Users.add(tournamentPlayer.name, tournamentPlayer.id), true);
+		this.addTournamentPlayer(tournamentPlayer);
 	}
 
 	onTournamentPlayerLeave(name: string): void {
@@ -200,7 +211,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			this.playerCap = 0;
 			for (const i in players) {
 				if (!(players[i].id in this.players)) {
-					this.addPlayer(Users.add(players[i].name, players[i].id), true);
+					this.addTournamentPlayer(players[i]);
 				}
 			}
 
