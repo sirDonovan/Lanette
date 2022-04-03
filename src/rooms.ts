@@ -83,7 +83,7 @@ export class Room {
 
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
-		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
+		if (this.tournament && this.tournament.room === this) this.tournament.deallocate(true);
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
 
 		for (const i in this.repeatedMessages) {
