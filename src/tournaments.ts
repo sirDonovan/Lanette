@@ -201,7 +201,7 @@ export class Tournaments {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
 					if (!queuedFormat || queuedFormat.effectType !== 'Format' || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
-						Storage.exportDatabase(room.id);
+						Storage.tryExportDatabase(room.id);
 					}
 				}
 
@@ -682,7 +682,7 @@ export class Tournaments {
 						database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 				} else {
 					delete database.queuedTournament;
-					Storage.exportDatabase(room.id);
+					Storage.tryExportDatabase(room.id);
 				}
 			}
 

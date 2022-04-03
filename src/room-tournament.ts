@@ -278,6 +278,7 @@ export class Tournament extends Activity {
 
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
+		let awardedPoints = false;
 		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
@@ -288,6 +289,8 @@ export class Tournament extends Activity {
 			}
 			this.room.announce('Congratulations to ' + Tools.joinList(text));
 		} else {
+			awardedPoints = true;
+
 			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
 			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
@@ -334,7 +337,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		Storage.exportDatabase(this.room.id);
+		if (awardedPoints) Storage.tryExportDatabase(this.room.id);
 	}
 
 	forceEnd(): void {

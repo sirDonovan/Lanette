@@ -240,7 +240,7 @@ export const commands: BaseCommandDefinitions = {
 					id: host.id,
 					name: host.name,
 				});
-				Storage.exportDatabase(room.id);
+				Storage.tryExportDatabase(room.id);
 				return;
 			}
 
@@ -346,7 +346,7 @@ export const commands: BaseCommandDefinitions = {
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		description: ["starts the next queued user-hosted game"],
@@ -427,7 +427,7 @@ export const commands: BaseCommandDefinitions = {
 				const host = Users.get(database.userHostedGameQueue[i].name);
 				if (host) host.say("You are now #" + (i + 1) + " in the host queue.");
 			}
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['unhost'],

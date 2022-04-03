@@ -1032,7 +1032,7 @@ export const commands: BaseCommandDefinitions = {
 
 				this.say(playerName + " has been banned from participating in tournament games for " +
 					Tools.toDurationString(banDuration) + ".");
-				Storage.exportDatabase(gameRoom.id);
+				Storage.tryExportDatabase(gameRoom.id);
 			} else {
 				const now = Date.now();
 				if (!database.tournamentGameBanlist || !(playerId in database.tournamentGameBanlist) ||
@@ -1074,7 +1074,7 @@ export const commands: BaseCommandDefinitions = {
 
 			delete database.tournamentGameBanlist[playerId];
 			this.say(playerName + " has been unbanned from participating in tournament games.");
-			Storage.exportDatabase(gameRoom.id);
+			Storage.tryExportDatabase(gameRoom.id);
 		},
 		aliases: ['tourgameunban'],
 		syntax: ["[user]"],

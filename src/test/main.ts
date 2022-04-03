@@ -1,4 +1,5 @@
 import fs = require('fs');
+import fsPromises = require('fs/promises');
 import Mocha = require('mocha');
 import path = require('path');
 import stream = require('stream');
@@ -19,6 +20,9 @@ for (const method of methodsToNoOp) {
 	fs[method] = noOp;
 	// @ts-expect-error
 	fs[method + 'Sync'] = noOp;
+
+	// @ts-expect-error
+	fsPromises[method] = noOp;
 }
 
 Object.assign(fs, {createWriteStream() {

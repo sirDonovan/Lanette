@@ -669,7 +669,7 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
-		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);
+		if (this.awardedBits || usedDatabase) Storage.tryExportDatabase(this.room.id);
 
 		this.deallocate(false);
 	}

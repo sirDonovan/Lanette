@@ -41,19 +41,18 @@ export class Storage {
 	constructor() {
 		this.allLeaderboardTypes = [this.gameLeaderboard, this.gameHostingLeaderboard, this.tournamentLeaderboard,
 			this.unsortedLeaderboard];
-		this.globalDatabaseExportInterval = setInterval(() => this.exportGlobalDatabase(), 15 * 60 * 1000);
+		this.globalDatabaseExportInterval = setInterval(() => this.tryExportGlobalDatabase(), 15 * 60 * 1000);
 	}
 
-	onReload(previous: Partial<Storage>): void {
-		// @ts-expect-error
-		if (previous.databases) Object.assign(this.databases, previous.databases);
-		if (previous.lastExportedDatabaseContents) Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
+	onReload(previous: Storage): void {
+		Object.assign(this.databases, previous.databases);
+		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
+
 		for (const id in this.databases) {
 			this.updateLeaderboardCaches(id, this.databases[id]);
 		}
 
-		if (previous.loadedDatabases) this.loadedDatabases = !!previous.loadedDatabases;
-
+		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
 
 		Tools.unrefProperties(previous);
 	}
@@ -68,22 +67,41 @@ export class Storage {
 		return this.databases[globalDatabaseId] as IGlobalDatabase;
 	}
 
-	exportGlobalDatabase(): void {
-		this.exportDatabase(globalDatabaseId);
+	async exportGlobalDatabase(): Promise<void> {
+		return this.exportDatabase(globalDatabaseId);
 	}
 
-	exportDatabase(roomid: string): void {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) return;
+	tryExportGlobalDatabase(): void {
+		this.exportDatabase(globalDatabaseId)
+			.catch((e: Error) => Tools.logError(e, "Exporting global database"));
+	}
+
+	async exportDatabase(roomid: string): Promise<void> {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+			return Promise.resolve();
+		}
 
 		const contents = JSON.stringify(this.databases[roomid]);
-		if (roomid in this.lastExportedDatabaseContents && contents === this.lastExportedDatabaseContents[roomid]) return;
+		if (roomid in this.lastExportedDatabaseContents && contents === this.lastExportedDatabaseContents[roomid]) {
+			return Promise.resolve();
+		}
 
 		this.lastExportedDatabaseContents[roomid] = contents;
-		Tools.safeWriteFileSync(path.join(this.databasesDir, roomid + '.json'), contents);
+
+		return Tools.safeWriteFile(path.join(this.databasesDir, roomid + '.json'), contents)
+			.catch((e: Error) => console.log("Error exporting " + roomid + " database: " + e.message));
 	}
 
-	archiveDatabase(roomid: string): void {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) return;
+	tryExportDatabase(roomid: string): void {
+		this.exportDatabase(roomid)
+			.catch((e: Error) => Tools.logError(e, "Exporting " + roomid + " database"));
+	}
+
+	async archiveDatabase(roomid: string): Promise<void> {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+			return Promise.resolve();
+		}
+
 		const date = new Date();
 		const year = date.getFullYear();
 		const month = date.getMonth() + 1;
@@ -91,7 +109,9 @@ export class Storage {
 		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' +
 			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
 		const contents = JSON.stringify(this.databases[roomid]);
-		Tools.safeWriteFileSync(path.join(Tools.rootFolder, 'archived-databases', filename + '.json'), contents);
+
+		return Tools.safeWriteFile(path.join(Tools.rootFolder, 'archived-databases', filename + '.json'), contents)
+			.catch(e => console.log("Error archiving " + roomid + " database: " + (e as Error).message));
 	}
 
 	importDatabases(): void {
@@ -162,12 +182,14 @@ export class Storage {
 		this.loadedDatabases = true;
 	}
 
-	exportDatabases(): void {
-		this.exportGlobalDatabase();
+	exportDatabases(): Promise<void>[] {
+		const promises: Promise<void>[] = [this.exportGlobalDatabase()];
 
 		for (const i in this.databases) {
-			this.exportDatabase(i);
+			promises.push(this.exportDatabase(i));
 		}
+
+		return promises;
 	}
 
 	renameRoom(room: Room, oldId: string): void {
@@ -183,84 +205,86 @@ export class Storage {
 		return 'unsortedLeaderboard';
 	}
 
-	clearLeaderboard(roomid: string, leaderboardTypes?: LeaderboardType[]): boolean {
-		if (!(roomid in this.databases)) return false;
+	async clearLeaderboard(roomid: string, leaderboardTypes?: LeaderboardType[]): Promise<void> {
+		if (!(roomid in this.databases)) return Promise.resolve();
 		if (!leaderboardTypes || !leaderboardTypes.length) leaderboardTypes = this.allLeaderboardTypes;
 
-		this.archiveDatabase(roomid);
+		this.archiveDatabase(roomid)
+			.then(() => { // eslint-disable-line @typescript-eslint/promise-function-async
+				const database = this.databases[roomid];
+				if (!database.previousCycles) database.previousCycles = [];
 
-		const database = this.databases[roomid];
-		if (!database.previousCycles) database.previousCycles = [];
+				const cycleTime = this.formatCycleTime(Date.now());
+				const previousCycle: IPreviousCycle = {
+					cycleStartDate: database.cycleStartDate || cycleTime,
+					cycleEndDate: cycleTime,
+				};
 
-		const cycleTime = this.formatCycleTime(Date.now());
-		const previousCycle: IPreviousCycle = {
-			cycleStartDate: database.cycleStartDate || cycleTime,
-			cycleEndDate: cycleTime,
-		};
+				database.cycleStartDate = cycleTime;
 
-		database.cycleStartDate = cycleTime;
-
-		for (const type of this.allLeaderboardTypes) {
-			if (!database[type]) continue;
-			previousCycle[type] = Tools.deepClone(database[type]);
-		}
-
-		if (database.scriptedGameCounts) {
-			previousCycle.scriptedGameCounts = Tools.deepClone(database.scriptedGameCounts);
-			database.scriptedGameCounts = {};
-		}
-
-		if (database.userHostedGameCounts) {
-			previousCycle.userHostedGameCounts = Tools.deepClone(database.userHostedGameCounts);
-			database.userHostedGameCounts = {};
-		}
-
-		if (database.scriptedGameStats) {
-			previousCycle.scriptedGameStats = Tools.deepClone(database.scriptedGameStats);
-			database.scriptedGameStats = [];
-		}
-
-		if (database.userHostedGameStats) {
-			previousCycle.userHostedGameStats = Tools.deepClone(database.userHostedGameStats);
-			database.userHostedGameStats = {};
-		}
-
-		if (database.previousCycles.length === 26) database.previousCycles.pop();
-		database.previousCycles.unshift(previousCycle);
-
-		const date = new Date();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
-		const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
-		for (const leaderboardType of leaderboardTypes) {
-			if (!database[leaderboardType]) continue;
-			for (const i in database[leaderboardType]!.entries) {
-				const user = database[leaderboardType]!.entries[i];
-				if (clearAnnual) {
-					user.annual = 0;
-				} else {
-					user.annual += user.current;
+				for (const type of this.allLeaderboardTypes) {
+					if (!database[type]) continue;
+					previousCycle[type] = Tools.deepClone(database[type]);
 				}
-				user.current = 0;
 
-				if (clearAnnual) {
-					user.annualSources = {};
-				} else {
-					for (const source in user.sources) {
-						if (source in user.annualSources) {
-							user.annualSources[source] += user.sources[source];
+				if (database.scriptedGameCounts) {
+					previousCycle.scriptedGameCounts = Tools.deepClone(database.scriptedGameCounts);
+					database.scriptedGameCounts = {};
+				}
+
+				if (database.userHostedGameCounts) {
+					previousCycle.userHostedGameCounts = Tools.deepClone(database.userHostedGameCounts);
+					database.userHostedGameCounts = {};
+				}
+
+				if (database.scriptedGameStats) {
+					previousCycle.scriptedGameStats = Tools.deepClone(database.scriptedGameStats);
+					database.scriptedGameStats = [];
+				}
+
+				if (database.userHostedGameStats) {
+					previousCycle.userHostedGameStats = Tools.deepClone(database.userHostedGameStats);
+					database.userHostedGameStats = {};
+				}
+
+				if (database.previousCycles.length === 26) database.previousCycles.pop();
+				database.previousCycles.unshift(previousCycle);
+
+				const date = new Date();
+				const month = date.getMonth() + 1;
+				const day = date.getDate();
+				const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
+				for (const leaderboardType of leaderboardTypes!) {
+					if (!database[leaderboardType]) continue;
+					for (const i in database[leaderboardType]!.entries) {
+						const user = database[leaderboardType]!.entries[i];
+						if (clearAnnual) {
+							user.annual = 0;
 						} else {
-							user.annualSources[source] = user.sources[source];
+							user.annual += user.current;
 						}
+						user.current = 0;
+
+						if (clearAnnual) {
+							user.annualSources = {};
+						} else {
+							for (const source in user.sources) {
+								if (source in user.annualSources) {
+									user.annualSources[source] += user.sources[source];
+								} else {
+									user.annualSources[source] = user.sources[source];
+								}
+							}
+						}
+						user.sources = {};
 					}
 				}
-				user.sources = {};
-			}
-		}
 
-		this.updateLeaderboardCaches(roomid, database);
-		this.exportDatabase(roomid);
-		return true;
+				this.updateLeaderboardCaches(roomid, database);
+				return this.exportDatabase(roomid)
+					.catch((e: Error) => console.log("Error exporting " + roomid + " database: " + e.message));
+			})
+			.catch((e: Error) => console.log("Error archiving " + roomid + " database: " + e.message));
 	}
 
 	formatCycleTime(time: number): string {

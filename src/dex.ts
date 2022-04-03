@@ -404,15 +404,22 @@ export class Dex {
 		return this.dataCache!;
 	}
 
-	async fetchClientData(): Promise<void> {
+	fetchClientData(): void {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
+
 		for (const fileName of files) {
-			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName);
-			if (typeof file !== 'string') {
-				console.log(file);
-			} else if (file) {
-				await Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file);
-			}
+			Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName)
+				.then(file => {
+					if (file) {
+						if (typeof file !== 'string') {
+							console.log("Error fetching " + fileName + ": " + file.message);
+						} else {
+							Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file)
+								.catch(e => console.log("Error writing " + fileName + ": " + (e as Error).message));
+						}
+					}
+				})
+				.catch(e => console.log("Error fetching " + fileName + ": " + (e as Error).message));
 		}
 	}
 

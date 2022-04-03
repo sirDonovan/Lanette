@@ -1,4 +1,4 @@
-import fs = require('fs');
+import fs = require('fs/promises');
 import https = require('https');
 import path = require('path');
 import url = require('url');
@@ -390,8 +390,9 @@ export class Tools {
 		const year = date.getFullYear();
 		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" +
-			message + "\n");
+		fs.appendFile(path.join(rootFolder, 'errors', filepath),
+			"\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n")
+			.catch((e: Error) => console.log(e));
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -948,18 +949,19 @@ export class Tools {
 	}
 
 	async fetchUrl(urlToFetch: string): Promise<string | Error> {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			let data = '';
 			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
+				res.on('error', error => reject(error));
 				res.on('end', () => {
 					resolve(data);
 				});
 			});
 
 			request.on('error', error => {
-				resolve(error);
+				reject(error);
 			});
 		});
 	}
@@ -1186,19 +1188,8 @@ export class Tools {
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {
 		const tempFilepath = filepath + '.temp';
-		return new Promise(resolve => {
-			fs.writeFile(tempFilepath, data, () => {
-				fs.rename(tempFilepath, filepath, () => {
-					resolve();
-				});
-			});
-		});
-	}
-
-	safeWriteFileSync(filepath: string, data: string): void {
-		const tempFilepath = filepath + '.temp';
-		fs.writeFileSync(tempFilepath, data);
-		fs.renameSync(tempFilepath, filepath);
+		return fs.writeFile(tempFilepath, data)
+			.then(() => fs.rename(tempFilepath, filepath)); // eslint-disable-line @typescript-eslint/promise-function-async
 	}
 }
 

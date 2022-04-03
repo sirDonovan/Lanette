@@ -829,7 +829,7 @@ export class Client {
 
 		this.pingServer();
 
-		void Dex.fetchClientData();
+		Dex.fetchClientData();
 	}
 
 	private connect(): void {
@@ -3074,7 +3074,7 @@ export class Client {
 							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
 
 							Storage.getGlobalDatabase().loginSessionCookie = {cookie: value, userid: Users.self.id};
-							Storage.exportGlobalDatabase();
+							Storage.tryExportGlobalDatabase();
 						}
 					}
 				}
