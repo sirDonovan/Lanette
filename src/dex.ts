@@ -406,6 +406,7 @@ export class Dex {
 
 	fetchClientData(): void {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
+		let fetchedFiles = 0;
 
 		for (const fileName of files) {
 			Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName)
@@ -415,6 +416,10 @@ export class Dex {
 							console.log("Error fetching " + fileName + ": " + file.message);
 						} else {
 							Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file)
+								.then(() => {
+									fetchedFiles++;
+									if (fetchedFiles === files.length && this.dataCache) this.loadGifData(true);
+								})
 								.catch(e => console.log("Error writing " + fileName + ": " + (e as Error).message));
 						}
 					}
@@ -2528,6 +2533,28 @@ export class Dex {
 		this.loadAllData();
 	}
 
+	private loadGifData(refresh?: boolean): void {
+		this.loadData();
+
+		const gifDataPath = path.join(this.clientDataDirectory, 'pokedex-mini.js');
+		const gifDataBWPath = path.join(this.clientDataDirectory, 'pokedex-mini-bw.js');
+
+		if (refresh) {
+			Tools.uncacheTree(gifDataPath);
+			Tools.uncacheTree(gifDataBWPath);
+		}
+
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		const gifData = require(gifDataPath).BattlePokemonSprites as Dict<IGifData | undefined>;
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		const gifDataBW = require(gifDataBWPath).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
+
+		// @ts-expect-error
+		this.dataCache!.gifData = gifData;
+		// @ts-expect-error
+		this.dataCache!.gifDataBW = gifDataBW;
+	}
+
 	private loadData(): void {
 		if (this.dataCache) return;
 
@@ -2553,11 +2580,6 @@ export class Dex {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 		const alternateIconNumbers = require(path.join(this.clientDataDirectory, 'alternate-icon-numbers.js'))
 			.alternateIconNumbers as IAlternateIconNumbers;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const gifData = require(path.join(this.clientDataDirectory, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const gifDataBW = require(path.join(this.clientDataDirectory, 'pokedex-mini-bw.js'))
-			.BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
@@ -2699,8 +2721,8 @@ export class Dex {
 			characters: characterData,
 			colors,
 			eggGroups,
-			gifData,
-			gifDataBW,
+			gifData: {},
+			gifDataBW: {},
 			locations: locationData,
 			trainerClasses,
 			trainerSprites,
@@ -2708,6 +2730,8 @@ export class Dex {
 
 		// @ts-expect-error
 		this.dataCache = data;
+
+		this.loadGifData();
 
 		if (this.isBase) {
 			for (const key of data.formatKeys) {
