@@ -917,7 +917,7 @@ export class Rooms {
 	private pruneRoomsInterval: NodeJS.Timer;
 
 	constructor() {
-		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 5 * 60 * 1000);
+		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 15 * 60 * 1000);
 	}
 
 	add(id: string): Room {
@@ -987,12 +987,14 @@ export class Rooms {
 	}
 
 	pruneRooms(): void {
-		const roomKeys = Object.keys(this.rooms);
+		let roomKeys: string[] | undefined = Object.keys(this.rooms);
 		for (const key of roomKeys) {
 			if (!this.rooms[key].users.size) {
 				this.remove(this.rooms[key]);
 			}
 		}
+
+		roomKeys = undefined;
 	}
 }
 
