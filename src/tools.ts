@@ -76,8 +76,13 @@ const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
 const rootFolder = path.resolve(__dirname, '..');
 
-// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
-const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+let timeout = setTimeout(() => {}, 1000);
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const TimeoutConstructor = timeout.constructor;
+clearTimeout(timeout);
+// @ts-expect-error
+timeout = undefined;
 
 export class Tools {
 	// exported constants
@@ -872,9 +877,8 @@ export class Tools {
 
 		for (const cachedModule of cachedModules) {
 			delete require.cache[cachedModule.filename];
-			cachedModule.parent = undefined;
-			cachedModule.children = [];
-			cachedModule.exports = undefined;
+
+			this.unrefProperties(cachedModule);
 		}
 	}
 
