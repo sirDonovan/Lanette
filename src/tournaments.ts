@@ -694,7 +694,11 @@ export class Tournaments {
 				const format = Dex.getFormat(database.queuedTournament.formatid, true);
 				if (format && format.effectType === 'Format') {
 					queuedTournament = true;
-					if (!database.queuedTournament.time) database.queuedTournament.time = now + this.queuedTournamentTime;
+					// the time may be set on room init since room tournament state is unknown
+					if (!database.queuedTournament.time || database.queuedTournament.time <= now) {
+						database.queuedTournament.time = now + this.queuedTournamentTime;
+					}
+
 					this.setTournamentTimer(room, database.queuedTournament.time, format,
 						database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 				} else {
