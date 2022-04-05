@@ -568,6 +568,23 @@ export class Tournaments {
 		return html;
 	}
 
+	setNextTournament(room: Room): void {
+		this.setScheduledTournament(room);
+
+		const database = Storage.getDatabase(room);
+		if (database.queuedTournament && (!(room.id in this.nextScheduledTournaments) ||
+			database.queuedTournament.time < this.nextScheduledTournaments[room.id].time)) {
+			const format = Dex.getFormat(database.queuedTournament.formatid);
+			if (format && format.effectType === 'Format') {
+				const now = Date.now();
+				if (database.queuedTournament.time <= now) database.queuedTournament.time = now + this.queuedTournamentTime;
+
+				this.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, false,
+					database.queuedTournament.tournamentName);
+			}
+		}
+	}
+
 	setScheduledTournament(room: Room): void {
 		const serverId = Client.getServerId();
 		if (!(serverId in this.scheduledTournaments) || !(room.id in this.scheduledTournaments[serverId])) return;

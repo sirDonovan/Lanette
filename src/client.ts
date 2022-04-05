@@ -1296,7 +1296,7 @@ export class Client {
 					delete this.reconnectRoomMessages[room.id];
 				}
 
-				Tournaments.setScheduledTournament(room);
+				Tournaments.setNextTournament(room);
 			}
 
 			if (room.id in Rooms.createListeners) {
