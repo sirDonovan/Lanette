@@ -95,6 +95,13 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.lastMoves.clear();
+		this.overallMoves.clear();
+	}
+
 	generateNewDisplay(): void {
 		while (!this.validateGridLearnsets()) {
 			this.pokemonGrid = [];

@@ -133,6 +133,10 @@ export class PlayerTeam {
 	}
 
 	destroy(): void {
+		for (const player of this.players) {
+			player.team = undefined;
+		}
+
 		Tools.unrefProperties(this);
 	}
 
@@ -235,6 +239,26 @@ export abstract class Activity {
 			this.players[i].destroy();
 			// @ts-expect-error
 			this.players[i] = undefined;
+		}
+	}
+
+	cleanupTimers(): void {
+		if (this.signupsHtmlTimeout) {
+			clearTimeout(this.signupsHtmlTimeout);
+			// @ts-expect-error
+			this.signupsHtmlTimeout = undefined;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			// @ts-expect-error
+			this.startTimer = undefined;
+		}
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
 		}
 	}
 
@@ -375,6 +399,9 @@ export abstract class Activity {
 
 		this.battleData.forEach((data, battleRoom) => {
 			this.leaveBattleRoom(battleRoom);
+
+			data.slots.clear();
+			data.wrongTeam.clear();
 		});
 
 		this.battleData.clear();

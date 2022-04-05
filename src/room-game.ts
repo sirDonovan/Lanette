@@ -110,6 +110,10 @@ export abstract class Game extends Activity {
 		return true;
 	}
 
+	cleanupMisc(): void {
+		this.prng.destroy();
+	}
+
 	setPlayerCap(playerCap: number): void {
 		this.playerCap = playerCap;
 		if (this.playerCount >= playerCap) {

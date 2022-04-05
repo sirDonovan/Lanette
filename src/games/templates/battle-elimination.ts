@@ -1920,6 +1920,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	cleanupTimers(): void {
+		super.cleanupTimers();
+
 		if (this.advertisementInterval) {
 			clearInterval(this.advertisementInterval);
 			// @ts-expect-error
@@ -1937,6 +1939,32 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.clearNodeTimers(node);
 			});
 		}
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.disqualifiedOpponents.clear();
+		this.disqualifiedPlayers.clear();
+		this.firstRoundByeAdditions.clear();
+		this.playerBattleRooms.clear();
+		this.playerOpponents.clear();
+		this.playerRequiredPokemon.clear();
+		this.possibleTeams.clear();
+		this.rerolls.clear();
+		this.starterPokemon.clear();
+		this.teamChanges.clear();
+
+		this.eliminationPlayers.clear();
+		this.firstRoundByes.clear();
+		this.givenFirstRoundExtraTime.clear();
+		this.spectatorPlayers.clear();
+	}
+
+	cleanupMisc(): void {
+		super.cleanupMisc();
+
+		if (this.treeRoot) this.treeRoot.destroy();
 	}
 
 	onEnd(): void {

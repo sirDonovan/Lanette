@@ -114,6 +114,12 @@ class SableyesTrickHouse extends ScriptedGame {
 		}
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundSelections.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<SableyesTrickHouse> = {

@@ -207,6 +207,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			});
 
 			if (playersAndReasons.size) this.disqualifyPlayers(playersAndReasons);
+
+			root.destroy();
 		} else {
 			this.playerCap = 0;
 			for (const i in players) {

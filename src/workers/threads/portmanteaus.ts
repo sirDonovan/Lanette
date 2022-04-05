@@ -141,6 +141,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
+			prng.destroy();
 		}
 	} catch (e) {
 		console.log(e);

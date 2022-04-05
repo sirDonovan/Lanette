@@ -165,6 +165,12 @@ class TrubbishsTrash extends ScriptedGame {
 		this.convertPointsToBits(0.5, 0.1);
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundTrashes.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<TrubbishsTrash> = {

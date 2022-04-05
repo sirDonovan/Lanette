@@ -60,7 +60,15 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		if (this.roundGuesses) this.roundGuesses.clear();
+	}
+
 	cleanupTimers(): void {
+		super.cleanupTimers();
+
 		if (this.answerTimeout) {
 			clearTimeout(this.answerTimeout);
 			this.answerTimeout = undefined;

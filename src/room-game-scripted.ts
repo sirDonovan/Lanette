@@ -702,33 +702,35 @@ export class ScriptedGame extends Game {
 		this.deallocate(true);
 	}
 
-	deallocate(forceEnd: boolean): void {
-		if (!this.ended) this.ended = true;
-
-		this.cleanupMessageListeners();
-		if (this.cleanupTimers) this.cleanupTimers();
+	cleanupTimers(): void {
+		super.cleanupTimers();
 
 		if (this.botTurnTimeout) {
 			clearTimeout(this.botTurnTimeout);
 			this.botTurnTimeout = undefined;
 		}
+	}
 
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			// @ts-expect-error
-			this.timeout = undefined;
-		}
+	destroyPlayers(): void {
+		super.destroyPlayers();
 
-		if (this.signupsHtmlTimeout) {
-			clearTimeout(this.signupsHtmlTimeout);
-			// @ts-expect-error
-			this.signupsHtmlTimeout = undefined;
-		}
+		this.enabledAssistActions.clear();
+		this.gameActionLocations.clear();
+		this.playerCustomBoxes.clear();
+		this.winners.clear();
+		if (this.lives) this.lives.clear();
+		if (this.points) this.points.clear();
+	}
 
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
+	deallocate(forceEnd: boolean): void {
+		if (!this.ended) this.ended = true;
+
+		this.cleanupMessageListeners();
+		this.cleanupTimers();
+		this.cleanupMisc();
+
+		for (const listener of this.commandsListeners) {
+			this.offCommands(listener.commands);
 		}
 
 		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
@@ -767,6 +769,7 @@ export class ScriptedGame extends Game {
 
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
+			this.parentGame.prng.destroy();
 			this.parentGame.prng = new PRNG(this.prng.seed);
 			if (this.parentGame.onChildEnd) {
 				try {
@@ -1386,7 +1389,6 @@ export class ScriptedGame extends Game {
 	acceptChallenge?(user: User): boolean;
 	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
-	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;

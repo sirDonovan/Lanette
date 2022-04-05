@@ -236,6 +236,15 @@ class MismagiusFoulPlay extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.chosenPokemon.clear();
+		this.identifications.clear();
+		this.kidnaps.clear();
+		this.roundGuesses.clear();
+	}
+
 	getPlayerSummary(player: Player): void {
 		if (!this.criminals.length) return player.say("The roles have not been distributed yet.");
 		if (this.criminals.includes(player)) {

@@ -456,6 +456,12 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		}, players).join(', ');
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerCards.clear();
+	}
+
 	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated || !this.players[i].metWinCondition) continue;

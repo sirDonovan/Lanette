@@ -375,6 +375,15 @@ class DarkraisLair extends MapGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerUsedShadowTraps.clear();
+		this.roundActions.clear();
+		this.trappedPlayers.clear();
+		this.roundShadowTraps.clear();
+	}
+
 	layShadowTrap(player: Player, shadowTrap: ShadowTrap): boolean {
 		if (this.roundShadowTraps.has(player)) return false;
 		const data = shadowTraps[shadowTrap];

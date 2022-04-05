@@ -157,6 +157,13 @@ class WishiwashisStatFishing extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.consecutiveReels.clear();
+		this.roundReels.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<WishiwashisStatFishing> = {

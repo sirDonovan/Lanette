@@ -39,42 +39,15 @@ export class UserHostedGame extends Game {
 	declare readonly room: Room;
 
 	reset(): void {
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			// @ts-expect-error
-			this.timeout = undefined;
-		}
-
-		if (this.gameTimer) {
-			clearTimeout(this.gameTimer);
-			// @ts-expect-error
-			this.gameTimer = undefined;
-		}
-
-		if (this.hostTimeout) {
-			clearTimeout(this.hostTimeout);
-			// @ts-expect-error
-			this.hostTimeout = undefined;
-		}
-
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
-		}
-
-		if (this.signupsHtmlTimeout) {
-			clearTimeout(this.signupsHtmlTimeout);
-			// @ts-expect-error
-			this.signupsHtmlTimeout = undefined;
-		}
-
+		this.cleanupTimers();
 		this.clearHangman();
 		this.clearSignupsNotification();
 
+		this.points.clear();
+		this.winners.clear();
+
 		this.endTime = 0;
 		this.mascots = [];
-		this.points.clear();
 		this.savedWinners = [];
 		this.scoreCap = 0;
 		this.shinyMascot = false;
@@ -506,11 +479,28 @@ export class UserHostedGame extends Game {
 		if (!this.started || this.options.freejoin) this.room.notifyOffRank("all");
 	}
 
+	cleanupTimers(): void {
+		super.cleanupTimers();
+
+		if (this.gameTimer) {
+			clearTimeout(this.gameTimer);
+			// @ts-expect-error
+			this.gameTimer = undefined;
+		}
+
+		if (this.hostTimeout) {
+			clearTimeout(this.hostTimeout);
+			// @ts-expect-error
+			this.hostTimeout = undefined;
+		}
+	}
+
 	deallocate(forceEnd: boolean): void {
 		if (!this.ended) this.ended = true;
 
 		this.reset();
 		this.cleanupMessageListeners();
+		this.cleanupMisc();
 
 		if (this.room.userHostedGame === this) {
 			// @ts-expect-error

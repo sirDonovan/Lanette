@@ -131,6 +131,16 @@ class LandorusWar extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerAliases.clear();
+		this.playerPokemon.clear();
+		this.suspectedPlayers.clear();
+		this.roundMoves.clear();
+		this.roundSuspects.clear();
+	}
+
 	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
 		const pokemon = this.playerPokemon.get(player);

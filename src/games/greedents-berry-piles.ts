@@ -306,6 +306,15 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.perfectForageBonuses.clear();
+		this.playerBerryPiles.clear();
+		this.playerTotals.clear();
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<GreedentsBerryPiles> = {

@@ -155,6 +155,12 @@ class FeebasChainFishing extends ScriptedGame {
 		});
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundReels.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<FeebasChainFishing> = {

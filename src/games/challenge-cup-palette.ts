@@ -101,6 +101,13 @@ class ChallengeCupPalette extends SearchChallengeTournament {
 
 		super.onTournamentEnd();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerCounts.clear();
+		this.lastAnnouncedCounts.clear();
+	}
 }
 
 export const game: IGameFile<ChallengeCupPalette> = Games.copyTemplateProperties(searchChallengeTournamentGame, {

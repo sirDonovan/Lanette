@@ -75,6 +75,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 
 			this.params = result.params;
 			this.pokemon = result.pokemon;
+			this.prng.destroy();
 			this.prng = new PRNG(result.prngSeed);
 
 			this.onUhtml(uhtmlName, html, () => {

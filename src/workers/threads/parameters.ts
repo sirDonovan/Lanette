@@ -170,6 +170,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 			const options = JSON.parse(message) as IParametersSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
+			prng.destroy();
 		} else if (id === 'intersect') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IParametersIntersectMessage;
 			response = {params: options.params, pokemon: intersect(options)};

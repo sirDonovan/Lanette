@@ -211,6 +211,12 @@ class TapusTerrains extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundJumps.clear();
+	}
+
 	isValidJump(): boolean {
 		if (this.currentTerrain && this.targetPokemon && data.pokemon[this.currentTerrain].includes(this.targetPokemon)) return true;
 		return false;

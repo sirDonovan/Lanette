@@ -370,6 +370,30 @@ export class Vote extends ScriptedGame {
 				this.chosenFormat, Date.now());
 		}
 	}
+
+	cleanupTimers(): void {
+		super.cleanupTimers();
+
+		if (this.updateVotesHtmlTimeout) {
+			clearTimeout(this.updateVotesHtmlTimeout);
+			// @ts-expect-error
+			this.updateVotesHtmlTimeout = undefined;
+		}
+
+		for (const i in this.privateVotesHtmlTimeouts) {
+			if (this.privateVotesHtmlTimeouts[i]) {
+				clearTimeout(this.privateVotesHtmlTimeouts[i]!);
+				// @ts-expect-error
+				this.privateVotesHtmlTimeouts[i] = undefined;
+			}
+		}
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.votes.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<Vote> = {

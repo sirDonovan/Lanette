@@ -102,6 +102,13 @@ class ChallengeCupAlphabet extends SearchChallengeTournament {
 
 		super.onTournamentEnd();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerCounts.clear();
+		this.lastAnnouncedCounts.clear();
+	}
 }
 
 export const game: IGameFile<ChallengeCupAlphabet> = Games.copyTemplateProperties(searchChallengeTournamentGame, {

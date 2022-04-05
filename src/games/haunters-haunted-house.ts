@@ -818,6 +818,15 @@ class HauntersHauntedHouse extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerLocations.clear();
+		this.playerNumbers.clear();
+		this.playerRemainingTurnMoves.clear();
+		this.eliminatedPlayers.clear();
+	}
+
 	getPlayerNumbers(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			return this.getPlayerUsernameHtml(player.name) + " (P" + this.playerNumbers.get(player) + ")";
