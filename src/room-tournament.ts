@@ -189,6 +189,10 @@ export class Tournament extends Activity {
 		// @ts-expect-error
 		this.room.tournament = undefined;
 
+		this.playerBattleRooms.clear();
+		this.playerLosses.clear();
+		this.playerOpponents.clear();
+
 		this.destroyPlayers();
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
