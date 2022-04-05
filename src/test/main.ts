@@ -22,7 +22,7 @@ for (const method of methodsToNoOp) {
 	fs[method + 'Sync'] = noOp;
 
 	// @ts-expect-error
-	fsPromises[method] = noOp;
+	fsPromises[method] = () => Promise.resolve(); // eslint-disable-line @typescript-eslint/promise-function-async
 }
 
 Object.assign(fs, {createWriteStream() {
@@ -140,6 +140,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		runMocha();
 	} catch (e) {
 		console.log(e);
+		Games.unrefWorkers();
 		process.exit(1);
 	}
 };
