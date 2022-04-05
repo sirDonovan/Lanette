@@ -538,10 +538,12 @@ export class ScriptedGame extends Game {
 			}
 
 			if (timeEnded) {
-				this.say("The game has reached the time limit!");
-				this.timeEnded = true;
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (!this.ended) this.end();
+				if (!this.ended) {
+					this.say("The game has reached the time limit!");
+					this.timeEnded = true;
+					this.end();
+				}
 				return;
 			}
 		}
