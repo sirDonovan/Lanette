@@ -240,6 +240,12 @@ export abstract class Activity {
 			// @ts-expect-error
 			this.players[i] = undefined;
 		}
+
+		for (const i in this.pastPlayers) {
+			this.pastPlayers[i].destroy();
+			// @ts-expect-error
+			this.pastPlayers[i] = undefined;
+		}
 	}
 
 	cleanupTimers(): void {
@@ -333,12 +339,13 @@ export abstract class Activity {
 		// @ts-expect-error
 		player.id = id;
 
+		delete this.players[oldId];
+		delete this.pastPlayers[oldId];
 		if (pastPlayer) {
 			this.pastPlayers[player.id] = player;
 			return;
 		}
 
-		delete this.players[oldId];
 		this.players[player.id] = player;
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
 	}
