@@ -42,6 +42,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					this.subRoom = room;
 					if (this.signupsStarted) this.createTournament();
 				});
+				this.roomCreateListeners.push(id);
 
 				Client.joinRoom(id);
 

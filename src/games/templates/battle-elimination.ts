@@ -2102,6 +2102,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 				battleRoom.game = this;
 				this.battleData.set(battleRoom, this.generateBattleData());
 			});
+			this.roomCreateListeners.push(battle.fullId);
 
 			Client.joinRoom(battle.fullId);
 			return true;

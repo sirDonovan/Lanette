@@ -111,6 +111,8 @@ export abstract class Game extends Activity {
 	}
 
 	cleanupMisc(): void {
+		super.cleanupMisc();
+
 		this.prng.destroy();
 	}
 

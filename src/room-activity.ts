@@ -198,6 +198,7 @@ export abstract class Activity {
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	playerAvatars: Dict<string> = {};
+	roomCreateListeners: string[] = [];
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -245,6 +246,12 @@ export abstract class Activity {
 			this.pastPlayers[i].destroy();
 			// @ts-expect-error
 			this.pastPlayers[i] = undefined;
+		}
+	}
+
+	cleanupMisc(): void {
+		for (const roomid of this.roomCreateListeners) {
+			delete Rooms.createListeners[roomid];
 		}
 	}
 
@@ -328,7 +335,7 @@ export abstract class Activity {
 		if (oldId in this.players) {
 			if (id in this.players && oldId !== id) return;
 		} else {
-			if (!(oldId in this.pastPlayers)) return;
+			if (!(oldId in this.pastPlayers) || (id in this.pastPlayers && oldId !== id)) return;
 			pastPlayer = true;
 		}
 
