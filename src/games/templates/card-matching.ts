@@ -32,7 +32,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
 	minimumPlayedCards: number = 1;
-	playableCardDescription: string = "You must play a card that matches color or a type with the top card.";
+	playableCardDescription: string = "You must play a card that matches the color or at least one type of the top card.";
+	playableCardsDescription: string = "Your first played card must match the color or at least one type of the top card.";
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 3;
 	roundDrawAmount: number = 0;
@@ -647,11 +648,15 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		const names: string[] = [];
 		if (playedCards.length === 1) {
 			if (!this.isPlayableCard(card, this.topCard)) {
-				player.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an " +
-					"action card.");
+				player.say(this.playableCardDescription);
 				return false;
 			}
 		} else {
+			if (!this.isPlayableCard(playedCards[0], this.topCard)) {
+				player.say(this.playableCardsDescription);
+				return false;
+			}
+
 			if (!this.arePlayableCards(playedCards)) {
 				player.say("All played cards must pair one after the other.");
 				return false;

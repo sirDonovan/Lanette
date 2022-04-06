@@ -406,7 +406,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	maxCardRounds: number = 100;
 	maximumPlayedCards: number = 2;
 	maxShownPlayableGroupSize: number = 2;
-	playableCardDescription: string = "You must play 1-2 cards that share an egg group with the top card.";
+	playableCardDescription: string = "You must play a card that shares an egg group with the top card.";
+	playableCardsDescription: string = "Your first played card must share an egg group with the top card.";
 	playerCards = new Map<Player, IPokemonCard[]>();
 	shinyCardAchievement = BlisseysEggCards.achievements.luckofthedraw;
 
