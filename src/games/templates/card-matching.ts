@@ -652,6 +652,11 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				return false;
 			}
 		} else {
+			if (!this.isPlayableCard(playedCards[0], this.topCard)) {
+				player.say("Your chain must start with a card that matches color or a type with the top card.");
+				return false;
+			}
+
 			if (!this.arePlayableCards(playedCards)) {
 				player.say("All played cards must pair one after the other.");
 				return false;
