@@ -128,6 +128,12 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundTravels.clear();
+	}
+
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 

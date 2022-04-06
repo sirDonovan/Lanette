@@ -76,6 +76,17 @@ const DATA_COMMANDS: string[] = [
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
 ];
 
+const DEFAULT_TRAINER_SPRITES: Dict<string> = {
+	"1": "lucas",
+	"2": "dawn",
+	"101": "ethan",
+	"102": "lyra",
+	"169": "hilbert",
+	"170": "hilda",
+	"265": "rosa",
+	"266": "nate",
+};
+
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
 const FILTERS_REGEX_N = /\u039d/g;
@@ -228,6 +239,8 @@ let closeListener: ((event: ws.CloseEvent) => void) | null;
 let pongListener: (() => void) | null;
 
 export class Client {
+	defaultMessageRoom: string = 'lobby';
+
 	private battleFilterRegularExpressions: RegExp[] | null = null;
 	private botGreetingCooldowns: Dict<number> = {};
 	private challstr: string = '';
@@ -537,11 +550,12 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'leave-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'create-groupchat') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
-			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'banword-list') {
+			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'leave-room' &&
+				outgoingMessage.type !== 'banword-list') {
 				room.serverBannedWords = [];
 
 				this.send({
@@ -757,11 +771,11 @@ export class Client {
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const messageParser of previous.messageParsers) {
+			Tools.unrefProperties(messageParser);
 		}
+
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 
@@ -815,7 +829,7 @@ export class Client {
 
 		this.pingServer();
 
-		void Dex.fetchClientData();
+		Dex.fetchClientData();
 	}
 
 	private connect(): void {
@@ -907,8 +921,8 @@ export class Client {
 		Tools.logMessage("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();
-		if (Config.rooms && !Config.rooms.includes('lobby')) {
-			const index = this.roomsToRejoin.indexOf('lobby');
+		if (Config.rooms && !Config.rooms.includes(this.defaultMessageRoom)) {
+			const index = this.roomsToRejoin.indexOf(this.defaultMessageRoom);
 			if (index !== -1) this.roomsToRejoin.splice(index, 1);
 		}
 
@@ -971,36 +985,40 @@ export class Client {
 			roomid = lines[0].substr(1).trim();
 			lines.shift();
 		} else {
-			roomid = 'lobby';
+			roomid = this.defaultMessageRoom;
 		}
 
 		const room = Rooms.add(roomid);
-		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
-			this.lastOutgoingMessage.roomid === room.id) {
+
+		if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id && (this.lastOutgoingMessage.type === 'join-room' ||
+			this.lastOutgoingMessage.type === 'create-groupchat')) {
 			this.clearLastOutgoingMessage(now);
 		}
 
 		for (let i = 0; i < lines.length; i++) {
-			if (!lines[i]) continue;
+			const line = lines[i].trim();
+			if (!line) continue;
 
 			try {
-				this.parseMessage(room, lines[i].trim(), now);
+				this.parseMessage(room, line, now);
 
-				if (lines[i].startsWith('|init|')) {
+				if (line.startsWith('|init|')) {
 					const page = room.type === 'html';
 					const chat = !page && room.type === 'chat';
 					for (let j = i + 1; j < lines.length; j++) {
+						let nextLine = lines[j].trim();
 						if (page) {
-							if (lines[j].startsWith('|pagehtml|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|pagehtml|')) {
+								this.parseMessage(room, nextLine, now);
 								break;
 							}
 						} else if (chat) {
-							if (lines[j].startsWith('|users|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|users|')) {
+								this.parseMessage(room, nextLine.trim(), now);
 								for (let k = j + 1; k < lines.length; k++) {
-									if (lines[k].startsWith('|:|')) {
-										this.parseMessage(room, lines[k].trim(), now);
+									nextLine = lines[k].trim();
+									if (nextLine.startsWith('|:|')) {
+										this.parseMessage(room, nextLine, now);
 										break;
 									}
 								}
@@ -1011,8 +1029,6 @@ export class Client {
 
 					if (page || chat) return;
 				}
-
-				if (room.leaving) return;
 			} catch (e) {
 				console.log(e);
 				Tools.logError(e as NodeJS.ErrnoException);
@@ -1230,8 +1246,13 @@ export class Client {
 					}
 
 					if (user) {
+						let avatar = "" + response.avatar;
+						if (avatar in DEFAULT_TRAINER_SPRITES) {
+							avatar = DEFAULT_TRAINER_SPRITES[avatar];
+						}
+						user.avatar = avatar;
+
 						user.autoconfirmed = response.autoconfirmed;
-						user.avatar = response.avatar;
 						user.group = response.group;
 						user.status = response.status;
 
@@ -1275,11 +1296,13 @@ export class Client {
 					delete this.reconnectRoomMessages[room.id];
 				}
 
-				Tournaments.setScheduledTournament(room);
+				Tournaments.setNextTournament(room);
 			}
 
 			if (room.id in Rooms.createListeners) {
-				Rooms.createListeners[room.id](room);
+				for (const listener of Rooms.createListeners[room.id]) {
+					listener(room);
+				}
 				delete Rooms.createListeners[room.id];
 			}
 
@@ -1310,6 +1333,11 @@ export class Client {
 
 				if (room.type === 'chat') this.getRoomInfo(room);
 			} else {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				Rooms.remove(room);
 			}
 
@@ -2064,6 +2092,10 @@ export class Client {
 					this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'closehtmlpage')) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('A group chat named ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'create-groupchat') {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (this.isDataCommandError(messageArguments.error)) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
 					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
@@ -2112,8 +2144,8 @@ export class Client {
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 				this.startSendTimeout(this.chatQueueSendThrottle);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
-					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+				room.setModchat(messageArguments.html.split('<div class="broadcast-red">' +
+					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0]);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'modchat' &&
 					this.lastOutgoingMessage.modchatLevel === room.modchat) {
 					this.clearLastOutgoingMessage(now);
@@ -2122,7 +2154,7 @@ export class Client {
 				messageArguments.html.startsWith('<div class="broadcast-red"><strong>This room is now invite only!</strong>')) {
 				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
-				room.modchat = 'off';
+				room.setModchat('off');
 			} else if (messageArguments.html.startsWith('<div class="infobox infobox-limited">This tournament includes:<br />')) {
 				if (room.tournament) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-rules' &&
@@ -2316,7 +2348,8 @@ export class Client {
 		 * Tournament messages
 		 */
 		case 'tournament': {
-			if (!room.groupchat && (!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
+			if (!room.tournament && !(room.id in Tournaments.createListeners) &&
+				(!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
 
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
@@ -2691,7 +2724,11 @@ export class Client {
 		}
 
 		case 'expire': {
-			if (room.game && room.game.onBattleExpire) room.game.onBattleExpire(room);
+			if (room.game && room.game.onBattleExpire) {
+				room.game.onBattleExpire(room);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (room.game) room.game.leaveBattleRoom(room);
+			}
 			break;
 		}
 		}
@@ -3037,7 +3074,7 @@ export class Client {
 							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
 
 							Storage.getGlobalDatabase().loginSessionCookie = {cookie: value, userid: Users.self.id};
-							Storage.exportGlobalDatabase();
+							Storage.tryExportGlobalDatabase();
 						}
 					}
 				}
@@ -3120,7 +3157,7 @@ export class Client {
 }
 
 export const instantiate = (): void => {
-	const oldClient = global.Client as Client | undefined;
+	let oldClient = global.Client as Client | undefined;
 	if (oldClient) {
 		// @ts-expect-error
 		oldClient.beforeReload();
@@ -3131,5 +3168,6 @@ export const instantiate = (): void => {
 	if (oldClient) {
 		// @ts-expect-error
 		global.Client.onReload(oldClient);
+		oldClient = undefined;
 	}
 };

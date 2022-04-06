@@ -22,22 +22,31 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		this.firstRoundTime = (AUTO_DQ_MINUTES * 60 * 1000) + this.firstRoundExtraTime;
 
-		const name = this.room.title + " " + GROUPCHAT_SUFFIX;
-		const id = this.room.getSubRoomGroupchatId(name);
-		const subRoom = Rooms.get(id);
-		if (subRoom) {
+		if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
+			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
+			if (!subRoom) {
+				this.say(Users.self.name + " must first join the room '" + Config.tournamentGamesSubRoom[this.room.id] + "'.");
+				this.deallocate(true);
+				return;
+			}
+
 			this.subRoom = subRoom;
-			this.createTournament();
 		} else {
-			this.subRoom = Rooms.add(id);
-			Client.joinRoom(id);
+			const name = this.room.title + " " + GROUPCHAT_SUFFIX;
+			const id = this.room.getSubRoomGroupchatId(name);
+			const subRoom = Rooms.get(id);
+			if (subRoom) {
+				this.subRoom = subRoom;
+			} else {
+				Rooms.addCreateListener(id, room => {
+					this.subRoom = room;
+					if (this.signupsStarted) this.createTournament();
+				});
 
-			Rooms.createListeners[id] = (room) => {
-				this.subRoom = room;
-				this.createTournament();
-			};
+				Client.joinRoom(id);
 
-			this.room.createSubRoomGroupchat(name);
+				this.room.createSubRoomGroupchat(name);
+			}
 		}
 	}
 
@@ -52,11 +61,16 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			format: this.battleFormat,
 			game: this,
 			callback: () => {
+				if (this.timeout) clearTimeout(this.timeout);
+
 				this.subRoom.nameTournament(this.name);
 				this.subRoom.forcePublicTournament();
 				this.subRoom.forceTimerTournament();
 				this.subRoom.disallowTournamentScouting();
 				this.subRoom.disallowTournamentModjoin();
+
+				const customRules = this.getCustomRules();
+				if (customRules.length) this.subRoom.setTournamentRules(customRules.join(","));
 
 				this.subRoom.announce("You must join the tournament in this room to play!" +
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
@@ -65,6 +79,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			},
 		};
 
+		this.timeout = setTimeout(() => {
+			if (!this.subRoom.tournament) {
+				this.say("The tournament could not be created.");
+				this.deallocate(true);
+			}
+		}, 15 * 1000);
+
 		this.subRoom.createTournament(this.battleFormat, 'elimination', this.playerCap);
 	}
 
@@ -72,7 +93,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		super.onSignups();
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (this.subRoom) this.subRoom.setTournamentCap(this.playerCap);
+		if (this.subRoom && this.subRoom.initialized) {
+			this.createTournament();
+		}
 	}
 
 	onDeallocate(forceEnd?: boolean): void {
@@ -91,8 +114,20 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (forceEnd && !this.ended) this.end();
 	}
 
+	addTournamentPlayer(tournamentPlayer: Player): void {
+		let user = Users.get(tournamentPlayer.name);
+		let expiredUser = false;
+		if (!user) {
+			expiredUser = true;
+			user = Users.add(tournamentPlayer.name, tournamentPlayer.id);
+		}
+
+		this.addPlayer(user, true);
+		if (expiredUser) Users.remove(user);
+	}
+
 	onTournamentPlayerJoin(tournamentPlayer: Player): void {
-		this.addPlayer(Users.add(tournamentPlayer.name, tournamentPlayer.id), true);
+		this.addTournamentPlayer(tournamentPlayer);
 	}
 
 	onTournamentPlayerLeave(name: string): void {
@@ -120,24 +155,78 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	}
 
 	createBracketFromClientData(players: Dict<Player>, clientTournamentData?: IClientTournamentData): void {
-		if (this.treeRoot || !clientTournamentData || !clientTournamentData.rootNode) return;
+		if (!clientTournamentData || !clientTournamentData.rootNode) return;
 
-		this.playerCap = 0;
-		for (const i in players) {
-			if (!(players[i].id in this.players)) {
-				this.addPlayer(Users.add(players[i].name, players[i].id), true);
+		if (this.treeRoot) {
+			// check for missed renames or Guest users
+			const playersAndReasons = new Map<Player, string>();
+			const root = Tournaments.bracketToStringEliminationNode(clientTournamentData.rootNode);
+
+			const bracketPlayerIds: string[] = [];
+			root.traverse(node => {
+				if (node.children) {
+					if (node.children[0].user) {
+						const id = Tools.toId(node.children[0].user);
+						if (!bracketPlayerIds.includes(id)) bracketPlayerIds.push(id);
+					}
+
+					if (node.children[1].user) {
+						const id = Tools.toId(node.children[1].user);
+						if (!bracketPlayerIds.includes(id)) bracketPlayerIds.push(id);
+					}
+				}
+			});
+
+			root.traverse(node => {
+				if (node.children && node.children[0].user && node.children[1].user) {
+					const nameA = node.children[0].user;
+					const nameB = node.children[1].user;
+					const idA = Tools.toId(nameA);
+					const idB = Tools.toId(nameB);
+
+					let unknownPlayer: string | undefined;
+					let stuckPlayer: Player | undefined;
+					if (!(idA in this.players) && idB in this.players) {
+						unknownPlayer = nameA;
+						stuckPlayer = this.players[idB];
+					} else if (!(idB in this.players) && idA in this.players) {
+						unknownPlayer = nameB;
+						stuckPlayer = this.players[idA];
+					}
+
+					const opponent = stuckPlayer ? this.playerOpponents.get(stuckPlayer) : undefined;
+					if (unknownPlayer && stuckPlayer && opponent && this.playerOpponents.get(opponent) === stuckPlayer &&
+						!bracketPlayerIds.includes(opponent.id)) {
+						this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), opponent.id);
+
+						if (unknownPlayer.startsWith("Guest ")) {
+							playersAndReasons.set(opponent, "You left the " + this.name + " tournament.");
+						}
+					}
+				}
+			});
+
+			if (playersAndReasons.size) this.disqualifyPlayers(playersAndReasons);
+
+			root.destroy();
+		} else {
+			this.playerCap = 0;
+			for (const i in players) {
+				if (!(players[i].id in this.players)) {
+					this.addTournamentPlayer(players[i]);
+				}
 			}
-		}
 
-		for (const i in this.players) {
-			if (!(this.players[i].id in players)) {
-				this.removePlayer(this.players[i].name, true);
+			for (const i in this.players) {
+				if (!(this.players[i].id in players)) {
+					this.removePlayer(this.players[i].name, true);
+				}
 			}
+
+			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
+
+			this.start(true);
 		}
-
-		this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
-
-		this.start(true);
 	}
 
 	startElimination(): void {
@@ -193,9 +282,5 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	}
 }
 
-export const game: IGameTemplateFile<BattleEliminationTournament> = Object.assign(Tools.deepClone(battleEliminationGame), {
-	modes: undefined,
-	modeProperties: undefined,
-	tests: undefined,
-	variants: undefined,
-});
+// @ts-expect-error
+export const game: IGameTemplateFile<BattleEliminationTournament> = Tools.deepClone(battleEliminationGame);

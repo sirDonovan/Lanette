@@ -45,11 +45,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
@@ -137,11 +133,11 @@ export class PlayerTeam {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
+		for (const player of this.players) {
+			player.team = undefined;
 		}
+
+		Tools.unrefProperties(this);
 	}
 
 	addPlayer(player: Player): boolean {
@@ -201,6 +197,7 @@ export abstract class Activity {
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
+	playerAvatars: Dict<string> = {};
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -242,6 +239,32 @@ export abstract class Activity {
 			this.players[i].destroy();
 			// @ts-expect-error
 			this.players[i] = undefined;
+		}
+
+		for (const i in this.pastPlayers) {
+			this.pastPlayers[i].destroy();
+			// @ts-expect-error
+			this.pastPlayers[i] = undefined;
+		}
+	}
+
+	cleanupTimers(): void {
+		if (this.signupsHtmlTimeout) {
+			clearTimeout(this.signupsHtmlTimeout);
+			// @ts-expect-error
+			this.signupsHtmlTimeout = undefined;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			// @ts-expect-error
+			this.startTimer = undefined;
+		}
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
 		}
 	}
 
@@ -288,10 +311,15 @@ export abstract class Activity {
 		const id = Tools.toId(user);
 		if (id in this.players) return null;
 
-		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
+		const isPastPlayer = id in this.pastPlayers;
+		const player = isPastPlayer ? this.pastPlayers[id] : new Player(user, this);
+		if (isPastPlayer) delete this.pastPlayers[id];
+
 		this.players[id] = player;
-		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
+
+		if (this.onCreatePlayer) this.onCreatePlayer(player, isPastPlayer);
+
 		return player;
 	}
 
@@ -311,12 +339,13 @@ export abstract class Activity {
 		// @ts-expect-error
 		player.id = id;
 
+		delete this.players[oldId];
+		delete this.pastPlayers[oldId];
 		if (pastPlayer) {
 			this.pastPlayers[player.id] = player;
 			return;
 		}
 
-		delete this.players[oldId];
 		this.players[player.id] = player;
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
 	}
@@ -377,6 +406,9 @@ export abstract class Activity {
 
 		this.battleData.forEach((data, battleRoom) => {
 			this.leaveBattleRoom(battleRoom);
+
+			data.slots.clear();
+			data.wrongTeam.clear();
 		});
 
 		this.battleData.clear();
@@ -527,14 +559,20 @@ export abstract class Activity {
 		return playerAttributes;
 	}
 
+	getPlayerUsernameHtml(name: string): string {
+		const id = Tools.toId(name);
+		return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + name + "</username>";
+	}
+
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => this.getPlayerUsernameHtml(x)).join(', ');
 	}
 
 	getPlayerNamesText(players?: PlayerList): string[] {
 		return this.getPlayerAttributes(player => player.name, players);
 	}
 
+	onCreatePlayer?(player: Player, isPastPlayer: boolean): void;
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;

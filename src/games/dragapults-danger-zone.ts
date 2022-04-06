@@ -322,6 +322,14 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.matchupsWon.clear();
+		this.playerLocations.clear();
+		this.selectedMatchupPokemon.clear();
+	}
+
 	startMatchup(players: Player[]): void {
 		this.selectedMatchupPokemon.clear();
 		this.matchupPlayers = players;

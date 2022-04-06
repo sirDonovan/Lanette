@@ -2,12 +2,17 @@ import type { Room } from "../../rooms";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
+export interface IGameTextInputProps extends ITextInputProps {
+	allowModes: boolean;
+	allowVariants: boolean;
+}
+
 export class GameTextInput extends TextInput {
 	componentId: string = 'game-text-input';
 
-	declare props: ITextInputProps;
+	declare props: IGameTextInputProps;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps) {
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IGameTextInputProps) {
 		super(room, parentCommandPrefix, componentCommand, props);
 	}
 
@@ -20,7 +25,13 @@ export class GameTextInput extends TextInput {
 			if (Array.isArray(format)) {
 				this.errors.push("'" + part + "' is not a valid game.");
 			} else {
-				games.push(format.name);
+				if (format.mode && !this.props.allowModes) {
+					this.errors.push("Modes are not allowed.");
+				} else if (format.variant && !this.props.allowVariants) {
+					this.errors.push("Variants are not allowed.");
+				} else {
+					games.push(format.name);
+				}
 			}
 		}
 

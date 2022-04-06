@@ -37,6 +37,21 @@ export class EliminationNode<T> {
 		this.parent = options.parent || null;
 	}
 
+	destroy(): void {
+		if (this.children) {
+			for (const child of this.children) child.destroy();
+		}
+
+		this.children = null;
+		this.user = null;
+		// @ts-expect-error
+		this.state = null;
+		// @ts-expect-error
+		this.result = null;
+		this.score = null;
+		this.parent = null;
+	}
+
 	setChildren(children: [EliminationNode<T>, EliminationNode<T>] | null): void {
 		if (this.children) {
 			for (const child of this.children) child.parent = null;

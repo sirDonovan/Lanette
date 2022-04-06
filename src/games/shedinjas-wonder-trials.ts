@@ -151,6 +151,12 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundMoves.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<ShedinjasWonderTrials> = {

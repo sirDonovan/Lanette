@@ -134,6 +134,12 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 		this.sayUhtml(roundUhtmlName, roundHtml);
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.selectedMeals.clear();
+	}
+
 	onEnd(): void {
 		this.winners.forEach((points, player) => {
 			this.addBits(player, 500);

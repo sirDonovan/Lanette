@@ -288,6 +288,11 @@ export let allowSearchChallenges: string[] = [];
 export let allowGameAchievements: string[] = [];
 
 /**
+ * For each room in the object, the subroomid that should be used for tournament games
+ */
+ export let tournamentGamesSubRoom: Dict<string> = {};
+
+/**
  * A list of rooms (roomids) where game trainer cards are shown for winners
  */
 export let showGameTrainerCards: string[] = [];
@@ -315,7 +320,7 @@ export let showGameScriptedBoxes: string[] = [];
 /**
  * For each room in the object, the number of bits that must be earned to customize a game scripted box
  */
-export let gameScriptedBoxRequirements: Dict<number> = {};
+export let gameScriptedBoxRequirements: Dict<{background: number, pokemonAvatar: number}> = {};
 
 /**
  * A list of rooms (roomids) where games cannot be hosted back-to-back

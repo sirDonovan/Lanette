@@ -257,6 +257,12 @@ class PanchamPairs extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.paired.clear();
+	}
+
 	isParamPair(inputA: string, inputB: string, paramName: keyof IMovePairData | keyof IPokemonPairData, inCurrent?: boolean):
 		[string, string] | false {
 		inputA = Tools.toId(inputA);

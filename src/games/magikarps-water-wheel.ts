@@ -238,6 +238,14 @@ class MagikarpsWaterWheel extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.consecutiveWheelSpins.clear();
+		this.playerWheels.clear();
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<MagikarpsWaterWheel> = {

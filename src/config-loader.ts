@@ -74,6 +74,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.allowChallengeGames) config.allowChallengeGames = arrayToRoomIds(config.allowChallengeGames);
 	if (config.allowSearchChallenges) config.allowSearchChallenges = arrayToRoomIds(config.allowSearchChallenges);
 	if (config.allowGameAchievements) config.allowGameAchievements = arrayToRoomIds(config.allowGameAchievements);
+	if (config.tournamentGamesSubRoom) {
+		config.tournamentGamesSubRoom = objectKeysToRoomId(stringObjectToRoomIds(config.tournamentGamesSubRoom));
+	}
 	if (config.showGameTrainerCards) config.showGameTrainerCards = arrayToRoomIds(config.showGameTrainerCards);
 	if (config.gameTrainerCardRequirements) objectKeysToRoomId(config.gameTrainerCardRequirements);
 	if (config.showGameHostBoxes) config.showGameHostBoxes = arrayToRoomIds(config.showGameHostBoxes);

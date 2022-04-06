@@ -22,7 +22,7 @@ class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
+		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 }
 
 export const game: IGameFile<DoublesCatchAndEvolve> = Games.copyTemplateProperties(eliminationTournamentGame, {

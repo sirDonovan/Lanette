@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameAchievement, IGameFile } from "../types/games";
-import type { GameMap, MapFloor, MapFloorSpace } from "./templates/map";
+import type { MapFloor, MapFloorSpace } from "./templates/map";
 import { game as mapGame } from "./templates/map";
 import { MapCurrencyGame } from "./templates/map-currency";
 
@@ -30,7 +30,6 @@ class PersiansGarden extends MapCurrencyGame {
 	noCurrencyRound = bankruptRounds;
 	roundActions = new Map<Player, boolean>();
 	startingLives: number = 3;
-	userMaps = new Map<Player, GameMap>();
 
 	onAchievementSpace(player: Player, floor: MapFloor, space: MapFloorSpace): void {
 		delete space.attributes.achievement;

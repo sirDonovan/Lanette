@@ -718,10 +718,19 @@ describe("Dex", () => {
 		assert(formes.includes("Meowth-Alola"));
 		assert(formes.includes("Meowth-Galar"));
 
+		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'), true);
+		assertStrictEqual(formes.length, 1);
+		assert(formes.includes("Gastrodon"));
+
 		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'));
 		assertStrictEqual(formes.length, 2);
 		assert(formes.includes("Gastrodon"));
 		assert(formes.includes("Gastrodon-East"));
+
+		// repeated to test not caching
+		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'), true);
+		assertStrictEqual(formes.length, 1);
+		assert(formes.includes("Gastrodon"));
 
 		formes = Dex.getDex("gen5").getFormes(Dex.getExistingPokemon('Pikachu'));
 		assertStrictEqual(formes.length, 1);

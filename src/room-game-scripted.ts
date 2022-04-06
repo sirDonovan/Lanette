@@ -340,13 +340,16 @@ export class ScriptedGame extends Game {
 		if (this.format.voter) {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+			if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+				this.format.id in database.gameFormatScriptedBoxes[id]) {
+				this.customBox = database.gameFormatScriptedBoxes[id][this.format.id];
+			} else if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
 				this.customBox = database.gameScriptedBoxes[id];
 			}
 		}
 
-		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.voter, description, this.mascot, this.shinyMascot,
-			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
+		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.id, this.format.voter, description, this.mascot,
+			this.shinyMascot, !this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
 			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
@@ -535,10 +538,12 @@ export class ScriptedGame extends Game {
 			}
 
 			if (timeEnded) {
-				this.say("The game has reached the time limit!");
-				this.timeEnded = true;
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (!this.ended) this.end();
+				if (!this.ended) {
+					this.say("The game has reached the time limit!");
+					this.timeEnded = true;
+					this.end();
+				}
 				return;
 			}
 		}
@@ -666,7 +671,7 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
-		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);
+		if (this.awardedBits || usedDatabase) Storage.tryExportDatabase(this.room.id);
 
 		this.deallocate(false);
 	}
@@ -697,33 +702,35 @@ export class ScriptedGame extends Game {
 		this.deallocate(true);
 	}
 
-	deallocate(forceEnd: boolean): void {
-		if (!this.ended) this.ended = true;
-
-		this.cleanupMessageListeners();
-		if (this.cleanupTimers) this.cleanupTimers();
+	cleanupTimers(): void {
+		super.cleanupTimers();
 
 		if (this.botTurnTimeout) {
 			clearTimeout(this.botTurnTimeout);
 			this.botTurnTimeout = undefined;
 		}
+	}
 
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			// @ts-expect-error
-			this.timeout = undefined;
-		}
+	destroyPlayers(): void {
+		super.destroyPlayers();
 
-		if (this.signupsHtmlTimeout) {
-			clearTimeout(this.signupsHtmlTimeout);
-			// @ts-expect-error
-			this.signupsHtmlTimeout = undefined;
-		}
+		this.enabledAssistActions.clear();
+		this.gameActionLocations.clear();
+		this.playerCustomBoxes.clear();
+		this.winners.clear();
+		if (this.lives) this.lives.clear();
+		if (this.points) this.points.clear();
+	}
 
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
+	deallocate(forceEnd: boolean): void {
+		if (!this.ended) this.ended = true;
+
+		this.cleanupMessageListeners();
+		this.cleanupTimers();
+		this.cleanupMisc();
+
+		for (const listener of this.commandsListeners) {
+			this.offCommands(listener.commands);
 		}
 
 		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
@@ -744,8 +751,8 @@ export class ScriptedGame extends Game {
 				this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 			}
 
-			if (this.room.subRoom && this.room.subRoom.tournament && this.room.subRoom.tournament.battleRoomGame === this) {
-				this.room.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			if (this.subRoom && this.subRoom.tournament && this.subRoom.tournament.battleRoomGame === this) {
+				this.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
 			}
 
 			// @ts-expect-error
@@ -762,6 +769,7 @@ export class ScriptedGame extends Game {
 
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
+			this.parentGame.prng.destroy();
 			this.parentGame.prng = new PRNG(this.prng.seed);
 			if (this.parentGame.onChildEnd) {
 				try {
@@ -785,13 +793,7 @@ export class ScriptedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === "ended" || key === "id" || key === "name") continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -1317,7 +1319,7 @@ export class ScriptedGame extends Game {
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
-			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -1387,7 +1389,6 @@ export class ScriptedGame extends Game {
 	acceptChallenge?(user: User): boolean;
 	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
-	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;

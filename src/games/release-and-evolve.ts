@@ -21,7 +21,7 @@ class ReleaseAndEvolve extends BattleEliminationTournament {
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
+		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		if (bannedTiers.includes(pokemon.tier)) return false;

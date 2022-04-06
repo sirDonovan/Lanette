@@ -103,6 +103,13 @@ class ChandeluresCandles extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.puffs.clear();
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<ChandeluresCandles> = {

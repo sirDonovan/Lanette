@@ -117,7 +117,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		} else {
 			html += "<input name='" + tagName + "'";
 			if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
-			if (this.currentInput) html += " value='" + this.currentInput + "'";
+			if (this.currentInput) html += ' value="' + this.currentInput + '"';
 			if (this.props.inputWidth) html += " style='width:" + this.props.inputWidth + "px'";
 			html += " />&nbsp;";
 		}

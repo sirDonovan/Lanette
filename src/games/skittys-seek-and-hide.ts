@@ -180,6 +180,12 @@ class SkittysSeekAndHide extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.pokemonChoices.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<SkittysSeekAndHide> = {

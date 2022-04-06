@@ -224,6 +224,12 @@ export abstract class CardHighLow extends Card {
 		this.sayUhtml(uhtmlName, html);
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundPlays.clear();
+	}
+
 	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;

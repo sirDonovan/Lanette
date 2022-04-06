@@ -89,7 +89,8 @@ class Ghost {
 	}
 }
 
-const setupBoardAttempts = 100;
+const setupTileAttempts = 100;
+const setupBoardAttempts = 500;
 const moveGhostAttempts = 1000;
 const boardConnectivity = 3;
 const maxCandyCount = 6;
@@ -236,7 +237,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const setRooms: number[] = [];
 
 		let attempts = 0;
-		while (roomOptions.length && setRooms.length < maxTiles && attempts < setupBoardAttempts) {
+		while (roomOptions.length && setRooms.length < maxTiles && attempts < setupTileAttempts) {
 			attempts++;
 
 			const room = this.sampleOne(roomOptions);
@@ -315,7 +316,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		// generate walls
 		let attempts = 0;
-		while (attempts < setupBoardAttempts) {
+		while (attempts < setupTileAttempts) {
 			attempts++;
 
 			const x = this.random(this.boardSize);
@@ -455,7 +456,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		const tilesAndDistances: number[][] = [[startTile, 0]];
 
 		attempts = 0;
-		while (tilesAndDistances.length && attempts < setupBoardAttempts) {
+		while (tilesAndDistances.length && attempts < setupTileAttempts) {
 			attempts++;
 
 			const tile = tilesAndDistances[0][0];
@@ -497,7 +498,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		let doorCount = 0;
 
 		attempts = 0;
-		while (doorCount < 5 && attempts < setupBoardAttempts) {
+		while (doorCount < 5 && attempts < setupTileAttempts) {
 			attempts++;
 
 			const validDoor = this.sampleOne(validDoors);
@@ -530,7 +531,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		let candyRooms = this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, maxCandyCount, tileValues.candy, true);
 		attempts = 0;
-		while (candyRooms.length < minCandyCount && attempts < setupBoardAttempts) {
+		while (candyRooms.length < minCandyCount && attempts < setupTileAttempts) {
 			attempts++;
 
 			candyRooms = candyRooms.concat(this.setTile(board, blankTilePositionsByDistance, candyRoomOptions, 1, tileValues.candy, true));
@@ -694,7 +695,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 			this.setCandyLocations();
 
 			let validStartingLocation = true;
-			const possibleLocation = [Math.floor(this.lastRowIndex / 2), Math.floor(this.lastColumnIndex / 2)];
+			const possibleLocation = [this.lastRowIndex, Math.floor(this.lastColumnIndex / 2)];
 			while (!this.board[possibleLocation[0]][possibleLocation[1]].canMoveThrough) {
 				possibleLocation[1] = possibleLocation[1] + 1;
 				if (possibleLocation[1] > this.lastColumnIndex) {
@@ -717,7 +718,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 				this.moveGhost(ghost, true);
 			}
 
-			startingLocation = possibleLocation as [number, number];
+			if (this.remainingGhostMoves) startingLocation = possibleLocation as [number, number];
 		}
 
 		return startingLocation;
@@ -817,9 +818,18 @@ class HauntersHauntedHouse extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerLocations.clear();
+		this.playerNumbers.clear();
+		this.playerRemainingTurnMoves.clear();
+		this.eliminatedPlayers.clear();
+	}
+
 	getPlayerNumbers(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
-			return "<username>" + player.name + "</username> (P" + this.playerNumbers.get(player) + ")";
+			return this.getPlayerUsernameHtml(player.name) + " (P" + this.playerNumbers.get(player) + ")";
 		}, players).join(', ');
 	}
 

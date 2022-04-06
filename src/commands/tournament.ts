@@ -348,7 +348,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 			this.run('queuedtournament', '');
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['forcenexttour', 'forcequeuetournament', 'forcenexttournament'],
@@ -384,7 +384,7 @@ export const commands: BaseCommandDefinitions = {
 			const format = Dex.getFormat(database.queuedTournament.formatid, true);
 			if (!format || format.effectType !== 'Format') {
 				delete database.queuedTournament;
-				Storage.exportDatabase(tournamentRoom.id);
+				Storage.tryExportDatabase(tournamentRoom.id);
 				return this.say(errorText);
 			}
 
@@ -743,7 +743,7 @@ export const commands: BaseCommandDefinitions = {
 
 			database.tournamentManagers = database.tournamentManagers.concat(ids);
 			this.say("The specified user(s) can now use tournament commands in " + tournamentRoom.title + ".");
-			Storage.exportDatabase(tournamentRoom.id);
+			Storage.tryExportDatabase(tournamentRoom.id);
 		},
 		aliases: ['addtourmanager', 'addtournamentmanagers', 'addtourmanagers'],
 		syntax: ["[user]"],
@@ -787,7 +787,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("The specified user(s) can no longer use tournament commands for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['removetourmanager', 'removetournamentmanagers', 'removetourmanagers'],
 		syntax: ["[user]"],

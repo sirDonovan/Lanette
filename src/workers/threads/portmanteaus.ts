@@ -133,10 +133,15 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 	const message = parts.slice(2).join("|");
 	let response: IPortmanteausResponse | null = null;
 	try {
-		if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (id === 'memory-usage') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			const memUsage = process.memoryUsage();
+			// @ts-expect-error
+			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
+			prng.destroy();
 		}
 	} catch (e) {
 		console.log(e);

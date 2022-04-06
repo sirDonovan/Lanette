@@ -72,8 +72,6 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		const pokemonPickerProps: IPokemonPickerProps = {
 			gif: true,
-			maxGifs: props.maxPokemon,
-			maxIcons: 0,
 			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(dontRender),
 			onPickGeneration: (index, generation, dontRender) => this.pickPokemonGeneration(index, generation, dontRender),
 			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(index, shininess, dontRender),

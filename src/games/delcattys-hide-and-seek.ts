@@ -166,6 +166,12 @@ class DelcattysHideAndSeek extends ScriptedGame {
 		}
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.pokemonChoices.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {

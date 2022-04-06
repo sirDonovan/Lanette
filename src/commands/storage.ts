@@ -183,7 +183,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		aliases: ['apt', 'addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'rpt']
 			.concat(addGamePointsAliases),
@@ -243,7 +243,7 @@ export const commands: BaseCommandDefinitions = {
 			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
 				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['addsemipoints', 'addsemispoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
@@ -301,7 +301,7 @@ export const commands: BaseCommandDefinitions = {
 			room.modnote(user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
 				"for a scheduled " + players + "-man " + format.name + " tournament");
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['makesemipointsofficial', 'makesemispointsofficial', 'makesemifinalpointsofficial', 'makerunneruppointsofficial',
@@ -341,7 +341,7 @@ export const commands: BaseCommandDefinitions = {
 
 			database.leaderboardManagers = database.leaderboardManagers.concat(ids);
 			this.say("The specified user(s) can now use ``" + Config.commandCharacter + "apt/rpt`` for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['addlbmanager', 'addleaderboardmanagers', 'addlbmanagers'],
 		syntax: ["[user]"],
@@ -385,7 +385,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['removelbmanager', 'removeleaderboardmanagers', 'removelbmanagers'],
 		syntax: ["[user]"],
@@ -685,8 +685,19 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			Storage.clearLeaderboard(room.id, leaderboardTypes);
-			this.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
+			Storage.clearLeaderboard(room.id, leaderboardTypes)
+				.then(() => {
+					const currentRoom = Rooms.get(room.id);
+					if (currentRoom) currentRoom.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
+				})
+				.catch((e: Error) => {
+					const currentRoom = Rooms.get(room.id);
+					if (currentRoom) {
+						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s were" : " was") + ".");
+					}
+
+					Tools.logError(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
+				});
 		},
 		chatOnly: true,
 		aliases: ['resetleaderboard'],

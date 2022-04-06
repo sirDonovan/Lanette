@@ -189,13 +189,13 @@ export class Tournament extends Activity {
 		// @ts-expect-error
 		this.room.tournament = undefined;
 
+		this.playerBattleRooms.clear();
+		this.playerLosses.clear();
+		this.playerOpponents.clear();
+
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 
 	addPlayer(name: string): void {
@@ -250,7 +250,7 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
-		if (this.room.groupchat) return;
+		if (!Config.allowTournaments || !Config.allowTournaments.includes(this.room.id)) return;
 
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
@@ -282,6 +282,7 @@ export class Tournament extends Activity {
 
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
+		let awardedPoints = false;
 		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
@@ -292,6 +293,8 @@ export class Tournament extends Activity {
 			}
 			this.room.announce('Congratulations to ' + Tools.joinList(text));
 		} else {
+			awardedPoints = true;
+
 			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
 			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
@@ -338,7 +341,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		Storage.exportDatabase(this.room.id);
+		if (awardedPoints) Storage.tryExportDatabase(this.room.id);
 	}
 
 	forceEnd(): void {
@@ -494,14 +497,15 @@ export class Tournament extends Activity {
 		}
 
 		if (this.joinBattles || this.battleRoomGame) {
-			const room = Rooms.add(roomid);
-			this.playerBattleRooms.set(player, room);
-			this.playerBattleRooms.set(opponent, room);
+			Rooms.addCreateListener(roomid, room => {
+				this.playerBattleRooms.set(player, room);
+				this.playerBattleRooms.set(opponent, room);
 
-			if (this.joinBattles) room.tournament = this;
-			if (this.battleRoomGame) room.game = this.battleRoomGame;
+				if (this.joinBattles) room.tournament = this;
+				if (this.battleRoomGame) room.game = this.battleRoomGame;
+			});
 
-			Client.joinRoom(room.id);
+			Client.joinRoom(roomid);
 		}
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {

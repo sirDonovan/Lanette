@@ -15,6 +15,11 @@ class CloakAndDagger extends BattleEliminationTournament {
 	htmlPageGameDescription = description;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
+
+	getCustomRules(): string[] {
+		return [];
+	}
+
 }
 
 export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(eliminationTournamentGame, {

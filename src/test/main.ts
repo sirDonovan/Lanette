@@ -1,4 +1,5 @@
 import fs = require('fs');
+import fsPromises = require('fs/promises');
 import Mocha = require('mocha');
 import path = require('path');
 import stream = require('stream');
@@ -19,6 +20,9 @@ for (const method of methodsToNoOp) {
 	fs[method] = noOp;
 	// @ts-expect-error
 	fs[method + 'Sync'] = noOp;
+
+	// @ts-expect-error
+	fsPromises[method] = () => Promise.resolve(); // eslint-disable-line @typescript-eslint/promise-function-async
 }
 
 Object.assign(fs, {createWriteStream() {
@@ -136,6 +140,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		runMocha();
 	} catch (e) {
 		console.log(e);
+		Games.unrefWorkers();
 		process.exit(1);
 	}
 };

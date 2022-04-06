@@ -70,6 +70,12 @@ class ChatotsMusicalChairs extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<ChatotsMusicalChairs> = {

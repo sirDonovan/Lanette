@@ -235,6 +235,42 @@ export abstract class BattleElimination extends ScriptedGame {
 		return maxPlayers;
 	}
 
+	getCustomRules(): string[] {
+		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
+		const allPokemon: string[] = [];
+		for (const name of this.pokedex) {
+			const pokemon = Dex.getExistingPokemon(name);
+
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [];
+			const usableFormes: string[] = [];
+			for (const forme of formes) {
+				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
+			}
+
+			if (this.evolutionsPerRound) {
+				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
+				for (const line of evolutionLines) {
+					for (const stage of line) {
+						if (this.battleFormat.usablePokemon!.includes(stage) && !allPokemon.includes(stage)) allPokemon.push(stage);
+					}
+				}
+			} else {
+				if (!allPokemon.includes(pokemon.name)) allPokemon.push(pokemon.name);
+
+				for (const forme of usableFormes) {
+					if (!allPokemon.includes(forme)) allPokemon.push(forme);
+				}
+			}
+		}
+
+		const pokemonListRules = Dex.getCustomRulesForPokemonList(allPokemon);
+		for (const rule of pokemonListRules) {
+			if (!customRules.includes(rule)) customRules.push(rule);
+		}
+
+		return customRules;
+	}
+
 	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution', bannedFormes: readonly string[]): boolean {
 		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
 			(this.type && !pokemon.types.includes(this.type)) || bannedFormes.includes(pokemon.name) ||
@@ -282,7 +318,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (checkEvolutions) {
 				// filter out formes such as battleOnly that don't have a prevo and give an advantage
 				if (deEvolution && pokemon.prevo) {
-					const formes = Dex.getFormes(pokemon);
+					const formes = Dex.getFormes(pokemon, true);
 					for (const forme of formes) {
 						if (!Dex.getExistingPokemon(forme).prevo) continue outer;
 					}
@@ -539,7 +575,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (this.subRoom && !this.tournamentDisqualifiedPlayers.includes(player)) {
 				this.tournamentDisqualifiedPlayers.push(player);
-				this.subRoom.disqualifyFromTournament(player);
+				this.subRoom.disqualifyFromTournament(player.name);
 			}
 
 			/**
@@ -1170,8 +1206,9 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (this.started) {
 			html += "(the tournament has started)";
 		} else if (this.subRoom) {
-			html += Client.getCommandButton("/join " + this.subRoom.id, "Go to the groupchat ->") +
-				" (" + (this.playerCap - this.playerCount) + "/" + this.playerCap + " slots remaining)";
+			html += Client.getCommandButton("/join " + this.subRoom.id, "-> Go to the " +
+				(this.subRoom.groupchat ? "groupchat" : "subroom") + " (" + (this.playerCap - this.playerCount) + "/" + this.playerCap +
+				" slots remaining)");
 		} else {
 			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.title, "Join tournament") +
 				Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.title, "Leave tournament") +
@@ -1267,6 +1304,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
+
+		// limit pokedex size for custom rules
+		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
+			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
+		if (this.pokedex.length > maxPokemon) this.pokedex = this.pokedex.slice(0, maxPokemon);
 	}
 
 	onSignups(): void {
@@ -1464,10 +1506,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (notAutoconfirmed) this.eliminationPlayers.delete(player);
 
 		if (!this.started) {
-			const starterPokemon = this.starterPokemon.get(player);
-			if (starterPokemon) {
-				for (const pokemon of starterPokemon) {
-					this.pokedex.push(pokemon);
+			if (!this.sharedTeams) {
+				const starterPokemon = this.starterPokemon.get(player);
+				if (starterPokemon) {
+					for (const pokemon of starterPokemon) {
+						this.pokedex.push(pokemon);
+					}
 				}
 			}
 
@@ -1857,16 +1901,27 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	clearNodeTimers(node: EliminationNode<Player>): void {
 		const activityTimer = this.activityTimers.get(node);
-		if (activityTimer) clearTimeout(activityTimer);
+		if (activityTimer) {
+			clearTimeout(activityTimer);
+			this.activityTimers.delete(node);
+		}
 
 		const checkChallengesTimer = this.checkChallengesTimers.get(node);
-		if (checkChallengesTimer) clearTimeout(checkChallengesTimer);
+		if (checkChallengesTimer) {
+			clearTimeout(checkChallengesTimer);
+			this.checkChallengesTimers.delete(node);
+		}
 
 		const checkChallengesInactiveTimer = this.checkChallengesInactiveTimers.get(node);
-		if (checkChallengesInactiveTimer) clearTimeout(checkChallengesInactiveTimer);
+		if (checkChallengesInactiveTimer) {
+			clearTimeout(checkChallengesInactiveTimer);
+			this.checkChallengesInactiveTimers.delete(node);
+		}
 	}
 
 	cleanupTimers(): void {
+		super.cleanupTimers();
+
 		if (this.advertisementInterval) {
 			clearInterval(this.advertisementInterval);
 			// @ts-expect-error
@@ -1883,11 +1938,33 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.treeRoot.traverse(node => {
 				this.clearNodeTimers(node);
 			});
-
-			this.activityTimers.clear();
-			this.checkChallengesTimers.clear();
-			this.checkChallengesInactiveTimers.clear();
 		}
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.disqualifiedOpponents.clear();
+		this.disqualifiedPlayers.clear();
+		this.firstRoundByeAdditions.clear();
+		this.playerBattleRooms.clear();
+		this.playerOpponents.clear();
+		this.playerRequiredPokemon.clear();
+		this.possibleTeams.clear();
+		this.rerolls.clear();
+		this.starterPokemon.clear();
+		this.teamChanges.clear();
+
+		this.eliminationPlayers.clear();
+		this.firstRoundByes.clear();
+		this.givenFirstRoundExtraTime.clear();
+		this.spectatorPlayers.clear();
+	}
+
+	cleanupMisc(): void {
+		super.cleanupMisc();
+
+		if (this.treeRoot) this.treeRoot.destroy();
 	}
 
 	onEnd(): void {
@@ -2021,9 +2098,10 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 				return false;
 			}
 
-			const battleRoom = Rooms.add(battle.fullId);
-			battleRoom.game = this;
-			this.battleData.set(battleRoom, this.generateBattleData());
+			Rooms.addCreateListener(battle.fullId, battleRoom => {
+				battleRoom.game = this;
+				this.battleData.set(battleRoom, this.generateBattleData());
+			});
 
 			Client.joinRoom(battle.fullId);
 			return true;

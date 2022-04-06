@@ -11,9 +11,14 @@ import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/ro
 import type { IUserHostedTournament } from "./types/tournaments";
 import type { User } from "./users";
 
+type RoomCreateListener = (room: Room) => void;
+
+const DEFAULT_MODCHAT = 'off';
+
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	battle: boolean | null = null;
+	chatBlockedByModchat: boolean = false;
 	chatLog: IChatLogEntry[] = [];
 	configBannedWords: string[] | null = null;
 	configBannedWordsRegex: RegExp | null = null;
@@ -25,7 +30,7 @@ export class Room {
 	inviteOnlyBattle: boolean | null = null;
 	leaving: boolean | null = null;
 	readonly messageListeners: Dict<MessageListener> = {};
-	modchat: string = 'off';
+	modchat: string = DEFAULT_MODCHAT;
 	newUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	parentRoom: Room | null = null;
 	publicRoom: boolean = false;
@@ -78,7 +83,7 @@ export class Room {
 
 		if (this.game && this.game.room === this) this.game.deallocate(true);
 		if (this.searchChallenge && this.searchChallenge.room === this) this.searchChallenge.deallocate(true);
-		if (this.tournament && this.tournament.room === this) this.tournament.deallocate();
+		if (this.tournament && this.tournament.room === this) this.tournament.deallocate(true);
 		if (this.userHostedGame && this.userHostedGame.room === this) this.userHostedGame.deallocate(true);
 
 		for (const i in this.repeatedMessages) {
@@ -100,13 +105,7 @@ export class Room {
 		}
 		this.users.clear();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === 'id' || key === 'title' || key === 'initialized' || key === 'leaving') continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "title", "initialized", "leaving"]);
 	}
 
 	setId(id: string): void {
@@ -134,6 +133,26 @@ export class Room {
 
 	setPublicRoom(publicRoom: boolean): void {
 		this.publicRoom = publicRoom;
+	}
+
+	setModchat(modchat: string): void {
+		this.modchat = modchat;
+
+		if (this.modchat && this.modchat !== DEFAULT_MODCHAT && this.modchat !== 'autoconfirmed') {
+			const groupSymbols = Client.getGroupSymbols();
+			const keys = Object.keys(groupSymbols) as GroupName[];
+			let groupName: GroupName | undefined;
+			for (const key of keys) {
+				if (groupSymbols[key] === this.modchat) {
+					groupName = key;
+					break;
+				}
+			}
+
+			this.chatBlockedByModchat = groupName && !Users.self.hasRank(this, groupName) ? true : false;
+		} else {
+			this.chatBlockedByModchat = false;
+		}
 	}
 
 	init(type: RoomType): void {
@@ -177,7 +196,6 @@ export class Room {
 	}
 
 	onRoomInfoResponse(response: IRoomInfoResponse): void {
-		this.modchat = response.modchat === false ? 'off' : response.modchat;
 		this.setTitle(response.title);
 
 		this.hiddenRoom = response.visibility === 'hidden';
@@ -190,11 +208,11 @@ export class Room {
 			const user = Users.add(username, Tools.toId(username));
 			if (!this.users.has(user)) this.onUserJoin(user, rank);
 		}
+
+		this.setModchat(response.modchat === false ? DEFAULT_MODCHAT : response.modchat);
 	}
 
 	onUserJoin(user: User, rank: string): void {
-		if (this.users.has(user)) throw new Error("User " + user.name + " already in " + this.id + " users list");
-
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
@@ -205,8 +223,6 @@ export class Room {
 	}
 
 	onUserLeave(user: User): void {
-		if (!this.users.has(user)) throw new Error("User " + user.name + " not in " + this.id + " users list");
-
 		this.users.delete(user);
 		user.rooms.delete(this);
 		if (user.timers && this.id in user.timers) {
@@ -244,7 +260,7 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
-		if (global.Rooms.get(this.id) !== this) return;
+		if (global.Rooms.get(this.id) !== this || this.chatBlockedByModchat) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {
@@ -256,7 +272,7 @@ export class Room {
 		}
 
 		const baseOutgoingMessage: Partial<IOutgoingMessage> = {
-			roomid: this.id,
+			roomid: options && options.roomid ? options.roomid : this.id,
 			message: this.getMessageWithClientPrefix(message),
 			type: options && options.type ? options.type : 'chat',
 		};
@@ -652,7 +668,7 @@ export class Room {
 			(highlightPhrase ? "," + highlightPhrase : ""), options);
 	}
 
-	setModchat(level: string): void {
+	setRoomModchat(level: string): void {
 		if (!level) return;
 
 		this.say("/modchat " + level, {
@@ -803,15 +819,16 @@ export class Room {
 		});
 	}
 
-	disqualifyFromTournament(userOrPlayer: User | Player): void {
-		this.say("/tour dq " + userOrPlayer.id, {
-			filterSend: () => this.tournament && ((this.tournament.battleRoomGame &&
-				userOrPlayer.id in this.tournament.battleRoomGame.players) || (userOrPlayer.id in this.tournament.players &&
-				!this.tournament.players[userOrPlayer.id].eliminated)) ? true : false,
+	disqualifyFromTournament(name: string): void {
+		const id = Tools.toId(name);
+		this.say("/tour dq " + id, {
+			filterSend: () => this.tournament && (id.startsWith('guest') || (this.tournament.battleRoomGame &&
+				id in this.tournament.battleRoomGame.players) || (id in this.tournament.players &&
+				!this.tournament.players[id].eliminated)) ? true : false,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'tournament-disqualify',
-			disqualifiedUserid: userOrPlayer.id,
+			disqualifiedUserid: id,
 		});
 	}
 
@@ -836,21 +853,19 @@ export class Room {
 		return Tools.groupchatPrefix + this.id + "-" + Tools.toId(name);
 	}
 
-	createSubRoomGroupchat(name: string): Room {
+	createSubRoomGroupchat(name: string): void {
 		const groupchatId = this.getSubRoomGroupchatId(name);
-		const groupchat = global.Rooms.add(groupchatId);
-		groupchat.parentRoom = this;
-
-		this.subRoom = groupchat;
+		global.Rooms.addCreateListener(groupchatId, room => {
+			room.parentRoom = this;
+			this.subRoom = room;
+		});
 
 		this.say("/subroomgroupchat " + name, {
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'join-room',
+			type: 'create-groupchat',
 			roomid: groupchatId,
 		});
-
-		return groupchat;
 	}
 
 	leave(): void {
@@ -896,13 +911,13 @@ export class Room {
 }
 
 export class Rooms {
-	createListeners: Dict<(room: Room) => void> = {};
+	createListeners: Dict<RoomCreateListener[]> = {};
 	private rooms: Dict<Room> = {};
 
 	private pruneRoomsInterval: NodeJS.Timer;
 
 	constructor() {
-		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 5 * 60 * 1000);
+		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 15 * 60 * 1000);
 	}
 
 	add(id: string): Room {
@@ -910,8 +925,14 @@ export class Rooms {
 		return this.rooms[id];
 	}
 
-	remove(room: Room): void {
+	addCreateListener(id: string, listener: RoomCreateListener): void {
+		if (!(id in this.createListeners)) this.createListeners[id] = [];
+		this.createListeners[id].push(listener);
+	}
+
+	remove(room: Room, removeAll?: boolean): void {
 		if (!(room.id in this.rooms)) throw new Error("Room " + room.id + " not in rooms list");
+		if (room.id === Client.defaultMessageRoom && !removeAll) return;
 
 		delete this.rooms[room.id];
 		room.destroy();
@@ -919,7 +940,7 @@ export class Rooms {
 
 	removeAll(): void {
 		for (const i in this.rooms) {
-			this.remove(this.rooms[i]);
+			this.remove(this.rooms[i], true);
 		}
 	}
 
@@ -966,12 +987,14 @@ export class Rooms {
 	}
 
 	pruneRooms(): void {
-		const roomKeys = Object.keys(this.rooms);
+		let roomKeys: string[] | undefined = Object.keys(this.rooms);
 		for (const key of roomKeys) {
-			if (!this.rooms[key].initialized && !this.rooms[key].parentRoom && !this.rooms[key].game && !this.rooms[key].tournament) {
+			if (!this.rooms[key].users.size) {
 				this.remove(this.rooms[key]);
 			}
 		}
+
+		roomKeys = undefined;
 	}
 }
 

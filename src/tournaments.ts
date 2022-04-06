@@ -201,7 +201,7 @@ export class Tournaments {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
 					if (!queuedFormat || queuedFormat.effectType !== 'Format' || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
-						Storage.exportDatabase(room.id);
+						Storage.tryExportDatabase(room.id);
 					}
 				}
 
@@ -408,6 +408,22 @@ export class Tournaments {
 		return eliminationNode;
 	}
 
+	bracketToStringEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		const eliminationNode = new EliminationNode({user: clientNode.team ? Tools.stripHtmlCharacters(clientNode.team) : ""});
+
+		if (clientNode.children) {
+			const children: EliminationNode<string>[] = [];
+			for (const child of clientNode.children) {
+				children.push(this.bracketToStringEliminationNode(child));
+			}
+
+			if (children.length === 2) eliminationNode.setChildren(children as [EliminationNode<string>, EliminationNode<string>]);
+		}
+
+		return eliminationNode;
+	}
+
 	getPlacesFromTree<T>(treeRoot: EliminationNode<T>): ITreeRootPlaces<T> {
 		const places: ITreeRootPlaces<T> = {
 			winner: treeRoot.user,
@@ -552,6 +568,23 @@ export class Tournaments {
 		return html;
 	}
 
+	setNextTournament(room: Room): void {
+		this.setScheduledTournament(room);
+
+		const database = Storage.getDatabase(room);
+		if (database.queuedTournament && (!(room.id in this.nextScheduledTournaments) ||
+			database.queuedTournament.time < this.nextScheduledTournaments[room.id].time)) {
+			const format = Dex.getFormat(database.queuedTournament.formatid);
+			if (format && format.effectType === 'Format') {
+				const now = Date.now();
+				if (database.queuedTournament.time <= now) database.queuedTournament.time = now + this.delayedScheduledTournamentTime;
+
+				this.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, false,
+					database.queuedTournament.tournamentName);
+			}
+		}
+	}
+
 	setScheduledTournament(room: Room): void {
 		const serverId = Client.getServerId();
 		if (!(serverId in this.scheduledTournaments) || !(room.id in this.scheduledTournaments[serverId])) return;
@@ -661,12 +694,16 @@ export class Tournaments {
 				const format = Dex.getFormat(database.queuedTournament.formatid, true);
 				if (format && format.effectType === 'Format') {
 					queuedTournament = true;
-					if (!database.queuedTournament.time) database.queuedTournament.time = now + this.queuedTournamentTime;
+					// the time may be set on room init since room tournament state is unknown
+					if (!database.queuedTournament.time || database.queuedTournament.time <= now) {
+						database.queuedTournament.time = now + this.queuedTournamentTime;
+					}
+
 					this.setTournamentTimer(room, database.queuedTournament.time, format,
 						database.queuedTournament.playerCap, database.queuedTournament.scheduled);
 				} else {
 					delete database.queuedTournament;
-					Storage.exportDatabase(room.id);
+					Storage.tryExportDatabase(room.id);
 				}
 			}
 
@@ -933,15 +970,23 @@ export class Tournaments {
 			if (!database.tournamentTrainerCards || !(id in database.tournamentTrainerCards)) {
 				const user = Users.get(name);
 				if (user) {
-					Client.getUserDetails(user, (checkedUser) => {
-						const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
-						if (trainerSpriteId) {
-							Storage.createTournamentTrainerCard(database, user.name);
-							database.tournamentTrainerCards![id].avatar = trainerSpriteId as TrainerSpriteId;
-							const trainerCard = this.getTrainerCardHtml(room, user.name);
-							if (trainerCard) room.sayHtml(trainerCard);
-						}
-					});
+					const createTrainerCard = (avatar: string) => {
+						Storage.createTournamentTrainerCard(database, user.name);
+						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
+						const trainerCard = this.getTrainerCardHtml(room, user.name);
+						if (trainerCard) room.sayHtml(trainerCard);
+					};
+
+					if (user.avatar) {
+						createTrainerCard(user.avatar);
+					} else {
+						Client.getUserDetails(user, (checkedUser) => {
+							const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
+							if (trainerSpriteId) {
+								createTrainerCard(trainerSpriteId);
+							}
+						});
+					}
 				}
 			} else {
 				const trainerCard = this.getTrainerCardHtml(room, name);
@@ -998,22 +1043,20 @@ export class Tournaments {
 			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		Tools.unrefProperties(previous.schedules);
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 }
 
 export const instantiate = (): void => {
-	const oldTournaments = global.Tournaments as Tournaments | undefined;
+	let oldTournaments = global.Tournaments as Tournaments | undefined;
 
 	global.Tournaments = new Tournaments();
 
 	if (oldTournaments) {
 		// @ts-expect-error
 		global.Tournaments.onReload(oldTournaments);
+		oldTournaments = undefined;
 	}
 };

@@ -47,13 +47,7 @@ export class User {
 		}
 		this.rooms.clear();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === 'id' || key === 'name') continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "name"]);
 	}
 
 	setName(name: string): void {
@@ -269,7 +263,7 @@ export class Users {
 	constructor() {
 		const username = Config.username || "Self";
 		this.self = this.add(username, Tools.toId(username));
-		this.pruneUsersInterval = setInterval(() => this.pruneUsers(), 5 * 60 * 1000);
+		this.pruneUsersInterval = setInterval(() => this.pruneUsers(), 15 * 60 * 1000);
 	}
 
 	getNameFormattingList(): string[] {
@@ -334,12 +328,14 @@ export class Users {
 	}
 
 	pruneUsers(): void {
-		const userKeys = Object.keys(this.users);
+		let userKeys: string[] | undefined = Object.keys(this.users);
 		for (const key of userKeys) {
-			if (!this.users[key].rooms.size && !this.users[key].game) {
+			if (!this.users[key].rooms.size) {
 				this.remove(this.users[key]);
 			}
 		}
+
+		userKeys = undefined;
 	}
 }
 

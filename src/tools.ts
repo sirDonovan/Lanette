@@ -1,4 +1,4 @@
-import fs = require('fs');
+import fs = require('fs/promises');
 import https = require('https');
 import path = require('path');
 import url = require('url');
@@ -76,8 +76,13 @@ const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
 const rootFolder = path.resolve(__dirname, '..');
 
-// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
-const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+let timeout = setTimeout(() => {}, 1000);
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const TimeoutConstructor = timeout.constructor;
+clearTimeout(timeout);
+// @ts-expect-error
+timeout = undefined;
 
 export class Tools {
 	// exported constants
@@ -117,11 +122,13 @@ export class Tools {
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		this.unrefProperties(previous.eggGroupHexCodes);
+		this.unrefProperties(previous.hexCodes);
+		this.unrefProperties(previous.namedHexCodes);
+		this.unrefProperties(previous.pokemonColorHexCodes);
+		this.unrefProperties(previous.moveCategoryHexCodes);
+		this.unrefProperties(previous.typeHexCodes);
+		this.unrefProperties(previous);
 	}
 
 	checkHtml(room: Room, htmlContent: string): boolean {
@@ -383,8 +390,9 @@ export class Tools {
 		const year = date.getFullYear();
 		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" +
-			message + "\n");
+		fs.appendFile(path.join(rootFolder, 'errors', filepath),
+			"\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n")
+			.catch((e: Error) => console.log(e));
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -814,7 +822,7 @@ export class Tools {
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
 		const clone = Object.create(Object.getPrototypeOf(obj));
-		const keys = Object.keys(obj) as (keyof T)[];
+		const keys = Object.getOwnPropertyNames(obj) as (keyof T)[];
 		for (const key of keys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			clone[key] = this.deepClone(obj[key]);
@@ -822,26 +830,60 @@ export class Tools {
 		return clone as DeepMutable<T>;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	unrefProperties(objectInstance: any, skippedKeys?: string[]) {
+		if (!objectInstance) return;
+
+		const keys = Object.getOwnPropertyNames(objectInstance);
+		for (const key of keys) {
+			if (skippedKeys && skippedKeys.includes(key)) continue;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				objectInstance[key] = undefined;
+			} catch (e) {} // eslint-disable-line no-empty
+		}
+	}
+
 	uncacheTree(root: string): void {
-		const filepaths = [require.resolve(root)];
-		while (filepaths.length) {
-			const filepath = filepaths[0];
-			filepaths.shift();
-			if (filepath in require.cache) {
-				const cachedModule = require.cache[filepath]!;
-				for (const child of cachedModule.children) {
-					if (!child.id.endsWith('.node')) filepaths.push(child.filename);
-				}
+		try {
+			const rootFilepath = require.resolve(root);
+			if (!(rootFilepath in require.cache)) return;
 
-				cachedModule.exports = {};
-				cachedModule.children = [];
-				if (cachedModule.parent) {
-					const index = cachedModule.parent.children.indexOf(cachedModule);
-					if (index !== -1) cachedModule.parent.children.splice(index, 1);
-				}
+			const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
+			const cachedModules: NodeModule[] = [];
+			while (modulesList.length) {
+				const currentModule = modulesList[0];
+				modulesList.shift();
 
-				delete require.cache[filepath];
+				if (!cachedModules.includes(currentModule) && !currentModule.id.endsWith('.node')) {
+					cachedModules.push(currentModule);
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (currentModule.children) {
+						for (const child of currentModule.children) {
+							if (!child.id.endsWith('.node')) modulesList.push(child);
+						}
+					}
+				}
 			}
+
+			for (const filename in require.cache) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (require.cache[filename]!.children) {
+					for (const cachedModule of cachedModules) {
+						const index = require.cache[filename]!.children.indexOf(cachedModule);
+						if (index !== -1) require.cache[filename]!.children.splice(index, 1);
+					}
+				}
+			}
+
+			for (const cachedModule of cachedModules) {
+				delete require.cache[cachedModule.filename];
+
+				this.unrefProperties(cachedModule);
+			}
+		} catch (e) {
+			console.log(e);
 		}
 	}
 
@@ -907,18 +949,19 @@ export class Tools {
 	}
 
 	async fetchUrl(urlToFetch: string): Promise<string | Error> {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			let data = '';
 			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
+				res.on('error', error => reject(error));
 				res.on('end', () => {
 					resolve(data);
 				});
 			});
 
 			request.on('error', error => {
-				resolve(error);
+				reject(error);
 			});
 		});
 	}
@@ -1145,28 +1188,18 @@ export class Tools {
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {
 		const tempFilepath = filepath + '.temp';
-		return new Promise(resolve => {
-			fs.writeFile(tempFilepath, data, () => {
-				fs.rename(tempFilepath, filepath, () => {
-					resolve();
-				});
-			});
-		});
-	}
-
-	safeWriteFileSync(filepath: string, data: string): void {
-		const tempFilepath = filepath + '.temp';
-		fs.writeFileSync(tempFilepath, data);
-		fs.renameSync(tempFilepath, filepath);
+		return fs.writeFile(tempFilepath, data)
+			.then(() => fs.rename(tempFilepath, filepath)); // eslint-disable-line @typescript-eslint/promise-function-async
 	}
 }
 
 export const instantiate = (): void => {
-	const oldTools = global.Tools as Tools | undefined;
+	let oldTools = global.Tools as Tools | undefined;
 
 	global.Tools = new Tools();
 
 	if (oldTools) {
 		global.Tools.onReload(oldTools);
+		oldTools = undefined;
 	}
 };

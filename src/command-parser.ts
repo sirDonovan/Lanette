@@ -29,11 +29,7 @@ export class CommandContext {
 	}
 
 	destroy() {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this);
 	}
 
 	say(message: string, dontPrepare?: boolean, dontCheckFilter?: boolean): void {
@@ -122,7 +118,9 @@ export class CommandContext {
 
 export class CommandParser {
 	private commandGuides: Dict<Dict<ICommandGuide>> = {};
+	private commandModules: ICommandFile[] = [];
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
+	private htmlPageModules: Dict<IHtmlPageFile> = {};
 	private htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
 
 	private commandsDir: string;
@@ -180,6 +178,7 @@ export class CommandParser {
 			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
 			if (htmlPage.id in this.htmlPages) throw new Error("Html page id '" + htmlPage.id + "' is used for more than 1 page.");
 
+			this.htmlPageModules[htmlPage.id] = htmlPage;
 			this.htmlPages[htmlPage.id] = htmlPage.pages;
 
 			if (htmlPage.commands) {
@@ -316,7 +315,7 @@ export class CommandParser {
 		} else if (error[0] === 'invalidUsernameLength') {
 			return "You must specify a valid username (between 1 and " + Tools.maxUsernameLength + " characters).";
 		} else if (error[0] === 'reloadInProgress') {
-			return Users.self.name + " is currently updating. Please try again shortly!";
+			return Users.self.name + " is preparing to update. Please try again soon!";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
 		} else if (error[0] === 'noPmGameRoom') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
@@ -326,32 +325,38 @@ export class CommandParser {
 		return "";
 	}
 
-	private onReload(previous: Partial<CommandParser>): void {
-		for (const i in this.commandGuides) {
-			for (const j in this.commandGuides[i]) {
+	private onReload(previous: CommandParser): void {
+		for (const i in previous.commandGuides) {
+			for (const j in previous.commandGuides[i]) {
 				// @ts-expect-error
-				this.commandGuides[i][j] = undefined;
+				previous.commandGuides[i][j] = undefined;
 			}
 			// @ts-expect-error
-			this.commandGuides[i] = undefined;
+			previous.commandGuides[i] = undefined;
 		}
 
-		for (const i in this.htmlPages) {
-			for (const user in this.htmlPages[i]) {
-				this.htmlPages[i][user].destroy();
+		for (const i in previous.htmlPages) {
+			for (const user in previous.htmlPages[i]) {
+				previous.htmlPages[i][user].destroy();
 
 				// @ts-expect-error
-				this.htmlPages[i][user] = undefined;
+				previous.htmlPages[i][user] = undefined;
 			}
 			// @ts-expect-error
-			this.htmlPages[i] = undefined;
+			previous.htmlPages[i] = undefined;
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const i in previous.htmlPageModules) {
+			Tools.unrefProperties(previous.htmlPageModules[i]);
 		}
+
+		for (const commandModule of previous.commandModules) {
+			Tools.unrefProperties(commandModule);
+		}
+
+		Tools.unrefProperties(previous);
+		Tools.unrefProperties(global.Commands);
+		Tools.unrefProperties(global.BaseCommands);
 
 		this.loadBaseCommands();
 	}
@@ -371,6 +376,8 @@ export class CommandParser {
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
+			this.commandModules.push(commandFile);
+
 			if (commandFile.commands) {
 				const commandCategory = fileName.substr(0, fileName.length - 3);
 				for (const i in commandFile.commands) {
@@ -402,12 +409,13 @@ export class CommandParser {
 }
 
 export const instantiate = (): void => {
-	const oldCommandParser = global.CommandParser as CommandParser | undefined;
+	let oldCommandParser = global.CommandParser as CommandParser | undefined;
 
 	global.CommandParser = new CommandParser();
 
 	if (oldCommandParser) {
 		// @ts-expect-error
 		global.CommandParser.onReload(oldCommandParser);
+		oldCommandParser = undefined;
 	}
 };
