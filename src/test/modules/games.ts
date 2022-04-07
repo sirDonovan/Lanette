@@ -271,9 +271,9 @@ describe("Games", () => {
 		const room = createTestRoom();
 		Games.createGame(room, Games.getExistingFormat('trivia'));
 		assert(room.game);
-		room.game.on("text", () => {});
-		room.game.onHtml("html", () => {});
-		room.game.onUhtml("uhtml-base-name", "html", () => {});
+		room.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		room.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		room.game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 
 		assertStrictEqual(Object.keys(room.messageListeners).length, 1);
 		assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 1);
@@ -292,9 +292,9 @@ describe("Games", () => {
 		const room = createTestRoom();
 		Games.createGame(Users.self, Games.getExistingFormat('trivia'), room, true);
 		assert(Users.self.game);
-		Users.self.game.on("text", () => {});
-		Users.self.game.onHtml("html", () => {});
-		Users.self.game.onUhtml("uhtml-base-name", "html", () => {});
+		Users.self.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		Users.self.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		Users.self.game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 
 		assert(Users.self.messageListeners);
 		assert(Users.self.htmlMessageListeners);

@@ -495,6 +495,8 @@ export abstract class Activity {
 				break;
 			}
 		}
+
+		if (index !== -1) this.htmlMessageListeners.splice(index, 1);
 	}
 
 	offUhtml(name: string, html: string): void {
