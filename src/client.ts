@@ -1560,7 +1560,11 @@ export class Client {
 						if (uhtmlId in room.uhtmlMessageListeners) {
 							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
 								room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+
 								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
+								if (!Object.keys(room.uhtmlMessageListeners[uhtmlId]).length) {
+									delete room.uhtmlMessageListeners[uhtmlId];
+								}
 							}
 						}
 					} else {
@@ -2306,7 +2310,11 @@ export class Client {
 			if (uhtmlId in room.uhtmlMessageListeners) {
 				if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
 					room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+
 					delete room.uhtmlMessageListeners[uhtmlId][htmlId];
+					if (!Object.keys(room.uhtmlMessageListeners[uhtmlId]).length) {
+						delete room.uhtmlMessageListeners[uhtmlId];
+					}
 				}
 			}
 
