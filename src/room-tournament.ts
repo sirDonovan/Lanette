@@ -180,6 +180,7 @@ export class Tournament extends Activity {
 
 		this.cleanupMisc();
 		this.cleanupTimers();
+		this.cleanupMessageListeners();
 		this.cleanupBattleRooms();
 
 		// @ts-expect-error

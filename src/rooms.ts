@@ -906,7 +906,9 @@ export class Room {
 	offUhtml(name: string, html: string): void {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
+
 		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
+		if (!Object.keys(this.uhtmlMessageListeners[id]).length) delete this.uhtmlMessageListeners[id];
 	}
 }
 

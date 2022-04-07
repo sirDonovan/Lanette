@@ -234,7 +234,9 @@ export class User {
 		if (!this.uhtmlMessageListeners) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
+
 		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))];
+		if (!Object.keys(this.uhtmlMessageListeners[id]).length) delete this.uhtmlMessageListeners[id];
 	}
 
 	getBotRoom(): Room | undefined {
