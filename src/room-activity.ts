@@ -46,7 +46,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		Tools.unrefProperties(this);
+		Tools.unrefProperties(this, ["id", "name", "eliminated"]);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
