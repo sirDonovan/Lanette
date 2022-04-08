@@ -136,6 +136,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			const player = this.players[Tools.toId(name)];
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
+				this.debugLog(player.name + " left the tournament");
+
 				player.eliminated = true;
 				this.tournamentDisqualifiedPlayers.push(player);
 				this.onRemovePlayer(player);
@@ -147,6 +149,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	onTournamentPlayerRename(player: Player, oldId: string): void {
 		if (oldId in this.players && (!(player.id in this.players) || this.players[player.id].name !== player.name)) {
+			this.debugLog("Renamed through room-tournament: " + oldId + " -> " + player.name);
+
 			this.renamePlayer(player.name, player.id, oldId);
 		}
 	}
@@ -198,6 +202,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					const opponent = stuckPlayer ? this.playerOpponents.get(stuckPlayer) : undefined;
 					if (unknownPlayer && stuckPlayer && opponent && this.playerOpponents.get(opponent) === stuckPlayer &&
 						!bracketPlayerIds.includes(opponent.id)) {
+						this.debugLog("Missed rename: " + opponent.name + " -> " + unknownPlayer);
+
 						this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), opponent.id);
 
 						if (unknownPlayer.startsWith("Guest ")) {

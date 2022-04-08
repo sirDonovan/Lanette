@@ -379,18 +379,23 @@ export class Tools {
 		return buttonStyle;
 	}
 
+	getDateFilename(date?: Date): string {
+		if (!date) date = new Date();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const year = date.getFullYear();
+
+		return year + '-' + month + '-' + day;
+	}
+
 	logError(error: NodeJS.ErrnoException, message?: string): void {
 		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
 	}
 
 	logMessage(message: string): void {
 		const date = new Date();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
-		const year = date.getFullYear();
-		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		fs.appendFile(path.join(rootFolder, 'errors', filepath),
+		fs.appendFile(path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt'),
 			"\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n")
 			.catch((e: Error) => console.log(e));
 	}
