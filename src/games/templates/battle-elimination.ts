@@ -241,7 +241,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		for (const name of this.pokedex) {
 			const pokemon = Dex.getExistingPokemon(name);
 
-			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [];
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [pokemon.name];
 			const usableFormes: string[] = [];
 			for (const forme of formes) {
 				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
@@ -251,7 +251,12 @@ export abstract class BattleElimination extends ScriptedGame {
 				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
 				for (const line of evolutionLines) {
 					for (const stage of line) {
-						if (this.battleFormat.usablePokemon!.includes(stage) && !allPokemon.includes(stage)) allPokemon.push(stage);
+						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+						for (const stageForme of stageFormes) {
+							if (this.battleFormat.usablePokemon!.includes(stageForme) && !allPokemon.includes(stageForme)) {
+								allPokemon.push(stageForme);
+							}
+						}
 					}
 				}
 			} else {
