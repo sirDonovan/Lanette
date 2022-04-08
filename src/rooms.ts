@@ -260,7 +260,8 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
-		if (global.Rooms.get(this.id) !== this || (this.chatBlockedByModchat && !(options && options.type === "modchat"))) return;
+		if (global.Rooms.get(this.id) !== this || (this.chatBlockedByModchat &&
+			!(options && (options.type === "modchat" || options.type === "leave-room")))) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {
