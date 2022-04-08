@@ -1470,8 +1470,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml(html);
 		}
 
+		const guestUserDqs = new Map<Player, string>();
+		for (const i in this.players) {
+			if (this.players[i].name.startsWith(Tools.guestUserPrefix)) {
+				this.players[i].eliminated = true;
+				guestUserDqs.set(this.players[i], "You left the " + this.name + " tournament.");
+			}
+		}
+
 		if (!this.subRoom) this.generateBracket();
 		this.afterGenerateBracket();
+
+		if (guestUserDqs.size) this.disqualifyPlayers(guestUserDqs);
 	}
 
 	onAddPlayer(player: Player): boolean {

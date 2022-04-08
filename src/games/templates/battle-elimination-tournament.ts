@@ -159,6 +159,27 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (tournamentStarted) this.createBracketFromClientData(players, clientTournamentData);
 	}
 
+	onTournamentUsersUpdate(players: Dict<Player>, users: string[]): void {
+		const ids: string[] = [];
+		const extraPlayers: string[] = [];
+		for (const user of users) {
+			const id = Tools.toId(user);
+			ids.push(id);
+			if (!(id in this.players)) extraPlayers.push(user);
+		}
+
+		const missingPlayers: Player[] = [];
+		for (const i in this.players) {
+			if (!ids.includes(this.players[i].id)) missingPlayers.push(this.players[i]);
+		}
+
+		if (missingPlayers.length === 1 && extraPlayers.length === 1) {
+			this.debugLog("Missed rename in signups: " + missingPlayers[0].name + " -> " + extraPlayers[0]);
+
+			this.renamePlayer(extraPlayers[0], Tools.toId(extraPlayers[0]), missingPlayers[0].id);
+		}
+	}
+
 	createBracketFromClientData(players: Dict<Player>, clientTournamentData?: IClientTournamentData): void {
 		if (!clientTournamentData || !clientTournamentData.rootNode) return;
 
@@ -183,18 +204,18 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			});
 
 			root.traverse(node => {
-				if (node.children && node.children[0].user && node.children[1].user) {
-					const nameA = node.children[0].user;
-					const nameB = node.children[1].user;
+				if (node.children) {
+					const nameA = node.children[0].user || "";
+					const nameB = node.children[1].user || "";
 					const idA = Tools.toId(nameA);
 					const idB = Tools.toId(nameB);
 
 					let unknownPlayer: string | undefined;
 					let stuckPlayer: Player | undefined;
-					if (!(idA in this.players) && idB in this.players) {
+					if (!(idA in this.players) && (!idB || idB in this.players)) {
 						unknownPlayer = nameA;
 						stuckPlayer = this.players[idB];
-					} else if (!(idB in this.players) && idA in this.players) {
+					} else if (!(idB in this.players) && (!idA || idA in this.players)) {
 						unknownPlayer = nameB;
 						stuckPlayer = this.players[idA];
 					}
@@ -206,8 +227,25 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 						this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), opponent.id);
 
-						if (unknownPlayer.startsWith("Guest ")) {
+						if (unknownPlayer.startsWith(Tools.guestUserPrefix)) {
 							playersAndReasons.set(opponent, "You left the " + this.name + " tournament.");
+						}
+					} else if (unknownPlayer) {
+						const missingPlayers: Player[] = [];
+						for (const i in this.players) {
+							if (!bracketPlayerIds.includes(this.players[i].id)) {
+								missingPlayers.push(this.players[i]);
+							}
+						}
+
+						if (missingPlayers.length === 1) {
+							this.debugLog("Missed rename: " + missingPlayers[0].name + " -> " + unknownPlayer);
+
+							this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), missingPlayers[0].id);
+
+							if (unknownPlayer.startsWith(Tools.guestUserPrefix)) {
+								playersAndReasons.set(missingPlayers[0], "You left the " + this.name + " tournament.");
+							}
 						}
 					}
 				}

@@ -381,8 +381,12 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
-			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.started && this.info.isStarted);
+		if (this.battleRoomGame) {
+			if (this.info.isStarted && this.battleRoomGame.onTournamentBracketUpdate) {
+				this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
+			} else if (!this.info.isStarted && this.info.bracketData.users && this.battleRoomGame.onTournamentUsersUpdate) {
+				this.battleRoomGame.onTournamentUsersUpdate(this.players, this.info.bracketData.users);
+			}
 		}
 
 		this.updates = {};
