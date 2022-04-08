@@ -263,6 +263,11 @@ export let rankedGames: string[] = [];
 export let allowScriptedGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where debug logs of scripted games are saved
+ */
+export let scriptedGameDebugLogs: string[] = [];
+
+/**
  * A list of rooms (roomids) where games are allowed to be hosted
  */
 export let allowUserHostedGames: string[] = [];

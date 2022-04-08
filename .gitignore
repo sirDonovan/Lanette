@@ -76,6 +76,8 @@ databases/*
 design.txt
 errors/*
 !errors/README.md
+game-debug-logs/*
+!game-debug-logs/README.md
 *.heapsnapshot
 local-utils/
 Pokemon-Showdown/
