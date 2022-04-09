@@ -235,7 +235,13 @@ export class User {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
 
-		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))];
+		this.removeUhtmlMessageListener(id, Tools.toId(Client.getListenerUhtml(html, true)));
+	}
+
+	removeUhtmlMessageListener(id: string, htmlId: string): void {
+		if (!this.uhtmlMessageListeners || !(id in this.uhtmlMessageListeners)) return;
+
+		delete this.uhtmlMessageListeners[id][htmlId];
 		if (!Object.keys(this.uhtmlMessageListeners[id]).length) delete this.uhtmlMessageListeners[id];
 	}
 

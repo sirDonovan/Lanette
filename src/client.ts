@@ -1557,15 +1557,9 @@ export class Client {
 
 						if (!uhtmlChange) room.addUhtmlChatLog(uhtmlName, html);
 
-						if (uhtmlId in room.uhtmlMessageListeners) {
-							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-								room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-
-								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-								if (!Object.keys(room.uhtmlMessageListeners[uhtmlId]).length) {
-									delete room.uhtmlMessageListeners[uhtmlId];
-								}
-							}
+						if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+							room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+							room.removeUhtmlMessageListener(uhtmlId, htmlId);
 						}
 					} else {
 						const messageId = Tools.toId(messageArguments.message);
@@ -1777,13 +1771,10 @@ export class Client {
 
 					if (!isUhtmlChange) user.addUhtmlChatLog(uhtmlName, html);
 
-					if (recipient.uhtmlMessageListeners) {
-						if (uhtmlId in recipient.uhtmlMessageListeners) {
-							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
-								recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
-								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
-							}
-						}
+					if (recipient.uhtmlMessageListeners && uhtmlId in recipient.uhtmlMessageListeners &&
+						htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
+						recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
+						recipient.removeUhtmlMessageListener(uhtmlId, htmlId);
 					}
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
@@ -2307,15 +2298,9 @@ export class Client {
 				this.clearLastOutgoingMessage(now);
 			}
 
-			if (uhtmlId in room.uhtmlMessageListeners) {
-				if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-					room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-
-					delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-					if (!Object.keys(room.uhtmlMessageListeners[uhtmlId]).length) {
-						delete room.uhtmlMessageListeners[uhtmlId];
-					}
-				}
+			if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+				room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+				room.removeUhtmlMessageListener(uhtmlId, htmlId);
 			}
 
 			if (messageType !== 'uhtmlchange') room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
