@@ -295,20 +295,9 @@ export class Tools {
 
 	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,
 		borderType?: BorderType): string {
-		let background: string | undefined;
-		let textColor: string | undefined;
 		let border: string | undefined;
 		let borderStyle: string | undefined;
 		let borderRadius: string | undefined;
-
-		if (backgroundColor && backgroundColor in this.hexCodes) {
-			if (this.hexCodes[backgroundColor]!.textColor) {
-				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
-			} else {
-				textColor = 'color: #000000;';
-			}
-			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
-		}
 
 		if (borderColor || borderSize) {
 			if (!borderSize) borderSize = 1;
@@ -329,11 +318,11 @@ export class Tools {
 			borderRadius = "border-radius: " + borderRadiusValue + "px;";
 		}
 
-		if (background || textColor || border || borderStyle || borderRadius) {
+		const background = this.getHexBackground(backgroundColor);
+		if (background || border || borderStyle || borderRadius) {
 			let span = "<span style='display: block;";
 
 			if (background) span += background;
-			if (textColor) span += textColor;
 			if (border) span += border;
 			if (borderStyle) span += borderStyle;
 			if (borderRadius) span += borderRadius;
@@ -343,6 +332,22 @@ export class Tools {
 		}
 
 		return "";
+	}
+
+	getHexBackground(backgroundColor: string | undefined): string {
+		let background = "";
+		let textColor = "";
+
+		if (backgroundColor && backgroundColor in this.hexCodes) {
+			if (this.hexCodes[backgroundColor]!.textColor) {
+				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
+			} else {
+				textColor = 'color: #000000;';
+			}
+			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+		}
+
+		return background + textColor;
 	}
 
 	getCustomButtonStyle(backgroundColor: string | undefined, borderColor?: string, borderRadius?: number, borderSize?: number,

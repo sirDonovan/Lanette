@@ -1,7 +1,7 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { TrainerSpriteId } from "../types/dex";
-import type { IDatabase, IGameCustomBorder, IGameHostBox } from "../types/storage";
+import type { IDatabase, ICustomBorder, IGameHostBox } from "../types/storage";
 import type { BorderType, HexCode } from "../types/tools";
 import type { User } from "../users";
 import { BorderStyle } from "./components/border-style";
@@ -74,10 +74,10 @@ class GameHostBox extends HtmlPageBase {
 		let currentSignupsButtonColor: HexCode | undefined;
 		let currentTrainer: TrainerSpriteId | undefined;
 		let currentPokemon: PokemonChoices | undefined;
-		let currentBackgroundBorder: IGameCustomBorder | undefined;
-		let currentButtonsBorder: IGameCustomBorder | undefined;
-		let currentSignupsBackgroundBorder: IGameCustomBorder | undefined;
-		let currentSignupsButtonsBorder: IGameCustomBorder | undefined;
+		let currentBackgroundBorder: ICustomBorder | undefined;
+		let currentButtonsBorder: ICustomBorder | undefined;
+		let currentSignupsBackgroundBorder: ICustomBorder | undefined;
+		let currentSignupsButtonsBorder: ICustomBorder | undefined;
 
 		if (database.gameHostBoxes && this.userId in database.gameHostBoxes) {
 			const box = database.gameHostBoxes[this.userId];

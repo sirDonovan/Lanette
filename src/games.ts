@@ -15,7 +15,7 @@ import type {
 	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
+import type { ICustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
@@ -1588,7 +1588,7 @@ export class Games {
 				background = customBox.background;
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsBackgroundBorder && Object.keys(customBox.signupsBackgroundBorder).length) {
 				border = customBox.signupsBackgroundBorder;
 			} else if (game && customBox.gameBackgroundBorder && Object.keys(customBox.gameBackgroundBorder).length) {
@@ -1634,7 +1634,7 @@ export class Games {
 				}
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsButtonsBorder && Object.keys(customBox.signupsButtonsBorder).length) {
 				border = customBox.signupsButtonsBorder;
 			} else if (game && customBox.gameButtonsBorder && Object.keys(customBox.gameButtonsBorder).length) {
