@@ -53,7 +53,7 @@ module.exports = (): void => {
 	Storage.importDatabases();
 
 	console.log("Loading dex data...");
-	Dex.loadAllData();
+	Dex.loadBaseData();
 
 	console.log("Loading games...");
 	Games.loadFormats();
