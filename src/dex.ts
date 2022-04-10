@@ -2532,7 +2532,7 @@ export class Dex {
 		Tools.unrefProperties(previous.pokemonShowdownValidatorModule);
 		Tools.unrefProperties(previous);
 
-		this.loadAllData();
+		this.loadBaseData();
 	}
 
 	private loadGifData(refresh?: boolean): void {
