@@ -393,6 +393,10 @@ export class Dex {
 		return POKEMON_ICON_WIDTH;
 	}
 
+	getPokemonIconHeight(): number {
+		return POKEMON_ICON_HEIGHT;
+	}
+
 	getTrainerSpriteDimensions(): number {
 		return TRAINER_SPRITE_DIMENSIONS;
 	}
@@ -1227,8 +1231,8 @@ export class Dex {
 		return '<img src="' + prefix + '/' + pokemon.spriteid + suffix + '" width="' + width + '" height="' + height + '" />';
 	}
 
-	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean, border?: string): string {
-		let num = pokemon.num;
+	getPokemonIcon(pokemon?: IPokemon, facingLeft?: boolean, border?: string): string {
+		let num = pokemon ? pokemon.num : 0;
 		if (num < 0) {
 			num = 0;
 		} else if (num > 898) {
@@ -1237,14 +1241,14 @@ export class Dex {
 
 		const alternateIconNumbers = this.getData().alternateIconNumbers;
 		if (facingLeft) {
-			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
-		} else if (pokemon.gender === 'F') {
+			if (pokemon && alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
+		} else if (pokemon && pokemon.gender === 'F') {
 			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
 				pokemon.id === 'pyroar') {
 				num = alternateIconNumbers.right[pokemon.id + 'f']!;
 			}
 		} else {
-			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
+			if (pokemon && alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
 		}
 
 		const top = Math.floor(num / 12) * POKEMON_ICON_HEIGHT;
