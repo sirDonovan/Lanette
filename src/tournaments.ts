@@ -903,7 +903,7 @@ export class Tournaments {
 
 		const trainerCard = database.tournamentTrainerCards[id];
 
-		let html = '<div style="width: 100%"><table style="border-collapse: collapse; width: 500px;">';
+		let html = '<center><div style="width: 100%"><table style="border-collapse: collapse; width: 500px;">';
 		html += '<tr style="border: 1px solid;"><td style="border: 1px solid;' + Tools.getHexBackground(trainerCard.header) +
 			'" colspan="3"><center><b>Trainer Profile</b></center></td></tr>';
 		html += '<tr style="border: 1px solid;' + Tools.getHexBackground(trainerCard.table) + '">';
@@ -999,7 +999,7 @@ export class Tournaments {
 				'<b>Bio</b>: ' + Tools.stripHtmlCharacters(trainerCard.bio) + '</td></tr>';
 		}
 
-		html += "</table></div>";
+		html += "</table></div></center>";
 		return html;
 	}
 
