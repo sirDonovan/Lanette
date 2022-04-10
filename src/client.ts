@@ -366,7 +366,7 @@ export class Client {
 
 	getListenerHtml(html: string, noAttribution?: boolean): string {
 		html = '<div class="infobox">' + html;
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		html += '</div>';
@@ -375,7 +375,7 @@ export class Client {
 	}
 
 	getListenerUhtml(html: string, noAttribution?: boolean): string {
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 
@@ -1152,7 +1152,7 @@ export class Client {
 				}
 
 				if (rank) {
-					Users.self.group = rank;
+					Users.self.setGlobalRank(rank);
 				} else {
 					this.getUserDetails(Users.self);
 				}
@@ -1253,8 +1253,8 @@ export class Client {
 						user.avatar = avatar;
 
 						user.autoconfirmed = response.autoconfirmed;
-						user.group = response.group;
 						user.status = response.status;
+						user.setGlobalRank(response.group);
 
 						if (user.userDetailsListener) {
 							user.userDetailsListener(user);

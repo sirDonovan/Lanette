@@ -12,7 +12,6 @@ export class User {
 	chatLog: IChatLogEntry[] = [];
 	game: ScriptedGame | null = null;
 	globalRank: string = " ";
-	group: string | null = null;
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
@@ -126,7 +125,8 @@ export class User {
 
 	isGlobalStaff(): boolean {
 		const groupSymbols = Client.getGroupSymbols();
-		return this.group === groupSymbols.driver || this.group === groupSymbols.moderator || this.group === groupSymbols.administrator;
+		return this.globalRank === groupSymbols.driver || this.globalRank === groupSymbols.moderator ||
+			this.globalRank === groupSymbols.administrator;
 	}
 
 	isDeveloper(): boolean {
