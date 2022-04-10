@@ -386,6 +386,10 @@ export class Dex {
 		}
 	}
 
+	getPokemonIconWidth(): number {
+		return POKEMON_ICON_WIDTH;
+	}
+
 	getTrainerSpriteDimensions(): number {
 		return TRAINER_SPRITE_DIMENSIONS;
 	}
@@ -1220,7 +1224,7 @@ export class Dex {
 		return '<img src="' + prefix + '/' + pokemon.spriteid + suffix + '" width="' + width + '" height="' + height + '" />';
 	}
 
-	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
+	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean, border?: string): string {
 		let num = pokemon.num;
 		if (num < 0) {
 			num = 0;
@@ -1244,7 +1248,7 @@ export class Dex {
 		const left = (num % 12) * POKEMON_ICON_WIDTH;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
-			'image-rendering: pixelated;' +
+			(border ? 'border: ' + border + ';' : '') + 'image-rendering: pixelated;' +
 			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v6) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
