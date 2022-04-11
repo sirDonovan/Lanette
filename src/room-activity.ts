@@ -1,6 +1,7 @@
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Room } from "./rooms";
+import type { IActivityHtmlListener } from "./types/activity";
 import type { IOutgoingMessageAttributes, MessageListener } from "./types/client";
 import type { IBattleGameData, PlayerList } from "./types/games";
 import type { User } from "./users";
@@ -45,7 +46,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		Tools.unrefProperties(this);
+		Tools.unrefProperties(this, ["id", "name", "eliminated"]);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
@@ -191,13 +192,14 @@ export abstract class Activity {
 	baseHtmlPageId: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
-	htmlMessageListeners: string[] = [];
+	htmlMessageListeners: IActivityHtmlListener[] = [];
 	htmlPageHeader: string = '';
 	messageListeners: string[] = [];
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
 	playerAvatars: Dict<string> = {};
+	roomCreateListeners: string[] = [];
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
@@ -205,7 +207,7 @@ export abstract class Activity {
 	startTimer: NodeJS.Timer | null = null;
 	subRoom: Room | null = null;
 	timeout: NodeJS.Timer | null = null;
-	uhtmlMessageListeners: Dict<string[]> = {};
+	uhtmlMessageListeners: Dict<IActivityHtmlListener[]> = {};
 
 	// set in initialize()
 	id!: string;
@@ -245,6 +247,12 @@ export abstract class Activity {
 			this.pastPlayers[i].destroy();
 			// @ts-expect-error
 			this.pastPlayers[i] = undefined;
+		}
+	}
+
+	cleanupMisc(): void {
+		for (const roomid of this.roomCreateListeners) {
+			delete Rooms.createListeners[roomid];
 		}
 	}
 
@@ -328,7 +336,7 @@ export abstract class Activity {
 		if (oldId in this.players) {
 			if (id in this.players && oldId !== id) return;
 		} else {
-			if (!(oldId in this.pastPlayers)) return;
+			if (!(oldId in this.pastPlayers) || (id in this.pastPlayers && oldId !== id)) return;
 			pastPlayer = true;
 		}
 
@@ -447,57 +455,83 @@ export abstract class Activity {
 
 	on(message: string, listener: MessageListener): void {
 		if (this.ended) return;
+
 		this.messageListeners.push(message);
 		this.room.on(message, listener);
 	}
 
 	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
 		if (this.ended) return;
-		this.htmlMessageListeners.push(html);
+
+		this.htmlMessageListeners.push({html, serverHtml});
 		this.room.onHtml(html, listener, serverHtml);
 	}
 
 	onUhtml(name: string, html: string, listener: MessageListener): void {
 		if (this.ended) return;
+
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];
-		this.uhtmlMessageListeners[id].push(html);
+		this.uhtmlMessageListeners[id].push({name, html});
+
 		this.room.onUhtml(name, html, listener);
 	}
 
 	off(message: string): void {
 		this.room.off(message);
+
 		const index = this.messageListeners.indexOf(message);
 		if (index !== -1) this.messageListeners.splice(index, 1);
 	}
 
 	offHtml(html: string, serverHtml?: boolean): void {
 		this.room.offHtml(html, serverHtml);
-		const index = this.htmlMessageListeners.indexOf(html);
+
+		let index = -1;
+		for (let i = 0; i < this.htmlMessageListeners.length; i++) {
+			const listener = this.htmlMessageListeners[i];
+			if (listener.html === html && (serverHtml === undefined || listener.serverHtml === serverHtml)) {
+				index = i;
+				break;
+			}
+		}
+
 		if (index !== -1) this.htmlMessageListeners.splice(index, 1);
 	}
 
 	offUhtml(name: string, html: string): void {
 		this.room.offUhtml(name, html);
+
 		const id = Tools.toId(name);
 		if (id in this.uhtmlMessageListeners) {
-			const index = this.uhtmlMessageListeners[id].indexOf(html);
+			let index = -1;
+			for (let i = 0; i < this.uhtmlMessageListeners[id].length; i++) {
+				const listener = this.uhtmlMessageListeners[id][i];
+				if (listener.name === name && listener.html === html) {
+					index = i;
+					break;
+				}
+			}
+
 			if (index !== -1) this.uhtmlMessageListeners[id].splice(index, 1);
 		}
 	}
 
 	cleanupMessageListeners(): void {
-		for (const listener of this.htmlMessageListeners) {
-			this.offHtml(listener);
-		}
-
-		for (const listener of this.messageListeners) {
+		const messageListeners = this.messageListeners.slice();
+		for (const listener of messageListeners) {
 			this.off(listener);
 		}
 
-		for (const name in this.uhtmlMessageListeners) {
-			for (const listener of this.uhtmlMessageListeners[name]) {
-				this.offUhtml(name, listener);
+		const htmlMessageListeners = this.htmlMessageListeners.slice();
+		for (const listener of htmlMessageListeners) {
+			this.offHtml(listener.html, listener.serverHtml);
+		}
+
+		for (const id in this.uhtmlMessageListeners) {
+			const uhtmlMessageListeners = this.uhtmlMessageListeners[id].slice();
+			for (const listener of uhtmlMessageListeners) {
+				this.offUhtml(listener.name!, listener.html);
 			}
 		}
 	}

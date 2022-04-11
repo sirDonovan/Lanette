@@ -14,6 +14,7 @@ import type {
 } from "./types/tournaments";
 import type { User } from "./users";
 
+const TRAINER_BADGE_DIMENSIONS = 24;
 const SCHEDULED_TOURNAMENT_BUFFER_TIME = 90 * 60 * 1000;
 const SCHEDULED_TOURNAMENT_QUICK_BUFFER_TIME = 30 * 60 * 1000;
 const USER_HOSTED_TOURNAMENT_TIMEOUT = 5 * 60 * 1000;
@@ -878,8 +879,8 @@ export class Tournaments {
 
 	getBadgeHtml(id: string): string {
 		if (Config.tournamentTrainerCardBadges && id in Config.tournamentTrainerCardBadges) {
-			return '<img src="' + Config.tournamentTrainerCardBadges[id].source + '" width=16px height=16px ' +
-				'title="' + Config.tournamentTrainerCardBadges[id].name + '" />';
+			return '<img src="' + Config.tournamentTrainerCardBadges[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardBadges[id].name + '" />';
 		}
 
 		return "";
@@ -902,8 +903,64 @@ export class Tournaments {
 
 		const trainerCard = database.tournamentTrainerCards[id];
 
-		let html = '<div style="width: 100%"><table style="border-collapse: collapse; width: 100%;">' +
-			'<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 0px; width: 80px;">';
+		let html = '<center><div style="width: 100%"><table style="border-collapse: collapse; width: 500px;">';
+		html += '<tr style="border: 1px solid;"><td style="border: 1px solid;' + Tools.getHexBackground(trainerCard.header) +
+			'" colspan="3"><center><b>Trainer Profile</b></center></td></tr>';
+		html += '<tr style="border: 1px solid;' + Tools.getHexBackground(trainerCard.table) + '">';
+
+		const user = Users.get(name);
+		html += '<td style="border: 1px solid; padding: 7px 8px 8px 6px;"><username>' + (user ? user.name : name) + '</username>';
+		if (user && user.hasRank(room, 'voice')) {
+			const groups = Client.getServerGroups();
+
+			const rank = user.rooms.get(room)!.rank;
+			const roomGroup = rank in groups ? groups[rank] : undefined;
+			const globalGroup = user.globalRank in groups ? groups[user.globalRank] : undefined;
+			if (roomGroup && roomGroup.name && (!globalGroup || roomGroup.name !== globalGroup.name)) {
+				html += "<br /><i>" + (!roomGroup.name.startsWith("Room ") ? "Room " : "") + roomGroup.name + "</i>";
+			}
+
+			if (globalGroup && globalGroup.name && globalGroup.type !== 'punishment') {
+				html += "<br /><i>Global " + globalGroup.name + "</i>";
+			}
+		}
+
+		const tournamentPoints = Storage.getAnnualPoints(room, Storage.tournamentLeaderboard, name);
+		if (tournamentPoints) {
+			html += "<br />" + tournamentPoints + " annual point" + (tournamentPoints > 1 ? "s" : "");
+		}
+
+		const gamePoints = Storage.getAnnualPoints(room, Storage.gameLeaderboard, name);
+		if (gamePoints) {
+			html += "<br />" + gamePoints + " annual bit" + (gamePoints > 1 ? "s" : "");
+		}
+
+		if (trainerCard.favoriteFormat) html += "<br /><b>Favorite format</b>: " + trainerCard.favoriteFormat;
+
+		html += "</td>";
+
+		if (trainerCard.pokemon) {
+			const iconBorder = 1;
+			const iconBorderStyle = iconBorder + "px solid";
+			const iconsPerLine = 3;
+			const pokemonHtml: string[] = [];
+			for (let i = 0; i < 6; i++) {
+				const pokemon = trainerCard.pokemon[i] ? Dex.getPokemon(trainerCard.pokemon[i]) : undefined;
+				let icon = Dex.getPokemonIcon(pokemon, false, iconBorderStyle);
+				if (icon) {
+					if (pokemonHtml.length && pokemonHtml.length % iconsPerLine === 0) icon = "<br />" + icon;
+					pokemonHtml.push(icon);
+				}
+			}
+
+			if (pokemonHtml.length) {
+				const iconWidth = Dex.getPokemonIconWidth() + (iconBorder * 2);
+				html += '<td style="border: 1px solid; padding: 0px; width: ' + (iconWidth * iconsPerLine) + 'px;"><center>' +
+					pokemonHtml.join("") + '</center></td>';
+			}
+		}
+
+		html += '<td style="border: 1px solid; padding: 0px; width: 80px;">';
 		let avatarHtml = "";
 		if (trainerCard.customAvatar) {
 			const dimensions = Dex.getTrainerSpriteDimensions();
@@ -916,49 +973,33 @@ export class Tournaments {
 
 			avatarHtml = Dex.getTrainerSprite(avatarSpriteId || Dex.getRandomDefaultTrainerSpriteId());
 		}
+		html += avatarHtml;
+		html += "</td>";
 
-		const user = Users.get(name);
-		html += avatarHtml + '</td><td style="border: 1px solid; padding: 7px 8px 8px 6px;width: 100%"><username>' +
-			(user ? user.name : name) + '</username>';
-		if (user && user.hasRank(room, 'voice')) {
-			const groups = Client.getServerGroups();
-			const rank = user.rooms.get(room)!.rank;
-			if (rank in groups) html += "<br /><i>" + groups[rank].name + "</i>";
-		}
-
-		const tournamentPoints = Storage.getAnnualPoints(room, Storage.tournamentLeaderboard, name);
-		if (tournamentPoints) {
-			html += "<br />" + tournamentPoints + " annual points";
-		}
-
-		const gamePoints = Storage.getAnnualPoints(room, Storage.gameLeaderboard, name);
-		if (gamePoints) {
-			html += "<br />" + gamePoints + " annual bits";
-		}
-
-		if (trainerCard.favoriteFormat) html += "<br /><b>Favorite format</b>: " + trainerCard.favoriteFormat;
-
-		html += "</td></tr>";
-
+		const footerBackground = Tools.getHexBackground(trainerCard.footer || trainerCard.header);
 		if (Config.tournamentTrainerCardBadges && trainerCard.badges && trainerCard.badges.length) {
+			const badgesPerLine = 15;
 			const badgesHtml: string[] = [];
 			for (const badge of trainerCard.badges) {
-				const badgeHtml = this.getBadgeHtml(badge);
-				if (badgeHtml) badgesHtml.push(badgeHtml);
+				let badgeHtml = this.getBadgeHtml(badge);
+				if (badgeHtml) {
+					if (badgesHtml.length && badgesHtml.length % badgesPerLine === 0) badgeHtml = "<br />" + badgeHtml;
+					badgesHtml.push(badgeHtml);
+				}
 			}
 
 			if (badgesHtml.length) {
-				html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 4px;" colspan="2">' +
-					'<b>Badges</b>: ' + badgesHtml.join("") + "</td></tr>";
+				html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid;' + footerBackground + '" colspan="3">' +
+					'<b>Badges</b>: ' + badgesHtml.join(" ") + '</td></tr>';
 			}
 		}
 
 		if (trainerCard.bio) {
-			html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid; padding: 4px;" colspan="2"><b>Bio</b>: ' +
-				Tools.stripHtmlCharacters(trainerCard.bio) + '</td></tr>';
+			html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid;' + footerBackground + '" colspan="3">' +
+				'<b>Bio</b>: ' + Tools.stripHtmlCharacters(trainerCard.bio) + '</td></tr>';
 		}
 
-		html += "</table></div>";
+		html += "</table></div></center>";
 		return html;
 	}
 
@@ -967,26 +1008,24 @@ export class Tournaments {
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {
 			const database = Storage.getDatabase(trainerCardRoom);
-			if (!database.tournamentTrainerCards || !(id in database.tournamentTrainerCards)) {
-				const user = Users.get(name);
-				if (user) {
-					const createTrainerCard = (avatar: string) => {
-						Storage.createTournamentTrainerCard(database, user.name);
+			const user = Users.get(name);
+			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(id in database.tournamentTrainerCards))) {
+				const updateTrainerCard = (avatar?: string) => {
+					Storage.createTournamentTrainerCard(database, user.name);
+					if (!database.tournamentTrainerCards![id].avatar && avatar) {
 						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
-						const trainerCard = this.getTrainerCardHtml(room, user.name);
-						if (trainerCard) room.sayHtml(trainerCard);
-					};
-
-					if (user.avatar) {
-						createTrainerCard(user.avatar);
-					} else {
-						Client.getUserDetails(user, (checkedUser) => {
-							const trainerSpriteId = Dex.getTrainerSpriteId(checkedUser.avatar || "");
-							if (trainerSpriteId) {
-								createTrainerCard(trainerSpriteId);
-							}
-						});
 					}
+
+					const trainerCard = this.getTrainerCardHtml(room, user.name);
+					if (trainerCard) room.sayHtml(trainerCard);
+				};
+
+				if (user.avatar && user.globalRank) {
+					updateTrainerCard(user.avatar);
+				} else {
+					Client.getUserDetails(user, (checkedUser) => {
+						updateTrainerCard(Dex.getTrainerSpriteId(checkedUser.avatar || ""));
+					});
 				}
 			} else {
 				const trainerCard = this.getTrainerCardHtml(room, name);

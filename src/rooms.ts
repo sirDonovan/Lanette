@@ -260,7 +260,8 @@ export class Room {
 	}
 
 	say(message: string, options?: IRoomMessageOptions): void {
-		if (global.Rooms.get(this.id) !== this || this.chatBlockedByModchat) return;
+		if (global.Rooms.get(this.id) !== this || (this.chatBlockedByModchat &&
+			!(options && (options.type === "modchat" || options.type === "leave-room")))) return;
 
 		if (!(options && options.dontPrepare)) message = Tools.prepareMessage(message);
 		if (!(options && options.dontCheckFilter)) {
@@ -906,7 +907,15 @@ export class Room {
 	offUhtml(name: string, html: string): void {
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
-		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html))];
+
+		this.removeUhtmlMessageListener(id, Tools.toId(Client.getListenerUhtml(html)));
+	}
+
+	removeUhtmlMessageListener(id: string, htmlId: string): void {
+		if (!(id in this.uhtmlMessageListeners)) return;
+
+		delete this.uhtmlMessageListeners[id][htmlId];
+		if (!Object.keys(this.uhtmlMessageListeners[id]).length) delete this.uhtmlMessageListeners[id];
 	}
 }
 

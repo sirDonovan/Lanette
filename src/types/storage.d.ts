@@ -46,6 +46,10 @@ export interface ITournamentTrainerCard {
 	bio?: string;
 	customAvatar?: string;
 	favoriteFormat?: string;
+	footer?: HexCode;
+	header?: HexCode;
+	pokemon?: string[];
+	table?: HexCode;
 }
 
 export interface IGameTrainerCard {
@@ -55,7 +59,7 @@ export interface IGameTrainerCard {
 	pokemonGifs?: boolean;
 }
 
-export interface IGameCustomBorder {
+export interface ICustomBorder {
 	color?: HexCode;
 	radius?: number;
 	size?: number;
@@ -64,17 +68,17 @@ export interface IGameCustomBorder {
 
 export interface IGameCustomBox {
 	background?: HexCode;
-	backgroundBorder?: IGameCustomBorder;
+	backgroundBorder?: ICustomBorder;
 	buttons?: HexCode;
-	buttonsBorder?: IGameCustomBorder;
+	buttonsBorder?: ICustomBorder;
 	signupsBackground?: HexCode;
-	signupsBackgroundBorder?: IGameCustomBorder;
+	signupsBackgroundBorder?: ICustomBorder;
 	signupsButtons?: HexCode;
-	signupsButtonsBorder?: IGameCustomBorder;
+	signupsButtonsBorder?: ICustomBorder;
 	gameBackground?: HexCode;
-	gameBackgroundBorder?: IGameCustomBorder;
+	gameBackgroundBorder?: ICustomBorder;
 	gameButtons?: HexCode;
-	gameButtonsBorder?: IGameCustomBorder;
+	gameButtonsBorder?: ICustomBorder;
 }
 
 export interface IGameHostBox extends IGameCustomBox {

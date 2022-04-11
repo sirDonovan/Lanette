@@ -1,5 +1,5 @@
 import type { Room } from "../../rooms";
-import type { IGameCustomBorder } from "../../types/storage";
+import type { ICustomBorder } from "../../types/storage";
 import type { BorderType } from "../../types/tools";
 import { ColorPicker } from "./color-picker";
 import type { IColorPick } from "./color-picker";
@@ -7,7 +7,7 @@ import { ComponentBase } from "./component-base";
 import type { IComponentProps } from "./component-base";
 
 export interface IBorderStyleProps extends IComponentProps {
-	currentBorder: IGameCustomBorder | undefined;
+	currentBorder: ICustomBorder | undefined;
 	minRadius: number;
 	maxRadius: number;
 	minSize: number;

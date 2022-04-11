@@ -70,6 +70,7 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.rankedGames) config.rankedGames = arrayToRoomIds(config.rankedGames);
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
+	if (config.scriptedGameDebugLogs) config.scriptedGameDebugLogs = arrayToRoomIds(config.scriptedGameDebugLogs);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
 	if (config.allowChallengeGames) config.allowChallengeGames = arrayToRoomIds(config.allowChallengeGames);
 	if (config.allowSearchChallenges) config.allowSearchChallenges = arrayToRoomIds(config.allowSearchChallenges);

@@ -66,6 +66,7 @@ const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
+const GUEST_USER_PREFIX = 'Guest ';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
 const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
 const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
@@ -90,6 +91,7 @@ export class Tools {
 	readonly builtFolder: string = path.join(rootFolder, 'built');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
+	readonly guestUserPrefix: string = GUEST_USER_PREFIX;
 	readonly hexCodes: typeof hexCodes = hexCodes;
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = 'play.pokemonshowdown.com';
@@ -293,20 +295,9 @@ export class Tools {
 
 	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,
 		borderType?: BorderType): string {
-		let background: string | undefined;
-		let textColor: string | undefined;
 		let border: string | undefined;
 		let borderStyle: string | undefined;
 		let borderRadius: string | undefined;
-
-		if (backgroundColor && backgroundColor in this.hexCodes) {
-			if (this.hexCodes[backgroundColor]!.textColor) {
-				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
-			} else {
-				textColor = 'color: #000000;';
-			}
-			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
-		}
 
 		if (borderColor || borderSize) {
 			if (!borderSize) borderSize = 1;
@@ -327,11 +318,11 @@ export class Tools {
 			borderRadius = "border-radius: " + borderRadiusValue + "px;";
 		}
 
-		if (background || textColor || border || borderStyle || borderRadius) {
+		const background = this.getHexBackground(backgroundColor);
+		if (background || border || borderStyle || borderRadius) {
 			let span = "<span style='display: block;";
 
 			if (background) span += background;
-			if (textColor) span += textColor;
 			if (border) span += border;
 			if (borderStyle) span += borderStyle;
 			if (borderRadius) span += borderRadius;
@@ -341,6 +332,22 @@ export class Tools {
 		}
 
 		return "";
+	}
+
+	getHexBackground(backgroundColor: string | undefined): string {
+		let background = "";
+		let textColor = "";
+
+		if (backgroundColor && backgroundColor in this.hexCodes) {
+			if (this.hexCodes[backgroundColor]!.textColor) {
+				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
+			} else {
+				textColor = 'color: #000000;';
+			}
+			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+		}
+
+		return background + textColor;
 	}
 
 	getCustomButtonStyle(backgroundColor: string | undefined, borderColor?: string, borderRadius?: number, borderSize?: number,
@@ -379,18 +386,23 @@ export class Tools {
 		return buttonStyle;
 	}
 
+	getDateFilename(date?: Date): string {
+		if (!date) date = new Date();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const year = date.getFullYear();
+
+		return year + '-' + month + '-' + day;
+	}
+
 	logError(error: NodeJS.ErrnoException, message?: string): void {
 		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
 	}
 
 	logMessage(message: string): void {
 		const date = new Date();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
-		const year = date.getFullYear();
-		const filepath = year + '-' + month + '-' + day + '.txt';
 
-		fs.appendFile(path.join(rootFolder, 'errors', filepath),
+		fs.appendFile(path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt'),
 			"\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n")
 			.catch((e: Error) => console.log(e));
 	}

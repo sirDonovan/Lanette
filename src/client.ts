@@ -366,7 +366,7 @@ export class Client {
 
 	getListenerHtml(html: string, noAttribution?: boolean): string {
 		html = '<div class="infobox">' + html;
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		html += '</div>';
@@ -375,7 +375,7 @@ export class Client {
 	}
 
 	getListenerUhtml(html: string, noAttribution?: boolean): string {
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 
@@ -1152,7 +1152,7 @@ export class Client {
 				}
 
 				if (rank) {
-					Users.self.group = rank;
+					Users.self.setGlobalRank(rank);
 				} else {
 					this.getUserDetails(Users.self);
 				}
@@ -1253,8 +1253,8 @@ export class Client {
 						user.avatar = avatar;
 
 						user.autoconfirmed = response.autoconfirmed;
-						user.group = response.group;
 						user.status = response.status;
+						user.setGlobalRank(response.group);
 
 						if (user.userDetailsListener) {
 							user.userDetailsListener(user);
@@ -1557,11 +1557,9 @@ export class Client {
 
 						if (!uhtmlChange) room.addUhtmlChatLog(uhtmlName, html);
 
-						if (uhtmlId in room.uhtmlMessageListeners) {
-							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-								room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-							}
+						if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+							room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+							room.removeUhtmlMessageListener(uhtmlId, htmlId);
 						}
 					} else {
 						const messageId = Tools.toId(messageArguments.message);
@@ -1773,13 +1771,10 @@ export class Client {
 
 					if (!isUhtmlChange) user.addUhtmlChatLog(uhtmlName, html);
 
-					if (recipient.uhtmlMessageListeners) {
-						if (uhtmlId in recipient.uhtmlMessageListeners) {
-							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
-								recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
-								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
-							}
-						}
+					if (recipient.uhtmlMessageListeners && uhtmlId in recipient.uhtmlMessageListeners &&
+						htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
+						recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
+						recipient.removeUhtmlMessageListener(uhtmlId, htmlId);
 					}
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
@@ -2303,11 +2298,9 @@ export class Client {
 				this.clearLastOutgoingMessage(now);
 			}
 
-			if (uhtmlId in room.uhtmlMessageListeners) {
-				if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-					room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-					delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-				}
+			if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+				room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+				room.removeUhtmlMessageListener(uhtmlId, htmlId);
 			}
 
 			if (messageType !== 'uhtmlchange') room.addUhtmlChatLog(messageArguments.name, messageArguments.html);

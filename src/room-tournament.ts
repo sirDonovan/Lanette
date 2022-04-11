@@ -170,12 +170,6 @@ export class Tournament extends Activity {
 			this.adjustCapTimer = undefined;
 		}
 
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
-		}
-
 		if (this.runAutoDqTimeout) {
 			clearTimeout(this.runAutoDqTimeout);
 			// @ts-expect-error
@@ -184,6 +178,9 @@ export class Tournament extends Activity {
 
 		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd(forceEnd);
 
+		this.cleanupMisc();
+		this.cleanupTimers();
+		this.cleanupMessageListeners();
 		this.cleanupBattleRooms();
 
 		// @ts-expect-error
@@ -384,8 +381,12 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentBracketUpdate) {
-			this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.started && this.info.isStarted);
+		if (this.battleRoomGame) {
+			if (this.info.isStarted && this.battleRoomGame.onTournamentBracketUpdate) {
+				this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
+			} else if (!this.info.isStarted && this.info.bracketData.users && this.battleRoomGame.onTournamentUsersUpdate) {
+				this.battleRoomGame.onTournamentUsersUpdate(this.players, this.info.bracketData.users);
+			}
 		}
 
 		this.updates = {};
@@ -444,7 +445,10 @@ export class Tournament extends Activity {
 
 		// clear users who are now guests (currently can't be tracked)
 		for (const i in this.players) {
-			if (!(i in players)) delete this.players[i];
+			if (!(i in players)) {
+				this.players[i].destroy();
+				delete this.players[i];
+			}
 		}
 
 		for (const i in players) {
@@ -504,6 +508,7 @@ export class Tournament extends Activity {
 				if (this.joinBattles) room.tournament = this;
 				if (this.battleRoomGame) room.game = this.battleRoomGame;
 			});
+			this.roomCreateListeners.push(roomid);
 
 			Client.joinRoom(roomid);
 		}

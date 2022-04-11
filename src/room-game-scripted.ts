@@ -1,3 +1,5 @@
+import path = require('path');
+
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
@@ -27,6 +29,7 @@ export class ScriptedGame extends Game {
 	awardedBits: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	debugLogs: string[] = [];
 	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
@@ -44,6 +47,8 @@ export class ScriptedGame extends Game {
 	usesTournamentJoin: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
+
+	debugLogsEnabled: boolean;
 
 	// set in onInitialize()
 	declare format: IGameFormat;
@@ -73,6 +78,12 @@ export class ScriptedGame extends Game {
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom, initialSeed);
+
+		this.debugLogsEnabled = Config.scriptedGameDebugLogs && Config.scriptedGameDebugLogs.includes(room.id) ? true : false;
+		if (this.debugLogsEnabled) {
+			const date = new Date();
+			this.debugLogs.push(date.toUTCString() + " (" + date.toTimeString() + ")");
+		}
 	}
 
 	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined,
@@ -228,6 +239,10 @@ export class ScriptedGame extends Game {
 				this.challengeRoundTimes = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
 			}
 		}
+	}
+
+	debugLog(log: string): void {
+		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
 	}
 
 	setUhtmlBaseName(): void {
@@ -792,6 +807,12 @@ export class ScriptedGame extends Game {
 
 		this.destroyTeams();
 		this.destroyPlayers();
+
+		if (this.debugLogs.length) {
+			void Tools.safeWriteFile(path.join(Tools.rootFolder, 'game-debug-logs',
+				Tools.getDateFilename() + "-" + this.room.id + "-" + Tools.toId(this.uhtmlBaseName) + ".txt"), this.debugLogs.join("\n\n"))
+					.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
+		}
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
@@ -1436,6 +1457,7 @@ export class ScriptedGame extends Game {
 	onTournamentPlayerJoin?(player: Player): void;
 	onTournamentPlayerLeave?(name: string): void;
 	onTournamentPlayerRename?(player: Player, oldId: string): void;
+	onTournamentUsersUpdate?(players: Dict<Player>, users: string[]): void;
 	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
 	onTournamentBattleStart?(player: Player, opponent: Player, roomid: string): void;
 	parseChatMessage?(user: User, message: string): void;

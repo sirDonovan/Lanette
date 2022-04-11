@@ -42,6 +42,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					this.subRoom = room;
 					if (this.signupsStarted) this.createTournament();
 				});
+				this.roomCreateListeners.push(id);
 
 				Client.joinRoom(id);
 
@@ -135,6 +136,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			const player = this.players[Tools.toId(name)];
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
+				this.debugLog(player.name + " left the tournament");
+
 				player.eliminated = true;
 				this.tournamentDisqualifiedPlayers.push(player);
 				this.onRemovePlayer(player);
@@ -146,12 +149,35 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	onTournamentPlayerRename(player: Player, oldId: string): void {
 		if (oldId in this.players && (!(player.id in this.players) || this.players[player.id].name !== player.name)) {
+			this.debugLog("Renamed through room-tournament: " + oldId + " -> " + player.name);
+
 			this.renamePlayer(player.name, player.id, oldId);
 		}
 	}
 
 	onTournamentBracketUpdate(players: Dict<Player>, clientTournamentData: IClientTournamentData, tournamentStarted: boolean): void {
 		if (tournamentStarted) this.createBracketFromClientData(players, clientTournamentData);
+	}
+
+	onTournamentUsersUpdate(players: Dict<Player>, users: string[]): void {
+		const ids: string[] = [];
+		const extraPlayers: string[] = [];
+		for (const user of users) {
+			const id = Tools.toId(user);
+			ids.push(id);
+			if (!(id in this.players)) extraPlayers.push(user);
+		}
+
+		const missingPlayers: Player[] = [];
+		for (const i in this.players) {
+			if (!ids.includes(this.players[i].id)) missingPlayers.push(this.players[i]);
+		}
+
+		if (missingPlayers.length === 1 && extraPlayers.length === 1) {
+			this.debugLog("Missed rename in signups: " + missingPlayers[0].name + " -> " + extraPlayers[0]);
+
+			this.renamePlayer(extraPlayers[0], Tools.toId(extraPlayers[0]), missingPlayers[0].id);
+		}
 	}
 
 	createBracketFromClientData(players: Dict<Player>, clientTournamentData?: IClientTournamentData): void {
@@ -178,18 +204,18 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			});
 
 			root.traverse(node => {
-				if (node.children && node.children[0].user && node.children[1].user) {
-					const nameA = node.children[0].user;
-					const nameB = node.children[1].user;
+				if (node.children) {
+					const nameA = node.children[0].user || "";
+					const nameB = node.children[1].user || "";
 					const idA = Tools.toId(nameA);
 					const idB = Tools.toId(nameB);
 
 					let unknownPlayer: string | undefined;
 					let stuckPlayer: Player | undefined;
-					if (!(idA in this.players) && idB in this.players) {
+					if (!(idA in this.players) && (!idB || idB in this.players)) {
 						unknownPlayer = nameA;
 						stuckPlayer = this.players[idB];
-					} else if (!(idB in this.players) && idA in this.players) {
+					} else if (!(idB in this.players) && (!idA || idA in this.players)) {
 						unknownPlayer = nameB;
 						stuckPlayer = this.players[idA];
 					}
@@ -197,10 +223,29 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					const opponent = stuckPlayer ? this.playerOpponents.get(stuckPlayer) : undefined;
 					if (unknownPlayer && stuckPlayer && opponent && this.playerOpponents.get(opponent) === stuckPlayer &&
 						!bracketPlayerIds.includes(opponent.id)) {
+						this.debugLog("Missed rename: " + opponent.name + " -> " + unknownPlayer);
+
 						this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), opponent.id);
 
-						if (unknownPlayer.startsWith("Guest ")) {
+						if (unknownPlayer.startsWith(Tools.guestUserPrefix)) {
 							playersAndReasons.set(opponent, "You left the " + this.name + " tournament.");
+						}
+					} else if (unknownPlayer) {
+						const missingPlayers: Player[] = [];
+						for (const i in this.players) {
+							if (!bracketPlayerIds.includes(this.players[i].id)) {
+								missingPlayers.push(this.players[i]);
+							}
+						}
+
+						if (missingPlayers.length === 1) {
+							this.debugLog("Missed rename: " + missingPlayers[0].name + " -> " + unknownPlayer);
+
+							this.renamePlayer(unknownPlayer, Tools.toId(unknownPlayer), missingPlayers[0].id);
+
+							if (unknownPlayer.startsWith(Tools.guestUserPrefix)) {
+								playersAndReasons.set(missingPlayers[0], "You left the " + this.name + " tournament.");
+							}
 						}
 					}
 				}

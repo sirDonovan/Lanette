@@ -111,6 +111,8 @@ export abstract class Game extends Activity {
 	}
 
 	cleanupMisc(): void {
+		super.cleanupMisc();
+
 		this.prng.destroy();
 	}
 
@@ -124,12 +126,14 @@ export abstract class Game extends Activity {
 	}
 
 	onCreatePlayer(player: Player): void {
-		const database = Storage.getDatabase(this.room as Room);
-		if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
-			database.gameScriptedBoxes[player.id].pokemonAvatar) {
-			const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
-			const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
-			if (icon) this.playerAvatars[player.id] = icon;
+		if (!this.isPmActivity(this.room)) {
+			const database = Storage.getDatabase(this.room);
+			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
+				database.gameScriptedBoxes[player.id].pokemonAvatar) {
+				const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
+				const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
+				if (icon) this.playerAvatars[player.id] = icon;
+			}
 		}
 	}
 
@@ -294,10 +298,12 @@ export abstract class Game extends Activity {
 	}
 
 	getPlayerOrPickedCustomBox(player?: Player): IGameCustomBox | undefined {
+		if (this.isPmActivity(this.room)) return;
+
 		if (!player) return this.customBox;
 
 		if (!this.playerCustomBoxes.has(player)) {
-			const database = Storage.getDatabase(this.room as Room);
+			const database = Storage.getDatabase(this.room);
 			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
 				this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
 			} else {

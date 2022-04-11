@@ -241,7 +241,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		for (const name of this.pokedex) {
 			const pokemon = Dex.getExistingPokemon(name);
 
-			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [];
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [pokemon.name];
 			const usableFormes: string[] = [];
 			for (const forme of formes) {
 				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
@@ -251,7 +251,12 @@ export abstract class BattleElimination extends ScriptedGame {
 				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
 				for (const line of evolutionLines) {
 					for (const stage of line) {
-						if (this.battleFormat.usablePokemon!.includes(stage) && !allPokemon.includes(stage)) allPokemon.push(stage);
+						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+						for (const stageForme of stageFormes) {
+							if (this.battleFormat.usablePokemon!.includes(stageForme) && !allPokemon.includes(stageForme)) {
+								allPokemon.push(stageForme);
+							}
+						}
 					}
 				}
 			} else {
@@ -425,8 +430,13 @@ export abstract class BattleElimination extends ScriptedGame {
 				};
 				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
+				this.debugLog(player.name + " first round bye choices: " + pokemon.join(", "));
+
 				this.firstRoundByeAdditions.set(player, pokemon);
 				this.updatePossibleTeams(player, pokemon);
+
+				this.debugLog(player.name + " new possible teams after bye: " +
+					JSON.stringify(this.possibleTeams.get(player)!.join(" | ")));
 
 				if (!player.eliminated) {
 					player.say("You were given a first round bye so check the tournament page for additional team changes!");
@@ -566,8 +576,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		const players = Array.from(playersAndReasons.keys());
 		const winners: Player[] = [];
 		for (const player of players) {
+			const reason = playersAndReasons.get(player)!;
+			this.debugLog(player.name + " DQed for: " + reason);
+
 			player.eliminated = true;
-			this.disqualifiedPlayers.set(player, playersAndReasons.get(player)!);
+			this.disqualifiedPlayers.set(player, reason);
 			this.playerOpponents.delete(player);
 
 			const battleRoom = this.playerBattleRooms.get(player);
@@ -615,6 +628,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 				this.disqualifiedOpponents.set(winner, player);
 
+				this.debugLog(winner.name + " won by DQ against " + player.name);
 				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
 				if (this.ended) break;
 
@@ -623,6 +637,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 					if (!winners.includes(winner)) winners.push(winner);
 				}
+			} else {
+				this.debugLog(player.name + " was DQed with no current opponent");
 			}
 		}
 
@@ -738,9 +754,16 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
 				if (!loserTeam) {
 					loserTeam = this.getRandomTeam(loser);
+					this.debugLog(winner.name + " choices from " + loser.name + "'s team (random): " + loserTeam.join(", "));
 				} else {
 					if ((addingPokemon || droppingPokemon) && loserTeam.length < currentTeamLength) {
+						const originalTeam = loserTeam;
 						loserTeam = this.getRandomTeamIncluding(loser, loserTeam);
+
+						this.debugLog(winner.name + " choices from " + loser.name + "'s team (random including " +
+							originalTeam.join(", ") + "): " + loserTeam.join(", "));
+					} else {
+						this.debugLog(winner.name + " choices from " + loser.name + "'s team: " + loserTeam.join(", "));
 					}
 				}
 
@@ -752,6 +775,9 @@ export abstract class BattleElimination extends ScriptedGame {
 				});
 
 				this.updatePossibleTeams(winner, loserTeam);
+
+				this.debugLog(winner.name + " new possible teams after win : " +
+					JSON.stringify(this.possibleTeams.get(winner)!.join(" | ")));
 			}
 		}
 
@@ -764,8 +790,10 @@ export abstract class BattleElimination extends ScriptedGame {
 				targetNode.parent.state = 'available';
 
 				if (userA.eliminated) {
+					this.debugLog(userB.name + " automatic win against " + userA.name);
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'loss', [0, 1]));
 				} else if (userB.eliminated) {
+					this.debugLog(userA.name + " automatic win against " + userB.name);
 					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'win', [1, 0]));
 				}
 			}
@@ -787,6 +815,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			const player = node.children![0].user!;
 			const opponent = node.children![1].user!;
+
+			this.debugLog("New available match: " + player.name + " VS. " + opponent.name);
 
 			this.playerOpponents.set(player, opponent);
 			this.playerOpponents.set(opponent, player);
@@ -1168,12 +1198,17 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		if (this.usesCloakedPokemon) {
 			this.playerRequiredPokemon.set(player, formeCombinations);
+			this.debugLog(player.name + " cloaked Pokemon: " + JSON.stringify(formeCombinations.join(" | ")));
 		} else {
 			this.possibleTeams.set(player, formeCombinations);
 
 			if (this.firstRoundByeAdditions.has(player)) {
 				this.updatePossibleTeams(player, this.firstRoundByeAdditions.get(player)!);
 			}
+
+			this.debugLog(player.name + " possible starting teams" + (this.rerolls.has(player) ? " (reroll)" : "") +
+				(this.firstRoundByeAdditions.has(player) ? " (with bye)" : "") + ": " +
+				JSON.stringify(this.possibleTeams.get(player)!.join(" | ")));
 		}
 
 		this.starterPokemon.set(player, team);
@@ -1435,8 +1470,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml(html);
 		}
 
+		const guestUserDqs = new Map<Player, string>();
+		for (const i in this.players) {
+			if (this.players[i].name.startsWith(Tools.guestUserPrefix)) {
+				this.players[i].eliminated = true;
+				guestUserDqs.set(this.players[i], "You left the " + this.name + " tournament.");
+			}
+		}
+
 		if (!this.subRoom) this.generateBracket();
 		this.afterGenerateBracket();
+
+		if (guestUserDqs.size) this.disqualifyPlayers(guestUserDqs);
 	}
 
 	onAddPlayer(player: Player): boolean {
@@ -1867,6 +1912,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		const result: 'win' | 'loss' = node.children![0].user === winner ? 'win' : 'loss';
 		const win = result === 'win';
 
+		this.debugLog(winner.name + " won their battle against " + loser.name);
 		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
 			loserTeam);
 
@@ -1887,6 +1933,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players) {
+			this.debugLog("Battle expired for " + players[0].name + " and " + players[1].name);
+
 			const reason = this.getDisqualifyReasonText("for letting your battle expire");
 			const playersAndReasons = new Map<Player, string>();
 			playersAndReasons.set(players[0], reason);
@@ -1896,6 +1944,11 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	onBattleTie(room: Room): void {
+		const players = this.getPlayersFromBattleData(room);
+		if (players) {
+			this.debugLog("Battle tied for " + players[0].name + " and " + players[1].name);
+		}
+
 		this.checkedBattleRooms.push(room.publicId);
 	}
 
@@ -2102,6 +2155,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 				battleRoom.game = this;
 				this.battleData.set(battleRoom, this.generateBattleData());
 			});
+			this.roomCreateListeners.push(battle.fullId);
 
 			Client.joinRoom(battle.fullId);
 			return true;
@@ -2164,12 +2218,19 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 	},
 	[REROLL_COMMAND]: {
 		command(target, room, user) {
-			if (!this.canReroll || !(user.id in this.players)) return false;
+			if (!(user.id in this.players)) return false;
+			if (!this.canReroll) {
+				this.debugLog(user.name + " tried to reroll too late");
+				return false;
+			}
+
 			const player = this.players[user.id];
 			if (this.rerolls.has(player) || this.playerBattleRooms.has(player)) return false;
 
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;
+
+			this.debugLog("Rerolling starter for " + player.name);
 			for (const pokemon of starterPokemon) {
 				this.pokedex.push(pokemon);
 			}

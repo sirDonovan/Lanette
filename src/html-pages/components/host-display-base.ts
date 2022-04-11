@@ -11,12 +11,12 @@ import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
 import type { Room } from "../../rooms";
 import type { BorderType, HexCode } from "../../types/tools";
-import type { GifIcon, IGameCustomBorder, IGameHostDisplay } from "../../types/storage";
+import type { GifIcon, ICustomBorder, IGameHostDisplay } from "../../types/storage";
 import { BorderStyle } from "./border-style";
 
 export interface IHostDisplayProps extends IComponentProps {
 	currentBackground?: HexCode;
-	currentBackgroundBorder?: IGameCustomBorder;
+	currentBackgroundBorder?: ICustomBorder;
 	maxGifs: number;
 	maxIcons: number;
 	maxTrainers: number;

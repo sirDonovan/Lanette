@@ -305,7 +305,7 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		const names: string[] = [];
 		const images: string[] = [];
 		const dex = this.getDex();
-		let info = '';
+		const allCardsDetails: string[] = [];
 		for (const card of cards) {
 			let image = '';
 			if (this.isMoveCard(card)) {
@@ -320,14 +320,15 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			}
 
 			images.push(image);
-			if (!info) info = this.getCardChatDetails(card);
+			const details = this.getCardChatDetails(card);
+			if (!allCardsDetails.includes(details)) allCardsDetails.push(details);
 		}
 
 		width *= 1.5;
 		if (width < 250) width = 250;
 		html += '<div class="infobox" style="width:' + (width + 10) + 'px;"><div class="infobox" style="width:' +
 			width + 'px"><b>' + names.join(", ") + '</b></div>';
-		html += images.join("") + '<div class="infobox" style="width:' + width + 'px;">' + info + '</div></div>';
+		html += images.join("") + '<div class="infobox" style="width:' + width + 'px;">' + allCardsDetails.join(", ") + '</div></div>';
 		return html;
 	}
 
