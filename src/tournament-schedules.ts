@@ -242,7 +242,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'10': 'the loser’s game, Standard NatDex, -Steel Beam, +Sandshrew-Alola',
 						'11': 'gen 7 RU, +ruBL, first blood rule',
 						'12': 'lc, aaa, -Arena Trap, -Comatose, -Contrary, -Fluffy, -Fur Coat, -Gorilla Tactics, -Huge Power, -Ice Scales, -Illusion, -Imposter, -Innards Out, -Intrepid Sword, -Libero, -Moody, -Neutralizing Gas, -Parental Bond, -Protean, -Pure Power, -Shadow Tag, -Simple, -Stakeout, -Speed Boost, -Water Bubble, -Wonder Guard, +Cherubi, +Gothita, +Woobat',
-						'13': 'ag, camomons',
+						'13': 'ag, camomons mod',
 						'14': 'gen 8 random battle, inverse, bring 10, pick 7',
 						'15': 'mix and mega, Picked Team Size = 1, Max Team Size = 3, -Focus Sash, -Bright Powder, -Focus Band, -Lax Incense, -Quick Claw, -Perish Song',
 						'16': 'OU, !Dynamax clause',
