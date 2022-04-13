@@ -187,13 +187,19 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game) {
 				const dex = game.getDex();
-				const typeKeys = dex.getData().typeKeys;
-				let targets: string[] = [dex.getExistingType(game.sampleOne(typeKeys)).name];
-				while (!this.isPlayableTarget(game, targets)) {
-					targets = [dex.getExistingType(game.sampleOne(typeKeys)).name];
+				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				let usableType: string | undefined;
+				for (const typeKey of typeKeys) {
+					const typeName = dex.getExistingType(typeKey).name;
+					if (this.isPlayableTarget(game, [typeName])) {
+						usableType = typeName;
+						break;
+					}
 				}
 
-				return this.name + ", " + targets[0];
+				if (!usableType) return;
+
+				return this.name + ", " + usableType;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
@@ -232,13 +238,24 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game) {
 				const dex = game.getDex();
-				const typeKeys = dex.getData().typeKeys;
-				let types = game.sampleMany(typeKeys, 2).map(x => dex.getExistingType(x).name);
-				while (!this.isPlayableTarget(game, types)) {
-					types = game.sampleMany(typeKeys, 2).map(x => dex.getExistingType(x).name);
+				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				let usableTypes: string | undefined;
+				for (let i = 0; i < typeKeys.length; i++) {
+					const typeNameA = dex.getExistingType(typeKeys[i]).name;
+					for (let j = 0; j < typeKeys.length; j++) {
+						if (j === i) continue;
+						const typeNameB = dex.getExistingType(typeKeys[j]).name;
+						if (this.isPlayableTarget(game, [typeNameA, typeNameB])) {
+							usableTypes = typeNameA + ", " + typeNameB;
+							break;
+						}
+					}
+
+					if (usableTypes) break;
 				}
 
-				return this.name + ", " + types.join(", ");
+				if (!usableTypes) return;
+				return this.name + ", " + usableTypes;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
@@ -290,11 +307,17 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let targets = [game.sampleOne(game.deckPool).name];
-				while (!this.isPlayableTarget(game, targets)) {
-					targets = [game.sampleOne(game.deckPool).name];
+				const pool = game.shuffle(game.deckPool);
+				let usableCard: string | undefined;
+				for (const card of pool) {
+					if (this.isPlayableTarget(game, [card.name])) {
+						usableCard = card.name;
+						break;
+					}
 				}
-				return this.name + ", " + targets[0];
+
+				if (!usableCard) return;
+				return this.name + ", " + usableCard;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);

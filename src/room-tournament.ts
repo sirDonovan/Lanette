@@ -398,6 +398,8 @@ export class Tournament extends Activity {
 		if (this.info.bracketData.type === 'tree') {
 			if (!this.info.bracketData.rootNode) return;
 			const queue = [this.info.bracketData.rootNode];
+			const allNodes = queue.slice();
+			// queue is only unique items due to allNodes
 			while (queue.length > 0) {
 				const node = queue[0];
 				queue.shift();
@@ -427,7 +429,10 @@ export class Tournament extends Activity {
 				}
 
 				node.children.forEach(child => {
-					queue.push(child);
+					if (!allNodes.includes(child)) {
+						queue.push(child);
+						allNodes.push(child);
+					}
 				});
 			}
 		} else if (this.info.bracketData.type === 'table') {

@@ -64,7 +64,10 @@ class MagnetonsMashups extends QuestionAndAnswer {
 
 		const useOrder: number[] = [];
 		let lastIndex = -1;
-		while (mashup.length < totalLength) {
+		let attempts = 0;
+		while (mashup.length < totalLength && attempts < 100) {
+			attempts++;
+
 			let index = this.random(numberOfElements);
 			while (currentIndices[index] > finalIndices[index]) {
 				index = this.random(numberOfElements);
@@ -92,6 +95,11 @@ class MagnetonsMashups extends QuestionAndAnswer {
 			}
 
 			lastIndex = index;
+		}
+
+		if (mashup.length < totalLength) {
+			await this.onSetGeneratedHint();
+			return;
 		}
 
 		this.answers = [Tools.joinList(useOrder.map(x => elements[x]), undefined, undefined, "&")].concat(

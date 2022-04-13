@@ -689,6 +689,10 @@ export const commands: BaseCommandDefinitions = {
 					maximumTime = larger;
 				}
 
+				if (minimumTime === maximumTime) {
+					return this.say("The minimum and maximum amount of minutes must have different values.");
+				}
+
 				while (time < minimumTime || time > maximumTime) {
 					time = gameRoom.userHostedGame.random(maximumTime) + 1;
 				}

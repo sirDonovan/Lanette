@@ -551,16 +551,24 @@ export abstract class BattleElimination extends ScriptedGame {
 			matchesByRound[i] = [];
 		}
 
+		const allNodes: EliminationNode<Player>[] = [this.treeRoot];
 		const queue: {node: EliminationNode<Player>, round: number}[] = [{node: this.treeRoot, round: this.totalRounds}];
-		let item;
+		// queue is only unique items due to allNodes
 		while (queue.length) {
-			item = queue.shift();
+			const item = queue.shift();
 			if (!item || !item.node.children) continue;
 
 			matchesByRound[item.round].push(item.node);
 
-			queue.push({node: item.node.children[0], round: item.round - 1});
-			queue.push({node: item.node.children[1], round: item.round - 1});
+			if (!allNodes.includes(item.node.children[0])) {
+				allNodes.push(item.node.children[0]);
+				queue.push({node: item.node.children[0], round: item.round - 1});
+			}
+
+			if (!allNodes.includes(item.node.children[1])) {
+				allNodes.push(item.node.children[1]);
+				queue.push({node: item.node.children[1], round: item.round - 1});
+			}
 		}
 
 		return matchesByRound;

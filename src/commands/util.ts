@@ -596,10 +596,13 @@ export const commands: BaseCommandDefinitions = {
 				region = id;
 			} else {
 				region = Tools.sampleOne(regions);
+				while (!Dex.regionHasCharacters(region)) {
+					region = Tools.sampleOne(regions);
+				}
 			}
 
 			const characters = Dex.getData().characters;
-			const characterTypes = Dex.getCharacterTypes();
+			const characterTypes = Dex.getCharacterTypes(region);
 			const characterTypeNames = Dex.getCharacterTypeNames();
 			const regionNames = Dex.getRegionNames();
 
@@ -611,9 +614,6 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				type = Tools.sampleOne(characterTypes);
-				while (!characters[region][type].length) {
-					type = Tools.sampleOne(characterTypes);
-				}
 			}
 
 			this.say('Randomly generated' + (target ? ' ' + regionNames[region] : '') + (targets[1] ? ' ' +
@@ -637,10 +637,13 @@ export const commands: BaseCommandDefinitions = {
 				region = id;
 			} else {
 				region = Tools.sampleOne(regions);
+				while (!Dex.regionHasLocations(region)) {
+					region = Tools.sampleOne(regions);
+				}
 			}
 
 			const locations = Dex.getData().locations;
-			const locationTypes = Dex.getLocationTypes();
+			const locationTypes = Dex.getLocationTypes(region);
 			const locationTypeNames = Dex.getLocationTypeNames();
 			const regionNames = Dex.getRegionNames();
 
@@ -652,9 +655,6 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				type = Tools.sampleOne(locationTypes);
-				while (!locations[region][type].length) {
-					type = Tools.sampleOne(locationTypes);
-				}
 			}
 
 			this.say('Randomly generated' + (target ? ' ' + regionNames[region] : '') + (targets[1] ? ' ' +

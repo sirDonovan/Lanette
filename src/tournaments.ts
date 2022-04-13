@@ -133,6 +133,7 @@ export class Tournaments {
 					date.setDate(day);
 				};
 
+				// month is eventually undefined due to rolloverDay()
 				while (month) {
 					const format = formats[formatIndex];
 					let rolledOverDay = false;

@@ -41,10 +41,10 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	generatePokemon(): void {
 		let pokemon = Dex.getExistingPokemon(this.sampleOne(data.pokedex));
-		let typing = pokemon.types.join("/");
+		let typing = pokemon.types.slice().sort().join("/");
 		while ((this.currentPokemon && this.currentPokemon.id === pokemon.id) || typing === this.lastTyping) {
 			pokemon = Dex.getExistingPokemon(this.sampleOne(data.pokedex));
-			typing = pokemon.types.join("/");
+			typing = pokemon.types.slice().sort().join("/");
 		}
 		this.currentPokemon = pokemon;
 		this.lastTyping = typing;

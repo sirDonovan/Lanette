@@ -341,16 +341,34 @@ export class Dex {
 		return TEAM_PREVIEW_HIDDEN_FORMES;
 	}
 
-	getCharacterTypes(): CharacterTypes {
-		return characterTypes;
+	getCharacterTypes(region?: RegionName): CharacterTypes {
+		if (!region) return characterTypes;
+
+		const characters = this.getData().characters;
+		const regionCharacterTypes: CharacterType[] = [];
+		for (const characterType of characterTypes) {
+			if (!(region in characters) || !characters[region][characterType].length) continue;
+			regionCharacterTypes.push(characterType);
+		}
+
+		return regionCharacterTypes as CharacterTypes;
 	}
 
 	getCharacterTypeNames(): CharacterTypeNames {
 		return characterTypeNames;
 	}
 
-	getLocationTypes(): LocationTypes {
-		return locationTypes;
+	getLocationTypes(region?: RegionName): LocationTypes {
+		if (!region) return locationTypes;
+
+		const locations = this.getData().locations;
+		const regionLocationTypes: LocationType[] = [];
+		for (const locationType of locationTypes) {
+			if (!(region in locations) || !locations[region][locationType].length) continue;
+			regionLocationTypes.push(locationType);
+		}
+
+		return regionLocationTypes as LocationTypes;
 	}
 
 	getLocationTypeNames(): LocationTypeNames {
@@ -413,6 +431,30 @@ export class Dex {
 	getData(): IDataTable {
 		if (!this.dataCache) this.loadData();
 		return this.dataCache!;
+	}
+
+	regionHasCharacters(region: RegionName): boolean {
+		const characters = this.getData().characters;
+		if (!(region in characters)) return false;
+
+		for (const characterType of characterTypes) {
+			if (!(characterType in characters[region])) continue;
+			if (characters[region][characterType].length) return true;
+		}
+
+		return false;
+	}
+
+	regionHasLocations(region: RegionName): boolean {
+		const locations = this.getData().locations;
+		if (!(region in locations)) return false;
+
+		for (const locationType of locationTypes) {
+			if (!(locationType in locations[region])) continue;
+			if (locations[region][locationType].length) return true;
+		}
+
+		return false;
 	}
 
 	fetchClientData(): void {
@@ -2856,7 +2898,7 @@ export class Dex {
 			learnsetParent = validator.learnsetParent(learnsetParent);
 
 			// prevent recursion from calling validator.learnsetParent() directly
-			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
+			if (learnsetParent && learnsetParent.name === previousLearnsetParent.name) break;
 		}
 
 		if (possibleMoves.includes('hiddenpower')) {

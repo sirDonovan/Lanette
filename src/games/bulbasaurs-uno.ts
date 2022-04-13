@@ -27,13 +27,19 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game) {
 				const dex = game.getDex();
-				const typeKeys = dex.getData().typeKeys;
-				let targets: string[] = [dex.getExistingType(game.sampleOne(typeKeys)).name];
-				while (!this.isPlayableTarget(game, targets)) {
-					targets = [dex.getExistingType(game.sampleOne(typeKeys)).name];
+				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				let usableType: string | undefined;
+				for (const typeKey of typeKeys) {
+					const typeName = dex.getExistingType(typeKey).name;
+					if (this.isPlayableTarget(game, [typeName])) {
+						usableType = typeName;
+						break;
+					}
 				}
 
-				return this.name + ", " + targets[0];
+				if (!usableType) return;
+
+				return this.name + ", " + usableType;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
@@ -72,12 +78,18 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game) {
 				const colors = Dex.getData().colors;
-				let targets: string[] = [colors[game.sampleOne(Object.keys(colors))]];
-				while (!this.isPlayableTarget(game, targets)) {
-					targets = [colors[game.sampleOne(Object.keys(colors))]];
+				const colorKeys = game.shuffle(Object.keys(colors));
+				let usableColor: string | undefined;
+				for (const colorKey of colorKeys) {
+					const colorName = colors[colorKey];
+					if (this.isPlayableTarget(game, [colorName])) {
+						usableColor = colorName;
+						break;
+					}
 				}
 
-				return this.name + ", " + targets[0];
+				if (!usableColor) return;
+				return this.name + ", " + usableColor;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);

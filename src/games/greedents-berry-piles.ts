@@ -329,6 +329,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			const lumBerries = [];
 			for (const berryPile of berryPiles) {
 				total += berryPile.amount;
+				// check amount for mystery berries that were already changed to 1
 				if (berryPile.amount === mysteryBerryAmount) lumBerries.push(berryPile);
 			}
 
@@ -340,7 +341,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			}
 
 			if (total > this.maxBerryTotal) {
-				this.players[user.id].frozen = true;
+				player.frozen = true;
 			}
 
 			this.playerTotals.set(player, total);

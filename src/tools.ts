@@ -864,6 +864,7 @@ export class Tools {
 
 			const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
 			const cachedModules: NodeModule[] = [];
+			// modulesList is only unique items due to cachedModules
 			while (modulesList.length) {
 				const currentModule = modulesList[0];
 				modulesList.shift();

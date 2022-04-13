@@ -455,6 +455,8 @@ export abstract class Game extends Activity {
 	}
 
 	generateTeams(numberOfTeams: number, teamNames?: string[]): Dict<PlayerTeam> {
+		if (numberOfTeams < 2) throw new Error("generateTeams called with less than 2 teams");
+
 		const teams: Dict<PlayerTeam> = {};
 		const playerList = this.shufflePlayers();
 		if (!teamNames) teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);
