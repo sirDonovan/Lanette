@@ -242,7 +242,7 @@ describe("Dex", () => {
 	});
 	it('should run methods for all data types', function() {
 		// eslint-disable-next-line @typescript-eslint/no-invalid-this
-		this.timeout(30000);
+		this.timeout(45000);
 
 		const dexData = Dex.getData();
 
