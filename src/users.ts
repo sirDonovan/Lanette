@@ -256,8 +256,8 @@ export class User {
 
 	private hasRankInternal(rank: string, targetRank: GroupName): boolean {
 		const groupSymbols = Client.getGroupSymbols();
-		if (!(targetRank in groupSymbols)) return false;
 		const serverGroups = Client.getServerGroups();
+		if (!(rank in serverGroups) || !(targetRank in groupSymbols) || !(groupSymbols[targetRank] in serverGroups)) return false;
 		return serverGroups[rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
 	}
 }
