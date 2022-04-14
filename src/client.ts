@@ -2352,11 +2352,11 @@ export class Client {
 					formatid: messageParts[0],
 				};
 
-				if (room.tournament) room.tournament.forceEnd();
+				const format = Dex.getFormat(messageArguments.formatid);
+				if (room.tournament && (!format || room.tournament.format.id !== format.id)) room.tournament.forceEnd();
 
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
 					this.lastOutgoingMessage.type === 'tournament-create') {
-					const format = Dex.getFormat(messageArguments.formatid);
 					if (format && format.id === this.lastOutgoingMessage.format!) {
 						this.clearLastOutgoingMessage(now);
 					}
