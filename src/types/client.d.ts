@@ -1,6 +1,5 @@
 import type { Room } from "../rooms";
 import type { User } from "../users";
-import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
@@ -413,12 +412,12 @@ export interface IClientMessageTypes {
 
 export interface ITournamentMessageTypes {
 	/**
-	 * Format|Generator|Player cap
+	 * Format ID|Generator|Player cap
 	 */
 	create: {
-		readonly format: IFormat;
-		readonly generator: string;
-		readonly playerCap: number;
+		readonly formatid: string;
+		readonly generator?: string;
+		readonly playerCap?: number;
 	};
 
 	/**

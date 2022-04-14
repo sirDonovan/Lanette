@@ -2347,19 +2347,29 @@ export class Client {
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
 			switch (type) {
+			case 'create': {
+				const messageArguments: ITournamentMessageTypes['create'] = {
+					formatid: messageParts[0],
+				};
+
+				if (room.tournament) room.tournament.forceEnd();
+
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-create') {
+					const format = Dex.getFormat(messageArguments.formatid);
+					if (format && format.id === this.lastOutgoingMessage.format!) {
+						this.clearLastOutgoingMessage(now);
+					}
+				}
+				break;
+			}
+
 			case 'update': {
 				const messageArguments: ITournamentMessageTypes['update'] = {
 					json: JSON.parse(messageParts.join("|")) as ITournamentUpdateJson,
 				};
 
-				if (!room.tournament) {
-					const tournament = Tournaments.createTournament(room, messageArguments.json);
-					if (tournament && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
-						this.lastOutgoingMessage.type === 'tournament-create' &&
-						tournament.format.id === this.lastOutgoingMessage.format!) {
-						this.clearLastOutgoingMessage(now);
-					}
-				}
+				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
 
 				if (room.tournament) {
 					room.tournament.update(messageArguments.json);
