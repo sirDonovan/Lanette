@@ -23,6 +23,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 	selectedCycle: string = Storage.currentCycle;
 	selectedFormatNames: string[] = [];
 	selectedFormatIds: string[] = [];
+	sourceNameCache: Dict<string> = {};
 
 	cycleLeaderboard: ILeaderboard | undefined;
 	cycleOptions: string[];

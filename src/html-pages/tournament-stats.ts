@@ -124,6 +124,6 @@ export const commands: BaseCommandDefinitions = {
 				if (error) this.say(error);
 			}
 		},
-		aliases: ['tstats'],
+		aliases: ['tstats', 'tourstats'],
 	},
 };
