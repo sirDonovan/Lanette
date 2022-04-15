@@ -122,10 +122,16 @@ export const commands: BaseCommandDefinitions = {
 
 			const action = Tools.toId(targets[0]);
 			if (action === 'off' || action === 'end' || action === 'stop' || action === 'delete' || action === 'remove') {
-				const messageId = Tools.toId(targets[1]);
-				if (!repeatRoom.repeatedMessages || !(messageId in repeatRoom.repeatedMessages)) {
-					return this.say("There is no repeating message with the name '" + targets[1].trim() + "'.");
+				if (!repeatRoom.repeatedMessages) {
+					return this.say("There are no repeating messages for " + repeatRoom.title + ".");
 				}
+
+				const messageId = Tools.toId(targets[1]);
+				if (!messageId) return this.say("Please specify a valid message name.");
+				if (!(messageId in repeatRoom.repeatedMessages)) {
+					return this.say("There is no repeating message with the name '" + (targets[1] ? targets[1].trim() : "") + "'.");
+				}
+
 				clearInterval(repeatRoom.repeatedMessages[messageId].timer);
 				const name = repeatRoom.repeatedMessages[messageId].name;
 				delete repeatRoom.repeatedMessages[messageId];
