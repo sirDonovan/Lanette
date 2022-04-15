@@ -423,7 +423,6 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 				if (this.canLateJoin && this.maxLateJoinRound && this.cardRound > this.maxLateJoinRound) this.canLateJoin = false;
 				if (this.parentGame && this.maxCardRounds && this.cardRound > this.maxCardRounds) {
-					this.timeEnded = true;
 					this.say("The game has reached the time limit!");
 					this.onTimeLimit();
 					return null;

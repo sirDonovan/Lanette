@@ -73,7 +73,6 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
-	timeEnded?: boolean;
 	timeLimit?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
@@ -556,7 +555,6 @@ export class ScriptedGame extends Game {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (!this.ended) {
 					this.say("The game has reached the time limit!");
-					this.timeEnded = true;
 					this.end();
 				}
 				return;
