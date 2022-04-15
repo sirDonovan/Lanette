@@ -4,7 +4,7 @@ import path = require('path');
 import type { Room } from './rooms';
 import type {
 	ICachedLeaderboardEntry, ICachedPointsBreakdown, IDatabase, IGlobalDatabase, ILeaderboard, ILeaderboardEntry, IPreviousCycle,
-	IPointTotalsByType, LeaderboardType, IPointBreakdownsByType, IUserPointBreakdowns, IPointBreakdown
+	IPointTotalsByType, LeaderboardType, IPointBreakdownsByType, IUserPointBreakdowns, IPointBreakdown, IArchiveDatabase
 } from './types/storage';
 import type { User } from './users';
 
@@ -23,6 +23,8 @@ export class Storage {
 	manualSource = 'manual' as const;
 
 	databasesDir: string = path.join(Tools.rootFolder, 'databases');
+	archivesDir: string = path.join(this.databasesDir, 'archives');
+	snapshotsDir: string = path.join(this.databasesDir, 'snapshots');
 	lastExportedDatabaseContents: Dict<string> = {};
 	lastSeenExpirationDuration = Tools.toDurationString(LAST_SEEN_EXPIRATION);
 	leaderboardsAnnualPointsCache: Dict<PartialKeyedDict<LeaderboardType, ICachedLeaderboardEntry[]>> = {};
@@ -36,6 +38,7 @@ export class Storage {
 	allLeaderboardTypes: LeaderboardType[];
 	globalDatabaseExportInterval: NodeJS.Timer;
 
+	private archiveDatabases: Dict<IArchiveDatabase> = {};
 	private databases: Dict<IDatabase> = {};
 
 	constructor() {
@@ -62,6 +65,11 @@ export class Storage {
 		return this.databases[room.id];
 	}
 
+	getArchiveDatabase(room: Room): IArchiveDatabase {
+		if (!(room.id in this.archiveDatabases)) this.archiveDatabases[room.id] = {};
+		return this.archiveDatabases[room.id];
+	}
+
 	getGlobalDatabase(): IGlobalDatabase {
 		if (!(globalDatabaseId in this.databases)) this.databases[globalDatabaseId] = {};
 		return this.databases[globalDatabaseId] as IGlobalDatabase;
@@ -72,8 +80,7 @@ export class Storage {
 	}
 
 	tryExportGlobalDatabase(): void {
-		this.exportDatabase(globalDatabaseId)
-			.catch((e: Error) => Tools.logError(e, "Exporting global database"));
+		void this.exportDatabase(globalDatabaseId);
 	}
 
 	async exportDatabase(roomid: string): Promise<void> {
@@ -89,15 +96,27 @@ export class Storage {
 		this.lastExportedDatabaseContents[roomid] = contents;
 
 		return Tools.safeWriteFile(path.join(this.databasesDir, roomid + '.json'), contents)
-			.catch((e: Error) => console.log("Error exporting " + roomid + " database: " + e.message));
+			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " database: " + e.message));
 	}
 
 	tryExportDatabase(roomid: string): void {
-		this.exportDatabase(roomid)
-			.catch((e: Error) => Tools.logError(e, "Exporting " + roomid + " database"));
+		void this.exportDatabase(roomid);
 	}
 
-	async archiveDatabase(roomid: string): Promise<void> {
+	async exportArchiveDatabase(roomid: string): Promise<void> {
+		if (!(roomid in this.archiveDatabases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+			return Promise.resolve();
+		}
+
+		return Tools.safeWriteFile(path.join(this.archivesDir, roomid + '.json'), JSON.stringify(this.archiveDatabases[roomid]))
+			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " archive database: " + e.message));
+	}
+
+	tryExportArchiveDatabase(roomid: string): void {
+		void this.exportArchiveDatabase(roomid);
+	}
+
+	async saveDatabaseSnapshot(roomid: string): Promise<void> {
 		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
@@ -108,21 +127,41 @@ export class Storage {
 		const day = date.getDate();
 		const filename = roomid + '-' + year + '-' + (month < 10 ? '0' : '') + month + '-' + (day < 10 ? '0' : '') + day + '-at-' +
 			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
-		const contents = JSON.stringify(this.databases[roomid]);
 
-		return Tools.safeWriteFile(path.join(Tools.rootFolder, 'archived-databases', filename + '.json'), contents)
-			.catch(e => console.log("Error archiving " + roomid + " database: " + (e as Error).message));
+		return Tools.safeWriteFile(path.join(this.snapshotsDir, filename + '.json'), JSON.stringify(this.databases[roomid]))
+			.catch((e: Error) => Tools.logError(e, "Error saving snapshot of " + roomid + " database: " + e.message));
 	}
 
 	importDatabases(): void {
 		if (this.loadedDatabases) return;
 
-		const files = fs.readdirSync(this.databasesDir);
-		for (const fileName of files) {
+		const archiveDatabaseFiles = fs.readdirSync(this.archivesDir);
+		for (const fileName of archiveDatabaseFiles) {
+			if (!fileName.endsWith('.json')) continue;
+			const id = fileName.substr(0, fileName.indexOf('.json'));
+			const file = fs.readFileSync(path.join(this.archivesDir, fileName)).toString();
+			this.archiveDatabases[id] = JSON.parse(file) as IArchiveDatabase;
+		}
+
+		const convertedArchiveDatabases: string[] = [];
+		const databaseFiles = fs.readdirSync(this.databasesDir);
+		for (const fileName of databaseFiles) {
 			if (!fileName.endsWith('.json')) continue;
 			const id = fileName.substr(0, fileName.indexOf('.json'));
 			const file = fs.readFileSync(path.join(this.databasesDir, fileName)).toString();
 			const database = JSON.parse(file) as IDatabase;
+
+			// convert to new archive databases
+			// @ts-expect-error
+			if (database.previousCycles) {
+				if (!(id in this.archiveDatabases)) this.archiveDatabases[id] = {};
+				// @ts-expect-error
+				this.archiveDatabases[id].previousCycles = Tools.deepClone(database.previousCycles); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+				// @ts-expect-error
+				delete database.previousCycles;
+
+				convertedArchiveDatabases.push(id);
+			}
 
 			let hasLeaderboard = false;
 			// convert old leaderboards as needed
@@ -180,6 +219,11 @@ export class Storage {
 		}
 
 		this.loadedDatabases = true;
+
+		for (const id of convertedArchiveDatabases) {
+			void this.exportArchiveDatabase(id);
+			void this.exportDatabase(id);
+		}
 	}
 
 	exportDatabases(): Promise<void>[] {
@@ -209,11 +253,9 @@ export class Storage {
 		if (!(roomid in this.databases)) return Promise.resolve();
 		if (!leaderboardTypes || !leaderboardTypes.length) leaderboardTypes = this.allLeaderboardTypes;
 
-		this.archiveDatabase(roomid)
+		return this.saveDatabaseSnapshot(roomid)
 			.then(() => { // eslint-disable-line @typescript-eslint/promise-function-async
 				const database = this.databases[roomid];
-				if (!database.previousCycles) database.previousCycles = [];
-
 				const cycleTime = this.formatCycleTime(Date.now());
 				const previousCycle: IPreviousCycle = {
 					cycleStartDate: database.cycleStartDate || cycleTime,
@@ -247,8 +289,14 @@ export class Storage {
 					database.userHostedGameStats = {};
 				}
 
-				if (database.previousCycles.length === 26) database.previousCycles.pop();
-				database.previousCycles.unshift(previousCycle);
+				if (!(roomid in this.archiveDatabases)) this.archiveDatabases[roomid] = {};
+				const archiveDatabase = this.archiveDatabases[roomid];
+				if (!archiveDatabase.previousCycles) {
+					archiveDatabase.previousCycles = [];
+				} else if (archiveDatabase.previousCycles.length === 26) {
+					archiveDatabase.previousCycles.pop();
+				}
+				archiveDatabase.previousCycles.unshift(previousCycle);
 
 				const date = new Date();
 				const month = date.getMonth() + 1;
@@ -281,8 +329,9 @@ export class Storage {
 				}
 
 				this.updateLeaderboardCaches(roomid, database);
-				return this.exportDatabase(roomid)
-					.catch((e: Error) => console.log("Error exporting " + roomid + " database: " + e.message));
+
+				this.tryExportArchiveDatabase(roomid);
+				this.tryExportDatabase(roomid);
 			})
 			.catch((e: Error) => console.log("Error archiving " + roomid + " database: " + e.message));
 	}

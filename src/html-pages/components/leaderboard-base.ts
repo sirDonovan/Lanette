@@ -41,8 +41,10 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		const database = Storage.getDatabase(this.room);
 		this.cycleLeaderboard = database[this.leaderboardType];
 		this.cycleOptions = [Storage.currentCycle];
-		if (database.previousCycles) {
-			for (const previousCycle of database.previousCycles) {
+
+		const archiveDatabase = Storage.getArchiveDatabase(this.room);
+		if (archiveDatabase.previousCycles) {
+			for (const previousCycle of archiveDatabase.previousCycles) {
 				if (!previousCycle[this.leaderboardType]) continue;
 				this.cycleOptions.push(this.getCycleId(previousCycle));
 			}
@@ -72,7 +74,8 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 				this.cycleLeaderboard = database[this.leaderboardType];
 			} else {
 				const parts = cycle.split(" - ");
-				for (const previousCycle of database.previousCycles!) {
+				const archiveDatabase = Storage.getArchiveDatabase(this.room);
+				for (const previousCycle of archiveDatabase.previousCycles!) {
 					if (previousCycle.cycleStartDate === parts[0] && previousCycle.cycleEndDate === parts[1]) {
 						this.cycleLeaderboard = previousCycle[this.leaderboardType];
 					}

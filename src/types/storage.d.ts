@@ -215,7 +215,6 @@ export interface IDatabase {
 	pastGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	previousCycles?: IPreviousCycle[];
 	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
@@ -230,6 +229,10 @@ export interface IDatabase {
 	userHostedGameStats?: Dict<IGameStat[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<IUserHostStatusData>;
+}
+
+export interface IArchiveDatabase {
+	previousCycles?: IPreviousCycle[];
 }
 
 interface IOfflineMessage {
