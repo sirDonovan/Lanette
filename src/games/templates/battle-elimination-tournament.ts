@@ -325,6 +325,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		if (this.startAutoDqTimer) clearTimeout(this.startAutoDqTimer);
 	}
+
+	startTournament(): boolean {
+		if (!this.subRoom.initialized || this.playerCount < this.minPlayers) return false;
+
+		this.subRoom.startTournament();
+		return true;
+	}
 }
 
 // @ts-expect-error

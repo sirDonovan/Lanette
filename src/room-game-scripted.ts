@@ -1469,5 +1469,6 @@ export class ScriptedGame extends Game {
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
 	setupChallenge?(challenger: User, challenged: User, format: IGameFormat, options?: Dict<string>): void;
+	startTournament?(): boolean;
 	validateInputProperties?(inputProperties: IGameInputProperties): boolean;
 }

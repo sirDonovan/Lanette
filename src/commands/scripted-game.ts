@@ -902,7 +902,12 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room)) return;
 			if (room.game) {
 				if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game.started) return;
-				if (!room.game.start()) this.say("Not enough players have joined the game.");
+				if (room.game.usesTournamentStart) {
+					if (!room.game.startTournament) return this.say("You must wait for the tournament to start.");
+					if (!room.game.startTournament()) this.say("Not enough players have joined the tournament.");
+				} else {
+					if (!room.game.start()) this.say("Not enough players have joined the game.");
+				}
 			} else if (room.userHostedGame) {
 				const isHost = room.userHostedGame.isHost(user);
 				const isAuth = !isHost && user.hasRank(room, 'voice');
