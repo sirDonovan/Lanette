@@ -129,6 +129,10 @@ export class Tools {
 
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
+		if (previous.currentAppendFiles) Object.assign(this.currentAppendFiles, previous.currentAppendFiles);
+		if (previous.appendFileQueue) Object.assign(this.appendFileQueue, previous.appendFileQueue);
+		if (previous.currentSafeFileWrites) Object.assign(this.currentSafeFileWrites, previous.currentSafeFileWrites);
+		if (previous.safeWriteFileQueue) Object.assign(this.safeWriteFileQueue, previous.safeWriteFileQueue);
 
 		this.unrefProperties(previous.eggGroupHexCodes);
 		this.unrefProperties(previous.hexCodes);
