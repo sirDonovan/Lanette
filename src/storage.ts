@@ -60,6 +60,10 @@ export class Storage {
 		Tools.unrefProperties(previous);
 	}
 
+	getDatabaseIds(): string[] {
+		return Object.keys(this.databases);
+	}
+
 	getDatabase(room: Room): IDatabase {
 		if (!(room.id in this.databases)) this.databases[room.id] = {};
 		return this.databases[room.id];
@@ -417,7 +421,7 @@ export class Storage {
 		database.tournamentTrainerCards[id] = {};
 	}
 
-	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
+	addPoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string, batch?: boolean): void {
 		if (!amount) return;
 
 		const id = Tools.toId(name);
@@ -449,13 +453,21 @@ export class Storage {
 		leaderboard.entries[id].sources[source] += amount;
 		if (leaderboard.entries[id].sources[source] <= 0) delete leaderboard.entries[id].sources[source];
 
+		if (!batch) this.afterAddPoints(room, leaderboardType, source);
+	}
+
+	afterAddPoints(room: Room, leaderboardType: LeaderboardType, source: string): void {
+		const database = this.getDatabase(room);
+		const leaderboard = database[leaderboardType];
+		if (!leaderboard) throw new Error("Storage.afterAddPoints() called with no leaderboard");
+
 		this.updateLeaderboardPointsCaches(room.id, leaderboard);
 		this.updateLeaderboardCachesForSource(room.id, leaderboard, source);
 	}
 
-	removePoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string): void {
+	removePoints(room: Room, leaderboardType: LeaderboardType, name: string, amount: number, source: string, batch?: boolean): void {
 		if (amount < 0) throw new Error("Storage.removePoints() called with a negative amount");
-		this.addPoints(room, leaderboardType, name, amount * -1, source);
+		this.addPoints(room, leaderboardType, name, amount * -1, source, batch);
 	}
 
 	getPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {

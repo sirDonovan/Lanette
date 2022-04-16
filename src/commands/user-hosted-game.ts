@@ -1525,7 +1525,11 @@ export const commands: BaseCommandDefinitions = {
 					(room.userHostedGame.teams ? "team" : "player") + ".");
 			}
 
+			let addedBits = false;
+			const bitsSource = 'userhosted';
 			if (Config.rankedGames && Config.rankedGames.includes(room.id)) {
+				addedBits = true;
+
 				let playerDifficulty: GameDifficulty;
 				if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
 					playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
@@ -1546,10 +1550,14 @@ export const commands: BaseCommandDefinitions = {
 				if (Config.afd) playerBits *= (room.userHostedGame.random(50) + 1);
 
 				for (const player of players) {
-					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
+					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, bitsSource, true);
 					player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
 						Config.commandCharacter + "bits " + room.title + "``");
 				}
+			}
+
+			if (addedBits) {
+				Storage.afterAddPoints(room, Storage.gameLeaderboard, bitsSource);
 			}
 
 			for (const player of players) {

@@ -112,6 +112,8 @@ export const commands: BaseCommandDefinitions = {
 
 			if (target.includes("|")) {
 				this.runMultipleTargets("|", cmd);
+				Storage.afterAddPoints(leaderboardRoom, leaderboardType, Storage.manualSource);
+				Storage.tryExportDatabase(leaderboardRoom.id);
 				return;
 			}
 
@@ -158,9 +160,11 @@ export const commands: BaseCommandDefinitions = {
 				const targetUser = Users.get(users[i]);
 				if (targetUser) users[i] = targetUser.name;
 				if (remove) {
-					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
+					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource,
+						this.runningMultipleTargets ? true : false);
 				} else {
-					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
+					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource,
+						this.runningMultipleTargets ? true : false);
 					if (targetUser && targetUser.rooms.has(leaderboardRoom)) {
 						targetUser.say("You were awarded " + points + " " + pointsName + "! To see your total amount, use this command: " +
 							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + leaderboardRoom.title + "``");
@@ -183,7 +187,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			Storage.tryExportDatabase(room.id);
+			if (!this.runningMultipleTargets) Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['apt', 'addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'rpt']
 			.concat(addGamePointsAliases),

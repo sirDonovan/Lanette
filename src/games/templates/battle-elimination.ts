@@ -2066,7 +2066,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'bits ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				this.addBits(runnerUp, runnerUpPoints);
+				this.addBits(runnerUp, runnerUpPoints, true);
 				const user = Users.get(runnerUp.name);
 				if (user) user.say(runnerUpPm);
 			}

@@ -178,6 +178,8 @@ export class Tournaments {
 		if (json.isStarted) {
 			tournament.started = true;
 		} else {
+			let updatedDatabase = false;
+
 			if (room.id in this.createListeners && format.id === this.createListeners[room.id].format.id) {
 				if (this.createListeners[room.id].scheduled) {
 					tournament.scheduled = true;
@@ -203,7 +205,7 @@ export class Tournaments {
 					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
 					if (!queuedFormat || queuedFormat.effectType !== 'Format' || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
-						Storage.tryExportDatabase(room.id);
+						updatedDatabase = true;
 					}
 				}
 
@@ -265,6 +267,8 @@ export class Tournaments {
 						'</strong> tournament created in <strong>' + room.title + '</strong>.</a>');
 				}
 			}
+
+			if (updatedDatabase) Storage.tryExportDatabase(room.id);
 		}
 
 		return tournament;

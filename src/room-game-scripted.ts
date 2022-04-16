@@ -26,7 +26,6 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameNumberOptionValues>
 };
 
 export class ScriptedGame extends Game {
-	awardedBits: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	debugLogs: string[] = [];
@@ -42,6 +41,8 @@ export class ScriptedGame extends Game {
 	parentGame: ScriptedGame | undefined = undefined;
 	signupsRefreshed: boolean = false;
 	startTime: number = 0;
+	updatedBits: boolean = false;
+	updatedDatabase: boolean = false;
 	usesHtmlPage: boolean = false;
 	usesTournamentStart: boolean = false;
 	usesTournamentJoin: boolean = false;
@@ -643,14 +644,13 @@ export class ScriptedGame extends Game {
 		}
 
 		const now = Date.now();
-		let usedDatabase = false;
 
 		if (this.isMiniGame) {
 			Games.setLastMinigame(this.room, now);
 		} else if (!this.parentGame && !this.internalGame) {
 			Games.clearNextVoteBans(this.room);
 
-			usedDatabase = true;
+			this.updatedDatabase = true;
 			const database = Storage.getDatabase(this.room);
 
 			Games.setLastGame(this.room, now);
@@ -683,8 +683,6 @@ export class ScriptedGame extends Game {
 
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
-
-		if (this.awardedBits || usedDatabase) Storage.tryExportDatabase(this.room.id);
 
 		this.deallocate(false);
 	}
@@ -810,6 +808,11 @@ export class ScriptedGame extends Game {
 			void Tools.safeWriteFile(path.join(Tools.rootFolder, 'game-debug-logs',
 				Tools.getDateFilename() + "-" + this.room.id + "-" + Tools.toId(this.uhtmlBaseName) + ".txt"), this.debugLogs.join("\n\n"))
 					.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
+		}
+
+		if (!this.isPmActivity(this.room)) {
+			if (this.updatedBits) Storage.afterAddPoints(this.room, Storage.gameLeaderboard, this.format.id);
+			if (this.updatedBits || this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
 		}
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
@@ -1282,12 +1285,13 @@ export class ScriptedGame extends Game {
 			if (this.shinyMascot) bits *= 2;
 		}
 
-		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id, true);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
 				"bits " + this.room.title + "``.");
 		}
-		if (!this.awardedBits) this.awardedBits = true;
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 
@@ -1298,11 +1302,14 @@ export class ScriptedGame extends Game {
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
 		if (this.shinyMascot) bits *= 2;
-		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+
+		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id, true);
 		if (!noPm) {
 			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
 				this.room.title + "``.");
 		}
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 

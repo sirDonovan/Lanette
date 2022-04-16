@@ -383,9 +383,10 @@ export const commands: BaseCommandDefinitions = {
 			if (!database.queuedTournament) return this.say(errorText);
 			const format = Dex.getFormat(database.queuedTournament.formatid, true);
 			if (!format || format.effectType !== 'Format') {
+				this.say(errorText);
 				delete database.queuedTournament;
 				Storage.tryExportDatabase(tournamentRoom.id);
-				return this.say(errorText);
+				return;
 			}
 
 			let tournamentName: string;

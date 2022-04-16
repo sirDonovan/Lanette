@@ -280,6 +280,7 @@ export class Tournament extends Activity {
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
 		let awardedPoints = false;
+		const pointsSource = this.format.id;
 		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
@@ -301,7 +302,7 @@ export class Tournament extends Activity {
 				'** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
 				'amount, use this command: ``' + Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, pointsSource, true);
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
@@ -310,7 +311,7 @@ export class Tournament extends Activity {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, pointsSource, true);
 				const user = Users.get(runnerUp);
 				if (user) user.say(runnerUpPm);
 			}
@@ -319,7 +320,7 @@ export class Tournament extends Activity {
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const winner of winners) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, pointsSource, true);
 				const user = Users.get(winner);
 				if (user) user.say(winnerPm);
 			}
@@ -338,7 +339,10 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (awardedPoints) Storage.tryExportDatabase(this.room.id);
+		if (awardedPoints) {
+			Storage.afterAddPoints(this.room, Storage.tournamentLeaderboard, pointsSource);
+			Storage.tryExportDatabase(this.room.id);
+		}
 	}
 
 	forceEnd(): void {
