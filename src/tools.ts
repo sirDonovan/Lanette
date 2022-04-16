@@ -6,7 +6,9 @@ import url = require('url');
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
-import type { BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
+import type {
+	BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
+} from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const TABLE_PADDING_SIZE = 2;
@@ -120,6 +122,10 @@ export class Tools {
 	readonly vowels: string = "aeiou";
 
 	lastGithubApiCall: number = 0;
+	currentAppendFiles: Dict<string> = {};
+	appendFileQueue: Dict<string[]> = {};
+	currentSafeFileWrites: Dict<string> = {};
+	safeWriteFileQueue: Dict<IWriteQueueItem[]> = {};
 
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
@@ -401,10 +407,16 @@ export class Tools {
 
 	logMessage(message: string): void {
 		const date = new Date();
+		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
+		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
-		fs.appendFile(path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt'),
-			"\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n")
-			.catch((e: Error) => console.log(e));
+		if (filepath in this.currentAppendFiles) {
+			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
+			this.appendFileQueue[filepath].push(message);
+		} else {
+			this.currentAppendFiles[filepath] = message;
+			this.appendFileInternal(filepath, message);
+		}
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -893,7 +905,9 @@ export class Tools {
 			for (const cachedModule of cachedModules) {
 				delete require.cache[cachedModule.filename];
 
-				this.unrefProperties(cachedModule);
+				cachedModule.parent = undefined;
+				cachedModule.children = [];
+				cachedModule.exports = undefined;
 			}
 		} catch (e) {
 			console.log(e);
@@ -1200,9 +1214,62 @@ export class Tools {
 	}
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			if (filepath in this.currentSafeFileWrites) {
+				if (!(filepath in this.safeWriteFileQueue)) this.safeWriteFileQueue[filepath] = [];
+				this.safeWriteFileQueue[filepath].push({data, resolve, reject});
+			} else {
+				this.currentSafeFileWrites[filepath] = data;
+				this.safeWriteFileInternal(filepath, data, resolve, reject);
+			}
+		});
+	}
+
+	private safeWriteFileInternal(filepath: string, data: string, resolve: PromiseResolve<void>,
+		reject: PromiseReject<void>): void {
 		const tempFilepath = filepath + '.temp';
-		return fs.writeFile(tempFilepath, data)
-			.then(() => fs.rename(tempFilepath, filepath)); // eslint-disable-line @typescript-eslint/promise-function-async
+		fs.writeFile(tempFilepath, data)
+			.catch((e: Error) => {
+				reject();
+				this.logError(e, "Error writing temp file " + tempFilepath);
+			})
+			.then(() => fs.rename(tempFilepath, filepath)) // eslint-disable-line @typescript-eslint/promise-function-async
+			.catch((e: Error) => {
+				reject();
+				this.logError(e, "Error renaming temp file " + tempFilepath);
+			})
+			.then(() => {
+				resolve();
+			})
+			.finally(() => {
+				if (filepath in this.safeWriteFileQueue && this.safeWriteFileQueue[filepath].length) {
+					const queuedItem = this.safeWriteFileQueue[filepath][0];
+					this.safeWriteFileQueue[filepath].shift();
+					if (!this.safeWriteFileQueue[filepath].length) delete this.safeWriteFileQueue[filepath];
+
+					this.currentSafeFileWrites[filepath] = queuedItem.data;
+					this.safeWriteFileInternal(filepath, queuedItem.data, queuedItem.resolve, queuedItem.reject);
+				} else {
+					delete this.currentSafeFileWrites[filepath];
+				}
+			});
+	}
+
+	private appendFileInternal(filepath: string, message: string): void {
+		fs.appendFile(filepath, message)
+			.catch((e: Error) => console.log(e))
+			.finally(() => {
+				if (filepath in this.appendFileQueue && this.appendFileQueue[filepath].length) {
+					const queuedMessage = this.appendFileQueue[filepath][0];
+					this.appendFileQueue[filepath].shift();
+					if (!this.appendFileQueue[filepath].length) delete this.appendFileQueue[filepath];
+
+					this.currentAppendFiles[filepath] = queuedMessage;
+					this.appendFileInternal(filepath, queuedMessage);
+				} else {
+					delete this.currentAppendFiles[filepath];
+				}
+			});
 	}
 }
 
