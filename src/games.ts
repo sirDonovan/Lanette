@@ -558,21 +558,37 @@ export class Games {
 							if (result) returnedResult = result;
 						} else {
 							user.rooms.forEach((value, userRoom) => {
+								const games: ScriptedGame[] = [];
 								if (userRoom.game) {
-									const result = userRoom.game.tryCommand(target, user, user, command, timestamp);
-									if (result) returnedResult = result;
-								} else if (userRoom.searchChallenge) {
-									const result = userRoom.searchChallenge.tryCommand(target, user, user, command, timestamp);
+									games.push(userRoom.game);
+								}
+								if (userRoom.tournament && userRoom.tournament.battleRoomGame) {
+									games.push(userRoom.tournament.battleRoomGame);
+								}
+								if (userRoom.searchChallenge) {
+									games.push(userRoom.searchChallenge);
+								}
+
+								for (const game of games) {
+									const result = game.tryCommand(target, user, user, command, timestamp);
 									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
+						const games: ScriptedGame[] = [];
 						if (room.game) {
-							const result = room.game.tryCommand(target, room, user, command, timestamp);
-							if (result) returnedResult = result;
-						} else if (room.searchChallenge) {
-							const result = room.searchChallenge.tryCommand(target, room, user, command, timestamp);
+							games.push(room.game);
+						}
+						if (room.tournament && room.tournament.battleRoomGame) {
+							games.push(room.tournament.battleRoomGame);
+						}
+						if (room.searchChallenge) {
+							games.push(room.searchChallenge);
+						}
+
+						for (const game of games) {
+							const result = game.tryCommand(target, room, user, command, timestamp);
 							if (result) returnedResult = result;
 						}
 					}
