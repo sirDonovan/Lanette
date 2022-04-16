@@ -38,8 +38,8 @@ export interface IExtractedBattleId {
 	password: string;
 }
 
-export interface IWriteQueueItem {
+export interface IWriteQueueItem<T, U> {
 	data: string;
-	resolve: PromiseResolve<void>;
-	reject: PromiseReject<void>;
+	resolve: PromiseResolve<T>;
+	reject: PromiseReject<U>;
 }

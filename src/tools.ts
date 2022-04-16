@@ -125,7 +125,7 @@ export class Tools {
 	currentAppendFiles: Dict<string> = {};
 	appendFileQueue: Dict<string[]> = {};
 	currentSafeFileWrites: Dict<string> = {};
-	safeWriteFileQueue: Dict<IWriteQueueItem[]> = {};
+	safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
 
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
@@ -1226,16 +1226,16 @@ export class Tools {
 	}
 
 	private safeWriteFileInternal(filepath: string, data: string, resolve: PromiseResolve<void>,
-		reject: PromiseReject<void>): void {
+		reject: PromiseReject<Error>): void {
 		const tempFilepath = filepath + '.temp';
 		fs.writeFile(tempFilepath, data)
 			.catch((e: Error) => {
-				reject();
+				reject(e);
 				this.logError(e, "Error writing temp file " + tempFilepath);
 			})
 			.then(() => fs.rename(tempFilepath, filepath)) // eslint-disable-line @typescript-eslint/promise-function-async
 			.catch((e: Error) => {
-				reject();
+				reject(e);
 				this.logError(e, "Error renaming temp file " + tempFilepath);
 			})
 			.then(() => {
