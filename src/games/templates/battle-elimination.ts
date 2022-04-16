@@ -2043,6 +2043,12 @@ export abstract class BattleElimination extends ScriptedGame {
 			database.lastGameFormatTimes[idWithOptions] = now;
 		}
 
+		if (!database.pastTournamentGames) database.pastTournamentGames = [];
+		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
+		while (database.pastTournamentGames.length > 8) {
+			database.pastTournamentGames.pop();
+		}
+
 		const places = Tournaments.getPlacesFromTree(this.treeRoot);
 		if (places.winner && places.runnerup && places.semifinalists) {
 			const winners: Player[] = [places.winner];

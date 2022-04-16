@@ -213,6 +213,7 @@ export interface IDatabase {
 	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
 	pastGames?: IPastGame[];
+	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
 	queuedTournament?: IQueuedTournament;
