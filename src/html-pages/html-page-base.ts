@@ -5,6 +5,7 @@ import type { ComponentBase } from "./components/component-base";
 export abstract class HtmlPageBase {
 	abstract pageId: string;
 
+	closed: boolean = false;
 	components: ComponentBase[] = [];
 	lastRender: string = '';
 
@@ -37,7 +38,9 @@ export abstract class HtmlPageBase {
 		}
 
 		delete this.pageList[this.userId];
-		Tools.unrefProperties(this);
+
+		this.closed = true;
+		Tools.unrefProperties(this, ['closed', 'pageId', 'userName', 'userId']);
 	}
 
 	open(): void {
@@ -45,6 +48,8 @@ export abstract class HtmlPageBase {
 	}
 
 	close(): void {
+		if (this.closed) throw new Error(this.pageId + " page already closed for user " + this.userId);
+
 		const user = Users.get(this.userId);
 		if (user) this.room.closeHtmlPage(user, this.pageId);
 
@@ -77,6 +82,8 @@ export abstract class HtmlPageBase {
 	}
 
 	send(onOpen?: boolean): void {
+		if (this.closed) return;
+
 		if (this.beforeSend && !this.beforeSend(onOpen)) return;
 
 		const user = Users.get(this.userId);

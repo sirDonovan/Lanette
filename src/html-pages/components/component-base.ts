@@ -8,6 +8,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	abstract componentId: string;
 
 	active: boolean = true;
+	closed: boolean = false;
 	components: ComponentBase[] = [];
 	timeout: NodeJS.Timer | null = null;
 
@@ -29,7 +30,10 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	abstract tryCommand(targets: readonly string[]): string | undefined;
 
 	destroy(): void {
-		Tools.unrefProperties(this);
+		if (this.timeout) clearTimeout(this.timeout);
+
+		this.closed = true;
+		Tools.unrefProperties(this, ['closed']);
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {

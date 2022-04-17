@@ -967,9 +967,8 @@ export class Tournaments {
 
 		html += '<td style="border: 1px solid; padding: 0px; width: 80px;">';
 		let avatarHtml = "";
-		if (trainerCard.customAvatar) {
-			const dimensions = Dex.getTrainerSpriteDimensions();
-			avatarHtml = '<img src="' + trainerCard.customAvatar + '" width=' + dimensions + 'px height=' + dimensions + 'px />';
+		if (trainerCard.avatar && trainerCard.customAvatar) {
+			avatarHtml = Dex.getCustomTrainerSprite(trainerCard.avatar);
 		} else {
 			let avatarSpriteId: string | undefined;
 			if (trainerCard.avatar) {

@@ -44,7 +44,7 @@ export interface ITournamentTrainerCard {
 	avatar?: TrainerSpriteId;
 	badges?: string[];
 	bio?: string;
-	customAvatar?: string;
+	customAvatar?: boolean;
 	favoriteFormat?: string;
 	footer?: HexCode;
 	header?: HexCode;
@@ -56,6 +56,7 @@ export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
 	background?: HexCode;
+	customAvatar?: boolean;
 	pokemonGifs?: boolean;
 }
 
@@ -84,6 +85,7 @@ export interface IGameCustomBox {
 export interface IGameHostBox extends IGameCustomBox {
 	pokemon: IPokemonPick[];
 	avatar?: TrainerSpriteId;
+	customAvatar?: boolean;
 }
 
 export interface IGameScriptedBox extends IGameCustomBox {

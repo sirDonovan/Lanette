@@ -55,6 +55,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
+			userId: this.userId,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),
 			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
@@ -153,6 +154,7 @@ class GameTrainerCard extends HtmlPageBase {
 	clearTrainer(dontRender?: boolean): void {
 		const database = this.getDatabase();
 		delete database.gameTrainerCards![this.userId].avatar;
+		delete database.gameTrainerCards![this.userId].customAvatar;
 
 		if (!dontRender) this.send();
 	}
@@ -160,6 +162,7 @@ class GameTrainerCard extends HtmlPageBase {
 	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		database.gameTrainerCards![this.userId].avatar = trainer.trainer;
+		database.gameTrainerCards![this.userId].customAvatar = !!trainer.customAvatar;
 
 		if (!dontRender) this.send();
 	}

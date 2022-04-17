@@ -1523,8 +1523,12 @@ export class Games {
 
 		let avatarHtml = "";
 		if (trainerCard.avatar) {
-			const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
-			if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			if (trainerCard.customAvatar) {
+				avatarHtml += Dex.getCustomTrainerSprite(trainerCard.avatar);
+			} else {
+				const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+				if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			}
 		}
 
 		const emptySpan = '<span style="display: inline-block ; height: 30px ; width: 40px"></span>';
@@ -1741,9 +1745,13 @@ export class Games {
 		if (hostBox) {
 			let trainerHtml = "";
 			if (hostBox.avatar) {
-				const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
-				if (trainerSpriteId) {
-					trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+				if (hostBox.customAvatar) {
+					trainerHtml += Dex.getCustomTrainerSprite(hostBox.avatar);
+				} else {
+					const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
+					if (trainerSpriteId) {
+						trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+					}
 				}
 			}
 

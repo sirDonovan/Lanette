@@ -1,16 +1,17 @@
 import type { Room } from "../../rooms";
 import type { TrainerSpriteId } from "../../types/dex";
-import { Pagination } from "./pagination";
+import { type IPageElement, Pagination } from "./pagination";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
 export interface ITrainerPick {
 	trainer: TrainerSpriteId;
 	gen: TrainerGeneration;
+	customAvatar?: boolean;
 }
 
 interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
-	noCustomAvatars?: boolean;
+	userId?: string;
 	random?: boolean;
 	onSetTrainerGen: (index: number, trainerGen: TrainerGeneration, dontRender: boolean | undefined) => void;
 }
@@ -42,6 +43,7 @@ export const trainerGens: TrainerGeneration[] = [defaultTrainers, genOneTrainers
 	genFiveTrainers, genSixTrainers, genSevenTrainers, genEightTrainers];
 
 const trainersListCommand = 'trainerslist';
+const refreshCustomAvatarCommand = 'refreshcommandavatar';
 
 const defaultTrainersPerRow = 5;
 const olderTrainersPerRow = 4;
@@ -71,6 +73,8 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 	static TrainerPickerLoaded: boolean = false;
 
 	componentId: string = 'trainer-picker';
+	customAvatarId: string = '';
+	refreshingCustomAvatar: boolean = false;
 	trainerGen: TrainerGeneration = 'default';
 
 	defaultTrainersPagination: Pagination;
@@ -255,6 +259,13 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			this.genSevenTrainersPagination, this.genEightTrainersPagination];
 
 		this.paginations = this.components.slice() as Pagination[];
+
+		if (this.props.userId) {
+			const user = Users.get(this.props.userId);
+			if (user && user.avatar && user.customAvatar) {
+				this.updateCustomAvatar(user.avatar, true);
+			}
+		}
 	}
 
 	static loadData(): void {
@@ -305,7 +316,64 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 	}
 
 	getChoiceButtonHtml(choice: ITrainerPick): string {
-		return TrainerPicker.trainerSprites[choice.trainer] + "<br />" + TrainerPicker.allTrainerNames[choice.trainer];
+		if (choice.customAvatar) {
+			return Dex.getCustomTrainerSprite(choice.trainer) + "<br />" + choice.trainer;
+		} else {
+			return TrainerPicker.trainerSprites[choice.trainer] + "<br />" + TrainerPicker.allTrainerNames[choice.trainer];
+		}
+	}
+
+	updateCustomAvatar(customAvatar: string, onOpen?: boolean): void {
+		let previousCustomAvatarId = '';
+		if (this.customAvatarId) {
+			previousCustomAvatarId = this.customAvatarId;
+
+			delete this.choices[this.customAvatarId];
+			delete this.choiceElements[this.customAvatarId];
+		}
+
+		this.customAvatarId = customAvatar;
+		this.choices[customAvatar] = {trainer: customAvatar as TrainerSpriteId, gen: defaultTrainers, customAvatar: true};
+
+		this.renderChoices();
+
+		const customAvatarElement: IPageElement[] = [];
+		if (customAvatar in this.choiceElements) {
+			customAvatarElement.push(this.choiceElements[customAvatar]);
+		}
+
+		this.defaultTrainersPagination.updateElements([this.noPickElement].concat(customAvatarElement,
+			TrainerPicker.defaultTrainerIds.map(x => this.choiceElements[x])), true);
+
+		if (this.currentPicks.length === 1 && this.currentPicks[0] === previousCustomAvatarId) this.pick(customAvatar, true);
+
+		if (!onOpen) this.props.reRender();
+	}
+
+	removeCustomAvatar(): void {
+		if (!this.customAvatarId) return;
+
+		let selectedCustomAvatar = false;
+		if (this.currentPicks.length === 1 && this.currentPicks[0] === this.customAvatarId) {
+			selectedCustomAvatar = true;
+			this.clear(true);
+		}
+
+		delete this.choices[this.customAvatarId];
+		delete this.choiceElements[this.customAvatarId];
+
+		this.customAvatarId = '';
+
+		this.renderChoices();
+
+		this.defaultTrainersPagination.updateElements([this.noPickElement]
+			.concat(TrainerPicker.defaultTrainerIds.map(x => this.choiceElements[x])), true);
+
+		if (selectedCustomAvatar) {
+			this.pick(TrainerPicker.defaultTrainerIds[0]);
+		} else {
+			this.props.reRender();
+		}
 	}
 
 	pickTrainerGen(trainerGen: TrainerGeneration, dontRender?: boolean): void {
@@ -404,6 +472,29 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			cmd === genFourTrainers || cmd === genFiveTrainers || cmd === genSixTrainers || cmd === genSevenTrainers ||
 			cmd === genEightTrainers) {
 			this.pickTrainerGen(cmd);
+		} else if (cmd === refreshCustomAvatarCommand) {
+			if (!this.props.userId || this.refreshingCustomAvatar) return;
+			const user = Users.get(this.props.userId);
+			if (!user) return;
+
+			this.refreshingCustomAvatar = true;
+			this.props.reRender();
+
+			Client.getUserDetails(user, updatedUser => {
+				if (this.closed) return;
+
+				if (updatedUser.avatar && updatedUser.customAvatar) {
+					this.updateCustomAvatar(updatedUser.avatar);
+				} else {
+					this.removeCustomAvatar();
+				}
+
+				if (this.timeout) clearTimeout(this.timeout);
+				this.timeout = setTimeout(() => {
+					this.refreshingCustomAvatar = false;
+					this.props.reRender();
+				}, 2 * 1000);
+			});
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -439,6 +530,12 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.randomPickCommand, "Random Trainer");
 		} else {
 			if (currentDefaultTrainers) {
+				if (this.props.userId && Users.get(this.props.userId)) {
+					html += this.getQuietPmButton(this.commandPrefix + ", " + refreshCustomAvatarCommand, "Refresh custom avatar",
+						this.refreshingCustomAvatar);
+					html += "<br /><br />";
+				}
+
 				html += this.defaultTrainersPagination.render();
 			} else if (currentGenOneTrainers) {
 				html += this.genOneTrainersPagination.render();

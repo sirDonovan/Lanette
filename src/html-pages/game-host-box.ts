@@ -200,6 +200,7 @@ class GameHostBox extends HtmlPageBase {
 
 		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: currentTrainer,
+			userId: this.userId,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),
 			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
@@ -361,6 +362,7 @@ class GameHostBox extends HtmlPageBase {
 		const database = this.getDatabase();
 
 		delete database.gameHostBoxes![this.userId].avatar;
+		delete database.gameHostBoxes![this.userId].customAvatar;
 
 		if (!dontRender) this.send();
 	}
@@ -369,6 +371,7 @@ class GameHostBox extends HtmlPageBase {
 		const database = this.getDatabase();
 
 		database.gameHostBoxes![this.userId].avatar = trainer.trainer;
+		database.gameHostBoxes![this.userId].customAvatar = !!trainer.customAvatar;
 
 		if (!dontRender) this.send();
 	}

@@ -71,6 +71,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
+			userId: this.targetUserId,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 			onClear: (index, dontRender) => this.clearTrainer(dontRender),
 			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
@@ -264,6 +265,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	clearTrainer(dontRender?: boolean): void {
 		const database = this.getDatabase();
 		delete database.tournamentTrainerCards![this.targetUserId].avatar;
+		delete database.tournamentTrainerCards![this.targetUserId].customAvatar;
 
 		if (!dontRender) this.send();
 	}
@@ -271,6 +273,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		database.tournamentTrainerCards![this.targetUserId].avatar = trainer.trainer;
+		database.tournamentTrainerCards![this.targetUserId].customAvatar = !!trainer.customAvatar;
 
 		if (!dontRender) this.send();
 	}
