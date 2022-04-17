@@ -479,11 +479,11 @@ export class Tournament extends Activity {
 		const playerId = Tools.toId(playerName);
 		const opponentId = Tools.toId(opponentName);
 		if (!(playerId in this.players)) {
-			throw new Error("Player not found for " + playerName + " in " + roomid);
+			throw new Error("Player not found for " + playerName + " in battle " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		if (!(opponentId in this.players)) {
-			throw new Error("Player not found for " + opponentName + " in " + roomid);
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		const player = this.players[playerId];
@@ -533,11 +533,11 @@ export class Tournament extends Activity {
 		const playerId = Tools.toId(playerName);
 		const opponentId = Tools.toId(opponentName);
 		if (!(playerId in this.players)) {
-			throw new Error("Player not found for " + playerName + " in " + roomid);
+			throw new Error("Player not found for " + playerName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		if (!(opponentId in this.players)) {
-			throw new Error("Player not found for " + opponentName + " in " + roomid);
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		const player = this.players[playerId];
