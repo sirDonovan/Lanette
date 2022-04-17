@@ -110,6 +110,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.unrankedTournamentFormats) {
 		config.unrankedTournamentFormats = objectKeysToRoomId(stringArrayObjectToIds(config.unrankedTournamentFormats));
 	}
+	if (config.randomTournamentCustomRules) {
+		config.randomTournamentCustomRules = objectKeysToRoomId(stringArrayObjectToIds(config.randomTournamentCustomRules));
+	}
 	if (config.scheduledTournamentsMaxPlayerCap) {
 		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
 	}

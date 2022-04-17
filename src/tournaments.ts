@@ -664,13 +664,24 @@ export class Tournaments {
 
 		if (!formats.length) return;
 
+		let format = Tools.sampleOne(formats);
+		if (Config.randomTournamentCustomRules && room.id in Config.randomTournamentCustomRules) {
+			const rules = Tools.shuffle(Config.randomTournamentCustomRules[room.id]);
+			for (const rule of rules) {
+				const customRuleFormat = Dex.getFormat(format.id + "@@@" + rule);
+				if (customRuleFormat && customRuleFormat.customRules) {
+					format = customRuleFormat;
+					break;
+				}
+			}
+		}
+
 		let playerCap: number = 0;
 		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
 			playerCap = Config.defaultTournamentPlayerCaps[room.id];
 		}
 
-		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedScheduledTournamentTime, Tools.sampleOne(formats),
-			playerCap);
+		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedScheduledTournamentTime, format, playerCap);
 	}
 
 	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, scheduled?: boolean, tournamentName?: string): void {
