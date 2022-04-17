@@ -65,7 +65,7 @@ class GameHostBox extends HtmlPageBase {
 	maxPokemonModels: number;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		const database = Storage.getDatabase(this.room);
 		let currentBackgroundColor: HexCode | undefined;
@@ -241,12 +241,6 @@ class GameHostBox extends HtmlPageBase {
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker,
 			this.signupsButtonColorPicker, this.backgroundBorderStyle, this.buttonsBorderStyle, this.signupsBackgroundBorderStyle,
 			this.signupsButtonsBorderStyle, this.trainerPicker, this.pokemonModelPicker];
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	getDatabase(): IDatabase {
@@ -719,42 +713,34 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameHostBox(targetRoom, user).open();
-			} else if (cmd === chooseBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new GameHostBox(targetRoom, user);
+
+			if (cmd === chooseBackgroundColorPicker) {
 				pages[user.id].chooseBackgroundColorPicker();
 			} else if (cmd === chooseButtonColorPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseButtonColorPicker();
 			} else if (cmd === chooseSignupsBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseSignupsBackgroundColorPicker();
 			} else if (cmd === chooseSignupsButtonColorPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseSignupsButtonColorPicker();
 			} else if (cmd === chooseBackgroundBorderPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseBackgroundBorderPicker();
 			} else if (cmd === chooseButtonsBorderPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseButtonsBorderPicker();
 			} else if (cmd === chooseSignupsBackgroundBorderPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseSignupsBackgroundBorderPicker();
 			} else if (cmd === chooseSignupsButtonsBorderPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseSignupsButtonsBorderPicker();
 			} else if (cmd === chooseTrainerPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === choosePokemonModelPicker) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				pages[user.id].choosePokemonModelPicker();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new GameHostBox(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

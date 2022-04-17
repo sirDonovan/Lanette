@@ -26,7 +26,7 @@ class ScriptedGameStats extends HtmlPageBase {
 	gamePointsBreakdown: GamePointsBreakdown;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		const showPreviousCycles = user.isDeveloper() || user.hasRank(room, 'voice');
 		this.gameLeaderboard = new GameLeaderboard(room, this.commandPrefix, leaderboardCommand, {
@@ -41,8 +41,6 @@ class ScriptedGameStats extends HtmlPageBase {
 		this.gamePointsBreakdown.active = false;
 
 		this.components = [this.gameLeaderboard, this.gamePointsBreakdown];
-
-		pages[this.userId] = this;
 	}
 
 	chooseLeaderboard(): void {
@@ -63,10 +61,6 @@ class ScriptedGameStats extends HtmlPageBase {
 		this.gamePointsBreakdown.active = true;
 
 		this.send();
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	render(): string {
@@ -108,18 +102,18 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new ScriptedGameStats(targetRoom, user).open();
-			} else if (cmd === chooseLeaderboard) {
-				if (!(user.id in pages)) new ScriptedGameStats(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new ScriptedGameStats(targetRoom, user);
+
+			if (cmd === chooseLeaderboard) {
 				pages[user.id].chooseLeaderboard();
 			} else if (cmd === choosePointsBreakdown) {
-				if (!(user.id in pages)) new ScriptedGameStats(targetRoom, user);
 				pages[user.id].choosePointsBreakdown();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new ScriptedGameStats(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new ScriptedGameStats(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

@@ -26,7 +26,7 @@ class TournamentStats extends HtmlPageBase {
 	tournamentPointsBreakdown: TournamentPointsBreakdown;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		const showPreviousCycles = user.isDeveloper() || user.hasRank(room, 'voice');
 		this.tournamentLeaderboard = new TournamentLeaderboard(room, this.commandPrefix, leaderboardCommand, {
@@ -41,8 +41,6 @@ class TournamentStats extends HtmlPageBase {
 		this.tournamentPointsBreakdown.active = false;
 
 		this.components = [this.tournamentLeaderboard, this.tournamentPointsBreakdown];
-
-		pages[this.userId] = this;
 	}
 
 	chooseLeaderboard(): void {
@@ -63,10 +61,6 @@ class TournamentStats extends HtmlPageBase {
 		this.tournamentPointsBreakdown.active = true;
 
 		this.send();
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	render(): string {
@@ -108,18 +102,18 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new TournamentStats(targetRoom, user).open();
-			} else if (cmd === chooseLeaderboard) {
-				if (!(user.id in pages)) new TournamentStats(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new TournamentStats(targetRoom, user);
+
+			if (cmd === chooseLeaderboard) {
 				pages[user.id].chooseLeaderboard();
 			} else if (cmd === choosePointsBreakdown) {
-				if (!(user.id in pages)) new TournamentStats(targetRoom, user);
 				pages[user.id].choosePointsBreakdown();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new TournamentStats(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new TournamentStats(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

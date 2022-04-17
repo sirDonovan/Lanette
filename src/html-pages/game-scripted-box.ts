@@ -91,7 +91,7 @@ class GameScriptedBox extends HtmlPageBase {
 	currentView: 'signups' | 'game' = 'signups';
 
 	constructor(room: Room, user: User, pokemonAvatar: boolean) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.pokemonAvatar = pokemonAvatar;
 		this.currentPicker = pokemonAvatar ? 'pokemon-avatar' : 'background';
@@ -120,12 +120,6 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.resetComponents();
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	resetComponents(): void {
@@ -1057,62 +1051,48 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameScriptedBox(targetRoom, user, pokemonAvatar).open();
-			} else if (cmd === loadFormatCommand) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new GameScriptedBox(targetRoom, user, pokemonAvatar);
+
+			if (cmd === loadFormatCommand) {
 				pages[user.id].loadFormat();
 			} else if (cmd === copyFormatCommand) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].copyFormat();
 			} else if (cmd === deleteFormatCommand) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].deleteFormat();
 			} else if (cmd === chooseSignupsView) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseSignupsView();
 			} else if (cmd === chooseGameView) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGameView();
 			} else if (cmd === chooseBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseBackgroundColorPicker();
 			} else if (cmd === chooseButtonColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseButtonColorPicker();
 			} else if (cmd === chooseSignupsBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseSignupsBackgroundColorPicker();
 			} else if (cmd === chooseSignupsButtonColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseSignupsButtonColorPicker();
 			} else if (cmd === choosePokemonAvatarPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGamePokemonAvatarPicker();
 			} else if (cmd === chooseGameBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGameBackgroundColorPicker();
 			} else if (cmd === chooseGameButtonColorPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGameButtonColorPicker();
 			} else if (cmd === chooseMascotGenerationPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseMascotGenerationPicker();
 			} else if (cmd === chooseBackgroundBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseBackgroundBorderPicker();
 			} else if (cmd === chooseButtonsBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseButtonsBorderPicker();
 			} else if (cmd === chooseSignupsBackgroundBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseSignupsBackgroundBorderPicker();
 			} else if (cmd === chooseSignupsButtonsBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseSignupsButtonsBorderPicker();
 			} else if (cmd === chooseGameBackgroundBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGameBackgroundBorderPicker();
 			} else if (cmd === chooseGameButtonsBorderPicker) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].chooseGameButtonsBorderPicker();
 			} else if (cmd === setMascotGenerationCommand) {
 				const gen = targets[0].trim() as ModelGeneration;
@@ -1120,17 +1100,12 @@ export const commands: BaseCommandDefinitions = {
 					return this.say("'" + targets[0] + "' is not a valid generation.");
 				}
 
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].setMascotGeneration(gen);
 			} else if (cmd === clearMascotGenerationCommand) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				pages[user.id].clearMascotGeneration();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

@@ -42,7 +42,7 @@ class OfflineMessages extends HtmlPageBase {
 	timezone: TimeZone;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
 
@@ -56,12 +56,6 @@ class OfflineMessages extends HtmlPageBase {
 
 		this.calculateTimezoneOffsets();
 		this.sortMessages(true);
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	sortMessages(onOpen?: boolean): void {
@@ -346,20 +340,21 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new OfflineMessages(botRoom, user).open();
-			} else if (cmd === newMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new OfflineMessages(botRoom, user);
+
+			if (cmd === newMessagesCommand) {
 				pages[user.id].selectNewMessages();
 			} else if (cmd === oldMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].selectOldMessages();
 			} else if (cmd === discardedMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].selectDiscardedMessages();
 			} else if (cmd === timezoneCommand) {
 				const timezone = targets[0].trim() as TimeZone;
 				if (!Tools.timezones.includes(timezone)) return this.say("Invalid timezone.");
 
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].setTimezone(timezone);
 			} else if (cmd === discardCommand || cmd === undoDiscardCommand) {
 				const database = Storage.getGlobalDatabase();
@@ -374,15 +369,11 @@ export const commands: BaseCommandDefinitions = {
 
 				database.offlineMessages[user.id].messages[index].discarded = cmd === discardCommand ? true : false;
 
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].discardOrUndoDiscard();
 			} else if (cmd === dateCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				if (!pages[user.id].setDate(targets[0].trim())) this.say("Invalid date.");
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
 				this.say("Unknown sub-command '" + cmd + "'.");
 			}

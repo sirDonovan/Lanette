@@ -9,6 +9,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 	active: boolean = true;
 	components: ComponentBase[] = [];
+	timeout: NodeJS.Timer | null = null;
 
 	room: Room;
 	commandPrefix: string;
@@ -26,6 +27,10 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 	abstract render(onOpen?: boolean): string;
 	abstract tryCommand(targets: readonly string[]): string | undefined;
+
+	destroy(): void {
+		Tools.unrefProperties(this);
+	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
 		for (const component of this.components) {

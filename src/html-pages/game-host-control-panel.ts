@@ -76,7 +76,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	randomHostDisplay: RandomHostDisplay;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		GameHostControlPanel.loadData();
 
@@ -177,8 +177,6 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
 			this.manualHostDisplay, this.randomHostDisplay];
-
-		pages[this.userId] = this;
 	}
 
 	static loadData(): void {
@@ -191,10 +189,6 @@ class GameHostControlPanel extends HtmlPageBase {
 		}
 
 		this.GameHostControlPanelLoaded = true;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	getDatabase(): IDatabase {
@@ -799,35 +793,34 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameHostControlPanel(targetRoom, user).open();
-			} else if (cmd === chooseHostInformation) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand && cmd !== autoRefreshCommand && cmd !== setCurrentPlayerCommand &&
+				cmd !== sendDisplayCommand) {
+				new GameHostControlPanel(targetRoom, user);
+			}
+
+			if (cmd === chooseHostInformation) {
 				pages[user.id].chooseHostInformation();
 			} else if (cmd === chooseCustomDisplay) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseManualHostDisplay();
 			} else if (cmd === chooseRandomDisplay) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseRandomHostDisplay();
 			} else if (cmd === chooseGenerateHints) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseGenerateHints();
 			} else if (cmd === refreshCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].send();
 			} else if (cmd === autoRefreshCommand) {
 				if (user.id in pages) pages[user.id].send();
 			} else if (cmd === generateHintCommand) {
 				const name = targets[0].trim();
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-
 				if (!pages[user.id].generateHint(user, name)) this.say("'" + name + "' is not a valid game for generating hints.");
 			} else if (cmd === setCurrentPlayerCommand) {
 				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
 
 				pages[user.id].setCurrentPlayer(Tools.toId(targets[0]));
 			} else if (cmd === autoSendCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-
 				const option = targets[0].trim();
 				if (option !== autoSendYes && option !== autoSendNo) {
 					return this.say("'" + option + "' is not a valid auto-send option.");
@@ -838,11 +831,8 @@ export const commands: BaseCommandDefinitions = {
 				if (!(user.id in pages)) return;
 				pages[user.id].sendHostDisplay();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

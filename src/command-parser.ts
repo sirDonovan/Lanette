@@ -242,6 +242,22 @@ export class CommandParser {
 		return result;
 	}
 
+	onRenameUser(user: User, oldId: string): void {
+		for (const i in this.htmlPages) {
+			if (oldId in this.htmlPages[i]) {
+				this.htmlPages[i][oldId].onRenameUser(user, oldId);
+			}
+		}
+	}
+
+	onDestroyUser(id: string): void {
+		for (const i in this.htmlPages) {
+			if (id in this.htmlPages[i]) {
+				this.htmlPages[i][id].destroy();
+			}
+		}
+	}
+
 	getErrorText(error: CommandErrorArray): string {
 		if (error[0] === 'invalidBotRoom') {
 			if (error[1]) return "'" + error[1].trim() + "' is not one of " + Users.self.name + "'s rooms.";
@@ -327,23 +343,15 @@ export class CommandParser {
 
 	private onReload(previous: CommandParser): void {
 		for (const i in previous.commandGuides) {
-			for (const j in previous.commandGuides[i]) {
-				// @ts-expect-error
-				previous.commandGuides[i][j] = undefined;
-			}
-			// @ts-expect-error
-			previous.commandGuides[i] = undefined;
+			Tools.unrefProperties(previous.commandGuides[i]);
 		}
 
 		for (const i in previous.htmlPages) {
 			for (const user in previous.htmlPages[i]) {
 				previous.htmlPages[i][user].destroy();
-
-				// @ts-expect-error
-				previous.htmlPages[i][user] = undefined;
 			}
-			// @ts-expect-error
-			previous.htmlPages[i] = undefined;
+
+			Tools.unrefProperties(previous.htmlPages[i]);
 		}
 
 		for (const i in previous.htmlPageModules) {

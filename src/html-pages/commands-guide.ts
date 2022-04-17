@@ -29,7 +29,7 @@ class CommandsGuide extends HtmlPageBase {
 	commandsPagination!: Pagination;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
 
@@ -48,8 +48,6 @@ class CommandsGuide extends HtmlPageBase {
 		this.components = [this.commandsPagination];
 
 		this.setCommandGuide(true);
-
-		pages[this.userId] = this;
 	}
 
 	chooseDeveloper(): void {
@@ -113,10 +111,6 @@ class CommandsGuide extends HtmlPageBase {
 		this.setCommandGuide();
 
 		this.send();
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	setCommandGuide(onOpen?: boolean): void {
@@ -213,33 +207,28 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new CommandsGuide(botRoom, user).open();
-			} else if (cmd === chooseDeveloper) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new CommandsGuide(botRoom, user);
+
+			if (cmd === chooseDeveloper) {
 				pages[user.id].chooseDeveloper();
 			} else if (cmd === chooseInfo) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseInfo();
 			} else if (cmd === chooseScriptedGame) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseScriptedGame();
 			} else if (cmd === chooseStorage) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseStorage();
 			} else if (cmd === chooseTournament) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseTournament();
 			} else if (cmd === chooseUserHostedGame) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseUserHostedGame();
 			} else if (cmd === chooseUtil) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseUtil();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

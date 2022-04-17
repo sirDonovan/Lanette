@@ -59,7 +59,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	targetUserId: string;
 
 	constructor(room: Room, user: User, targetUserId?: string) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.targetUserId = targetUserId || this.userId;
 
@@ -160,12 +160,6 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 		this.components = [this.trainerPicker, this.formatPicker, this.trainerCardBadgePicker, this.bioInput,
 			this.headerColorPicker, this.tableColorPicker, this.footerColorPicker, this.pokemonPicker];
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	getDatabase(): IDatabase {
@@ -506,48 +500,38 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new TournamentTrainerCard(targetRoom, user).open();
-			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
+				return;
+			}
+
+			if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
 				const trainerCard = Tournaments.getTrainerCardHtml(targetRoom, user.name);
 				if (!trainerCard) return this.say("You do not have a tournament trainer card.");
 				targetRoom.pmUhtml(user, targetRoom.id + "-tournament-trainer-card", trainerCard);
-			} else if (cmd === chooseTrainerPicker) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new TournamentTrainerCard(targetRoom, user);
+
+			if (cmd === chooseTrainerPicker) {
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === chooseHeaderView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseHeaderView();
 			} else if (cmd === chooseTableView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseTableView();
 			} else if (cmd === chooseFooterView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseFooterView();
 			} else if (cmd === choosePokemonView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].choosePokemonView();
 			} else if (cmd === chooseFormatPicker) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseFormatPicker();
 			} else if (cmd === chooseBadgesView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
-
-				if (!(user.id in pages)) {
-					return this.say("You must first use ``" + Config.commandCharacter + baseCommandAlias + " " + staffEditCommand +
-						", [user]`` to open the panel.");
-				}
 				pages[user.id].chooseBadgesView();
 			} else if (cmd === chooseBioView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
-
-				if (!(user.id in pages)) {
-					return this.say("You must first use ``" + Config.commandCharacter + baseCommandAlias + " " + staffEditCommand +
-						", [user]`` to open the panel.");
-				}
 				pages[user.id].chooseBioView();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else if (cmd === staffEditCommand) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 
@@ -555,7 +539,6 @@ export const commands: BaseCommandDefinitions = {
 				if (!Tools.isUsernameLength(targetUserId)) return this.say(CommandParser.getErrorText(['invalidUsernameLength']));
 				new TournamentTrainerCard(targetRoom, user, targetUserId).open();
 			} else {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

@@ -293,6 +293,8 @@ export class Users {
 
 		if (user === this.self) return;
 
+		CommandParser.onDestroyUser(user.id);
+
 		delete this.users[user.id];
 		user.destroy();
 	}
@@ -331,6 +333,8 @@ export class Users {
 			// tournament should rename last to avoid double renames in onTournamentPlayerRename()
 			if (room.tournament) room.tournament.renamePlayer(user.name, user.id, oldId);
 		});
+
+		CommandParser.onRenameUser(user, oldId);
 
 		return user;
 	}

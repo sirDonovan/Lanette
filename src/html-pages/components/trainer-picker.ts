@@ -10,6 +10,7 @@ export interface ITrainerPick {
 }
 
 interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
+	noCustomAvatars?: boolean;
 	random?: boolean;
 	onSetTrainerGen: (index: number, trainerGen: TrainerGeneration, dontRender: boolean | undefined) => void;
 }

@@ -38,7 +38,7 @@ class GameTrainerCard extends HtmlPageBase {
 	maxIcons: number;
 
 	constructor(room: Room, user: User, maxIcons: number) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;
@@ -84,12 +84,6 @@ class GameTrainerCard extends HtmlPageBase {
 		this.components = [this.backgroundColorPicker, this.trainerPicker, this.pokemonPicker];
 
 		this.maxIcons = maxIcons;
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	getDatabase(): IDatabase {
@@ -291,25 +285,27 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameTrainerCard(targetRoom, user, maxIcons).open();
-			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
+				return;
+			}
+
+			if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
 				const trainerCard = Games.getTrainerCardHtml(targetRoom, user.name);
 				if (!trainerCard) return this.say("You do not have a game trainer card.");
 				targetRoom.pmUhtml(user, targetRoom.id + "-game-trainer-card", trainerCard);
-			} else if (cmd === chooseBackgroundColorPicker) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new GameTrainerCard(targetRoom, user, maxIcons);
+
+			if (cmd === chooseBackgroundColorPicker) {
 				pages[user.id].chooseBackgroundColorPicker();
 			} else if (cmd === chooseTrainerPicker) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === choosePokemonPicker) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				pages[user.id].choosePokemonPicker();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new GameTrainerCard(targetRoom, user, maxIcons);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

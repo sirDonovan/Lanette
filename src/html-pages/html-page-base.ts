@@ -10,24 +10,33 @@ export abstract class HtmlPageBase {
 
 	baseCommand: string;
 	commandPrefix: string;
-	isRoomStaff: boolean;
+	pageList: Dict<HtmlPageBase>;
 	room: Room;
-	userName: string;
-	userId: string;
 
-	constructor(room: Room, user: User, baseCommand: string) {
+	isRoomStaff!: boolean;
+	userName!: string;
+	userId!: string;
+
+	constructor(room: Room, user: User, baseCommand: string, pageList: Dict<HtmlPageBase>) {
 		this.room = room;
-		this.userName = user.name;
-		this.userId = user.id;
-		this.isRoomStaff = user.hasRank(room, 'driver') || user.isDeveloper();
 		this.baseCommand = baseCommand;
 		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
+		this.pageList = pageList;
+
+		this.setUser(user);
+
+		if (user.id in pageList) pageList[user.id].destroy();
+		pageList[user.id] = this;
 	}
 
-	abstract onClose(): void;
 	abstract render(onOpen?: boolean): string;
 
 	destroy(): void {
+		for (const component of this.components) {
+			component.destroy();
+		}
+
+		delete this.pageList[this.userId];
 		Tools.unrefProperties(this);
 	}
 
@@ -39,8 +48,32 @@ export abstract class HtmlPageBase {
 		const user = Users.get(this.userId);
 		if (user) this.room.closeHtmlPage(user, this.pageId);
 
-		this.onClose();
+		if (this.onClose) this.onClose();
 		this.destroy();
+	}
+
+	setUser(user: User): void {
+		this.userName = user.name;
+		this.userId = user.id;
+		this.isRoomStaff = user.hasRank(this.room, 'driver') || user.isDeveloper();
+	}
+
+	onRenameUser(user: User, oldId: string): void {
+		if (!(oldId in this.pageList)) return;
+
+		if (oldId === user.id) {
+			this.userName = user.name;
+			return;
+		}
+
+		if (user.id in this.pageList) {
+			this.pageList[oldId].destroy();
+		} else {
+			this.setUser(user);
+			this.pageList[user.id] = this;
+		}
+
+		delete this.pageList[oldId];
 	}
 
 	send(onOpen?: boolean): void {
@@ -73,6 +106,7 @@ export abstract class HtmlPageBase {
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;
+	onClose?(): void;
 	onOpen?(): void;
 	onSend?(onOpen?: boolean): void;
 }
