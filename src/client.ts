@@ -1251,6 +1251,7 @@ export class Client {
 							avatar = DEFAULT_TRAINER_SPRITES[avatar];
 						}
 						user.avatar = avatar;
+						user.customAvatar = !Dex.getTrainerSpriteId(avatar);
 
 						user.autoconfirmed = response.autoconfirmed;
 						user.status = response.status;

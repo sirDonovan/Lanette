@@ -10,6 +10,7 @@ export class User {
 	avatar: string | null = null;
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
+	customAvatar: boolean | null = null;
 	game: ScriptedGame | null = null;
 	globalRank: string = " ";
 	locked: boolean | null = null;
