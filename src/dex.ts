@@ -1348,6 +1348,8 @@ export class Dex {
 	}
 
 	getCustomTrainerSprite(id: string): string {
+		if (id.charAt(0) === '#') id = id.substr(1);
+
 		return '<img src="//' + Tools.mainServer + '/sprites/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
