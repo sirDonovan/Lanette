@@ -1347,6 +1347,11 @@ export class Dex {
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
+	getCustomTrainerSprite(id: string): string {
+		return '<img src="//' + Tools.mainServer + '/sprites/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
+	}
+
 	getTypeHtml(type: ITypeData, width?: number): string {
 		return Tools.getHexLabel(Tools.getTypeHexCode(type.name)!, type.name, width);
 	}
