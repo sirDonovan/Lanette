@@ -986,7 +986,7 @@ export abstract class BattleElimination extends ScriptedGame {
 					(this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound ? "starting " : "") +
 					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + ":";
 				html += "<br />" + this.getPokemonIcons(starterPokemon).join("");
-				if (this.canReroll && !this.rerolls.has(player)) {
+				if (this.canReroll && this.playerCanReroll(player)) {
 					html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
 						Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
 				}
@@ -1196,6 +1196,13 @@ export abstract class BattleElimination extends ScriptedGame {
 			team.push(pokemon);
 		}
 		return team;
+	}
+
+	playerCanReroll(player: Player): boolean {
+		if (this.rerolls.has(player) || !this.starterPokemon.has(player) || this.playerBattleRooms.has(player) ||
+			(player.round! > 1 && !(this.firstRoundByes.has(player) && player.round === 2))) return false;
+
+		return true;
 	}
 
 	giveStartingTeam(player: Player): void {
@@ -2239,7 +2246,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			}
 
 			const player = this.players[user.id];
-			if (this.rerolls.has(player) || this.playerBattleRooms.has(player)) return false;
+			if (!this.playerCanReroll(player)) return false;
 
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;
