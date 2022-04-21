@@ -470,6 +470,21 @@ export class Storage {
 		this.addPoints(room, leaderboardType, name, amount * -1, source, batch);
 	}
 
+	removeAllPoints(room: Room, leaderboardType: LeaderboardType, name: string): void {
+		const database = this.getDatabase(room);
+		const leaderboard = database[leaderboardType];
+		if (!leaderboard) throw new Error("Storage.removeAllPoints() called with no leaderboard");
+
+		const id = Tools.toId(name);
+		if (!(id in leaderboard.entries)) return;
+
+		const sources = Object.keys(leaderboard.entries[id].sources).filter(x => leaderboard.entries[id].sources[x] > 0);
+		const lastIndex = sources.length - 1;
+		for (let i = 0; i < sources.length; i++) {
+			this.removePoints(room, leaderboardType, name, leaderboard.entries[id].sources[sources[i]], sources[i], i !== lastIndex);
+		}
+	}
+
 	getPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {
 		const database = this.getDatabase(room);
 		const id = Tools.toId(name);
