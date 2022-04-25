@@ -238,6 +238,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	getCustomRules(): string[] {
 		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
 		const allPokemon: string[] = [];
+		const checkedPokemon: Dict<boolean> = {};
+
 		for (const name of this.pokedex) {
 			const pokemon = Dex.getExistingPokemon(name);
 
@@ -251,19 +253,60 @@ export abstract class BattleElimination extends ScriptedGame {
 				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
 				for (const line of evolutionLines) {
 					for (const stage of line) {
+						if (stage in checkedPokemon) continue;
+
 						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+						const usableStageFormes: string[] = [];
 						for (const stageForme of stageFormes) {
-							if (this.battleFormat.usablePokemon!.includes(stageForme) && !allPokemon.includes(stageForme)) {
-								allPokemon.push(stageForme);
+							if (this.battleFormat.usablePokemon!.includes(stageForme)) usableStageFormes.push(stageForme);
+						}
+
+						let addBaseModifier = false;
+						if (usableStageFormes.length !== stageFormes.length) {
+							for (const usableStageForme of usableStageFormes) {
+								if (!Dex.getExistingPokemon(usableStageForme).forme) {
+									addBaseModifier = true;
+									break;
+								}
 							}
 						}
+
+						if (addBaseModifier) {
+							const baseModifier = stage + "-Base";
+							if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+						}
+
+						for (const usableStageForme of usableStageFormes) {
+							if (addBaseModifier && usableStageForme === stage) continue;
+
+							if (!allPokemon.includes(usableStageForme)) allPokemon.push(usableStageForme);
+						}
+
+						checkedPokemon[stage] = true;
 					}
 				}
 			} else {
 				if (!allPokemon.includes(pokemon.name)) allPokemon.push(pokemon.name);
 
-				for (const forme of usableFormes) {
-					if (!allPokemon.includes(forme)) allPokemon.push(forme);
+				let addBaseModifier = false;
+				if (usableFormes.length !== formes.length) {
+					for (const forme of usableFormes) {
+						if (!Dex.getExistingPokemon(forme).forme) {
+							addBaseModifier = true;
+							break;
+						}
+					}
+				}
+
+				if (addBaseModifier) {
+					const baseModifier = pokemon.name + "-Base";
+					if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+				}
+
+				for (const usableForme of usableFormes) {
+					if (addBaseModifier && usableForme === pokemon.name) continue;
+
+					if (!allPokemon.includes(usableForme)) allPokemon.push(usableForme);
 				}
 			}
 		}
