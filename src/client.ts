@@ -259,6 +259,7 @@ export class Client {
 	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
 	private connectionTimeout: NodeJS.Timer | undefined = undefined;
 	private evasionFilterRegularExpressions: RegExp[] | null = null;
+	/**Maps group name to symbol */
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
@@ -287,6 +288,7 @@ export class Client {
 	private sendTimeoutDuration: number = 0;
 	private server: string = Config.server || Tools.mainServer;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
+	/**Maps symbol to group info */
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
 	private serverPingTimeout: NodeJS.Timer | null = null;
@@ -324,10 +326,12 @@ export class Client {
 		this.messageParsersExist = this.messageParsers.length > 0;
 	}
 
+	/**Maps group name to symbol */
 	getGroupSymbols(): DeepImmutable<KeyedDict<GroupName, string>> {
 		return this.groupSymbols;
 	}
 
+	/**Maps symbol to group info */
 	getServerGroups(): DeepImmutable<Dict<IServerGroup>> {
 		return this.serverGroups;
 	}

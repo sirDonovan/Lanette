@@ -76,11 +76,15 @@ export class User {
 		this.setIsLocked(rank);
 	}
 
-	setRoomRank(room: Room, rank: string): void {
+	/**Returns `true` if the user's rank changed */
+	setRoomRank(room: Room, rank: string): boolean {
 		const roomData = this.rooms.get(room);
+		if (roomData && roomData.rank === rank) return false;
+
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		this.setIsLocked(rank);
+		return true;
 	}
 
 	setIsLocked(rank: string): void {

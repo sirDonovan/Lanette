@@ -17,6 +17,8 @@ const DEFAULT_MODCHAT = 'off';
 
 export class Room {
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	/**Maps symbol to list of userids */
+	auth: Dict<string[]> = {};
 	battle: boolean | null = null;
 	chatBlockedByModchat: boolean = false;
 	chatLog: IChatLogEntry[] = [];
@@ -209,6 +211,14 @@ export class Room {
 			if (!this.users.has(user)) this.onUserJoin(user, rank);
 		}
 
+		const serverGroups = Client.getServerGroups();
+
+		this.auth = {};
+		for (const rank in response.auth) {
+			if (!(rank in serverGroups) || serverGroups[rank].type === 'punishment' || !serverGroups[rank].name) continue;
+			this.auth[rank] = response.auth[rank].map(x => Tools.toId(x));
+		}
+
 		this.setModchat(response.modchat === false ? DEFAULT_MODCHAT : response.modchat);
 	}
 
@@ -241,7 +251,9 @@ export class Room {
 		if (!this.users.has(user)) {
 			this.onUserJoin(user, rank);
 		} else {
-			user.setRoomRank(this, rank);
+			if (user.setRoomRank(this, rank)) {
+				Client.getRoomInfo(this);
+			}
 		}
 	}
 
