@@ -932,7 +932,7 @@ export class Tournaments {
 			const rank = user.rooms.get(room)!.rank;
 			const roomGroup = rank in groups ? groups[rank] : undefined;
 			const globalGroup = user.globalRank in groups ? groups[user.globalRank] : undefined;
-			if (roomGroup && roomGroup.name && (!globalGroup || roomGroup.name !== globalGroup.name)) {
+			if (roomGroup && roomGroup.name && roomGroup.type !== 'punishment' && user.isRoomauth(room)) {
 				html += "<br /><i>" + (!roomGroup.name.startsWith("Room ") ? "Room " : "") + roomGroup.name + "</i>";
 			}
 
@@ -1018,7 +1018,7 @@ export class Tournaments {
 		return html;
 	}
 
-	showWinnerTrainerCard(room: Room, name: string): void {
+	displayTrainerCard(room: Room, name: string): void {
 		const id = Tools.toId(name);
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {

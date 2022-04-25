@@ -335,7 +335,7 @@ export class Tournament extends Activity {
 				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
 
 			if (showTrainerCard) {
-				Tournaments.showWinnerTrainerCard(this.room, winners[0]);
+				Tournaments.displayTrainerCard(this.room, winners[0]);
 			}
 		}
 

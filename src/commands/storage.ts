@@ -818,31 +818,29 @@ export const commands: BaseCommandDefinitions = {
 	},
 	tournamentprofile: {
 		command(target, room, user) {
-			const targets = target.split(",");
-			let tournamentRoom: Room;
 			if (this.isPm(room)) {
-				const targetRoom = Rooms.search(targets[0]);
-				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-				tournamentRoom = targetRoom;
-				targets.shift();
-			} else {
-				if (!user.hasRank(room, 'star')) return;
-				tournamentRoom = room;
+				this.say("To preview your tournament trainer profile, use the command ``" + Config.commandCharacter + "ttc [room]``.");
+				return;
 			}
 
-			let targetName = targets[0] || user.name;
+			if (!user.hasRank(room, 'star')) return;
+
+			let targetName = target || user.name;
 			const targetUser = Users.get(targetName);
 			if (targetUser) {
 				targetName = targetUser.name;
 			}
-			const html = Tournaments.getTrainerCardHtml(tournamentRoom, targetName);
-			if (!html) return this.say(targetName + " does not have a tournament trainer card.");
 
-			this.sayHtml(html, tournamentRoom);
+			if (!Tournaments.getTrainerCardHtml(room, targetName)) {
+				return this.say(targetName + " does not have a tournament trainer profile.");
+			}
+
+			// update global rank
+			Tournaments.displayTrainerCard(room, targetName);
 		},
 		aliases: ['tourprofile'],
-		syntax: ["[room]"],
-		description: ["displays the tournament trainer card of the given user"],
+		syntax: ["[user]"],
+		description: ["displays the tournament trainer profile of the given user"],
 	},
 	tournamenttrainercardbadges: {
 		command(target, room, user) {

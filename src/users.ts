@@ -112,8 +112,18 @@ export class User {
 		}
 	}
 
-	hasRank(room: Room, targetRank: GroupName): boolean {
-		if (!this.rooms.has(room)) return false;
+	isRoomauth(room: Room): boolean {
+		for (const roomAuthRank in room.auth) {
+			if (room.auth[roomAuthRank].includes(this.id)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	hasRank(room: Room, targetRank: GroupName, roomAuth?: boolean): boolean {
+		if (!this.rooms.has(room) || (roomAuth && !this.isRoomauth(room))) return false;
 		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
 	}
 

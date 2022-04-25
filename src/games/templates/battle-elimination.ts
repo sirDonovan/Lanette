@@ -2098,7 +2098,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 
 			if (winners.length === 1) {
-				Tournaments.showWinnerTrainerCard(this.room, winners[0].name);
+				Tournaments.displayTrainerCard(this.room, winners[0].name);
 			}
 		}
 
