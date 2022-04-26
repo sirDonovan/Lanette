@@ -57,6 +57,7 @@ const NOTIFY_USER_MESSAGE = "Sent a notification to ";
 const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
+const CHAT_ERROR_MESSAGE = "/error ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
 const UNREGISTERED_USER_MESSAGE = "/error That user is unregistered and cannot be PMed.";
 const USER_BLOCKING_PMS_MESSAGE = "/error This user is blocking private messages right now.";
@@ -2008,7 +2009,10 @@ export class Client {
 					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
+				Tools.logMessage("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 			}
+
 			break;
 		}
 
@@ -2117,6 +2121,8 @@ export class Client {
 					this.clearLastOutgoingMessage(now);
 					if (user) user.say("Hangman error: " + Tools.escapeHTML(messageArguments.error));
 				}
+			} else {
+				Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
 			}
 
 			break;
