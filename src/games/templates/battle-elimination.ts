@@ -262,7 +262,7 @@ export abstract class BattleElimination extends ScriptedGame {
 						}
 
 						let addBaseModifier = false;
-						if (usableStageFormes.length !== stageFormes.length) {
+						if (!Dex.getExistingPokemon(stage).forme && usableStageFormes.length !== stageFormes.length) {
 							for (const usableStageForme of usableStageFormes) {
 								if (!Dex.getExistingPokemon(usableStageForme).forme) {
 									addBaseModifier = true;
@@ -286,10 +286,8 @@ export abstract class BattleElimination extends ScriptedGame {
 					}
 				}
 			} else {
-				if (!allPokemon.includes(pokemon.name)) allPokemon.push(pokemon.name);
-
 				let addBaseModifier = false;
-				if (usableFormes.length !== formes.length) {
+				if (!pokemon.forme && usableFormes.length !== formes.length) {
 					for (const forme of usableFormes) {
 						if (!Dex.getExistingPokemon(forme).forme) {
 							addBaseModifier = true;
