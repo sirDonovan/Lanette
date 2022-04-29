@@ -1754,6 +1754,9 @@ export class Client {
 					}
 
 					return;
+				} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
+					Tools.logMessage("Error message in PM to " + messageArguments.recipientUsername + ": " +
+						messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 				}
 
 				if (!recipientId) return;
@@ -2124,7 +2127,9 @@ export class Client {
 					if (user) user.say("Hangman error: " + Tools.escapeHTML(messageArguments.error));
 				}
 			} else {
-				Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) {
+					Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
+				}
 			}
 
 			break;
