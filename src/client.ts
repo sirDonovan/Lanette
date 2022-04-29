@@ -916,6 +916,7 @@ export class Client {
 		});
 	}
 
+	/**Removes all webSocket listeners and clears sendTimeout */
 	private terminateWebSocket(): void {
 		this.clearConnectionTimeouts();
 		this.removeClientListeners();
@@ -979,6 +980,7 @@ export class Client {
 			this.outgoingMessageQueue = [];
 		}
 
+		this.lastOutgoingMessage = null;
 		this.loggedIn = false;
 		this.connectionAttempts = 0;
 		this.connect();
