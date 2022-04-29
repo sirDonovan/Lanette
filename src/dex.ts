@@ -107,6 +107,7 @@ const clauseNicknames: Dict<string> = {
 	'First Blood Rule': 'First Blood',
 	'Cross Evolution Mod': 'Cross Evolution',
 	'Revelationmons Mod': 'Revelationmons',
+	'Crazyhouse Rule': 'Crazyhouse',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
