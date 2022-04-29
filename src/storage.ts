@@ -36,6 +36,8 @@ export class Storage {
 	loadedDatabases: boolean = false;
 
 	allLeaderboardTypes: LeaderboardType[];
+	allLeaderboardTypesById: Dict<LeaderboardType>;
+	allLeaderboardNames: KeyedDict<LeaderboardType, string>;
 	globalDatabaseExportInterval: NodeJS.Timer;
 
 	private archiveDatabases: Dict<IArchiveDatabase> = {};
@@ -44,6 +46,18 @@ export class Storage {
 	constructor() {
 		this.allLeaderboardTypes = [this.gameLeaderboard, this.gameHostingLeaderboard, this.tournamentLeaderboard,
 			this.unsortedLeaderboard];
+		this.allLeaderboardNames = {
+			[this.gameLeaderboard]: 'game',
+			[this.gameHostingLeaderboard]: 'game hosting',
+			[this.tournamentLeaderboard]: 'tournament',
+			[this.unsortedLeaderboard]: 'unsorted',
+		};
+
+		this.allLeaderboardTypesById = {};
+		for (const leadboardType of this.allLeaderboardTypes) {
+			this.allLeaderboardTypesById[Tools.toId(leadboardType)] = leadboardType;
+		}
+
 		this.globalDatabaseExportInterval = setInterval(() => this.tryExportGlobalDatabase(), 15 * 60 * 1000);
 	}
 
@@ -470,19 +484,21 @@ export class Storage {
 		this.addPoints(room, leaderboardType, name, amount * -1, source, batch);
 	}
 
-	removeAllPoints(room: Room, leaderboardType: LeaderboardType, name: string): void {
+	removeAllPoints(room: Room, leaderboardType: LeaderboardType, name: string): boolean {
 		const database = this.getDatabase(room);
 		const leaderboard = database[leaderboardType];
 		if (!leaderboard) throw new Error("Storage.removeAllPoints() called with no leaderboard");
 
 		const id = Tools.toId(name);
-		if (!(id in leaderboard.entries)) return;
+		if (!(id in leaderboard.entries)) return false;
 
 		const sources = Object.keys(leaderboard.entries[id].sources).filter(x => leaderboard.entries[id].sources[x] > 0);
 		const lastIndex = sources.length - 1;
 		for (let i = 0; i < sources.length; i++) {
 			this.removePoints(room, leaderboardType, name, leaderboard.entries[id].sources[sources[i]], sources[i], i !== lastIndex);
 		}
+
+		return true;
 	}
 
 	getPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {

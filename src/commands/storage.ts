@@ -682,10 +682,10 @@ export const commands: BaseCommandDefinitions = {
 				const targets = target.split(",");
 				for (const type of targets) {
 					const id = Tools.toId(type) as LeaderboardType;
-					if (!Storage.allLeaderboardTypes.includes(id)) {
+					if (!(id in Storage.allLeaderboardTypesById)) {
 						return this.say("'" + type.trim() + "' is not a valid leaderboard type.");
 					}
-					leaderboardTypes.push(id);
+					leaderboardTypes.push(Storage.allLeaderboardTypesById[id]);
 				}
 			}
 
@@ -697,7 +697,7 @@ export const commands: BaseCommandDefinitions = {
 				.catch((e: Error) => {
 					const currentRoom = Rooms.get(room.id);
 					if (currentRoom) {
-						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s were" : " was") + ".");
+						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s" : "") + ".");
 					}
 
 					Tools.logError(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
@@ -706,6 +706,40 @@ export const commands: BaseCommandDefinitions = {
 		chatOnly: true,
 		aliases: ['resetleaderboard'],
 		description: ["ends the current leaderboard cycle and starts a new one"],
+	},
+	clearleaderboardpoints: {
+		command(target, room, user) {
+			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
+			const database = Storage.getDatabase(room);
+			let leaderboards = 0;
+			for (const type of Storage.allLeaderboardTypes) {
+				if (database[type]) leaderboards++;
+			}
+
+			if (!leaderboards) return this.say("There is no leaderboard for the " + room.title + " room.");
+
+			const targets = target.split(",");
+			if (targets.length !== 2) return this.say("You must specify a leaderboard type and user.");
+
+			let leaderboardTypeId = Tools.toId(targets[0]);
+			if (leaderboardTypeId + 'leaderboard' in Storage.allLeaderboardTypesById) {
+				leaderboardTypeId += 'leaderboard';
+			} else if (!(leaderboardTypeId in Storage.allLeaderboardTypesById)) {
+				return this.say("'" + targets[0].trim() + "' is not a valid leaderboard type.");
+			}
+
+			if (Storage.removeAllPoints(room, Storage.allLeaderboardTypesById[leaderboardTypeId], targets[1])) {
+				this.say("Cleared all " + Storage.allLeaderboardNames[Storage.allLeaderboardTypesById[leaderboardTypeId]] +
+					" points for " + targets[1].trim() + ".");
+			} else {
+				this.say(targets[1].trim() + " does not have any " +
+					Storage.allLeaderboardNames[Storage.allLeaderboardTypesById[leaderboardTypeId]] + " points.");
+			}
+		},
+		chatOnly: true,
+		aliases: ['resetleaderboardpoints'],
+		syntax: ["[leaderboard type], [user]"],
+		description: ["clears the user's points from the specified leaderboard"],
 	},
 	transferdata: {
 		command(target, room, user) {
