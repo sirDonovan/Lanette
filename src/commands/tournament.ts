@@ -592,6 +592,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
@@ -622,6 +624,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user, cmd) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
@@ -676,6 +680,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
