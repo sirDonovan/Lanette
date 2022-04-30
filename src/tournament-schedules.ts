@@ -264,6 +264,17 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 					times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 					year: 2022,
 				},
+				'5': {
+					formats: {
+						'1': 'NU, +NUBL, +bonus type rule',
+						'2': 'LC, camomons',
+						'3': 'doubles ou, [Gen 8] STABmons, -Blissey, -Chansey, -Shedinja, -Silvally, -Snorlax, *Acupressure, *Astral Barrage, *Belly Drum, *Bolt Beak, *Clangorous Soul, *Decorate, *Diamond Storm, *Double Iron Bash, *Fishious Rend, *Follow Me, *Geomancy, *Glacial Lance, *Lovely Kiss, *Oblivion Wing, *Shift Gear, *Shell Smash, *Sleep Powder, *Spore, *Thousand Arrows, -Swift Swim',
+						'4': 'gen 6 random battle, [Gen 8] Shared Power, !Moody Clause, Camomons Mod, Inverse Mod, Scalemons Mod',
+						'5': 'omotm1',
+					},
+					times: [[5, 30], [12, 30], [18, 30], [23, 30]],
+					year: 2022,
+				},
 			},
 		},
 	},
