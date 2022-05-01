@@ -16,6 +16,7 @@ type RoomCreateListener = (room: Room) => void;
 const DEFAULT_MODCHAT = 'off';
 
 export class Room {
+	alias: string | null = null;
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
 	/**Maps symbol to list of userids */
 	auth: Dict<string[]> = {};
@@ -163,6 +164,18 @@ export class Room {
 	}
 
 	updateConfigSettings(): void {
+		if (Config.roomAliases) {
+			const aliases: string[] = [];
+			for (const alias in Config.roomAliases) {
+				if (Config.roomAliases[alias] === this.id) {
+					aliases.push(alias);
+				}
+			}
+
+			aliases.sort((a, b) => a.length - b.length);
+			this.alias = aliases[0];
+		}
+
 		this.configBannedWordsRegex = null;
 
 		if (Config.roomBannedWords && this.id in Config.roomBannedWords) {
