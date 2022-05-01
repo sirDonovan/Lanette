@@ -254,7 +254,7 @@ export class Games {
 	}
 
 	loadFormats(): void {
-		const userHostedModule = require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+		const userHostedModule = require(path.join(Tools.buildFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
 		typeof import('./room-game-user-hosted');
 
 		// @ts-expect-error

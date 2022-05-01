@@ -317,7 +317,7 @@ export class Client {
 		this.parseServerGroups();
 		this.updateConfigSettings();
 
-		const messageParsersDir = path.join(Tools.builtFolder, 'message-parsers');
+		const messageParsersDir = path.join(Tools.buildFolder, 'message-parsers');
 		const privateMessageParsersDir = path.join(messageParsersDir, 'private');
 
 		this.loadMessageParsersDirectory(messageParsersDir);

@@ -90,7 +90,7 @@ timeout = undefined;
 export class Tools {
 	// exported constants
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
-	readonly builtFolder: string = path.join(rootFolder, 'built');
+	readonly buildFolder: string = path.join(rootFolder, 'build');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly guestUserPrefix: string = GUEST_USER_PREFIX;

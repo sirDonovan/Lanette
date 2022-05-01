@@ -121,13 +121,13 @@ export class CommandParser {
 	private commandModules: ICommandFile[] = [];
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
 	private htmlPageModules: Dict<IHtmlPageFile> = {};
-	private htmlPagesDir: string = path.join(Tools.builtFolder, 'html-pages');
+	private htmlPagesDir: string = path.join(Tools.buildFolder, 'html-pages');
 
 	private commandsDir: string;
 	private privateCommandsDir: string;
 
 	constructor() {
-		this.commandsDir = path.join(Tools.builtFolder, 'commands');
+		this.commandsDir = path.join(Tools.buildFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
 	}
 

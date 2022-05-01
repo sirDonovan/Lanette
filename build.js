@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-const builtFolder = path.join(__dirname, "built");
+const buildFolder = path.join(__dirname, "build");
 const srcFolder = path.join(__dirname, "src");
 const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
@@ -43,7 +43,7 @@ function deleteFolderRecursive(folder) {
 			}
 		}
 
-		if (folder !== builtFolder) fs.rmdirSync(folder);
+		if (folder !== buildFolder) fs.rmdirSync(folder);
 	}
 }
 
@@ -70,19 +70,19 @@ function listFilesRecursive(folder) {
 }
 
 function pruneBuiltFiles() {
-	const builtFiles = listFilesRecursive(builtFolder);
+	const builtFiles = listFilesRecursive(buildFolder);
 	const srcFiles = listFilesRecursive(srcFolder);
 	for (let i = 0; i < builtFiles.length; i++) {
 		if (!builtFiles[i].endsWith('.js') && !builtFiles[i].endsWith('.js.map')) {
 			if (fs.lstatSync(builtFiles[i]).isDirectory()) {
-				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(builtFolder.length + 1)))) {
+				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(buildFolder.length + 1)))) {
 					fs.rmdirSync(builtFiles[i]);
 				}
 			}
 			continue;
 		}
 
-		const filepath = builtFiles[i].substr(builtFolder.length + 1);
+		const filepath = builtFiles[i].substr(buildFolder.length + 1);
 		let filename;
 		if (filepath.endsWith('.js.map')) {
 			filename = filepath.substr(0, filepath.length - 7);
@@ -150,7 +150,7 @@ module.exports = async (options) => {
 			pruneBuiltFiles();
 			console.log("Pruned built folder")
 		} else {
-			deleteFolderRecursive(builtFolder);
+			deleteFolderRecursive(buildFolder);
 			console.log("Deleted old built folder");
 		}
 	}
