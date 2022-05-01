@@ -942,7 +942,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (!users.length) return this.say("No one holds the " + Config.tournamentTrainerCardBadges[id].name + " badge.");
-			this.sayHtml("<b>" + Config.tournamentTrainerCardBadges[id].name + "badge holders</b>:<br />" + users.join(", "),
+			this.sayHtml("<b>" + Config.tournamentTrainerCardBadges[id].name + " badge holders</b>:<br />" + users.join(", "),
 				tournamentRoom);
 		},
 		aliases: ['tourtrainercardbadgeholders', 'tourbadgeholders', 'ttcbh'],
