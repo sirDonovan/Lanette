@@ -72,9 +72,10 @@ class TournamentStats extends HtmlPageBase {
 		const pointsBreakdownView = this.currentView === 'pointsbreakdown';
 
 		html += "<b>Options</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLeaderboard, "Leaderboard", leaderboardView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLeaderboard, "Leaderboard",
+			{selectedAndDisabled: leaderboardView});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePointsBreakdown, "Points breakdown",
-			pointsBreakdownView);
+			{selectedAndDisabled: pointsBreakdownView});
 		html += "</center>";
 
 		if (leaderboardView) {

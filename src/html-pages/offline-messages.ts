@@ -281,15 +281,18 @@ class OfflineMessages extends HtmlPageBase {
 			const showingDiscarded = this.messageType === 'discarded';
 
 			html += "<b>Message type</b>: ";
-			html += this.getQuietPmButton(this.commandPrefix + " " + newMessagesCommand, "New", showingNew) + "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + " " + oldMessagesCommand, "Old", showingOld) + "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded", showingDiscarded);
+			html += this.getQuietPmButton(this.commandPrefix + " " + newMessagesCommand, "New",
+				{selectedAndDisabled: showingNew}) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + oldMessagesCommand, "Old",
+				{selectedAndDisabled: showingOld}) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded",
+				{selectedAndDisabled: showingDiscarded});
 
 			html += "<br /><br /><details><summary><b>Set your timezone</b> (currently " + this.timezone + "):</summary>";
 			let rowCount = 0;
 			for (const timezone of Tools.timezones) {
 				html += this.getQuietPmButton(this.commandPrefix + " " + timezoneCommand + ", " + timezone, timezone,
-					this.timezone === timezone) + "&nbsp;";
+					{selectedAndDisabled: this.timezone === timezone}) + "&nbsp;";
 				rowCount++;
 				if (rowCount === 6) {
 					html += "<br />";
@@ -312,7 +315,7 @@ class OfflineMessages extends HtmlPageBase {
 				html += "<b>Date</b>: ";
 				for (const date of this.dateOptions) {
 					html += this.getQuietPmButton(this.commandPrefix + " " + dateCommand + ", " + date, date,
-						this.selectedDate === date) + "&nbsp;";
+						{selectedAndDisabled: this.selectedDate === date}) + "&nbsp;";
 				}
 				html += "<br /><div class='pmbox'>" + this.displayedMessagesByDate[this.selectedDate] + "</div>";
 			} else {

@@ -614,11 +614,14 @@ class GameHostControlPanel extends HtmlPageBase {
 		html += "Options:";
 		if (currentHost) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
-				hostInformation);
+				{selectedAndDisabled: hostInformation});
 		}
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display", manualHostDisplay);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomHostDisplay);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display",
+			{selectedAndDisabled: manualHostDisplay});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display",
+			{selectedAndDisabled: randomHostDisplay});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints",
+			{selectedAndDisabled: generateHints});
 		html += "</center>";
 
 		if (hostInformation) {
@@ -660,7 +663,7 @@ class GameHostControlPanel extends HtmlPageBase {
 			if (remainingPlayers.length) {
 				html += "<br /><center>";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points controls",
-					!this.currentPlayer);
+					{selectedAndDisabled: !this.currentPlayer});
 
 				if (game.teams) {
 					html += "<br /><br />";
@@ -671,7 +674,7 @@ class GameHostControlPanel extends HtmlPageBase {
 							for (const playerId of remainingTeamPlayers) {
 								const player = game.players[playerId];
 								html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " +
-									playerId, player.name, this.currentPlayer === playerId);
+									playerId, player.name, {selectedAndDisabled: this.currentPlayer === playerId});
 							}
 							html += "<br />";
 						}
@@ -682,7 +685,7 @@ class GameHostControlPanel extends HtmlPageBase {
 					for (const playerId of remainingPlayers) {
 						const player = game.players[playerId];
 						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + playerId,
-							player.name, this.currentPlayer === playerId);
+							player.name, {selectedAndDisabled: this.currentPlayer === playerId});
 					}
 
 					if (this.currentPlayer) html += "<br /><br />";
@@ -735,14 +738,14 @@ class GameHostControlPanel extends HtmlPageBase {
 				disabledSend = true;
 			}
 			html += "<center>" + this.getQuietPmButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
-				disabledSend) + "</center>";
+				{disabled: disabledSend}) + "</center>";
 
 			html += "<br />";
 			html += "Auto-send after any change: ";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
-				!currentHost || this.autoSendDisplay);
+				{disabled: !currentHost || this.autoSendDisplay});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
-				!currentHost || !this.autoSendDisplay);
+				{disabled: !currentHost || !this.autoSendDisplay});
 
 			html += "<br /><br />";
 			if (manualHostDisplay) {

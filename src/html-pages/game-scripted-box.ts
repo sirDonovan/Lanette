@@ -831,16 +831,18 @@ class GameScriptedBox extends HtmlPageBase {
 
 		let formatView = "<b>Change games</b>";
 		formatView += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteFormatCommand, "Delete",
-			!formatBoxExists);
+			{disabled: !formatBoxExists});
 		formatView += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + loadFormatCommand, "Load",
-			!formatBoxExists || this.gameFormat === this.activeGameFormat);
+			{disabled: !formatBoxExists || this.gameFormat === this.activeGameFormat});
 		formatView += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + copyFormatCommand, "Copy current",
-			!this.gameFormat || this.gameFormat === this.lastCopiedGameFormat ? true : false) + "<br />";
+			{disabled: !this.gameFormat || this.gameFormat === this.lastCopiedGameFormat ? true : false}) + "<br />";
 		formatView += this.gameTextInput.render();
 
 		let viewButtons = "<b>Current view</b><br />";
-		viewButtons += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsView, "Signups view", signups);
-		viewButtons += "&nbsp;|&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGameView, "Game view", game);
+		viewButtons += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsView, "Signups view",
+			{selectedAndDisabled: signups});
+		viewButtons += "&nbsp;|&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGameView, "Game view",
+			{selectedAndDisabled: game});
 
 		html += "<br />";
 
@@ -876,41 +878,41 @@ class GameScriptedBox extends HtmlPageBase {
 
 			if (this.pokemonAvatar) {
 				html += this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonAvatarPicker, "Pokemon avatar",
-				pokemonAvatar) + "&nbsp;";
+					{selectedAndDisabled: pokemonAvatar}) + "&nbsp;";
 			}
 
 			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseMascotGenerationPicker, "Mascot generation",
-				mascotGeneration);
+				{selectedAndDisabled: mascotGeneration});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
-				background);
+				{selectedAndDisabled: background});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
-				backgroundBorder);
+				{selectedAndDisabled: backgroundBorder});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
-				buttons);
+				{selectedAndDisabled: buttons});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
-				buttonsBorder);
+				{selectedAndDisabled: buttonsBorder});
 
 			html += "<br />";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-				"Signups background", signupsBackground);
+				"Signups background", {selectedAndDisabled: signupsBackground});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
-				"Signups background border", signupsBackgroundBorder);
+				"Signups background border", {selectedAndDisabled: signupsBackgroundBorder});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker,
-				"Signups buttons", signupsButtons);
+				"Signups buttons", {selectedAndDisabled: signupsButtons});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
-				"Signups buttons border", signupsButtonsBorder);
+				"Signups buttons border", {selectedAndDisabled: signupsButtonsBorder});
 
 			html += "<br /><br />";
 
 			if (mascotGeneration) {
 				html += "<b>Mascot generation</b><br />";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + clearMascotGenerationCommand, "Default",
-					!database.gameScriptedBoxes![this.userId].mascotGeneration);
+					{selectedAndDisabled: !database.gameScriptedBoxes![this.userId].mascotGeneration});
 
 				const generations = Dex.getModelGenerations();
 				for (const gen of generations) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setMascotGenerationCommand + ", " + gen,
-						gen.toUpperCase(), database.gameScriptedBoxes![this.userId].mascotGeneration === gen);
+						gen.toUpperCase(), {selectedAndDisabled: database.gameScriptedBoxes![this.userId].mascotGeneration === gen});
 				}
 			} else if (background) {
 				html += "<b>Background color</b><br />";
@@ -976,17 +978,17 @@ class GameScriptedBox extends HtmlPageBase {
 
 			if (this.pokemonAvatar) {
 				html += this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonAvatarPicker,
-					"Pokemon avatar", gamePokemonAvatar) + "&nbsp;";
+					"Pokemon avatar", {selectedAndDisabled: gamePokemonAvatar}) + "&nbsp;";
 			}
 
 			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseGameBackgroundColorPicker,
-				"Background", gameBackground);
+				"Background", {selectedAndDisabled: gameBackground});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGameButtonColorPicker,
-				"Buttons", gameButtons);
+				"Buttons", {selectedAndDisabled: gameButtons});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGameBackgroundBorderPicker,
-				"Background border", gameBackgroundBorder);
+				"Background border", {selectedAndDisabled: gameBackgroundBorder});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGameButtonsBorderPicker,
-				"Buttons border", gameButtonsBorder);
+				"Buttons border", {selectedAndDisabled: gameButtonsBorder});
 
 			html += "<br /><br />";
 

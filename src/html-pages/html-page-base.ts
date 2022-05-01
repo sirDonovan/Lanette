@@ -2,12 +2,21 @@ import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ComponentBase } from "./components/component-base";
 
+export interface IQuietPMButtonOptions {
+	disabled?: boolean;
+	enabledReadonly?: boolean;
+	selected?: boolean;
+	selectedAndDisabled?: boolean;
+	style?: string;
+}
+
 export abstract class HtmlPageBase {
 	abstract pageId: string;
 
 	closed: boolean = false;
 	components: ComponentBase[] = [];
 	lastRender: string = '';
+	readonly: boolean = false;
 
 	baseCommand: string;
 	commandPrefix: string;
@@ -21,7 +30,7 @@ export abstract class HtmlPageBase {
 	constructor(room: Room, user: User, baseCommand: string, pageList: Dict<HtmlPageBase>) {
 		this.room = room;
 		this.baseCommand = baseCommand;
-		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
+		this.commandPrefix = Config.commandCharacter + baseCommand + " " + (room.alias || room.id);
 		this.pageList = pageList;
 
 		this.setUser(user);
@@ -108,8 +117,17 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
-	getQuietPmButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
-		return Client.getQuietPmButton(this.room, message, label, disabled, buttonStyle);
+	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+		let disabled = options && (options.disabled || options.selectedAndDisabled);
+		if (!disabled && options && !options.enabledReadonly && this.readonly) disabled = true;
+
+		let style = options && options.style ? options.style : "";
+		if (options && (options.selected || options.selectedAndDisabled)) {
+			if (style && !style.endsWith(';')) style += ';';
+			style += 'border-color: #ffffff;';
+		}
+
+		return Client.getQuietPmButton(this.room, message, label, disabled, style);
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;

@@ -57,6 +57,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			pagesLabel: "Users",
 			noElementsLabel: "The leaderboard is empty",
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 
@@ -190,7 +191,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		let html = "<b>Cycles</b>: ";
         for (const option of this.cycleOptions) {
             html += this.getQuietPmButton(this.commandPrefix + ", " + this.cycleCommand + ", " + option, option,
-				this.selectedCycle === option) + "&nbsp;";
+				{selectedAndDisabled: this.selectedCycle === option}) + "&nbsp;";
         }
 		return html;
 	}

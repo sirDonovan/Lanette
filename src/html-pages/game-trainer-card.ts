@@ -210,10 +210,13 @@ class GameTrainerCard extends HtmlPageBase {
 		const trainer = this.currentPicker === 'trainer';
 		const pokemon = this.currentPicker === 'pokemon';
 
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background", background);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer", trainer);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
+			{selectedAndDisabled: background});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
+			{selectedAndDisabled: trainer});
 		if (this.maxIcons) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonPicker, "Pokemon", pokemon);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonPicker, "Pokemon",
+				{selectedAndDisabled: pokemon});
 		}
 		html += "<br /><br />";
 

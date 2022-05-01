@@ -160,6 +160,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.defaultTrainersPagination.active = this.trainerGen === defaultTrainers;
@@ -171,6 +172,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genOneTrainersPagination.active = this.trainerGen === genOneTrainers;
@@ -182,6 +184,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genTwoTrainersPagination.active = this.trainerGen === genTwoTrainers;
@@ -193,6 +196,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genThreeTrainersPagination.active = this.trainerGen === genThreeTrainers;
@@ -204,6 +208,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genFourTrainersPagination.active = this.trainerGen === genFourTrainers;
@@ -215,6 +220,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genFiveTrainersPagination.active = this.trainerGen === genFiveTrainers;
@@ -226,6 +232,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genSixTrainersPagination.active = this.trainerGen === genSixTrainers;
@@ -237,6 +244,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genSevenTrainersPagination.active = this.trainerGen === genSevenTrainers;
@@ -248,6 +256,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			pagesLabel,
 			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 		this.genEightTrainersPagination.active = this.trainerGen === genEightTrainers;
@@ -514,15 +523,24 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		let html = "<b>Trainer sprite</b><br />";
 		html += "Type:&nbsp;";
 		html += "&nbsp;";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + defaultTrainers, "Default", currentDefaultTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genOneTrainers, "Gen 1", currentGenOneTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genTwoTrainers, "Gen 2", currentGenTwoTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genThreeTrainers, "Gen 3", currentGenThreeTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genFourTrainers, "Gen 4", currentGenFourTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genFiveTrainers, "Gen 5", currentGenFiveTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genSixTrainers, "Gen 6", currentGenSixTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genSevenTrainers, "Gen 7", currentGenSevenTrainers);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genEightTrainers, "Gen 8", currentGenEightTrainers);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + defaultTrainers, "Default",
+			{selectedAndDisabled: currentDefaultTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genOneTrainers, "Gen 1",
+			{selectedAndDisabled: currentGenOneTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genTwoTrainers, "Gen 2",
+			{selectedAndDisabled: currentGenTwoTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genThreeTrainers, "Gen 3",
+			{selectedAndDisabled: currentGenThreeTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genFourTrainers, "Gen 4",
+			{selectedAndDisabled: currentGenFourTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genFiveTrainers, "Gen 5",
+			{selectedAndDisabled: currentGenFiveTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genSixTrainers, "Gen 6",
+			{selectedAndDisabled: currentGenSixTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genSevenTrainers, "Gen 7",
+			{selectedAndDisabled: currentGenSevenTrainers});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + genEightTrainers, "Gen 8",
+			{selectedAndDisabled: currentGenEightTrainers});
 
 		html += "<br /><br />";
 		if (this.props.random) {
@@ -532,7 +550,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			if (currentDefaultTrainers) {
 				if (this.props.userId && Users.get(this.props.userId)) {
 					html += this.getQuietPmButton(this.commandPrefix + ", " + refreshCustomAvatarCommand, "Refresh custom avatar",
-						this.refreshingCustomAvatar);
+						{disabled: this.refreshingCustomAvatar});
 					html += "<br /><br />";
 				}
 

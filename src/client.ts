@@ -408,13 +408,13 @@ export class Client {
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' +
-			room.title + ', ' + message + '">' + label + '</button>';
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.id + ', ' + '/msgroom ' +
+			room.id + ', ' + message + '">' + label + '</button>';
 	}
 
 	getPmUserButton(user: User, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + user.name + ', ' + message + '">' +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + user.id + ', ' + message + '">' +
 			label + '</button>';
 	}
 
@@ -428,7 +428,7 @@ export class Client {
 			return this.getPmSelfButton(message, label, disabled, buttonStyle);
 		}
 
-		return this.getPmUserButton(Users.self, "/msgroom " + room.id + ", " + BOT_MESSAGE_COMMAND + Users.self.name + ", " + message,
+		return this.getPmUserButton(Users.self, "/msgroom " + room.id + ", " + BOT_MESSAGE_COMMAND + Users.self.id + ", " + message,
 			label, disabled, buttonStyle);
 	}
 

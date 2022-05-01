@@ -445,15 +445,23 @@ class TournamentTrainerCard extends HtmlPageBase {
 		const bio = this.currentPicker === 'bio';
 
 		html += "<b>Options</b>:<br />";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer", trainer);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHeaderView, "Header", header);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTableView, "Table", table);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFooterView, "Footer", footer);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatPicker, "Format", format);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon", pokemon);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
+			{selectedAndDisabled: trainer, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHeaderView, "Header",
+			{selectedAndDisabled: header, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTableView, "Table",
+			{selectedAndDisabled: table, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFooterView, "Footer",
+			{selectedAndDisabled: footer, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatPicker, "Format",
+			{selectedAndDisabled: format, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon",
+			{selectedAndDisabled: pokemon, enabledReadonly: true});
 		if (this.isRoomStaff) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBadgesView, "Badges", badges);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBioView, "Bio", bio);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBadgesView, "Badges",
+				{selectedAndDisabled: badges, enabledReadonly: true});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBioView, "Bio",
+				{selectedAndDisabled: bio, enabledReadonly: true});
 		}
 		html += "<br /><br />";
 

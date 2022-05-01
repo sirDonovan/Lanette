@@ -626,27 +626,27 @@ class GameHostBox extends HtmlPageBase {
 		const pokemon = this.currentPicker === 'pokemon';
 
 		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
-			trainer);
+			{selectedAndDisabled: trainer});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonModelPicker, "Pokemon",
-			pokemon || !this.maxPokemonModels);
+			{disabled: pokemon || !this.maxPokemonModels, selected: pokemon});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
-			background);
+			{selectedAndDisabled: background});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
-			backgroundBorder);
+			{selectedAndDisabled: backgroundBorder});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
-			buttons);
+			{selectedAndDisabled: buttons});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
-			buttonsBorder);
+			{selectedAndDisabled: buttonsBorder});
 
 		html += "<br />";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-			"Signups background", signupsBackground);
+			"Signups background", {selectedAndDisabled: signupsBackground});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
-			"Signups background border", signupsBackgroundBorder);
+			"Signups background border", {selectedAndDisabled: signupsBackgroundBorder});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonColorPicker, "Signups buttons",
-			signupsButtons);
+			{selectedAndDisabled: signupsButtons});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsButtonsBorderPicker,
-			"Signups buttons border", signupsButtonsBorder);
+			"Signups buttons border", {selectedAndDisabled: signupsButtonsBorder});
 		html += "<br /><br />";
 
 		if (background) {

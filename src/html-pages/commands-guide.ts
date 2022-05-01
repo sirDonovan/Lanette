@@ -176,15 +176,22 @@ class CommandsGuide extends HtmlPageBase {
 
 		html += "<b>Options</b>:";
 		if (this.showDeveloperCommands) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseDeveloper, "Development", developerView);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseDeveloper, "Development",
+				{selectedAndDisabled: developerView});
 		}
 
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInfo, "Informational", infoView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseScriptedGame, "Scripted Game", scriptedGameView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseStorage, "Storage", storageView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTournament, "Tournament", tournamentView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUserHostedGame, "User Hosted Game", userHostedGameView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUtil, "Utility", utilView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInfo, "Informational",
+			{selectedAndDisabled: infoView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseScriptedGame, "Scripted Game",
+			{selectedAndDisabled: scriptedGameView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseStorage, "Storage",
+			{selectedAndDisabled: storageView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTournament, "Tournament",
+			{selectedAndDisabled: tournamentView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUserHostedGame, "User Hosted Game",
+			{selectedAndDisabled: userHostedGameView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUtil, "Utility",
+			{selectedAndDisabled: utilView});
 		html += "</center>";
 
 		html += this.commandsPagination.render();
