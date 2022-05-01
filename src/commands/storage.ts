@@ -921,6 +921,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const id = Tools.toId(targets[0]);
+			if (!id) return this.say("You must specify a badge name.");
+
 			if (!Config.tournamentTrainerCardBadges || !(id in Config.tournamentTrainerCardBadges)) {
 				return this.say("'" + targets[0].trim() + "' is not a valid tournament trainer card badge.");
 			}
