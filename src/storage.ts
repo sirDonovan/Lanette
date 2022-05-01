@@ -62,6 +62,7 @@ export class Storage {
 	}
 
 	onReload(previous: Storage): void {
+		Object.assign(this.archiveDatabases, previous.archiveDatabases);
 		Object.assign(this.databases, previous.databases);
 		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
 
