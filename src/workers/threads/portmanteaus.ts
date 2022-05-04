@@ -126,8 +126,8 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-worker_threads.parentPort!.on('message', (incommingMessage: string) => {
-	const parts = incommingMessage.split("|");
+worker_threads.parentPort!.on('message', (incomingMessage: string) => {
+	const parts = incomingMessage.split("|");
 	const messageNumber = parts[0];
 	const id = parts[1] as PortmanteausId;
 	const message = parts.slice(2).join("|");
@@ -145,7 +145,7 @@ worker_threads.parentPort!.on('message', (incommingMessage: string) => {
 		}
 	} catch (e) {
 		console.log(e);
-		Tools.logError(e as NodeJS.ErrnoException);
+		Tools.logError(e as NodeJS.ErrnoException, "Incoming message: " + incomingMessage);
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
