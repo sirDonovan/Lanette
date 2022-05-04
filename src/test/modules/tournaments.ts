@@ -50,7 +50,9 @@ describe("Tournaments", () => {
 						const day = '' + i;
 						try {
 							Dex.validateFormat(schedule.months[month].formats[day]);
-							Dex.getExistingFormat(schedule.months[month].formats[day], true);
+							const format = Dex.getExistingFormat(schedule.months[month].formats[day], true);
+							Dex.getCustomFormatName(format);
+							Dex.getCustomFormatName(format, true);
 							validated++;
 						} catch (e) {
 							errors.push((e as Error).message + " on " + month + "/" + day + " in " + room);
