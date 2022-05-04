@@ -1046,7 +1046,7 @@ export class Client {
 				}
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException);
+				Tools.logError(e as NodeJS.ErrnoException, "Client.parseMessage() in " + room.id + ": " + line);
 			}
 		}
 	}
