@@ -398,7 +398,7 @@ export class Client {
 	getCodeListenerHtml(code: string): string {
 		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
 		return '<div class="infobox"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3">' +
-			code.replace(NEWLINE, "<br />") + '</details></div>';
+			'<summary></summary>' + Tools.escapeHTML(code.replace(NEWLINE, "<br />")) + '</details></div>';
 	}
 
 	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
@@ -1539,7 +1539,7 @@ export class Client {
 					const htmlId = Tools.toId(html);
 					if (this.lastOutgoingMessage && ((this.lastOutgoingMessage.type === 'chat-html' &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) || (this.lastOutgoingMessage.type === 'code' &&
-						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(Tools.unescapeHTML(html.replace(CODE_LINEBREAK, "")))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1801,7 +1801,7 @@ export class Client {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipient.id &&
 						((this.lastOutgoingMessage.type === 'pm-html' && Tools.toId(this.lastOutgoingMessage.html) === htmlId) ||
 						(this.lastOutgoingMessage.type === 'code' &&
-						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(Tools.unescapeHTML(html.replace(CODE_LINEBREAK, "")))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1815,9 +1815,15 @@ export class Client {
 					}
 				} else {
 					const messageId = Tools.toId(messageArguments.message);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-						this.lastOutgoingMessage.userid === recipient.id &&
-						Tools.toId(this.lastOutgoingMessage.text) === messageId) {
+					if (messageArguments.message === CODE_COMMAND) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'code' &&
+							this.lastOutgoingMessage.userid === recipient.id) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipient.id &&
+						((this.lastOutgoingMessage.type === 'pm' && Tools.toId(this.lastOutgoingMessage.text) === messageId) ||
+						((this.lastOutgoingMessage.type === 'code' && messageArguments.message.startsWith("```") &&
+						Tools.toId(this.lastOutgoingMessage.html) === messageId)))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
