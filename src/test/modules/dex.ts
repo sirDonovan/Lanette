@@ -466,7 +466,7 @@ describe("Dex", () => {
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
-		const separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
+		let separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
 		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
 		assertStrictEqual(separatedCustomRules.addedbans[0], "Pikachu");
 		assertStrictEqual(separatedCustomRules.removedbans.length, 1);
@@ -477,6 +477,10 @@ describe("Dex", () => {
 		assertStrictEqual(separatedCustomRules.addedrules[0], "Same Type Clause");
 		assertStrictEqual(separatedCustomRules.removedrules.length, 1);
 		assertStrictEqual(separatedCustomRules.removedrules[0], "Team Preview");
+
+		separatedCustomRules = Dex.separateCustomRules(["-no item"]);
+		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
+		assertStrictEqual(separatedCustomRules.addedbans[0], "No Item");
 	});
 	it('should return proper values from isImmune()', () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');

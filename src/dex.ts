@@ -1675,6 +1675,7 @@ export class Dex {
 		if (tag === 'ability') {
 			ruleName = this.dexes.base.getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
+			if (Tools.toId(ruleName) === 'noitem') return 'No Item';
 			ruleName = this.dexes.base.getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
 			ruleName = this.dexes.base.getExistingMove(ruleName).name;
