@@ -20,7 +20,7 @@ module.exports = (async () => {
 
 	process.on('uncaughtException', error => {
 		console.log(error);
-		Tools.logError(error);
+		Tools.logError(error, "process.on('uncaughtException')");
 	});
 
 	if (require.main === module) {
