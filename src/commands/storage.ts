@@ -212,7 +212,7 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(',');
 			if (targets.length !== 3 && targets.length !== 4) {
 				return this.say("Usage: ``" + Config.commandCharacter + cmd + " " + "[" + placeName + "], [format], [players], " +
-					"[scheduled]``");
+					"[official]``");
 			}
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
@@ -226,10 +226,10 @@ export const commands: BaseCommandDefinitions = {
 					Tournaments.maxPlayerCap + " players.");
 			}
 
-			const scheduledOption = Tools.toId(targets[3]);
-			const scheduled = scheduledOption === 'official' || scheduledOption === 'scheduled';
+			const officialOption = Tools.toId(targets[3]);
+			const official = officialOption === 'official' || officialOption === 'scheduled';
 
-			const points = Tournaments.getPlacePoints(placeName, format, players, scheduled);
+			const points = Tournaments.getPlacePoints(placeName, format, players, official);
 			const pointsString = points + " point" + (points > 1 ? "s" : "");
 
 			let targetUserName = targets[0].trim();
@@ -240,12 +240,12 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded " + pointsString + " for being " + (placeName === "semifinalist" ? "a" : "the") + " " +
-					placeName + " in a " + (scheduled ? "scheduled " : "") + format.name + " tournament! To see your total amount, use " +
+					placeName + " in " + (official ? "an official " : "a ") + format.name + " tournament! To see your total amount, use " +
 					"this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
-			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
-				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
+			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for " +
+				(official ? "an official " : "a ") + players + "-player " + format.name + " tournament");
 
 			Storage.tryExportDatabase(room.id);
 		},
@@ -285,9 +285,9 @@ export const commands: BaseCommandDefinitions = {
 					Tournaments.maxPlayerCap + " players.");
 			}
 
-			const scheduledPoints = Tournaments.getPlacePoints(placeName, format, players, true);
+			const officialPoints = Tournaments.getPlacePoints(placeName, format, players, true);
 			const regularPoints = Tournaments.getPlacePoints(placeName, format, players, false);
-			const points = scheduledPoints - regularPoints;
+			const points = officialPoints - regularPoints;
 			const pointsString = points + " missing point" + (points > 1 ? "s" : "");
 
 			let targetUserName = targets[0].trim();
@@ -298,12 +298,12 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded your " + pointsString + " for being " +
-					(placeName === "semifinalist" ? "a" : "the") + " " + placeName + " in a scheduled " + format.name + " tournament! " +
+					(placeName === "semifinalist" ? "a" : "the") + " " + placeName + " in an official " + format.name + " tournament! " +
 					"To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
 			room.modnote(user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
-				"for a scheduled " + players + "-man " + format.name + " tournament");
+				"for an official " + players + "-player " + format.name + " tournament");
 
 			Storage.tryExportDatabase(room.id);
 		},

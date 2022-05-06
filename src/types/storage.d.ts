@@ -170,7 +170,7 @@ export interface IGameStat {
 interface IQueuedTournament {
 	formatid: string;
 	playerCap: number;
-	scheduled: boolean;
+	official: boolean;
 	time: number;
 	tournamentName?: string;
 }

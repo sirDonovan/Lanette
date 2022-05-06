@@ -48,7 +48,7 @@ export class Tournament extends Activity {
 	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
-	scheduled: boolean = false;
+	official: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
 
@@ -293,7 +293,7 @@ export class Tournament extends Activity {
 		} else {
 			awardedPoints = true;
 
-			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
+			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.official);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
 			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
 			const winnerPoints = Tournaments.getWinnerPoints(multiplier);
@@ -325,7 +325,7 @@ export class Tournament extends Activity {
 				if (user) user.say(winnerPm);
 			}
 
-			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.scheduled ? "Official " : "") + this.format.name,
+			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.official ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 

@@ -153,11 +153,6 @@ export let randomTournamentCustomRules: Dict<string[]> = {};
 export let defaultTournamentPlayerCaps: Dict<number> = {};
 
 /**
- * A list of rooms (roomids) where scheduled tournaments will use the maximum player cap
- */
-export let scheduledTournamentsMaxPlayerCap: string[] = [];
-
-/**
  * A list of rooms (roomids) where information and links about tournament formats will be displayed
  */
 export let displayTournamentFormatInfo: string[] = [];
