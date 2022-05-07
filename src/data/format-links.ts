@@ -385,6 +385,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		viability: 'https://www.smogon.com/forums/threads/3661945/post-8411584',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5monotype',
 	},
+	'gen5zu': {
+		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5zu',			
+	},
 
 	// Gen 4
 	'gen4anythinggoes': {
