@@ -325,6 +325,8 @@ export class Tournament extends Activity {
 				if (user) user.say(winnerPm);
 			}
 
+			Storage.afterAddPoints(this.room, Storage.tournamentLeaderboard, pointsSource);
+
 			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.official ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
@@ -340,7 +342,6 @@ export class Tournament extends Activity {
 		}
 
 		if (awardedPoints) {
-			Storage.afterAddPoints(this.room, Storage.tournamentLeaderboard, pointsSource);
 			Storage.tryExportDatabase(this.room.id);
 		}
 	}
