@@ -31,6 +31,10 @@ export const commands: BaseCommandDefinitions = {
 			const tournament = tournamentRoom.tournament;
 			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
 			if (tournament.started) {
+				const multiplier = Tournaments.getCombinedPointMultiplier(tournament.format, tournament.totalPlayers, tournament.official);
+				html += "<b>Points to be awarded</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
+					Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
+
 				if (tournament.startTime) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
 				}
@@ -296,12 +300,7 @@ export const commands: BaseCommandDefinitions = {
 				format = resolved;
 			}
 
-			let playerCap: number;
-			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			} else {
-				playerCap = Tournaments.maxPlayerCap;
-			}
+			let playerCap = Tournaments.getDefaultPlayerCap(room);
 
 			if (!official) {
 				for (const option of targets) {
@@ -396,12 +395,15 @@ export const commands: BaseCommandDefinitions = {
 				tournamentName = Dex.getCustomFormatName(format);
 			}
 
+			const defaultPlayerCap = Tournaments.getDefaultPlayerCap(tournamentRoom);
+
 			let html = "<div class='infobox infobox-limited'><b>Next scheduled" + (this.pm ? " " + tournamentRoom.title : "") + " " +
-				"tournament</b>: " + database.queuedTournament.playerCap + "-player " + tournamentName +
+				"tournament</b>: " + (database.queuedTournament.playerCap !== defaultPlayerCap ?
+				database.queuedTournament.playerCap + "-player " : "") + tournamentName +
 				(database.queuedTournament.official ? " <i>(official)</i>" : "") + "<br />";
 			const multiplier = Tournaments.getCombinedPointMultiplier(format, database.queuedTournament.playerCap,
 				database.queuedTournament.official);
-			html += "<b>Max available points</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
+			html += "<b>Points to be awarded at player cap</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
 				Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
 
 			if (database.queuedTournament.time) {
