@@ -41,8 +41,6 @@ export class ScriptedGame extends Game {
 	parentGame: ScriptedGame | undefined = undefined;
 	signupsRefreshed: boolean = false;
 	startTime: number = 0;
-	updatedBits: boolean = false;
-	updatedDatabase: boolean = false;
 	usesHtmlPage: boolean = false;
 	usesTournamentStart: boolean = false;
 	usesTournamentJoin: boolean = false;
@@ -811,7 +809,8 @@ export class ScriptedGame extends Game {
 		}
 
 		if (!this.isPmActivity(this.room)) {
-			if (this.updatedBits) Storage.afterAddPoints(this.room, Storage.gameLeaderboard, this.format.id);
+			this.afterAddBits();
+
 			if (this.updatedBits || this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
 		}
 
@@ -1285,7 +1284,9 @@ export class ScriptedGame extends Game {
 			if (this.shinyMascot) bits *= 2;
 		}
 
-		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id, true);
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
 				"bits " + this.room.title + "``.");
@@ -1303,7 +1304,9 @@ export class ScriptedGame extends Game {
 		if (bits <= 0) return false;
 		if (this.shinyMascot) bits *= 2;
 
-		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id, true);
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
 				this.room.title + "``.");
