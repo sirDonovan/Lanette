@@ -100,7 +100,7 @@ export class Tournament extends Activity {
 		if (this.name !== previousName) this.room.nameTournament(this.name);
 	}
 
-	canAwardPoints(): boolean {
+	formatAwardsPoints(): boolean {
 		if (Config.manualRankedTournaments && Config.manualRankedTournaments.includes(this.room.id) && !this.manuallyEnabledPoints) {
 			return false;
 		}
@@ -121,6 +121,11 @@ export class Tournament extends Activity {
 		}
 
 		return true;
+	}
+
+	willAwardPoints(): boolean {
+		if (this.manuallyEnabledPoints !== undefined) return this.manuallyEnabledPoints;
+		return this.formatAwardsPoints();
 	}
 
 	adjustCap(cap?: number): void {
@@ -281,7 +286,7 @@ export class Tournament extends Activity {
 
 		let awardedPoints = false;
 		const pointsSource = this.format.id;
-		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
+		if (!this.willAwardPoints()) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'),

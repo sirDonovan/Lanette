@@ -31,9 +31,12 @@ export const commands: BaseCommandDefinitions = {
 			const tournament = tournamentRoom.tournament;
 			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
 			if (tournament.started) {
-				const multiplier = Tournaments.getCombinedPointMultiplier(tournament.format, tournament.totalPlayers, tournament.official);
-				html += "<b>Points to be awarded</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
-					Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
+				if (tournament.willAwardPoints()) {
+					const multiplier = Tournaments.getCombinedPointMultiplier(tournament.format, tournament.totalPlayers,
+						tournament.official);
+					html += "<b>Points to be awarded</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
+						Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
+				}
 
 				if (tournament.startTime) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
@@ -102,14 +105,14 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.tournament.isSingleElimination) return this.say("Only single elimination tournaments award points.");
 
 			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
-				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+				if ((room.tournament.formatAwardsPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
 					room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = true;
 				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
 			} else {
-				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+				if ((!room.tournament.formatAwardsPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
 					room.tournament.manuallyEnabledPoints === false) {
 					return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
 				}
