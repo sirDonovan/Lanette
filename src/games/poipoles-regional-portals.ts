@@ -61,7 +61,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	onNextRound(): void {
 		this.canTravel = false;
 
-		if (this.roundLocations.length) {
+		if (this.roundLocations.length && !this.roundTravels.size) {
 			this.inactiveRounds++;
 			if (this.inactiveRounds === this.inactiveRoundLimit) {
 				this.inactivityEnd();
