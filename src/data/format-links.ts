@@ -386,7 +386,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5monotype',
 	},
 	'gen5zu': {
-		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5zu',			
+		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5zu',
 	},
 
 	// Gen 4
