@@ -297,6 +297,9 @@ export class Room {
 			}
 		}
 
+		message = message.trim();
+		if (!message) return;
+
 		const baseOutgoingMessage: Partial<IOutgoingMessage> = {
 			roomid: options && options.roomid ? options.roomid : this.id,
 			message: this.getMessageWithClientPrefix(message),
