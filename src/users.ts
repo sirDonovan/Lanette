@@ -190,6 +190,9 @@ export class User {
 			}
 		}
 
+		message = message.trim();
+		if (!message) return;
+
 		const outgoingMessage: IOutgoingMessage = {
 			message: this.getMessageWithClientPrefix(message),
 			text: message,
@@ -208,6 +211,7 @@ export class User {
 	}
 
 	sayCode(code: string): void {
+		code = code.trim();
 		if (!code) return;
 
 		this.say("!code " + code, {

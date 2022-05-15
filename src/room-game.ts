@@ -31,6 +31,10 @@ export abstract class Game extends Activity {
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
+	updateBitsSource: string = "";
+	updatedBits: boolean = false;
+	updatedBitsSourceCache: boolean = false;
+	updatedDatabase: boolean = false;
 	readonly winners = new Map<Player, number>();
 
 	// set in initialize()
@@ -137,6 +141,13 @@ export abstract class Game extends Activity {
 		}
 	}
 
+	afterAddBits(): void {
+		if (!this.updatedBitsSourceCache && this.updatedBits && this.updateBitsSource && !this.isPmActivity(this.room)) {
+			Storage.afterAddPoints(this.room, Storage.gameLeaderboard, this.updateBitsSource);
+			this.updatedBitsSourceCache = true;
+		}
+	}
+
 	announceWinners(): void {
 		if (this.parentGame) return;
 
@@ -163,6 +174,8 @@ export abstract class Game extends Activity {
 
 			let trainerCardsShown = false;
 			if (!this.isPmActivity(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
+				this.afterAddBits();
+
 				const trainerCards: string[] = [];
 				const noTrainerCards: string[] = [];
 				this.winners.forEach((points, player) => {

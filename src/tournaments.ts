@@ -469,6 +469,14 @@ export class Tournaments {
 		return places;
 	}
 
+	getDefaultPlayerCap(room: Room): number {
+		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
+			return Config.defaultTournamentPlayerCaps[room.id];
+		} else {
+			return this.maxPlayerCap;
+		}
+	}
+
 	getPlayersPointMultiplier(players: number): number {
 		return 1 + (Math.floor(players / 32) * 0.5);
 	}
