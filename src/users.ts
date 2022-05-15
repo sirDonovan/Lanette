@@ -12,7 +12,7 @@ export class User {
 	chatLog: IChatLogEntry[] = [];
 	customAvatar: boolean | null = null;
 	game: ScriptedGame | null = null;
-	globalRank: string = " ";
+	globalRank: string | null = null;
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
@@ -128,6 +128,8 @@ export class User {
 	}
 
 	hasGlobalRank(targetRank: GroupName): boolean {
+		if (!this.globalRank) return false;
+
 		return this.hasRankInternal(this.globalRank, targetRank);
 	}
 

@@ -939,7 +939,7 @@ export class Tournaments {
 
 			const rank = user.rooms.get(room)!.rank;
 			const roomGroup = rank in groups ? groups[rank] : undefined;
-			const globalGroup = user.globalRank in groups ? groups[user.globalRank] : undefined;
+			const globalGroup = user.globalRank && user.globalRank in groups ? groups[user.globalRank] : undefined;
 			if (roomGroup && roomGroup.name && roomGroup.type !== 'punishment' && user.isRoomauth(room)) {
 				html += "<br /><i>" + (!roomGroup.name.startsWith("Room ") ? "Room " : "") + roomGroup.name + "</i>";
 			}
