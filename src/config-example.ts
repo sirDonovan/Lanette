@@ -143,14 +143,14 @@ export let useDefaultUnrankedTournaments: string[] = [];
 export let unrankedTournamentFormats: Dict<string[]> = {};
 
 /**
+ * For each room in the object, a list of rules that can be added to randomly selected tournaments
+ */
+export let randomTournamentCustomRules: Dict<string[]> = {};
+
+/**
  * The default player caps to use when creating tournaments
  */
 export let defaultTournamentPlayerCaps: Dict<number> = {};
-
-/**
- * A list of rooms (roomids) where scheduled tournaments will use the maximum player cap
- */
-export let scheduledTournamentsMaxPlayerCap: string[] = [];
 
 /**
  * A list of rooms (roomids) where information and links about tournament formats will be displayed
@@ -263,6 +263,11 @@ export let rankedGames: string[] = [];
 export let allowScriptedGames: string[] = [];
 
 /**
+ * A list of rooms (roomids) where debug logs of scripted games are saved
+ */
+export let scriptedGameDebugLogs: string[] = [];
+
+/**
  * A list of rooms (roomids) where games are allowed to be hosted
  */
 export let allowUserHostedGames: string[] = [];
@@ -286,6 +291,11 @@ export let allowSearchChallenges: string[] = [];
  * A list of rooms (roomids) where game achievements are able to be unlocked
  */
 export let allowGameAchievements: string[] = [];
+
+/**
+ * For each room in the object, the subroomid that should be used for tournament games
+ */
+ export let tournamentGamesSubRoom: Dict<string> = {};
 
 /**
  * A list of rooms (roomids) where game trainer cards are shown for winners
@@ -315,7 +325,7 @@ export let showGameScriptedBoxes: string[] = [];
 /**
  * For each room in the object, the number of bits that must be earned to customize a game scripted box
  */
-export let gameScriptedBoxRequirements: Dict<number> = {};
+export let gameScriptedBoxRequirements: Dict<{background: number, pokemonAvatar: number}> = {};
 
 /**
  * A list of rooms (roomids) where games cannot be hosted back-to-back

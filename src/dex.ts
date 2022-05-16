@@ -12,7 +12,8 @@ import type {
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
-	IPokemonShowdownDex, IPokemonShowdownValidator, IPSFormat, ITypeData, RuleTable, ValidatedRule
+	IPokemonShowdownDex, IPokemonShowdownDexModule, IPokemonShowdownValidator, IPokemonShowdownValidatorModule, IPSFormat, ITypeData,
+	RuleTable, ValidatedRule
 } from './types/pokemon-showdown';
 import type { IParsedSmogonLink } from './types/tools';
 
@@ -106,6 +107,7 @@ const clauseNicknames: Dict<string> = {
 	'First Blood Rule': 'First Blood',
 	'Cross Evolution Mod': 'Cross Evolution',
 	'Revelationmons Mod': 'Revelationmons',
+	'Crazyhouse Rule': 'Crazyhouse',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
@@ -200,7 +202,6 @@ const omotms: string[] = [];
 const roaSpotlights: string[] = [];
 
 type Dexes = Dict<Dex>;
-const dexes: Dexes = {};
 
 type CharacterTypes = readonly CharacterType[];
 const characterTypes: CharacterTypes = ['player', 'rival', 'gymleader', 'elitefour', 'champion', 'frontierbrain', 'professor',
@@ -253,7 +254,10 @@ export class Dex {
 	private readonly clientDataDirectory: string;
 	private readonly gen: number;
 	private readonly isBase: boolean;
+	private readonly mod: string;
+	private readonly pokemonShowdownDexModule: IPokemonShowdownDexModule;
 	private readonly pokemonShowdownDex: IPokemonShowdownDex;
+	private readonly pokemonShowdownValidatorModule: IPokemonShowdownValidatorModule;
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -284,36 +288,53 @@ export class Dex {
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
 	/* eslint-enable */
 
-	constructor(gen?: number, mod?: string) {
+	private readonly dexes: Dict<Dex>;
+
+	constructor(dexes: Dict<Dex>, gen?: number, mod?: string) {
+		this.dexes = dexes;
+
 		if (!gen) gen = CURRENT_GEN;
 		if (!mod) mod = 'base';
 
-		const simDist = ".sim-dist";
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const pokemonShowdownDexBase = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")).Dex as IPokemonShowdownDex;
-
 		const isBase = mod === 'base';
 		if (isBase) {
-			dexes['base'] = this;
-			dexes[CURRENT_GEN_STRING] = this;
-			this.pokemonShowdownDex = pokemonShowdownDexBase;
+			this.dexes.base = this;
+			this.dexes[CURRENT_GEN_STRING] = this;
+
+			const simDist = ".sim-dist";
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-			this.pokemonShowdownValidator = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js"))
-				.TeamValidator as IPokemonShowdownValidator;
+			this.pokemonShowdownDexModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")) as IPokemonShowdownDexModule;
+			this.pokemonShowdownDex = this.pokemonShowdownDexModule.Dex;
+
+			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			this.pokemonShowdownValidatorModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js")) as IPokemonShowdownValidatorModule;
+			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
 		} else {
-			this.pokemonShowdownDex = pokemonShowdownDexBase.mod(mod);
-			this.pokemonShowdownValidator = dexes['base'].pokemonShowdownValidator;
+			this.pokemonShowdownDexModule = this.dexes.base.pokemonShowdownDexModule;
+			this.pokemonShowdownDex = this.dexes.base.pokemonShowdownDex.mod(mod);
+			this.pokemonShowdownValidatorModule = this.dexes.base.pokemonShowdownValidatorModule;
+			this.pokemonShowdownValidator = this.dexes.base.pokemonShowdownValidator;
 		}
 
 		this.clientDataDirectory = path.join(Tools.rootFolder, 'client-data');
 		this.gen = gen;
+		this.mod = mod;
 		this.isBase = isBase;
 	}
 
+	loadBaseData(): void {
+		this.dexes.base.loadData();
+	}
+
 	loadAllData(): void {
-		for (const mod in dexes) {
-			dexes[mod].loadData();
+		if (!this.isBase) return;
+
+		this.loadData();
+
+		const keys = Object.keys(this.dexes);
+		for (const key of keys) {
+			if (this.dexes[key] !== this) this.dexes[key].loadData();
 		}
 	}
 
@@ -321,16 +342,34 @@ export class Dex {
 		return TEAM_PREVIEW_HIDDEN_FORMES;
 	}
 
-	getCharacterTypes(): CharacterTypes {
-		return characterTypes;
+	getCharacterTypes(region?: RegionName): CharacterTypes {
+		if (!region) return characterTypes;
+
+		const characters = this.getData().characters;
+		const regionCharacterTypes: CharacterType[] = [];
+		for (const characterType of characterTypes) {
+			if (!(region in characters) || !characters[region][characterType].length) continue;
+			regionCharacterTypes.push(characterType);
+		}
+
+		return regionCharacterTypes as CharacterTypes;
 	}
 
 	getCharacterTypeNames(): CharacterTypeNames {
 		return characterTypeNames;
 	}
 
-	getLocationTypes(): LocationTypes {
-		return locationTypes;
+	getLocationTypes(region?: RegionName): LocationTypes {
+		if (!region) return locationTypes;
+
+		const locations = this.getData().locations;
+		const regionLocationTypes: LocationType[] = [];
+		for (const locationType of locationTypes) {
+			if (!(region in locations) || !locations[region][locationType].length) continue;
+			regionLocationTypes.push(locationType);
+		}
+
+		return regionLocationTypes as LocationTypes;
 	}
 
 	getLocationTypeNames(): LocationTypeNames {
@@ -366,7 +405,15 @@ export class Dex {
 	}
 
 	getDexes(): Readonly<Dexes> {
-		return dexes;
+		return this.dexes;
+	}
+
+	getPokemonIconWidth(): number {
+		return POKEMON_ICON_WIDTH;
+	}
+
+	getPokemonIconHeight(): number {
+		return POKEMON_ICON_HEIGHT;
 	}
 
 	getTrainerSpriteDimensions(): number {
@@ -379,7 +426,7 @@ export class Dex {
 
 	getDex(mod?: string): Dex {
 		if (!mod) mod = CURRENT_GEN_STRING;
-		return dexes[mod];
+		return this.dexes[mod];
 	}
 
 	getData(): IDataTable {
@@ -387,15 +434,51 @@ export class Dex {
 		return this.dataCache!;
 	}
 
-	async fetchClientData(): Promise<void> {
+	regionHasCharacters(region: RegionName): boolean {
+		const characters = this.getData().characters;
+		if (!(region in characters)) return false;
+
+		for (const characterType of characterTypes) {
+			if (!(characterType in characters[region])) continue;
+			if (characters[region][characterType].length) return true;
+		}
+
+		return false;
+	}
+
+	regionHasLocations(region: RegionName): boolean {
+		const locations = this.getData().locations;
+		if (!(region in locations)) return false;
+
+		for (const locationType of locationTypes) {
+			if (!(locationType in locations[region])) continue;
+			if (locations[region][locationType].length) return true;
+		}
+
+		return false;
+	}
+
+	fetchClientData(): void {
 		const files = ['pokedex-mini.js', 'pokedex-mini-bw.js'];
+		let fetchedFiles = 0;
+
 		for (const fileName of files) {
-			const file = await Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName);
-			if (typeof file !== 'string') {
-				console.log(file);
-			} else if (file) {
-				await Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file);
-			}
+			Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName)
+				.then(file => {
+					if (file) {
+						if (typeof file !== 'string') {
+							console.log("Error fetching " + fileName + ": " + file.message);
+						} else {
+							Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file)
+								.then(() => {
+									fetchedFiles++;
+									if (fetchedFiles === files.length && this.dataCache) this.loadGifData(true);
+								})
+								.catch(e => console.log("Error writing " + fileName + ": " + (e as Error).message));
+						}
+					}
+				})
+				.catch(e => console.log("Error fetching " + fileName + ": " + (e as Error).message));
 		}
 	}
 
@@ -408,10 +491,15 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.abilityCache, id)) return this.abilityCache[id];
 
 		const ability = this.pokemonShowdownDex.abilities.get(name);
-		if (!ability.exists) return undefined;
+		if (!ability.exists || ability.gen > this.gen) return undefined;
 
-		this.abilityCache[id] = ability;
-		return ability;
+		if (Object.prototype.hasOwnProperty.call(this.abilityCache, ability.id)) {
+			this.abilityCache[id] = this.abilityCache[ability.id];
+		} else {
+			this.abilityCache[id] = Tools.deepClone(ability);
+		}
+
+		return this.abilityCache[id];
 	}
 
 	getExistingAbility(name: string): IAbility {
@@ -432,7 +520,7 @@ export class Dex {
 		for (const i of this.getData().abilityKeys) {
 			const ability = this.getExistingAbility(i);
 			if (ability.isNonstandard === 'CAP' || ability.isNonstandard === 'LGPE' || ability.isNonstandard === 'Custom' ||
-				ability.id === 'noability' || ability.gen > this.gen) continue;
+				ability.id === 'noability') continue;
 			abilities.push(ability);
 		}
 
@@ -455,10 +543,15 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.itemCache, id)) return this.itemCache[id];
 
 		const item = this.pokemonShowdownDex.items.get(name);
-		if (!item.exists) return undefined;
+		if (!item.exists || item.gen > this.gen) return undefined;
 
-		this.itemCache[id] = item;
-		return item;
+		if (Object.prototype.hasOwnProperty.call(this.itemCache, item.id)) {
+			this.itemCache[id] = this.itemCache[item.id];
+		} else {
+			this.itemCache[id] = Tools.deepClone(item);
+		}
+
+		return this.itemCache[id];
 	}
 
 	getExistingItem(name: string): IItem {
@@ -478,7 +571,7 @@ export class Dex {
 		const items: IItem[] = [];
 		for (const i of this.getData().itemKeys) {
 			const item = this.getExistingItem(i);
-			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' || item.gen > this.gen ||
+			if (item.isNonstandard === 'CAP' || item.isNonstandard === 'LGPE' || item.isNonstandard === 'Custom' ||
 				(this.gen !== 2 && gen2Items.includes(item.id))) continue;
 			items.push(item);
 		}
@@ -504,6 +597,28 @@ export class Dex {
 		return learnsetData;
 	}
 
+	getLearnsetParent(pokemon: IPokemon): IPokemon {
+		let learnsetParent = pokemon;
+		const learnsetData = this.getLearnsetData(learnsetParent.id);
+		if (!learnsetData || !learnsetData.learnset) {
+			let forme: string | undefined;
+			if (learnsetParent.changesFrom) {
+				forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
+			} else {
+				forme = learnsetParent.baseSpecies;
+			}
+
+			if (forme && forme !== learnsetParent.name) {
+				// forme without its own learnset
+				learnsetParent = this.getPokemon(forme)!;
+				// warning: formes with their own learnset, like Wormadam, should NOT
+				// inherit from their base forme unless they're freely switchable
+			}
+		}
+
+		return learnsetParent;
+	}
+
 	/*
 		Moves
 	*/
@@ -512,17 +627,21 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.moveCache, id)) return this.moveCache[id];
 
-		let move = this.pokemonShowdownDex.moves.get(name);
-		if (!move.exists) return undefined;
+		let move = this.pokemonShowdownDex.moves.get(name) as IMoveCopy;
+		if (!move.exists || move.gen > this.gen) return undefined;
 
-		if (move.realMove && Tools.toId(move.realMove) === 'hiddenpower') {
+		if (Object.prototype.hasOwnProperty.call(this.moveCache, move.name)) {
+			this.moveCache[id] = this.moveCache[move.name];
+		} else {
 			move = Tools.deepClone(move);
-			// @ts-expect-error
-			move.id = Tools.toId(move.name);
+			if (move.realMove && Tools.toId(move.realMove) === 'hiddenpower') {
+				move.id = Tools.toId(move.name);
+			}
+			this.moveCache[id] = move;
+			this.moveCache[move.name] = move;
 		}
 
-		this.moveCache[id] = move;
-		return move;
+		return this.moveCache[id];
 	}
 
 	getExistingMove(name: string): IMove {
@@ -542,8 +661,7 @@ export class Dex {
 		const moves: IMove[] = [];
 		for (const i of this.getData().moveKeys) {
 			const move = this.getExistingMove(i);
-			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom' ||
-				move.gen > this.gen) continue;
+			if (move.isNonstandard === 'CAP' || move.isNonstandard === 'LGPE' || move.isNonstandard === 'Custom') continue;
 			moves.push(move);
 		}
 
@@ -570,23 +688,28 @@ export class Dex {
 		const id = Tools.toId(name);
 		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, id)) return this.pokemonCache[id];
 
-		const pokemon = Tools.deepClone(this.pokemonShowdownDex.species.get(name));
-		if (!pokemon.exists) return undefined;
+		let pokemon = this.pokemonShowdownDex.species.get(name) as IPokemonCopy;
+		if (!pokemon.exists || pokemon.gen > this.gen) return undefined;
 
-		if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
-			pokemon.spriteid += '-' + Tools.toId(pokemon.forme);
+		if (Object.prototype.hasOwnProperty.call(this.pokemonCache, pokemon.id)) {
+			this.pokemonCache[id] = this.pokemonCache[pokemon.id];
+		} else {
+			pokemon = Tools.deepClone(pokemon);
+			if (pokemon.forme && Tools.toId(pokemon.baseSpecies) === pokemon.spriteid) {
+				pokemon.spriteid += '-' + Tools.toId(pokemon.forme);
+			}
+
+			if (pokemon.tier === '(Uber)') {
+				pokemon.tier = 'Uber';
+			} else if (pokemon.tier === '(NU)') {
+				pokemon.tier = 'PU';
+			} else if (pokemon.tier === '(PU)') {
+				pokemon.tier = 'ZU';
+			}
+			this.pokemonCache[id] = pokemon;
 		}
 
-		if (pokemon.tier === '(Uber)') {
-			pokemon.tier = 'Uber';
-		} else if (pokemon.tier === '(NU)') {
-			pokemon.tier = 'PU';
-		} else if (pokemon.tier === '(PU)') {
-			pokemon.tier = 'ZU';
-		}
-
-		this.pokemonCache[id] = pokemon;
-		return pokemon;
+		return this.pokemonCache[id];
 	}
 
 	getExistingPokemon(name: string): IPokemon {
@@ -607,7 +730,7 @@ export class Dex {
 		for (const i of this.getData().pokemonKeys) {
 			const pokemon = this.getExistingPokemon(i);
 			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.isNonstandard === 'Unobtainable' || pokemon.gen > this.gen) continue;
+				pokemon.isNonstandard === 'Unobtainable') continue;
 			pokedex.push(pokemon);
 		}
 
@@ -625,37 +748,39 @@ export class Dex {
 		return this.getData().categories[pokemon.id] || '';
 	}
 
-	getFormes(pokemon: IPokemon): string[] {
-		if (Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
+	getFormes(pokemon: IPokemon, nonCosmeticOnly?: boolean): string[] {
+		if (!nonCosmeticOnly && Object.prototype.hasOwnProperty.call(this.formesCache, pokemon.name)) return this.formesCache[pokemon.name];
 
 		const baseSpecies = this.getExistingPokemon(pokemon.baseSpecies);
 		const formes: string[] = [baseSpecies.name];
 
 		if (baseSpecies.otherFormes) {
 			for (const otherForme of baseSpecies.otherFormes) {
-				formes.push(this.getExistingPokemon(otherForme).name);
+				const forme = this.getPokemon(otherForme);
+				if (forme) formes.push(forme.name);
 			}
 		}
 
-		if (baseSpecies.cosmeticFormes) {
+		if (baseSpecies.cosmeticFormes && !nonCosmeticOnly) {
 			for (const cosmeticForme of baseSpecies.cosmeticFormes) {
-				formes.push(this.getExistingPokemon(cosmeticForme).name);
+				const forme = this.getPokemon(cosmeticForme);
+				if (forme) formes.push(forme.name);
 			}
 		}
 
-		this.formesCache[pokemon.name] = formes;
+		if (!nonCosmeticOnly) this.formesCache[pokemon.name] = formes;
 		return formes;
 	}
 
 	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
-		return this.allPossibleMovesCache[pokemon.id];
+		return this.allPossibleMovesCache[this.getLearnsetParent(pokemon).id];
 	}
 
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
 		let sortedFormes: string[] | undefined;
 		let cacheKey: string | undefined;
-		if (includedFormes) {
+		if (includedFormes && includedFormes.length) {
 			sortedFormes = includedFormes.slice().sort();
 			cacheKey = sortedFormes.join(',');
 			if (Object.prototype.hasOwnProperty.call(this.evolutionLinesFormesCache, pokemon.id) &&
@@ -670,15 +795,17 @@ export class Dex {
 		const formesToCheck: string[] = [pokemon.name];
 		if (sortedFormes) {
 			for (const name of sortedFormes) {
-				const forme = this.getExistingPokemon(name);
-				const formeEvolutionLines = this.getAllEvolutionLines(forme);
-				for (const line of formeEvolutionLines) {
-					if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
-						potentialEvolutionLines.push(line);
+				const forme = this.getPokemon(name);
+				if (forme) {
+					const formeEvolutionLines = this.getAllEvolutionLines(forme);
+					for (const line of formeEvolutionLines) {
+						if (!Tools.arraysContainArray(line, potentialEvolutionLines)) {
+							potentialEvolutionLines.push(line);
+						}
 					}
-				}
 
-				formesToCheck.push(forme.name);
+					formesToCheck.push(forme.name);
+				}
 			}
 		}
 
@@ -713,7 +840,13 @@ export class Dex {
 		const evolutionLines: (readonly string[][])[] = [];
 
 		for (const species of speciesList) {
-			evolutionLines.push(this.getEvolutionLines(this.getExistingPokemon(species)));
+			const pokemon = this.getPokemon(species);
+			if (!pokemon) {
+				this.isEvolutionFamilyCache[cacheKey] = false;
+				return false;
+			}
+
+			evolutionLines.push(this.getEvolutionLines(pokemon));
 		}
 
 		evolutionLines.sort((a, b) => a.length - b.length);
@@ -765,7 +898,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.natureCache, id)) return this.natureCache[id];
 
 		const nature = this.pokemonShowdownDex.natures.get(name);
-		if (!nature.exists) return undefined;
+		if (!nature.exists || nature.gen > this.gen) return undefined;
 
 		this.natureCache[id] = nature;
 		return nature;
@@ -1034,8 +1167,6 @@ export class Dex {
 
 		if (!direction) direction = 'front';
 		if (generation === 'bw') {
-			if (pokemon.gen > 5) return undefined;
-
 			const gifDataBW = this.getData().gifDataBW;
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id) && gifDataBW[pokemon.id]![direction]) {
 				return gifDataBW[pokemon.id]![direction];
@@ -1068,7 +1199,7 @@ export class Dex {
 		if (generation === 'rs') return 3;
 		if (generation === 'dp') return 4;
 		if (generation === 'bw') return 5;
-		return dexes.base.gen;
+		return this.getDexes().base.gen;
 	}
 
 	hasModelData(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back'): boolean {
@@ -1143,8 +1274,8 @@ export class Dex {
 		return '<img src="' + prefix + '/' + pokemon.spriteid + suffix + '" width="' + width + '" height="' + height + '" />';
 	}
 
-	getPokemonIcon(pokemon: IPokemon, facingLeft?: boolean): string {
-		let num = pokemon.num;
+	getPokemonIcon(pokemon?: IPokemon, facingLeft?: boolean, border?: string): string {
+		let num = pokemon ? pokemon.num : 0;
 		if (num < 0) {
 			num = 0;
 		} else if (num > 898) {
@@ -1153,21 +1284,21 @@ export class Dex {
 
 		const alternateIconNumbers = this.getData().alternateIconNumbers;
 		if (facingLeft) {
-			if (alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
-		} else if (pokemon.gender === 'F') {
+			if (pokemon && alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
+		} else if (pokemon && pokemon.gender === 'F') {
 			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
 				pokemon.id === 'pyroar') {
 				num = alternateIconNumbers.right[pokemon.id + 'f']!;
 			}
 		} else {
-			if (alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
+			if (pokemon && alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
 		}
 
 		const top = Math.floor(num / 12) * POKEMON_ICON_HEIGHT;
 		const left = (num % 12) * POKEMON_ICON_WIDTH;
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
-			'image-rendering: pixelated;' +
+			(border ? 'border: ' + border + ';' : '') + 'image-rendering: pixelated;' +
 			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v6) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
@@ -1214,6 +1345,13 @@ export class Dex {
 
 	getTrainerSprite(id: string): string {
 		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
+	}
+
+	getCustomTrainerSprite(id: string): string {
+		if (id.charAt(0) === '#') id = id.substr(1);
+
+		return '<img src="//' + Tools.mainServer + '/sprites/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
@@ -1535,15 +1673,16 @@ export class Dex {
 		}
 
 		if (tag === 'ability') {
-			ruleName = dexes['base'].getExistingAbility(ruleName).name;
+			ruleName = this.dexes.base.getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
-			ruleName = dexes['base'].getExistingItem(ruleName).name;
+			if (Tools.toId(ruleName) === 'noitem') return 'No Item';
+			ruleName = this.dexes.base.getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
-			ruleName = dexes['base'].getExistingMove(ruleName).name;
+			ruleName = this.dexes.base.getExistingMove(ruleName).name;
 		} else if (tag === 'nature') {
-			ruleName = dexes['base'].getExistingNature(ruleName).name;
+			ruleName = this.dexes.base.getExistingNature(ruleName).name;
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
-			ruleName = dexes['base'].getExistingPokemon(ruleName).name;
+			ruleName = this.dexes.base.getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {
 			ruleName = tagNames[ruleName];
 		} else {
@@ -1558,18 +1697,18 @@ export class Dex {
 		if (format.usablePokemon) return format.usablePokemon;
 
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
-		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(formatid, this.dexes.base.pokemonShowdownDex);
 		const ruleTable = this.getRuleTable(format);
 
 		const usableAbilities = this.getUsableAbilities(format);
 		const usableItems = this.getUsableItems(format);
 		const usableMoves = this.getUsableMoves(format);
 
-		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const littleCup = ruleTable.has("littlecup");
 		const usablePokemon: string[] = [];
-		for (const i of formatDex.getData().pokemonKeys) {
-			const formes = formatDex.getFormes(formatDex.getExistingPokemon(i));
+		for (const key of formatDex.getData().pokemonKeys) {
+			const formes = formatDex.getFormes(formatDex.getExistingPokemon(key));
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
 				const pokemon = formatDex.pokemonShowdownDex.species.get(forme);
@@ -1579,6 +1718,18 @@ export class Dex {
 				if (pokemon.requiredAbility) {
 					if (!usableAbilities.includes(pokemon.requiredAbility)) continue;
 					set.ability = pokemon.requiredAbility;
+				} else {
+					let usableAbility = false;
+					for (const i in pokemon.abilities) {
+						// @ts-expect-error
+						const ability = formatDex.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+						if (ability && usableAbilities.includes(ability.name)) {
+							usableAbility = true;
+							break;
+						}
+					}
+
+					if (!usableAbility) continue;
 				}
 
 				if (pokemon.requiredItem) {
@@ -1604,6 +1755,17 @@ export class Dex {
 					set.moves = [pokemon.requiredMove];
 				}
 
+				const allPossibleMoves = formatDex.getAllPossibleMoves(pokemon);
+				let usableMove = false;
+				for (const id of allPossibleMoves) {
+					const move = formatDex.getMove(id);
+					if (move && usableMoves.includes(move.name)) {
+						usableMove = true;
+						break;
+					}
+				}
+				if (!usableMove) continue;
+
 				if (validator.checkSpecies(set, pokemon, pokemon, {})) continue;
 
 				if (littleCup && !(pokemon.tier === 'LC' || formatDex.isPseudoLCPokemon(pokemon))) continue;
@@ -1620,12 +1782,12 @@ export class Dex {
 		if (format.usableAbilities) return format.usableAbilities;
 
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
-		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(formatid, this.dexes.base.pokemonShowdownDex);
 
-		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const usableAbilities: string[] = [];
 		for (const i of formatDex.getData().abilityKeys) {
-			// PS move.id compatibility
+			// PS ability.id compatibility
 			const ability = formatDex.pokemonShowdownDex.abilities.get(i);
 			if (!validator.checkAbility({}, ability, {})) {
 				usableAbilities.push(ability.name);
@@ -1640,12 +1802,12 @@ export class Dex {
 		if (format.usableItems) return format.usableItems;
 
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
-		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(formatid, this.dexes.base.pokemonShowdownDex);
 
-		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const usableItems: string[] = [];
 		for (const i of formatDex.getData().itemKeys) {
-			// PS move.id compatibility
+			// PS item.id compatibility
 			const item = formatDex.pokemonShowdownDex.items.get(i);
 			if (!validator.checkItem({}, item, {})) {
 				usableItems.push(item.name);
@@ -1660,9 +1822,9 @@ export class Dex {
 		if (format.usableMoves) return format.usableMoves;
 
 		const formatid = this.joinNameAndCustomRules(format, format.customRules);
-		const validator = new this.pokemonShowdownValidator(formatid, dexes['base'].pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(formatid, this.dexes.base.pokemonShowdownDex);
 
-		const formatDex = format.mod in dexes ? dexes[format.mod] : this;
+		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const usableMoves: string[] = [];
 		for (const i of formatDex.getData().moveKeys) {
 			// PS move.id compatibility
@@ -1733,7 +1895,7 @@ export class Dex {
 		return {addedbans, removedbans, addedrestrictions, addedrules, removedrules};
 	}
 
-	getCustomRulesForPokemonList(pokemon: string[]): string[] {
+	getCustomRulesForPokemonList(pokemon: readonly string[]): string[] {
 		return ["-All Pokemon"].concat(pokemon.map(x => "+" + x));
 	}
 
@@ -2072,44 +2234,48 @@ export class Dex {
 						if (evolve) {
 							if (pokemon.evos.length) {
 								for (const evoName of pokemon.evos) {
-									const evo = this.getExistingPokemon(evoName);
-									let evos: string[];
-									if (options.allowFormes) {
-										evos = this.getFormes(evo);
-									} else {
-										if (evo.forme) continue;
-										evos = [evo.name];
-									}
-
-									if (options.usablePokemon) {
-										for (const forme of evos) {
-											if (options.usablePokemon.includes(forme)) {
-												evolutionFormes.push(forme);
-											}
+									const evo = this.getPokemon(evoName);
+									if (evo) {
+										let evos: string[];
+										if (options.allowFormes) {
+											evos = this.getFormes(evo);
+										} else {
+											if (evo.forme) continue;
+											evos = [evo.name];
 										}
-									} else {
-										evolutionFormes = evolutionFormes.concat(evos);
+
+										if (options.usablePokemon) {
+											for (const forme of evos) {
+												if (options.usablePokemon.includes(forme)) {
+													evolutionFormes.push(forme);
+												}
+											}
+										} else {
+											evolutionFormes = evolutionFormes.concat(evos);
+										}
 									}
 								}
 							}
 						} else {
 							if (pokemon.prevo) {
-								const prevo = this.getExistingPokemon(pokemon.prevo);
-								let prevos: string[] = [];
-								if (options.allowFormes) {
-									prevos = this.getFormes(prevo);
-								} else {
-									if (!prevo.forme) prevos = [prevo.name];
-								}
-
-								if (options.usablePokemon) {
-									for (const forme of prevos) {
-										if (options.usablePokemon.includes(forme)) {
-											evolutionFormes.push(forme);
-										}
+								const prevo = this.getPokemon(pokemon.prevo);
+								if (prevo) {
+									let prevos: string[] = [];
+									if (options.allowFormes) {
+										prevos = this.getFormes(prevo);
+									} else {
+										if (!prevo.forme) prevos = [prevo.name];
 									}
-								} else {
-									evolutionFormes = evolutionFormes.concat(prevos);
+
+									if (options.usablePokemon) {
+										for (const forme of prevos) {
+											if (options.usablePokemon.includes(forme)) {
+												evolutionFormes.push(forme);
+											}
+										}
+									} else {
+										evolutionFormes = evolutionFormes.concat(prevos);
+									}
 								}
 							}
 						}
@@ -2396,53 +2562,61 @@ export class Dex {
 	}
 
 	private onReload(previous: Dex): void {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (previous.pokemonShowdownDex) {
-			const pokemonShowdownDexes = previous.pokemonShowdownDex.dexes;
-			for (const mod in pokemonShowdownDexes) {
-				const dex = pokemonShowdownDexes[mod];
-				const keys = Object.getOwnPropertyNames(dex);
-				for (const key of keys) {
-					// @ts-expect-error
-					dex[key] = undefined;
-				}
-
+		const previousDexes = previous.getDexes();
+		for (const mod in previousDexes) {
+			let keys = Object.getOwnPropertyNames(previousDexes[mod].pokemonShowdownDex);
+			for (const key of keys) {
 				// @ts-expect-error
-				pokemonShowdownDexes[mod] = undefined;
+				Tools.unrefProperties(previousDexes[mod].pokemonShowdownDex[key]);
+			}
+			Tools.unrefProperties(previousDexes[mod].pokemonShowdownDex);
+
+			keys = Object.getOwnPropertyNames(previousDexes[mod].pokemonShowdownValidator);
+			for (const key of keys) {
+				// @ts-expect-error
+				Tools.unrefProperties(previousDexes[mod].pokemonShowdownValidator[key]);
+			}
+			Tools.unrefProperties(previousDexes[mod].pokemonShowdownValidator);
+
+			if (previousDexes[mod] !== previous) {
+				Tools.unrefProperties(previousDexes[mod]);
 			}
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-		if (previous.getDexes) {
-			const previousDexes = previous.getDexes();
-			for (const mod in previousDexes) {
-				if (previousDexes[mod] !== previous) {
-					const dex = previousDexes[mod];
-					const keys = Object.getOwnPropertyNames(dex);
-					for (const key of keys) {
-						// @ts-expect-error
-						dex[key] = undefined;
-					}
-				}
+		Tools.unrefProperties(previous.pokemonShowdownDexModule);
+		Tools.unrefProperties(previous.pokemonShowdownValidatorModule);
+		Tools.unrefProperties(previous);
 
-				// @ts-expect-error
-				previousDexes[mod] = undefined;
-			}
+		this.loadBaseData();
+	}
+
+	private loadGifData(refresh?: boolean): void {
+		this.loadData();
+
+		const gifDataPath = path.join(this.clientDataDirectory, 'pokedex-mini.js');
+		const gifDataBWPath = path.join(this.clientDataDirectory, 'pokedex-mini-bw.js');
+
+		if (refresh) {
+			Tools.uncacheTree(gifDataPath);
+			Tools.uncacheTree(gifDataBWPath);
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		const gifData = require(gifDataPath).BattlePokemonSprites as Dict<IGifData | undefined>;
+		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		const gifDataBW = require(gifDataBWPath).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
-		this.loadAllData();
+		// @ts-expect-error
+		this.dataCache!.gifData = gifData;
+		// @ts-expect-error
+		this.dataCache!.gifDataBW = gifDataBW;
 	}
 
 	private loadData(): void {
 		if (this.dataCache) return;
 
 		if (this.isBase) {
+			this.pokemonShowdownDex.includeMods();
 			this.pokemonShowdownDex.includeModData();
 
 			const baseCustomRuleFormats = Object.keys(customRuleFormats);
@@ -2458,16 +2632,13 @@ export class Dex {
 					};
 				}
 			}
+		} else {
+			this.loadBaseData();
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 		const alternateIconNumbers = require(path.join(this.clientDataDirectory, 'alternate-icon-numbers.js'))
 			.alternateIconNumbers as IAlternateIconNumbers;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const gifData = require(path.join(this.clientDataDirectory, 'pokedex-mini.js')).BattlePokemonSprites as Dict<IGifData | undefined>;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const gifDataBW = require(path.join(this.clientDataDirectory, 'pokedex-mini-bw.js'))
-			.BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
@@ -2490,8 +2661,8 @@ export class Dex {
 		const abilityKeys = this.pokemonShowdownDex.abilities.all().map(x => x.id);
 		const filteredAbilityKeys: string[] = [];
 		for (const key of abilityKeys) {
-			const ability = this.getAbility(key)!;
-			if (ability.gen > this.gen) continue;
+			const ability = this.getAbility(key);
+			if (!ability) continue;
 
 			filteredAbilityKeys.push(key);
 		}
@@ -2499,8 +2670,8 @@ export class Dex {
 		const itemKeys = this.pokemonShowdownDex.items.all().map(x => x.id);
 		const filteredItemKeys: string[] = [];
 		for (const key of itemKeys) {
-			const item = this.getItem(key)!;
-			if (item.gen > this.gen) continue;
+			const item = this.getItem(key);
+			if (!item) continue;
 
 			filteredItemKeys.push(key);
 		}
@@ -2515,7 +2686,7 @@ export class Dex {
 		}
 
 		const validator = new this.pokemonShowdownValidator(this.gen === 8 ? "gen8nationaldex" : "gen" + this.gen + "ou",
-			dexes['base'].pokemonShowdownDex);
+			this.dexes.base.pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
 
 		const pokemonKeys = this.pokemonShowdownDex.species.all().map(x => x.id);
@@ -2525,11 +2696,24 @@ export class Dex {
 		const colors: Dict<string> = {};
 		const eggGroups: Dict<string> = {};
 		for (const key of pokemonKeys) {
-			const pokemon = this.getPokemon(key)!;
-			if (pokemon.gen > this.gen) continue;
+			if (!key) continue;
 
-			this.cacheAllPossibleMoves(validator, pokemon, filteredTypeKeys);
-			this.cacheIsPseudoLCPokemon(pokemon, lcFormat);
+			const pokemon = this.getPokemon(key);
+			if (!pokemon) continue;
+
+			const formes = [pokemon];
+			if (pokemon.cosmeticFormes) {
+				for (const name of pokemon.cosmeticFormes) {
+					const forme = this.getPokemon(name);
+					if (forme && !pokemonKeys.includes(forme.id)) formes.push(forme);
+				}
+			}
+
+			for (const forme of formes) {
+				this.cacheAllPossibleMoves(validator, forme, filteredTypeKeys);
+				this.cacheIsPseudoLCPokemon(forme, lcFormat);
+			}
+
 			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
 
@@ -2558,8 +2742,8 @@ export class Dex {
 		});
 		const filteredMoveKeys: string[] = [];
 		for (const key of moveKeys) {
-			const move = this.getMove(key)!;
-			if (move.gen > this.gen) continue;
+			const move = this.getMove(key);
+			if (!move) continue;
 
 			this.cacheMoveAvailability(move, moveAvailbilityPokemonList);
 			filteredMoveKeys.push(key);
@@ -2568,14 +2752,21 @@ export class Dex {
 		const natureKeys = this.pokemonShowdownDex.natures.all().map(x => x.id);
 		const filteredNatureKeys: string[] = [];
 		for (const key of natureKeys) {
-			const nature = this.getNature(key)!;
-			if (nature.gen > this.gen) continue;
+			const nature = this.getNature(key);
+			if (!nature) continue;
 			filteredNatureKeys.push(key);
+		}
+
+		for (const alias in this.pokemonShowdownDex.data.Aliases) {
+			if (this.getPokemon(alias)) continue;
+			if (this.getMove(alias)) continue;
+			if (this.getAbility(alias)) continue;
+			if (this.getItem(alias)) continue;
 		}
 
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
-			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : dexes.base.dataCache!.formatKeys.slice(),
+			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : this.dexes.base.dataCache!.formatKeys.slice(),
 			itemKeys: filteredItemKeys,
 			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
@@ -2588,8 +2779,8 @@ export class Dex {
 			characters: characterData,
 			colors,
 			eggGroups,
-			gifData,
-			gifDataBW,
+			gifData: {},
+			gifDataBW: {},
 			locations: locationData,
 			trainerClasses,
 			trainerSprites,
@@ -2598,9 +2789,15 @@ export class Dex {
 		// @ts-expect-error
 		this.dataCache = data;
 
+		this.loadGifData();
+
 		if (this.isBase) {
 			for (const key of data.formatKeys) {
 				const format = this.getExistingFormat(key);
+				if (format.mod && !(format.mod in this.dexes)) {
+					this.dexes[format.mod] = new Dex(this.dexes, this.pokemonShowdownDex.forFormat(format).gen, format.mod);
+				}
+
 				if (format.section === OM_OF_THE_MONTH) {
 					omotms.push(format.id);
 				} else if (format.section === ROA_SPOTLIGHT) {
@@ -2692,18 +2889,9 @@ export class Dex {
 		while (learnsetParent && learnsetParent.gen <= this.gen) {
 			const learnsetData = this.getLearnsetData(learnsetParent.id);
 			if (!learnsetData || !learnsetData.learnset) {
-				let forme: string | undefined;
-				if (learnsetParent.changesFrom) {
-					forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
-				} else {
-					forme = learnsetParent.baseSpecies;
-				}
-
-				if (forme && forme !== learnsetParent.name) {
-					// forme without its own learnset
-					learnsetParent = this.getPokemon(forme)!;
-					// warning: formes with their own learnset, like Wormadam, should NOT
-					// inherit from their base forme unless they're freely switchable
+				const nextLearnsetParent = this.getLearnsetParent(learnsetParent);
+				if (nextLearnsetParent.name !== learnsetParent.name) {
+					learnsetParent = nextLearnsetParent;
 					continue;
 				}
 				break;
@@ -2719,7 +2907,7 @@ export class Dex {
 			learnsetParent = validator.learnsetParent(learnsetParent);
 
 			// prevent recursion from calling validator.learnsetParent() directly
-			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
+			if (learnsetParent && learnsetParent.name === previousLearnsetParent.name) break;
 		}
 
 		if (possibleMoves.includes('hiddenpower')) {
@@ -2731,11 +2919,23 @@ export class Dex {
 
 		const checkedMoves: string[] = [];
 		for (const i of possibleMoves) {
-			const move = this.getExistingMove(i);
+			const move = this.getMove(i);
+			if (!move) continue;
+
 			// PS move.id compatibility
-			if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
-				!validator.checkCanLearn(this.pokemonShowdownDex.moves.get(i), pokemon)) {
-				checkedMoves.push(move.id);
+			try {
+				if (!checkedMoves.includes(move.id) && move.gen <= this.gen &&
+					!validator.checkCanLearn(this.pokemonShowdownDex.moves.get(i), pokemon)) {
+					checkedMoves.push(move.id);
+				}
+			} catch (e) {
+				const error = (e as Error).message;
+				if (!error.startsWith("Species with no learnset data: ")) {
+					console.log(error);
+					throw e;
+				}
+
+				break;
 			}
 		}
 
@@ -2828,16 +3028,19 @@ export class Dex {
 }
 
 export const instantiate = (): void => {
-	const oldDex = global.Dex as Dex | undefined;
+	let oldDex = global.Dex as Dex | undefined;
 
-	global.Dex = new Dex();
+	const dexes = Object.create(null) as Dict<Dex>;
+	global.Dex = new Dex(dexes);
 	for (let i = CURRENT_GEN - 1; i >= 1; i--) {
 		const mod = 'gen' + i;
-		dexes[mod] = new Dex(i, mod);
+		const dex = new Dex(dexes, i, mod);
+		dexes[mod] = dex;
 	}
 
 	if (oldDex) {
 		// @ts-expect-error
 		global.Dex.onReload(oldDex);
+		oldDex = undefined;
 	}
 };

@@ -17,9 +17,13 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 
 		const natures: INature[] = [];
 		for (const key of Dex.getData().natureKeys) {
-			natures.push(Dex.getExistingNature(key));
+			const nature = Dex.getExistingNature(key);
+			if (nature.plus && nature.minus) {
+				natures.push(nature);
+			}
 		}
 
+		const highestLowestCache: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
 				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
@@ -43,7 +47,6 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 				}
 			}
 
-			const highestLowestCache: Dict<string[]> = {};
 			const combinationCache: Dict<string[]> = {};
 			const dataKey = highestStats.join(',') + "|" + lowestStats.join(',');
 			if (!(dataKey in highestLowestCache)) {

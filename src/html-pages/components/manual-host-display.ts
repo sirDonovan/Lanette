@@ -35,6 +35,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			onClear: () => this.clearPokemonInput(),
 			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		};
 
@@ -202,13 +203,13 @@ export class ManualHostDisplay extends HostDisplayBase {
 		const border = this.currentPicker === 'background-border';
 
 		html += this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundColorPickerCommand, "Choose background",
-			background);
+			{selectedAndDisabled: background});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseBackgroundBorderPickerCommand, "Background border",
-			border);
+			{selectedAndDisabled: border});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.choosePokemonPickerCommand, "Choose Pokemon",
-			pokemon);
+			{selectedAndDisabled: pokemon});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.chooseTrainerPickerCommand, "Choose trainer",
-			trainer);
+			{selectedAndDisabled: trainer});
 		html += "<hr />";
 
 		if (background) {
@@ -218,8 +219,10 @@ export class ManualHostDisplay extends HostDisplayBase {
 		} else if (pokemon) {
 			const gif = this.gifOrIcon === 'gif';
 			html += "GIFs or icons: ";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs", gif);
-			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons", !gif);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setGif, "GIFs",
+				{selectedAndDisabled: gif});
+			html += this.getQuietPmButton(this.commandPrefix + ", " + this.setGifOrIconCommand + "," + this.setIcon, "Icons",
+				{selectedAndDisabled: !gif});
 			html += "<br /><br />";
 			if (gif) {
 				html += this.renderAllModelGenerations();
@@ -244,7 +247,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			if (gif) {
 				for (let i = 1; i <= this.props.maxGifs; i++) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
-						"" + i, currentIndex === i);
+						"" + i, {selectedAndDisabled: currentIndex === i});
 				}
 
 				html += "<br /><br />";
@@ -252,7 +255,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			} else {
 				for (let i = 1; i <= this.props.maxIcons; i++) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setPokemonPickerIndexCommand + ", " + i,
-						"" + i, currentIndex === i);
+						"" + i, {selectedAndDisabled: currentIndex === i});
 				}
 
 				html += "<br /><br />";
@@ -264,7 +267,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			for (let i = 1; i <= this.props.maxTrainers; i++) {
 				if (i > 1) html += "&nbsp;";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + this.setTrainerPickerIndexCommand + ", " + i, "" + i,
-					currentIndex === i);
+					{selectedAndDisabled: currentIndex === i});
 			}
 
 			html += "<br /><br />";

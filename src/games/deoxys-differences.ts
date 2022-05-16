@@ -108,8 +108,14 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		}
 
 		let differenceCoordinates = this.generateDifferenceCoordinates(pokemonPerGridRow, rowsPerGrid);
-		while (this.checkLastDifferenceCoordinates(differenceCoordinates)) {
+		let attempts = 0;
+		while (this.checkLastDifferenceCoordinates(differenceCoordinates) && attempts < 100) {
+			attempts++;
 			differenceCoordinates = this.generateDifferenceCoordinates(pokemonPerGridRow, rowsPerGrid);
+		}
+
+		if (this.checkLastDifferenceCoordinates(differenceCoordinates)) {
+			return await this.customGenerateHint();
 		}
 
 		const differenceList = this.shuffle(data.pokemon.filter(x => !usedPokemon.includes(x)));

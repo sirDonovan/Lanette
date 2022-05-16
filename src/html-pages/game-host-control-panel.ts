@@ -76,7 +76,7 @@ class GameHostControlPanel extends HtmlPageBase {
 	randomHostDisplay: RandomHostDisplay;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		GameHostControlPanel.loadData();
 
@@ -177,8 +177,6 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
 			this.manualHostDisplay, this.randomHostDisplay];
-
-		pages[this.userId] = this;
 	}
 
 	static loadData(): void {
@@ -191,10 +189,6 @@ class GameHostControlPanel extends HtmlPageBase {
 		}
 
 		this.GameHostControlPanelLoaded = true;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	getDatabase(): IDatabase {
@@ -620,11 +614,14 @@ class GameHostControlPanel extends HtmlPageBase {
 		html += "Options:";
 		if (currentHost) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
-				hostInformation);
+				{selectedAndDisabled: hostInformation});
 		}
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display", manualHostDisplay);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display", randomHostDisplay);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints", generateHints);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display",
+			{selectedAndDisabled: manualHostDisplay});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display",
+			{selectedAndDisabled: randomHostDisplay});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints",
+			{selectedAndDisabled: generateHints});
 		html += "</center>";
 
 		if (hostInformation) {
@@ -666,7 +663,7 @@ class GameHostControlPanel extends HtmlPageBase {
 			if (remainingPlayers.length) {
 				html += "<br /><center>";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand, "Hide points controls",
-					!this.currentPlayer);
+					{selectedAndDisabled: !this.currentPlayer});
 
 				if (game.teams) {
 					html += "<br /><br />";
@@ -677,7 +674,7 @@ class GameHostControlPanel extends HtmlPageBase {
 							for (const playerId of remainingTeamPlayers) {
 								const player = game.players[playerId];
 								html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " +
-									playerId, player.name, this.currentPlayer === playerId);
+									playerId, player.name, {selectedAndDisabled: this.currentPlayer === playerId});
 							}
 							html += "<br />";
 						}
@@ -688,7 +685,7 @@ class GameHostControlPanel extends HtmlPageBase {
 					for (const playerId of remainingPlayers) {
 						const player = game.players[playerId];
 						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setCurrentPlayerCommand + ", " + playerId,
-							player.name, this.currentPlayer === playerId);
+							player.name, {selectedAndDisabled: this.currentPlayer === playerId});
 					}
 
 					if (this.currentPlayer) html += "<br /><br />";
@@ -741,14 +738,14 @@ class GameHostControlPanel extends HtmlPageBase {
 				disabledSend = true;
 			}
 			html += "<center>" + this.getQuietPmButton(this.commandPrefix + ", " + sendDisplayCommand, "Send to " + this.room.title,
-				disabledSend) + "</center>";
+				{disabled: disabledSend}) + "</center>";
 
 			html += "<br />";
 			html += "Auto-send after any change: ";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendYes, "Yes",
-				!currentHost || this.autoSendDisplay);
+				{disabled: !currentHost || this.autoSendDisplay});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + autoSendCommand + ", " + autoSendNo, "No",
-				!currentHost || !this.autoSendDisplay);
+				{disabled: !currentHost || !this.autoSendDisplay});
 
 			html += "<br /><br />";
 			if (manualHostDisplay) {
@@ -799,35 +796,34 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new GameHostControlPanel(targetRoom, user).open();
-			} else if (cmd === chooseHostInformation) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand && cmd !== autoRefreshCommand && cmd !== setCurrentPlayerCommand &&
+				cmd !== sendDisplayCommand) {
+				new GameHostControlPanel(targetRoom, user);
+			}
+
+			if (cmd === chooseHostInformation) {
 				pages[user.id].chooseHostInformation();
 			} else if (cmd === chooseCustomDisplay) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseManualHostDisplay();
 			} else if (cmd === chooseRandomDisplay) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseRandomHostDisplay();
 			} else if (cmd === chooseGenerateHints) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].chooseGenerateHints();
 			} else if (cmd === refreshCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				pages[user.id].send();
 			} else if (cmd === autoRefreshCommand) {
 				if (user.id in pages) pages[user.id].send();
 			} else if (cmd === generateHintCommand) {
 				const name = targets[0].trim();
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-
 				if (!pages[user.id].generateHint(user, name)) this.say("'" + name + "' is not a valid game for generating hints.");
 			} else if (cmd === setCurrentPlayerCommand) {
 				if (!(user.id in pages) || !targetRoom.userHostedGame || !targetRoom.userHostedGame.isHost(user)) return;
 
 				pages[user.id].setCurrentPlayer(Tools.toId(targets[0]));
 			} else if (cmd === autoSendCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-
 				const option = targets[0].trim();
 				if (option !== autoSendYes && option !== autoSendNo) {
 					return this.say("'" + option + "' is not a valid auto-send option.");
@@ -838,11 +834,8 @@ export const commands: BaseCommandDefinitions = {
 				if (!(user.id in pages)) return;
 				pages[user.id].sendHostDisplay();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new GameHostControlPanel(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

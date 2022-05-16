@@ -1,9 +1,10 @@
 import fs = require('fs');
+import fsPromises = require('fs/promises');
 import Mocha = require('mocha');
 import path = require('path');
 import stream = require('stream');
 
-import { testOptions } from './test-tools';
+import { createTestRoom, testOptions } from './test-tools';
 
 const rootFolder = path.resolve(__dirname, '..', '..');
 const modulesDir = path.join(__dirname, 'modules');
@@ -19,6 +20,9 @@ for (const method of methodsToNoOp) {
 	fs[method] = noOp;
 	// @ts-expect-error
 	fs[method + 'Sync'] = noOp;
+
+	// @ts-expect-error
+	fsPromises[method] = () => Promise.resolve(); // eslint-disable-line @typescript-eslint/promise-function-async
 }
 
 Object.assign(fs, {createWriteStream() {
@@ -32,7 +36,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-		require(path.join(rootFolder, 'built', 'app.js'))();
+		require(path.join(rootFolder, 'build', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 
 		// allow tests to assert on Client's outgoingMessageQueue
@@ -44,13 +48,10 @@ module.exports = (inputOptions: Dict<string>): void => {
 		// @ts-expect-error
 		Client.publicChatRooms = ['mocha'];
 
-		const mochaRoom = Rooms.add('mocha');
-		mochaRoom.setPublicRoom(true);
-		mochaRoom.setTitle('Mocha');
-		mochaRoom.onUserJoin(Users.self, Client.getGroupSymbols().bot);
+		const room = createTestRoom();
 
 		if (!Config.allowScriptedGames) Config.allowScriptedGames = [];
-		Config.allowScriptedGames.push(mochaRoom.id);
+		Config.allowScriptedGames.push(room.id);
 
 		let modulesToTest: string[];
 		if (testOptions.modules) {
@@ -59,8 +60,16 @@ module.exports = (inputOptions: Dict<string>): void => {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
+		const loadDex = modulesToTest.includes('dex.js');
 		const loadGames = modulesToTest.includes('games.js');
 		const loadWorkers = modulesToTest.includes('workers.js');
+
+		if (loadDex || loadGames || loadWorkers) {
+			console.log("Loading dex data for tests...");
+			for (let i = 1; i <= Dex.getGen(); i++) {
+				Dex.getDex('gen' + i).getData();
+			}
+		}
 
 		if (!loadGames && loadWorkers) {
 			console.log("Loading worker data for tests...");
@@ -84,7 +93,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 				const format = Games.getExistingFormat(i);
 				if (format.class.loadData) {
 					const start = process.hrtime();
-					format.class.loadData(mochaRoom);
+					format.class.loadData(room);
 					const end = process.hrtime(start);
 					const loadTime = (end[0] * 1000000000 + end[1]) / 1000000;
 					if (loadTime > nonTrivialGameLoadTime && !format.nonTrivialLoadData) {
@@ -139,6 +148,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		runMocha();
 	} catch (e) {
 		console.log(e);
+		Games.unrefWorkers();
 		process.exit(1);
 	}
 };

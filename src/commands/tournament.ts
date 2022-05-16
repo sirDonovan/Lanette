@@ -31,6 +31,13 @@ export const commands: BaseCommandDefinitions = {
 			const tournament = tournamentRoom.tournament;
 			let html = "<b>" + tournament.name + " " + (tournament.isRoundRobin ? "Round Robin " : "") + "tournament</b><br />";
 			if (tournament.started) {
+				if (tournament.willAwardPoints()) {
+					const multiplier = Tournaments.getCombinedPointMultiplier(tournament.format, tournament.totalPlayers,
+						tournament.official);
+					html += "<b>Points to be awarded</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
+						Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
+				}
+
 				if (tournament.startTime) {
 					html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - tournament.startTime) + "<br />";
 				}
@@ -98,14 +105,14 @@ export const commands: BaseCommandDefinitions = {
 			if (!room.tournament.isSingleElimination) return this.say("Only single elimination tournaments award points.");
 
 			if (cmd === 'tournamentenablepoints' || cmd === 'tourenablepoints') {
-				if ((room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+				if ((room.tournament.formatAwardsPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
 					room.tournament.manuallyEnabledPoints) {
 					return this.say("The " + room.tournament.name + " tournament will already award leaderboard points.");
 				}
 				room.tournament.manuallyEnabledPoints = true;
 				this.say("The " + room.tournament.name + " tournament will now award leaderboard points.");
 			} else {
-				if ((!room.tournament.canAwardPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
+				if ((!room.tournament.formatAwardsPoints() && room.tournament.manuallyEnabledPoints === undefined) ||
 					room.tournament.manuallyEnabledPoints === false) {
 					return this.say("The " + room.tournament.name + " tournament will already not award leaderboard points.");
 				}
@@ -144,18 +151,21 @@ export const commands: BaseCommandDefinitions = {
 				return this.say(targetPlayer.name + " has already been eliminated from the " + tournamentRoom.title + " tournament.");
 			}
 
-			let currentBattle: IBattleGameData | undefined;
-			for (const battle of tournamentRoom.tournament.currentBattles) {
-				if (battle.playerA === targetPlayer || battle.playerB === targetPlayer) {
-					currentBattle = tournamentRoom.tournament.battleData.get(battle.room);
-					break;
+			let playerBattle: IBattleGameData | undefined;
+			for (const currentBattle of tournamentRoom.tournament.currentBattles) {
+				if (currentBattle.playerA === targetPlayer || currentBattle.playerB === targetPlayer) {
+					const battleRoom = Rooms.get(currentBattle.roomid);
+					if (battleRoom) {
+						playerBattle = tournamentRoom.tournament.battleData.get(battleRoom);
+						break;
+					}
 				}
 			}
 
-			if (!currentBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
-			const slots = Tools.shuffle(Object.keys(currentBattle.remainingPokemon));
+			if (!playerBattle) return this.say(targetPlayer.name + " is not currently in a tournament battle.");
+			const slots = Tools.shuffle(Object.keys(playerBattle.remainingPokemon));
 			this.say("The score of " + targetPlayer.name + "'s current battle is " + (slots.length < 2 ? "not yet available" :
-				currentBattle.remainingPokemon[slots[0]] + " - " + currentBattle.remainingPokemon[slots[1]]) + ".");
+				playerBattle.remainingPokemon[slots[0]] + " - " + playerBattle.remainingPokemon[slots[1]]) + ".");
 		},
 		aliases: ['tbscore', 'tbattlescore'],
 		syntax: ["[user]"],
@@ -164,7 +174,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	scheduledtournament: {
 		command(target, room, user) {
-			const nextScheduledTournaments = Tournaments.getNextScheduledTournaments();
+			const nextOfficialTournaments = Tournaments.getNextOfficialTournaments();
 			const targets = target.split(',');
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
@@ -175,8 +185,8 @@ export const commands: BaseCommandDefinitions = {
 					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				}
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
-				if (!(targetRoom.id in nextScheduledTournaments)) {
-					return this.say("There is no tournament scheduled for " + targetRoom.title + ".");
+				if (!(targetRoom.id in nextOfficialTournaments)) {
+					return this.say("There is no official tournament scheduled for " + targetRoom.title + ".");
 				}
 				tournamentRoom = targetRoom;
 			} else {
@@ -184,18 +194,18 @@ export const commands: BaseCommandDefinitions = {
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) {
 					return this.sayError(['disabledTournamentFeatures', room.title]);
 				}
-				if (!(room.id in nextScheduledTournaments)) return this.say("There is no tournament scheduled for this room.");
+				if (!(room.id in nextOfficialTournaments)) return this.say("There is no official tournament scheduled for this room.");
 				tournamentRoom = room;
 			}
 
-			const scheduledTournament = nextScheduledTournaments[tournamentRoom.id];
-			const format = Dex.getExistingFormat(scheduledTournament.format, true);
+			const officialTournament = nextOfficialTournaments[tournamentRoom.id];
+			const format = Dex.getExistingFormat(officialTournament.format, true);
 			const now = Date.now();
-			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " scheduled tournament</b>: " + format.name + "<br />";
-			if (now > scheduledTournament.time) {
+			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " official tournament</b>: " + format.name + "<br />";
+			if (now > officialTournament.time) {
 				html += "<b>Delayed</b><br />";
 			} else {
-				html += "<b>Starting in</b>: " + Tools.toDurationString(scheduledTournament.time - now) + "<br />";
+				html += "<b>Starting in</b>: " + Tools.toDurationString(officialTournament.time - now) + "<br />";
 			}
 
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
@@ -275,16 +285,16 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(',');
 			const id = Tools.toId(targets[0]);
 
-			const nextScheduledTournaments = Tournaments.getNextScheduledTournaments();
-			let scheduled = false;
+			const nextOfficialTournaments = Tournaments.getNextOfficialTournaments();
+			let official = false;
 			let format: IFormat | undefined;
 			if (id === 'scheduled' || id === 'official') {
-				if (!(room.id in nextScheduledTournaments)) return this.say("There is no tournament schedule for this room.");
-				scheduled = true;
-				format = Dex.getExistingFormat(nextScheduledTournaments[room.id].format, true);
+				if (!(room.id in nextOfficialTournaments)) return this.say("There is no official tournament schedule for this room.");
+				official = true;
+				format = Dex.getExistingFormat(nextOfficialTournaments[room.id].format, true);
 			} else {
-				if (room.id in nextScheduledTournaments && Date.now() > nextScheduledTournaments[room.id].time) {
-					return this.say("The scheduled tournament is delayed so you must wait until after it starts.");
+				if (room.id in nextOfficialTournaments && Date.now() > nextOfficialTournaments[room.id].time) {
+					return this.say("The official tournament is delayed so you must wait until after it starts.");
 				}
 
 				const resolved = Tournaments.resolveFormatFromInput(targets, room);
@@ -293,34 +303,29 @@ export const commands: BaseCommandDefinitions = {
 				format = resolved;
 			}
 
-			let playerCap: number = Tournaments.maxPlayerCap;
-			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			}
+			let playerCap = Tournaments.getDefaultPlayerCap(room);
 
-			for (const option of targets) {
-				const trimmed = option.trim();
-				if (Tools.isInteger(trimmed)) {
-					playerCap = parseInt(trimmed);
-					if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
-						return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
-							Tournaments.maxPlayerCap + ".");
+			if (!official) {
+				for (const option of targets) {
+					const trimmed = option.trim();
+					if (Tools.isInteger(trimmed)) {
+						playerCap = parseInt(trimmed);
+						if (playerCap < Tournaments.minPlayerCap || playerCap > Tournaments.maxPlayerCap) {
+							return this.say("You must specify a player cap between " + Tournaments.minPlayerCap + " and " +
+								Tournaments.maxPlayerCap + ".");
+						}
 					}
 				}
 			}
 
-			if (!playerCap && Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			}
-
 			let time: number = 0;
-			if (scheduled) {
-				time = nextScheduledTournaments[room.id].time;
+			if (official) {
+				time = nextOfficialTournaments[room.id].time;
 			} else if (!room.tournament) {
 				const now = Date.now();
 				if (database.lastTournamentTime) {
 					if (database.lastTournamentTime + Tournaments.queuedTournamentTime < now) {
-						time = now + Tournaments.delayedScheduledTournamentTime;
+						time = now + Tournaments.delayedOfficialTournamentTime;
 					} else {
 						time = database.lastTournamentTime + Tournaments.queuedTournamentTime;
 					}
@@ -332,20 +337,20 @@ export const commands: BaseCommandDefinitions = {
 
 			database.queuedTournament = {
 				formatid: Dex.joinNameAndCustomRules(format, format.customRules),
-				playerCap,
-				scheduled,
+				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
+				official,
 				time,
 				tournamentName: format.tournamentName,
 			};
 
-			if (scheduled) {
-				Tournaments.setScheduledTournamentTimer(room);
+			if (official) {
+				Tournaments.setOfficialTournamentTimer(room);
 			} else if (time) {
 				Tournaments.setTournamentTimer(room, time, format, playerCap, false, format.tournamentName);
 			}
 			this.run('queuedtournament', '');
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['forcenexttour', 'forcequeuetournament', 'forcenexttournament'],
@@ -376,13 +381,14 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const database = Storage.getDatabase(tournamentRoom);
-			const errorText = "There is no tournament queued for " + (this.pm ? tournamentRoom.title : "this room") + ".";
+			const errorText = "There is no tournament scheduled for " + (this.pm ? tournamentRoom.title : "this room") + ".";
 			if (!database.queuedTournament) return this.say(errorText);
 			const format = Dex.getFormat(database.queuedTournament.formatid, true);
 			if (!format || format.effectType !== 'Format') {
+				this.say(errorText);
 				delete database.queuedTournament;
-				Storage.exportDatabase(tournamentRoom.id);
-				return this.say(errorText);
+				Storage.tryExportDatabase(tournamentRoom.id);
+				return;
 			}
 
 			let tournamentName: string;
@@ -392,9 +398,17 @@ export const commands: BaseCommandDefinitions = {
 				tournamentName = Dex.getCustomFormatName(format);
 			}
 
-			let html = "<div class='infobox infobox-limited'><b>Queued" + (this.pm ? " " + tournamentRoom.title : "") + " " +
-				"tournament</b>: " + tournamentName + (database.queuedTournament.scheduled ? " <i>(scheduled)</i>" : "") +
-				"<br />";
+			const defaultPlayerCap = Tournaments.getDefaultPlayerCap(tournamentRoom);
+
+			let html = "<div class='infobox infobox-limited'><b>Next scheduled" + (this.pm ? " " + tournamentRoom.title : "") + " " +
+				"tournament</b>: " + (database.queuedTournament.playerCap !== defaultPlayerCap ?
+				database.queuedTournament.playerCap + "-player " : "") + tournamentName +
+				(database.queuedTournament.official ? " <i>(official)</i>" : "") + "<br />";
+			const multiplier = Tournaments.getCombinedPointMultiplier(format, database.queuedTournament.playerCap,
+				database.queuedTournament.official);
+			html += "<b>Points to be awarded at player cap</b>: " + Tournaments.getSemiFinalistPoints(multiplier) + "/" +
+				Tournaments.getRunnerUpPoints(multiplier) + "/" + Tournaments.getWinnerPoints(multiplier) + "<br />";
+
 			if (database.queuedTournament.time) {
 				const now = Date.now();
 				if (now > database.queuedTournament.time) {
@@ -407,6 +421,7 @@ export const commands: BaseCommandDefinitions = {
 					tournamentRoom.tournament.name + " tournament ends<br />";
 			}
 
+			if (format.teams) html += "<br /><a href='" + format.teams + "'><b>Sample teams</b></a><br />";
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			html += "</div>";
 			this.sayUhtml(room.id + "-queued-tournament-" + format.id, html, tournamentRoom);
@@ -588,6 +603,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
@@ -618,6 +635,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user, cmd) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
@@ -672,6 +691,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			const targets = target.split(',');
+			if (targets.length !== 2) return this.say("You must specify the room and Challonge link.");
+
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom || !Config.userHostedTournamentRanks || !(targetRoom.id in Config.userHostedTournamentRanks) ||
 				!user.hasRank(targetRoom, Config.userHostedTournamentRanks[targetRoom.id].review)) return;
@@ -740,7 +761,7 @@ export const commands: BaseCommandDefinitions = {
 
 			database.tournamentManagers = database.tournamentManagers.concat(ids);
 			this.say("The specified user(s) can now use tournament commands in " + tournamentRoom.title + ".");
-			Storage.exportDatabase(tournamentRoom.id);
+			Storage.tryExportDatabase(tournamentRoom.id);
 		},
 		aliases: ['addtourmanager', 'addtournamentmanagers', 'addtourmanagers'],
 		syntax: ["[user]"],
@@ -784,7 +805,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("The specified user(s) can no longer use tournament commands for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['removetourmanager', 'removetournamentmanagers', 'removetourmanagers'],
 		syntax: ["[user]"],

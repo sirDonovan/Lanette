@@ -7,6 +7,7 @@ import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
+import type { ModelGeneration } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, GameNumberOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
@@ -14,7 +15,7 @@ import type {
 	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
+import type { ICustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
@@ -49,8 +50,8 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 };
 
 const categoryNames: GameCategoryNames = {
+	'battle-elimination': 'Battle Elimination',
 	'chain': 'Chain',
-	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
 	'identification-2': 'Identification Group 2',
 	'knowledge-1': 'Knowledge Group 1',
@@ -106,6 +107,7 @@ export class Games {
 	private autoCreateTimers: Dict<NodeJS.Timer> = {};
 	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	private readonly formats: Formats = {};
+	private readonly formatModules: NodeModule[] = [];
 	private readonly freejoinFormatTargets: string[] = [];
 	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
@@ -252,30 +254,40 @@ export class Games {
 	}
 
 	loadFormats(): void {
+		const userHostedModule = require(path.join(Tools.buildFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+		typeof import('./room-game-user-hosted');
+
 		// @ts-expect-error
-		this.userHosted = (require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-			typeof import('./room-game-user-hosted')).game;
+		this.formatModules.push(userHostedModule);
+
+		// @ts-expect-error
+		this.userHosted = userHostedModule.game;
 
 		const internalGameKeys = Object.keys(internalGamePaths) as InternalGame[];
 		for (const key of internalGameKeys) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + internalGamePaths[key]);
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 				for (const i in commands) {
 					if (i in BaseCommands) {
-						throw new Error("Internal game " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Internal game " + game.name + " command '" + i + "' already exists as a regular command.");
 					}
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.internalFormats[key] = Object.assign({}, file, {commands, id: Tools.toId(file.name)});
+			this.internalFormats[key] = Object.assign({}, game, {commands, id: Tools.toId(game.name)});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -283,50 +295,60 @@ export class Games {
 		for (const fileName of modeFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(modePath).mode as DeepImmutable<IGameModeFile> | undefined;
-			if (!file) throw new Error("No mode exported from " + modePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(modePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const mode = file.mode as DeepImmutable<IGameModeFile> | undefined;
+			if (!mode) throw new Error("No mode exported from " + modePath);
 
-			if (file.commands) {
-				for (const i in file.commands) {
+			const id = Tools.toId(mode.name);
+			if (id in this.modes) throw new Error("The name '" + mode.name + "' is already used by another mode.");
+
+			if (mode.commands) {
+				for (const i in mode.commands) {
 					if (i in BaseCommands) {
-						throw new Error("Mode " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Mode " + mode.name + " command '" + i + "' already exists as a regular command.");
 					}
-					if (!(i in this.commands)) this.commands[i] = file.commands[i];
+					if (!(i in this.commands)) this.commands[i] = mode.commands[i];
 				}
 			}
 
-			if (file.aliases) {
-				for (const alias of file.aliases) {
+			if (mode.aliases) {
+				for (const alias of mode.aliases) {
 					const aliasId = Tools.toId(alias);
 					if (aliasId in this.modeAliases) {
-						throw new Error(file.name + " mode's alias '" + alias + " is already used by " +
+						throw new Error(mode.name + " mode's alias '" + alias + " is already used by " +
 							this.modes[this.modeAliases[aliasId]].name + ".");
 					}
 					this.modeAliases[aliasId] = id;
 				}
 			}
 
-			this.modes[id] = Object.assign({}, file as IGameMode, {id});
+			this.modes[id] = Object.assign({}, mode as IGameMode, {id});
 		}
 
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (const fileName of gameFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(gamePath).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + gamePath);
+
+			const id = Tools.toId(game.name);
+			if (id in this.formats) throw new Error("The name '" + game.name + "' is already used by another game.");
 
 			let challengeSettings: GameChallengeSettings | undefined;
-			if (file.challengeSettings) {
-				challengeSettings = Tools.deepClone(file.challengeSettings);
+			if (game.challengeSettings) {
+				challengeSettings = Tools.deepClone(game.challengeSettings);
 				for (const gameChallenge of gameChallenges) {
 					if (!challengeSettings[gameChallenge]) continue;
 					if (challengeSettings[gameChallenge]!.options) {
@@ -341,31 +363,31 @@ export class Games {
 			}
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 			}
 
 			let variants;
-			if (file.variants) {
-				variants = Tools.deepClone(file.variants);
+			if (game.variants) {
+				variants = Tools.deepClone(game.variants);
 				for (const variant of variants) {
 					variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
 				}
 			}
 
 			let modes: string[] | undefined;
-			if (file.modes) {
+			if (game.modes) {
 				modes = [];
-				for (const mode of file.modes) {
+				for (const mode of game.modes) {
 					const modeId = Tools.toId(mode);
-					if (!(modeId in this.modes)) throw new Error(file.name + "'s mode '" + mode + "' is not a valid mode.");
+					if (!(modeId in this.modes)) throw new Error(game.name + "'s mode '" + mode + "' is not a valid mode.");
 					modes.push(modeId);
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.formats[id] = Object.assign({}, file, {challengeSettings, commands, id, modes, variants});
+			this.formats[id] = Object.assign({}, game, {challengeSettings, commands, id, modes, variants});
 		}
 
 		for (const format of this.userHosted.formats) {
@@ -536,21 +558,37 @@ export class Games {
 							if (result) returnedResult = result;
 						} else {
 							user.rooms.forEach((value, userRoom) => {
+								const games: ScriptedGame[] = [];
 								if (userRoom.game) {
-									const result = userRoom.game.tryCommand(target, user, user, command, timestamp);
-									if (result) returnedResult = result;
-								} else if (userRoom.searchChallenge) {
-									const result = userRoom.searchChallenge.tryCommand(target, user, user, command, timestamp);
+									games.push(userRoom.game);
+								}
+								if (userRoom.tournament && userRoom.tournament.battleRoomGame) {
+									games.push(userRoom.tournament.battleRoomGame);
+								}
+								if (userRoom.searchChallenge) {
+									games.push(userRoom.searchChallenge);
+								}
+
+								for (const game of games) {
+									const result = game.tryCommand(target, user, user, command, timestamp);
 									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
+						const games: ScriptedGame[] = [];
 						if (room.game) {
-							const result = room.game.tryCommand(target, room, user, command, timestamp);
-							if (result) returnedResult = result;
-						} else if (room.searchChallenge) {
-							const result = room.searchChallenge.tryCommand(target, room, user, command, timestamp);
+							games.push(room.game);
+						}
+						if (room.tournament && room.tournament.battleRoomGame) {
+							games.push(room.tournament.battleRoomGame);
+						}
+						if (room.searchChallenge) {
+							games.push(room.searchChallenge);
+						}
+
+						for (const game of games) {
+							const result = game.tryCommand(target, room, user, command, timestamp);
 							if (result) returnedResult = result;
 						}
 					}
@@ -593,7 +631,6 @@ export class Games {
 
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
-					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
 					delete format.resolvedInputProperties.options.points;
@@ -1120,7 +1157,7 @@ export class Games {
 			room.game = game;
 			return room.game;
 		} else {
-			game.deallocate(true);
+			if (!game.ended) game.deallocate(true);
 		}
 	}
 
@@ -1486,8 +1523,12 @@ export class Games {
 
 		let avatarHtml = "";
 		if (trainerCard.avatar) {
-			const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
-			if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			if (trainerCard.customAvatar) {
+				avatarHtml += Dex.getCustomTrainerSprite(trainerCard.avatar);
+			} else {
+				const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+				if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			}
 		}
 
 		const emptySpan = '<span style="display: inline-block ; height: 30px ; width: 40px"></span>';
@@ -1567,7 +1608,7 @@ export class Games {
 				background = customBox.background;
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsBackgroundBorder && Object.keys(customBox.signupsBackgroundBorder).length) {
 				border = customBox.signupsBackgroundBorder;
 			} else if (game && customBox.gameBackgroundBorder && Object.keys(customBox.gameBackgroundBorder).length) {
@@ -1613,7 +1654,7 @@ export class Games {
 				}
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsButtonsBorder && Object.keys(customBox.signupsButtonsBorder).length) {
 				border = customBox.signupsButtonsBorder;
 			} else if (game && customBox.gameButtonsBorder && Object.keys(customBox.gameButtonsBorder).length) {
@@ -1628,36 +1669,44 @@ export class Games {
 		return buttonStyle;
 	}
 
-	getScriptedBoxHtml(room: Room, gameName: string, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
-		highlightPhrase?: string, modeHighlightPhrase?: string): string {
-		let scriptedBox: IGameScriptedBox | undefined;
+	getScriptedBoxHtml(room: Room, gameName: string, formatId: string, voter?: string, description?: string, mascot?: IPokemon,
+		shinyMascot?: boolean, highlightPhrase?: string, modeHighlightPhrase?: string): string {
+		let scriptedBox: IGameCustomBox | undefined;
+		let mascotGeneration: ModelGeneration | undefined;
+
 		if (voter) {
 			const user = Users.get(voter);
 			if (user) voter = user.name;
 
 			const id = Tools.toId(voter);
 			const database = Storage.getDatabase(room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
+			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+				mascotGeneration = database.gameScriptedBoxes[id].mascotGeneration;
+
+				if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+					formatId in database.gameFormatScriptedBoxes[id]) {
+					scriptedBox = database.gameFormatScriptedBoxes[id][formatId];
+				} else {
+					scriptedBox = database.gameScriptedBoxes[id];
+				}
+			}
 		}
 
 		let content = "";
 		if (voter) {
-			let iconHtml = "";
-			if (scriptedBox) {
-				const icons: string[] = [];
-				for (const pokemon of scriptedBox.pokemon) {
-					const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
-					if (icon) icons.push(icon);
-				}
-
-				if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
-			}
-
-			content += iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
+			content += "<b>" + voter + "</b>'s pick<br />";
 		}
 
 		if (mascot) {
-			const gif = Dex.getPokemonModel(mascot, undefined, undefined, shinyMascot);
+			let generation: ModelGeneration | undefined;
+			if (mascotGeneration) {
+				const maxGeneration = Dex.getModelGenerationMaxGen(mascotGeneration);
+				if (mascot.gen <= maxGeneration) {
+					generation = mascotGeneration;
+				}
+			}
+
+			const gif = Dex.getPokemonModel(mascot, generation, undefined, shinyMascot);
 			if (gif) content += gif;
 		}
 		content += "<h3>" + gameName + "</h3>";
@@ -1696,9 +1745,13 @@ export class Games {
 		if (hostBox) {
 			let trainerHtml = "";
 			if (hostBox.avatar) {
-				const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
-				if (trainerSpriteId) {
-					trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+				if (hostBox.customAvatar) {
+					trainerHtml += Dex.getCustomTrainerSprite(hostBox.avatar);
+				} else {
+					const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
+					if (trainerSpriteId) {
+						trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+					}
 				}
 			}
 
@@ -1742,10 +1795,10 @@ export class Games {
 		return "<center>" + this.getCustomBoxDiv(content, hostBox) + "</center>";
 	}
 
-	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
-		string {
-		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, "<br /><b>Players (" + playerCount + ")</b>: " +
-			playerNames);
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number,
+		playerNames: string, pokemonAvatars?: boolean): string {
+		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
+			"<b>Players (" + playerCount + ")</b>: " + playerNames);
 	}
 
 	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {
@@ -2213,11 +2266,16 @@ export class Games {
 			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const formatModule of previous.formatModules) {
+			Tools.unrefProperties(formatModule);
 		}
+
+		for (const i in previous.workers) {
+			// @ts-expect-error
+			Tools.unrefProperties(previous.workers[i]);
+		}
+
+		Tools.unrefProperties(previous);
 
 		this.loadFormats();
 		if (Config.gameCatalogGists) {
@@ -2263,12 +2321,13 @@ export class Games {
 }
 
 export const instantiate = (): void => {
-	const oldGames = global.Games as Games | undefined;
+	let oldGames = global.Games as Games | undefined;
 
 	global.Games = new Games();
 
 	if (oldGames) {
 		// @ts-expect-error
 		global.Games.onReload(oldGames);
+		oldGames = undefined;
 	}
 };

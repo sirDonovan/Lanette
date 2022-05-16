@@ -1,6 +1,6 @@
 import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
 import type { ITrainerPick } from "../html-pages/components/trainer-picker";
-import type { TrainerSpriteId } from "./dex";
+import type { ModelGeneration, TrainerSpriteId } from "./dex";
 import type { BorderType, HexCode, TimeZone } from "./tools";
 
 interface IEventInformation {
@@ -44,18 +44,23 @@ export interface ITournamentTrainerCard {
 	avatar?: TrainerSpriteId;
 	badges?: string[];
 	bio?: string;
-	customAvatar?: string;
+	customAvatar?: boolean;
 	favoriteFormat?: string;
+	footer?: HexCode;
+	header?: HexCode;
+	pokemon?: string[];
+	table?: HexCode;
 }
 
 export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
 	background?: HexCode;
+	customAvatar?: boolean;
 	pokemonGifs?: boolean;
 }
 
-export interface IGameCustomBorder {
+export interface ICustomBorder {
 	color?: HexCode;
 	radius?: number;
 	size?: number;
@@ -64,26 +69,28 @@ export interface IGameCustomBorder {
 
 export interface IGameCustomBox {
 	background?: HexCode;
-	backgroundBorder?: IGameCustomBorder;
+	backgroundBorder?: ICustomBorder;
 	buttons?: HexCode;
-	buttonsBorder?: IGameCustomBorder;
+	buttonsBorder?: ICustomBorder;
 	signupsBackground?: HexCode;
-	signupsBackgroundBorder?: IGameCustomBorder;
+	signupsBackgroundBorder?: ICustomBorder;
 	signupsButtons?: HexCode;
-	signupsButtonsBorder?: IGameCustomBorder;
+	signupsButtonsBorder?: ICustomBorder;
 	gameBackground?: HexCode;
-	gameBackgroundBorder?: IGameCustomBorder;
+	gameBackgroundBorder?: ICustomBorder;
 	gameButtons?: HexCode;
-	gameButtonsBorder?: IGameCustomBorder;
+	gameButtonsBorder?: ICustomBorder;
 }
 
 export interface IGameHostBox extends IGameCustomBox {
 	pokemon: IPokemonPick[];
 	avatar?: TrainerSpriteId;
+	customAvatar?: boolean;
 }
 
 export interface IGameScriptedBox extends IGameCustomBox {
-	pokemon: string[];
+	mascotGeneration?: ModelGeneration;
+	pokemonAvatar?: string;
 	previewFormat?: string;
 }
 
@@ -163,7 +170,7 @@ export interface IGameStat {
 interface IQueuedTournament {
 	formatid: string;
 	playerCap: number;
-	scheduled: boolean;
+	official: boolean;
 	time: number;
 	tournamentName?: string;
 }
@@ -196,6 +203,7 @@ export interface IDatabase {
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameHostDisplays?: Dict<IGameHostDisplay>;
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
+	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
 	lastGameFormatTimes?: Dict<number>;
@@ -207,9 +215,9 @@ export interface IDatabase {
 	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
 	pastGames?: IPastGame[];
+	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	previousCycles?: IPreviousCycle[];
 	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
@@ -224,6 +232,10 @@ export interface IDatabase {
 	userHostedGameStats?: Dict<IGameStat[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<IUserHostStatusData>;
+}
+
+export interface IArchiveDatabase {
+	previousCycles?: IPreviousCycle[];
 }
 
 interface IOfflineMessage {

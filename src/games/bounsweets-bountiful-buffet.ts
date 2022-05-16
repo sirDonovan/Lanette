@@ -44,6 +44,7 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		this.offCommands(['select']);
 		this.canSelect = false;
 
 		if (this.round > 1) {
@@ -131,6 +132,12 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 		});
 		this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
 		this.sayUhtml(roundUhtmlName, roundHtml);
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.selectedMeals.clear();
 	}
 
 	onEnd(): void {

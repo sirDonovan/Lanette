@@ -117,6 +117,12 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8inheritance': {
 		teams: 'https://www.smogon.com/forums/threads/3656811/#post-8292871',
 	},
+	'gen8godlygift': {
+		teams: 'https://www.smogon.com/forums/threads/3660461/#post-8376501',
+	},
+	'gen8crossevolution': {
+		teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
@@ -173,7 +179,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen7lc': {
 		info: 'https://www.smogon.com/dex/sm/formats/lc',
-		teams: 'https://www.smogon.com/forums/threads/3639319/#post-7853577',
+		teams: 'https://www.smogon.com/forums/threads/3698490',
 		viability: 'https://www.smogon.com/forums/threads/3621440',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen7lc',
 	},
@@ -381,6 +387,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3661945/post-8411584',
 		viability: 'https://www.smogon.com/forums/threads/3661945/post-8411584',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5monotype',
+	},
+	'gen5zu': {
+		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5zu',
 	},
 
 	// Gen 4

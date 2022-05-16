@@ -130,6 +130,12 @@ class ChanseysEggToss extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.spamTosses.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<ChanseysEggToss> = {

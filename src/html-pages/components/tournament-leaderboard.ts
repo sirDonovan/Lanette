@@ -21,6 +21,7 @@ export class TournamentLeaderboard extends LeaderboardBase {
 			onClear: () => this.clearFormats(),
 			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.setFormats(output),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 

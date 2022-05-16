@@ -80,7 +80,7 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 		if (this.forfeitDisqualification && message.endsWith(FORFEIT_MESSAGE)) {
 			const id = Tools.toId(message.substr(0, message.indexOf(FORFEIT_MESSAGE)));
 			if (id in this.players) {
-				this.room.disqualifyFromTournament(this.players[id]);
+				this.room.disqualifyFromTournament(this.players[id].name);
 				return false;
 			}
 		}

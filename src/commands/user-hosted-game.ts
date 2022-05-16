@@ -240,7 +240,7 @@ export const commands: BaseCommandDefinitions = {
 					id: host.id,
 					name: host.name,
 				});
-				Storage.exportDatabase(room.id);
+				Storage.tryExportDatabase(room.id);
 				return;
 			}
 
@@ -346,7 +346,7 @@ export const commands: BaseCommandDefinitions = {
 			database.userHostedGameQueue.shift();
 			const game = Games.createUserHostedGame(room, format, nextHost.name);
 			game.signups();
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		description: ["starts the next queued user-hosted game"],
@@ -427,7 +427,7 @@ export const commands: BaseCommandDefinitions = {
 				const host = Users.get(database.userHostedGameQueue[i].name);
 				if (host) host.say("You are now #" + (i + 1) + " in the host queue.");
 			}
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['unhost'],
@@ -689,6 +689,10 @@ export const commands: BaseCommandDefinitions = {
 					maximumTime = larger;
 				}
 
+				if (minimumTime === maximumTime) {
+					return this.say("The minimum and maximum amount of minutes must have different values.");
+				}
+
 				while (time < minimumTime || time > maximumTime) {
 					time = gameRoom.userHostedGame.random(maximumTime) + 1;
 				}
@@ -761,7 +765,7 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room)) return;
 			let game: ScriptedGame | UserHostedGame | undefined;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
 				game = room.game;
 			} else if (room.userHostedGame) {
 				if (!room.userHostedGame.isHost(user)) return;
@@ -771,15 +775,11 @@ export const commands: BaseCommandDefinitions = {
 			if (!game) return;
 
 			const cap = parseInt(target);
-			if (isNaN(cap) || cap < game.minPlayers) return this.say("You must specify a valid player cap.");
-			if (game.playerCount >= cap) {
-				this.run('startgame');
-				return;
-			}
-
+			if (isNaN(cap)) return this.say("You must specify a valid player cap.");
+			if (cap < game.minPlayers) return this.say("The game requires at least " + game.minPlayers + " players.");
 			if (game.maxPlayers && cap > game.maxPlayers) return this.say("The game only supports up to " + game.maxPlayers + " players.");
-			game.playerCap = cap;
-			this.say("The game's player cap has been set to **" + cap + "**.");
+			if (cap === game.playerCap) return this.say("The game's player cap is already " + cap + ".");
+			game.setPlayerCap(cap);
 		},
 		chatOnly: true,
 		aliases: ['gcap'],
@@ -1525,7 +1525,11 @@ export const commands: BaseCommandDefinitions = {
 					(room.userHostedGame.teams ? "team" : "player") + ".");
 			}
 
+			let addedBits = false;
+			const bitsSource = 'userhosted';
 			if (Config.rankedGames && Config.rankedGames.includes(room.id)) {
+				addedBits = true;
+
 				let playerDifficulty: GameDifficulty;
 				if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
 					playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
@@ -1546,10 +1550,14 @@ export const commands: BaseCommandDefinitions = {
 				if (Config.afd) playerBits *= (room.userHostedGame.random(50) + 1);
 
 				for (const player of players) {
-					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
+					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, bitsSource, true);
 					player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
 						Config.commandCharacter + "bits " + room.title + "``");
 				}
+			}
+
+			if (addedBits) {
+				Storage.afterAddPoints(room, Storage.gameLeaderboard, bitsSource);
 			}
 
 			for (const player of players) {
@@ -1617,7 +1625,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			gameRoom.startHangman(answer, hint + " [" + user.name + "]");
+			gameRoom.startHangman(answer, hint + " [" + user.name + "]", user);
 		},
 		pmOnly: true,
 		syntax: ["[room], [answer], [hint]"],

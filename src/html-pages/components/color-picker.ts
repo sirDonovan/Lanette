@@ -345,7 +345,9 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,
 			pagesLabel,
+			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 	}
@@ -515,19 +517,19 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		let html = "Lightness:&nbsp;";
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + shade, "Shade",
-			currentShade);
+			{selectedAndDisabled: currentShade});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + lowLightness, "Low",
-			currentLowLightness);
+			{selectedAndDisabled: currentLowLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + standardLightness, "Standard",
-			currentStandardLightness);
+			{selectedAndDisabled: currentStandardLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + highLightness, "High",
-			currentHighLightness);
+			{selectedAndDisabled: currentHighLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + tint, "Tint",
-			currentTint);
+			{selectedAndDisabled: currentTint});
 		html += "<br />";
 
 		const currentLowHueVariation = this.hueVariation === 'lowvariation';
@@ -539,16 +541,16 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			html += "Hue Variation:&nbsp;";
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + lowVariation, "Low",
-				currentLowHueVariation);
+				{selectedAndDisabled: currentLowHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + standardVariation, "Standard",
-				currentStandardHueVariation);
+				{selectedAndDisabled: currentStandardHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + highVariation, "High",
-				currentHighHueVariation);
+				{selectedAndDisabled: currentHighHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + maxVariation, "Max",
-				currentMaxHueVariation);
+				{selectedAndDisabled: currentMaxHueVariation});
 			html += "<br />";
 		}
 

@@ -11,12 +11,12 @@ import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
 import type { Room } from "../../rooms";
 import type { BorderType, HexCode } from "../../types/tools";
-import type { GifIcon, IGameCustomBorder, IGameHostDisplay } from "../../types/storage";
+import type { GifIcon, ICustomBorder, IGameHostDisplay } from "../../types/storage";
 import { BorderStyle } from "./border-style";
 
 export interface IHostDisplayProps extends IComponentProps {
 	currentBackground?: HexCode;
-	currentBackgroundBorder?: IGameCustomBorder;
+	currentBackgroundBorder?: ICustomBorder;
 	maxGifs: number;
 	maxIcons: number;
 	maxTrainers: number;
@@ -89,7 +89,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
 			onPick: (index, color, dontRender) => this.setBackgroundColor(color, dontRender),
-			reRender: () => props.reRender(),
+			readonly: this.props.readonly,
+			reRender: () => this.props.reRender(),
 		});
 
 		this.backgroundBorderStyle = new BorderStyle(room, this.commandPrefix, setBackgroudBorderStyleCommand, {
@@ -106,7 +107,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			onPickSize: (size) => props.onPickBorderSize(size),
 			onClearType: () => props.onClearBorderType(),
 			onPickType: (type) => props.onPickBorderType(type),
-			reRender: () => props.reRender(),
+			readonly: this.props.readonly,
+			reRender: () => this.props.reRender(),
 		});
 		this.backgroundBorderStyle.active = false;
 
@@ -121,7 +123,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 				onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
 				onClear: (index, dontRender) => this.clearTrainer(index, dontRender),
 				onPick: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
-				reRender: () => props.reRender(),
+				readonly: this.props.readonly,
+				reRender: () => this.props.reRender(),
 			});
 			trainerPicker.active = false;
 
@@ -131,8 +134,6 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 		const pokemonPickerProps: IPokemonPickerProps = {
 			gif: false,
-			maxGifs: props.maxGifs,
-			maxIcons: props.maxIcons,
 			onPickLetter: (index, letter, dontRender) => this.pickPokemonLetter(dontRender),
 			onPickGeneration: (index, generation, dontRender) => this.pickPokemonGeneration(index, generation, dontRender),
 			onPickShininess: (index, shininess, dontRender) => this.pickPokemonShininess(index, shininess, dontRender),
@@ -141,7 +142,8 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			onClear: (index, dontRender) => this.clearPokemon(index, dontRender),
 			onPick: (index, pokemon, dontRender) =>
 				this.selectPokemon(index, pokemon, dontRender),
-			reRender: () => props.reRender(),
+			readonly: this.props.readonly,
+			reRender: () => this.props.reRender(),
 		};
 
 		this.maxGifPokemonPickerIndex = props.maxGifs - 1;
@@ -496,7 +498,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		let html = "Model generations:";
 		for (const generation of Dex.getModelGenerations()) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.setGenerationCommand + "," + generation,
-				generation.toUpperCase(), this.currentModelGeneration === generation);
+				generation.toUpperCase(), {selectedAndDisabled: this.currentModelGeneration === generation});
 		}
 
 		return html;

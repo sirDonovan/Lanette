@@ -1,4 +1,4 @@
-import fs = require('fs');
+import fs = require('fs/promises');
 import https = require('https');
 import path = require('path');
 import url = require('url');
@@ -6,7 +6,9 @@ import url = require('url');
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
-import type { BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, NamedHexCode, TimeZone } from './types/tools';
+import type {
+	BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
+} from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
 const TABLE_PADDING_SIZE = 2;
@@ -66,6 +68,7 @@ const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
+const GUEST_USER_PREFIX = 'Guest ';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
 const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
 const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
@@ -76,15 +79,21 @@ const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
 const rootFolder = path.resolve(__dirname, '..');
 
-// eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-empty-function
-const TimeoutConstructor = setTimeout(() => {}, 1).constructor;
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+let timeout = setTimeout(() => {}, 1000);
+// eslint-disable-next-line @typescript-eslint/naming-convention
+const TimeoutConstructor = timeout.constructor;
+clearTimeout(timeout);
+// @ts-expect-error
+timeout = undefined;
 
 export class Tools {
 	// exported constants
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
-	readonly builtFolder: string = path.join(rootFolder, 'built');
+	readonly buildFolder: string = path.join(rootFolder, 'build');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
+	readonly guestUserPrefix: string = GUEST_USER_PREFIX;
 	readonly hexCodes: typeof hexCodes = hexCodes;
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = 'play.pokemonshowdown.com';
@@ -113,15 +122,25 @@ export class Tools {
 	readonly vowels: string = "aeiou";
 
 	lastGithubApiCall: number = 0;
+	currentAppendFiles: Dict<string> = {};
+	appendFileQueue: Dict<string[]> = {};
+	currentSafeFileWrites: Dict<string> = {};
+	safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
 
 	onReload(previous: Partial<Tools>): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
+		if (previous.currentAppendFiles) Object.assign(this.currentAppendFiles, previous.currentAppendFiles);
+		if (previous.appendFileQueue) Object.assign(this.appendFileQueue, previous.appendFileQueue);
+		if (previous.currentSafeFileWrites) Object.assign(this.currentSafeFileWrites, previous.currentSafeFileWrites);
+		if (previous.safeWriteFileQueue) Object.assign(this.safeWriteFileQueue, previous.safeWriteFileQueue);
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
-		}
+		this.unrefProperties(previous.eggGroupHexCodes);
+		this.unrefProperties(previous.hexCodes);
+		this.unrefProperties(previous.namedHexCodes);
+		this.unrefProperties(previous.pokemonColorHexCodes);
+		this.unrefProperties(previous.moveCategoryHexCodes);
+		this.unrefProperties(previous.typeHexCodes);
+		this.unrefProperties(previous);
 	}
 
 	checkHtml(room: Room, htmlContent: string): boolean {
@@ -286,20 +305,9 @@ export class Tools {
 
 	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,
 		borderType?: BorderType): string {
-		let background: string | undefined;
-		let textColor: string | undefined;
 		let border: string | undefined;
 		let borderStyle: string | undefined;
 		let borderRadius: string | undefined;
-
-		if (backgroundColor && backgroundColor in this.hexCodes) {
-			if (this.hexCodes[backgroundColor]!.textColor) {
-				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
-			} else {
-				textColor = 'color: #000000;';
-			}
-			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
-		}
 
 		if (borderColor || borderSize) {
 			if (!borderSize) borderSize = 1;
@@ -320,11 +328,11 @@ export class Tools {
 			borderRadius = "border-radius: " + borderRadiusValue + "px;";
 		}
 
-		if (background || textColor || border || borderStyle || borderRadius) {
+		const background = this.getHexBackground(backgroundColor);
+		if (background || border || borderStyle || borderRadius) {
 			let span = "<span style='display: block;";
 
 			if (background) span += background;
-			if (textColor) span += textColor;
 			if (border) span += border;
 			if (borderStyle) span += borderStyle;
 			if (borderRadius) span += borderRadius;
@@ -334,6 +342,22 @@ export class Tools {
 		}
 
 		return "";
+	}
+
+	getHexBackground(backgroundColor: string | undefined): string {
+		let background = "";
+		let textColor = "";
+
+		if (backgroundColor && backgroundColor in this.hexCodes) {
+			if (this.hexCodes[backgroundColor]!.textColor) {
+				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
+			} else {
+				textColor = 'color: #000000;';
+			}
+			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+		}
+
+		return background + textColor;
 	}
 
 	getCustomButtonStyle(backgroundColor: string | undefined, borderColor?: string, borderRadius?: number, borderSize?: number,
@@ -372,19 +396,31 @@ export class Tools {
 		return buttonStyle;
 	}
 
+	getDateFilename(date?: Date): string {
+		if (!date) date = new Date();
+		const month = date.getMonth() + 1;
+		const day = date.getDate();
+		const year = date.getFullYear();
+
+		return year + '-' + month + '-' + day;
+	}
+
 	logError(error: NodeJS.ErrnoException, message?: string): void {
 		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
 	}
 
 	logMessage(message: string): void {
 		const date = new Date();
-		const month = date.getMonth() + 1;
-		const day = date.getDate();
-		const year = date.getFullYear();
-		const filepath = year + '-' + month + '-' + day + '.txt';
+		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
+		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
-		fs.appendFileSync(path.join(rootFolder, 'errors', filepath), "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" +
-			message + "\n");
+		if (filepath in this.currentAppendFiles) {
+			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
+			this.appendFileQueue[filepath].push(message);
+		} else {
+			this.currentAppendFiles[filepath] = message;
+			this.appendFileInternal(filepath, message);
+		}
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -693,6 +729,7 @@ export class Tools {
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
+	/**Converts `input` in milliseconds to a duration string */
 	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean, milliseconds?: boolean}): string {
 		const date = new Date(input);
 		const parts = [date.getUTCFullYear() - 1970, date.getUTCMonth(), date.getUTCDate() - 1, date.getUTCHours(), date.getUTCMinutes(),
@@ -814,7 +851,7 @@ export class Tools {
 
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
 		const clone = Object.create(Object.getPrototypeOf(obj));
-		const keys = Object.keys(obj) as (keyof T)[];
+		const keys = Object.getOwnPropertyNames(obj) as (keyof T)[];
 		for (const key of keys) {
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 			clone[key] = this.deepClone(obj[key]);
@@ -822,26 +859,63 @@ export class Tools {
 		return clone as DeepMutable<T>;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	unrefProperties(objectInstance: any, skippedKeys?: string[]) {
+		if (!objectInstance) return;
+
+		const keys = Object.getOwnPropertyNames(objectInstance);
+		for (const key of keys) {
+			if (skippedKeys && skippedKeys.includes(key)) continue;
+
+			try {
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				objectInstance[key] = undefined;
+			} catch (e) {} // eslint-disable-line no-empty
+		}
+	}
+
 	uncacheTree(root: string): void {
-		const filepaths = [require.resolve(root)];
-		while (filepaths.length) {
-			const filepath = filepaths[0];
-			filepaths.shift();
-			if (filepath in require.cache) {
-				const cachedModule = require.cache[filepath]!;
-				for (const child of cachedModule.children) {
-					if (!child.id.endsWith('.node')) filepaths.push(child.filename);
-				}
+		try {
+			const rootFilepath = require.resolve(root);
+			if (!(rootFilepath in require.cache)) return;
 
-				cachedModule.exports = {};
-				cachedModule.children = [];
-				if (cachedModule.parent) {
-					const index = cachedModule.parent.children.indexOf(cachedModule);
-					if (index !== -1) cachedModule.parent.children.splice(index, 1);
-				}
+			const modulesList: NodeModule[] = [require.cache[rootFilepath]!];
+			const cachedModules: NodeModule[] = [];
+			// modulesList is only unique items due to cachedModules
+			while (modulesList.length) {
+				const currentModule = modulesList[0];
+				modulesList.shift();
 
-				delete require.cache[filepath];
+				if (!cachedModules.includes(currentModule) && !currentModule.id.endsWith('.node')) {
+					cachedModules.push(currentModule);
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (currentModule.children) {
+						for (const child of currentModule.children) {
+							if (!child.id.endsWith('.node')) modulesList.push(child);
+						}
+					}
+				}
 			}
+
+			for (const filename in require.cache) {
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (require.cache[filename]!.children) {
+					for (const cachedModule of cachedModules) {
+						const index = require.cache[filename]!.children.indexOf(cachedModule);
+						if (index !== -1) require.cache[filename]!.children.splice(index, 1);
+					}
+				}
+			}
+
+			for (const cachedModule of cachedModules) {
+				delete require.cache[cachedModule.filename];
+
+				cachedModule.parent = undefined;
+				cachedModule.children = [];
+				cachedModule.exports = undefined;
+			}
+		} catch (e) {
+			console.log(e);
 		}
 	}
 
@@ -907,18 +981,19 @@ export class Tools {
 	}
 
 	async fetchUrl(urlToFetch: string): Promise<string | Error> {
-		return new Promise(resolve => {
+		return new Promise((resolve, reject) => {
 			let data = '';
 			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
 				res.on('data', chunk => data += chunk);
+				res.on('error', error => reject(error));
 				res.on('end', () => {
 					resolve(data);
 				});
 			});
 
 			request.on('error', error => {
-				resolve(error);
+				reject(error);
 			});
 		});
 	}
@@ -1144,29 +1219,72 @@ export class Tools {
 	}
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {
-		const tempFilepath = filepath + '.temp';
-		return new Promise(resolve => {
-			fs.writeFile(tempFilepath, data, () => {
-				fs.rename(tempFilepath, filepath, () => {
-					resolve();
-				});
-			});
+		return new Promise((resolve, reject) => {
+			if (filepath in this.currentSafeFileWrites) {
+				if (!(filepath in this.safeWriteFileQueue)) this.safeWriteFileQueue[filepath] = [];
+				this.safeWriteFileQueue[filepath].push({data, resolve, reject});
+			} else {
+				this.currentSafeFileWrites[filepath] = data;
+				this.safeWriteFileInternal(filepath, data, resolve, reject);
+			}
 		});
 	}
 
-	safeWriteFileSync(filepath: string, data: string): void {
+	private safeWriteFileInternal(filepath: string, data: string, resolve: PromiseResolve<void>,
+		reject: PromiseReject<Error>): void {
 		const tempFilepath = filepath + '.temp';
-		fs.writeFileSync(tempFilepath, data);
-		fs.renameSync(tempFilepath, filepath);
+		fs.writeFile(tempFilepath, data)
+			.catch((e: Error) => {
+				reject(e);
+				this.logError(e, "Error writing temp file " + tempFilepath);
+			})
+			.then(() => fs.rename(tempFilepath, filepath)) // eslint-disable-line @typescript-eslint/promise-function-async
+			.catch((e: Error) => {
+				reject(e);
+				this.logError(e, "Error renaming temp file " + tempFilepath);
+			})
+			.then(() => {
+				resolve();
+			})
+			.finally(() => {
+				if (filepath in this.safeWriteFileQueue && this.safeWriteFileQueue[filepath].length) {
+					const queuedItem = this.safeWriteFileQueue[filepath][0];
+					this.safeWriteFileQueue[filepath].shift();
+					if (!this.safeWriteFileQueue[filepath].length) delete this.safeWriteFileQueue[filepath];
+
+					this.currentSafeFileWrites[filepath] = queuedItem.data;
+					this.safeWriteFileInternal(filepath, queuedItem.data, queuedItem.resolve, queuedItem.reject);
+				} else {
+					delete this.currentSafeFileWrites[filepath];
+				}
+			});
+	}
+
+	private appendFileInternal(filepath: string, message: string): void {
+		fs.appendFile(filepath, message)
+			.catch((e: Error) => console.log(e))
+			.finally(() => {
+				if (filepath in this.appendFileQueue && this.appendFileQueue[filepath].length) {
+					const queuedMessage = this.appendFileQueue[filepath][0];
+					this.appendFileQueue[filepath].shift();
+					if (!this.appendFileQueue[filepath].length) delete this.appendFileQueue[filepath];
+
+					this.currentAppendFiles[filepath] = queuedMessage;
+					this.appendFileInternal(filepath, queuedMessage);
+				} else {
+					delete this.currentAppendFiles[filepath];
+				}
+			});
 	}
 }
 
 export const instantiate = (): void => {
-	const oldTools = global.Tools as Tools | undefined;
+	let oldTools = global.Tools as Tools | undefined;
 
 	global.Tools = new Tools();
 
 	if (oldTools) {
 		global.Tools.onReload(oldTools);
+		oldTools = undefined;
 	}
 };

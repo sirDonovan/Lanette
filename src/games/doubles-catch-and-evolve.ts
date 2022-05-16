@@ -1,12 +1,13 @@
 import type { IGameFile } from '../types/games';
 import type { GameType } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Doubles Catch and Evolve";
 const description = "Every player is given 2 randomly generated Pokemon to use as their starters. Each battle that you win, you " +
 	"must 'catch' 2 of your opponent's Pokemon (add them to your team) and then evolve 2 Pokemon on your team.";
 
-class DoublesCatchAndEvolve extends EliminationTournament {
+class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 2;
@@ -18,10 +19,10 @@ class DoublesCatchAndEvolve extends EliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
+		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 }
 
 export const game: IGameFile<DoublesCatchAndEvolve> = Games.copyTemplateProperties(eliminationTournamentGame, {

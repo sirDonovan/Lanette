@@ -32,7 +32,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
 	minimumPlayedCards: number = 1;
-	playableCardDescription: string = "You must play a card that matches color or a type with the top card.";
+	playableCardDescription: string = "You must play a card that matches the color or at least one type of the top card.";
+	playableCardsDescription: string = "Your first played card must match the color or at least one type of the top card.";
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
 	previouslyPlayedCardsAmount: number = 3;
 	roundDrawAmount: number = 0;
@@ -427,7 +428,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		const currentRound = this.round;
 		let player = this.getNextPlayer();
-		if (!player || this.timeEnded) return;
+		if (this.ended) return;
+		if (!player) throw new Error("No player given by Game.getNextPlayer");
 
 		if (this.topCard.action && this.topCard.action.skipPlayers) {
 			this.say(player.name + "'s turn was skipped!");
@@ -441,6 +443,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		let turnCards = this.getTurnCards(player);
 		let hasPlayableCard = this.hasPlayableCard(turnCards);
 		let skippedPlayerCount = 0;
+		let unlockedSkippedPlayerAchievement = false;
 		let finalPlayer = false;
 		while (!hasPlayableCard) {
 			if (this.startingLives) {
@@ -460,6 +463,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				skippedPlayerCount++;
 			}
 
+			if (this.skippedPlayerAchievement && this.skippedPlayerAchievementAmount && this.lastPlayer && !this.lastPlayer.eliminated &&
+				skippedPlayerCount >= this.skippedPlayerAchievementAmount && !unlockedSkippedPlayerAchievement) {
+				unlockedSkippedPlayerAchievement = true;
+				this.unlockAchievement(this.lastPlayer, this.skippedPlayerAchievement);
+			}
+
 			if (this.finitePlayerCards) {
 				const cards = this.drawCard(player);
 				let drawnCards = autoDraws.get(player) || [];
@@ -468,20 +477,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}
 
 			player = this.getNextPlayer();
-			if (!player) {
-				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				throw new Error("No player given by Game.getNextPlayer");
-			}
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (this.ended) return;
+			if (!player) throw new Error("No player given by Game.getNextPlayer");
+
 			turnCards = this.getTurnCards(player);
 			hasPlayableCard = this.hasPlayableCard(turnCards);
 		}
-
-		if (this.skippedPlayerAchievement && this.skippedPlayerAchievementAmount && this.lastPlayer && !this.lastPlayer.eliminated &&
-			skippedPlayerCount >= this.skippedPlayerAchievementAmount) {
-			this.unlockAchievement(this.lastPlayer, this.skippedPlayerAchievement);
-		}
-
-		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		if (autoDraws.size) {
 			const names: string[] = [];
@@ -497,7 +499,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.currentPlayer = player;
 		this.awaitingCurrentPlayerCard = true;
 
-		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><b><username>" + player!.name +
+		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><b><username>" + player.name +
 			"</username></b>'s turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
@@ -647,11 +649,15 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		const names: string[] = [];
 		if (playedCards.length === 1) {
 			if (!this.isPlayableCard(card, this.topCard)) {
-				player.say(this.playableCardDescription || "You must play a card that matches color or a type with the top card or an " +
-					"action card.");
+				player.say(this.playableCardDescription);
 				return false;
 			}
 		} else {
+			if (!this.isPlayableCard(playedCards[0], this.topCard)) {
+				player.say(this.playableCardsDescription);
+				return false;
+			}
+
 			if (!this.arePlayableCards(playedCards)) {
 				player.say("All played cards must pair one after the other.");
 				return false;

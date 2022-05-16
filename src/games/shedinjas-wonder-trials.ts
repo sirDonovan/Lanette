@@ -41,10 +41,10 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	generatePokemon(): void {
 		let pokemon = Dex.getExistingPokemon(this.sampleOne(data.pokedex));
-		let typing = pokemon.types.join("/");
+		let typing = pokemon.types.slice().sort().join("/");
 		while ((this.currentPokemon && this.currentPokemon.id === pokemon.id) || typing === this.lastTyping) {
 			pokemon = Dex.getExistingPokemon(this.sampleOne(data.pokedex));
-			typing = pokemon.types.join("/");
+			typing = pokemon.types.slice().sort().join("/");
 		}
 		this.currentPokemon = pokemon;
 		this.lastTyping = typing;
@@ -71,16 +71,21 @@ class ShedinjasWonderTrials extends ScriptedGame {
 				if (this.inactiveRounds) this.inactiveRounds = 0;
 
 				const effectivenessScale: Dict<string> = {'1': '2x', '2': '4x', '-1': '0.5x', '-2': '0.25x', 'immune': '0x', '0': '1x'};
+				let firstPlayer: Player | undefined;
 				this.roundMoves.forEach((effectiveness, player) => {
-					const wonderGuardWarrior = effectiveness === '1' || effectiveness === '2';
-					if (this.firstMove === undefined) {
-						if (wonderGuardWarrior) {
-							this.firstMove = player;
+					if (!firstPlayer) {
+						firstPlayer = player;
+
+						const wonderGuardWarrior = effectiveness === '1' || effectiveness === '2';
+						if (this.firstMove === undefined) {
+							if (wonderGuardWarrior) {
+								this.firstMove = player;
+							} else {
+								this.firstMove = false;
+							}
 						} else {
-							this.firstMove = false;
+							if (this.firstMove && (this.firstMove !== player || !wonderGuardWarrior)) this.firstMove = false;
 						}
-					} else {
-						if (this.firstMove && (this.firstMove !== player || !wonderGuardWarrior)) this.firstMove = false;
 					}
 
 					let points = this.points.get(player) || 0;
@@ -145,6 +150,12 @@ class ShedinjasWonderTrials extends ScriptedGame {
 		}
 
 		this.announceWinners();
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundMoves.clear();
 	}
 }
 

@@ -12,6 +12,7 @@ interface IBerryPile {
 const GAME_ACTION_TYPE: GameActionGames = 'greedentsberrypiles';
 const GRAB_COMMAND = "grab";
 const RUN_COMMAND = "run";
+const ACTION_COMMANDS = [GRAB_COMMAND, RUN_COMMAND];
 
 const mysteryBerryAmount = 11;
 
@@ -194,6 +195,8 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 	onNextRound(): void {
 		this.canGrab = false;
+		this.offCommands(ACTION_COMMANDS);
+
 		let playersLeft: number;
 		this.subGameRound++;
 		if (this.subGameRound === 1) {
@@ -239,7 +242,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;
-			this.onCommands(['grab', 'run'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
+			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
 			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -303,6 +306,15 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.perfectForageBonuses.clear();
+		this.playerBerryPiles.clear();
+		this.playerTotals.clear();
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
@@ -317,6 +329,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			const lumBerries = [];
 			for (const berryPile of berryPiles) {
 				total += berryPile.amount;
+				// check amount for mystery berries that were already changed to 1
 				if (berryPile.amount === mysteryBerryAmount) lumBerries.push(berryPile);
 			}
 
@@ -328,7 +341,7 @@ const commands: GameCommandDefinitions<GreedentsBerryPiles> = {
 			}
 
 			if (total > this.maxBerryTotal) {
-				this.players[user.id].frozen = true;
+				player.frozen = true;
 			}
 
 			this.playerTotals.set(player, total);

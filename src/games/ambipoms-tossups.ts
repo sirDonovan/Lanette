@@ -65,7 +65,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 		this.hintUpdates++;
 		if (this.hintUpdates === 1) {
 			this.tossupsRound++;
-		} else if (this.hintUpdates > 1) {
+		} else if (this.hintUpdates > 1 && this.hints.includes('_')) {
 			let index = this.random(this.hints.length);
 			while (this.hints[index] !== '_') {
 				index = this.random(this.hints.length);

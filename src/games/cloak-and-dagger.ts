@@ -1,19 +1,25 @@
 import type { IGameFile } from '../types/games';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Cloak and Dagger";
 const description = "Every player is given a different randomly generated Pokemon that they have to protect from fainting each battle! " +
 	"Any other 5 Pokemon can be chosen to complete a team.";
 
-class CloakAndDagger extends EliminationTournament {
+class CloakAndDagger extends BattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 3 * 60 * 1000;
 	startingTeamsLength = 1;
 	allowsFormes = false;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
+
+	getCustomRules(): string[] {
+		return [];
+	}
+
 }
 
 export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(eliminationTournamentGame, {

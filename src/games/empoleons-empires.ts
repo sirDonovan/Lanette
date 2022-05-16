@@ -99,6 +99,13 @@ class EmpoleonsEmpires extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerAliases.clear();
+		this.totalSuspects.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<EmpoleonsEmpires> = {

@@ -1,6 +1,7 @@
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Room } from "./rooms";
+import type { IActivityHtmlListener } from "./types/activity";
 import type { IOutgoingMessageAttributes, MessageListener } from "./types/client";
 import type { IBattleGameData, PlayerList } from "./types/games";
 import type { User } from "./users";
@@ -45,11 +46,7 @@ export class Player {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "name", "eliminated"]);
 	}
 
 	say(message: string, additionalAttributes?: IOutgoingMessageAttributes): void {
@@ -58,54 +55,55 @@ export class Player {
 	}
 
 	sayHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmHtml(this, html, additionalAttributes);
+		this.activity.getPmRoom().pmHtml(this, html, additionalAttributes);
 	}
 
 	sayUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmUhtml(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
+		this.activity.getPmRoom().pmUhtml(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
 	sayUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
+		this.activity.getPmRoom().pmUhtmlChange(this, name || this.activity.uhtmlBaseName, html, additionalAttributes);
 	}
 
 	sayPrivateHtml(html: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateHtml(this, html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateHtml(this, html, additionalAttributes);
 	}
 
 	sayPrivateUhtml(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtml(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
 	}
 
 	sayPrivateUhtmlChange(html: string, name?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml && this.activity.started) this.sentPrivateHtml = true;
-		this.activity.pmRoom.sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html, additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtmlChange(this, name || (this.activity.uhtmlBaseName + "-private"), html,
+			additionalAttributes);
 	}
 
 	clearPrivateUhtml(name: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentPrivateHtml) return;
 
-		this.activity.pmRoom.sayPrivateUhtml(this, name, "<div></div>", additionalAttributes);
+		this.activity.getPmRoom().sayPrivateUhtml(this, name, "<div></div>", additionalAttributes);
 	}
 
 	sendHtmlPage(html: string, pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) this.sentHtmlPage = true;
-		this.activity.pmRoom.sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
+		this.activity.getPmRoom().sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
 			additionalAttributes);
 	}
 
 	closeHtmlPage(pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) return;
 
-		this.activity.pmRoom.closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
+		this.activity.getPmRoom().closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
 	}
 
 	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string,
 		additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (this.sentHtmlPage) {
-			this.activity.pmRoom.sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
+			this.activity.getPmRoom().sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
 				additionalAttributes);
 		} else {
 			this.sendRoomHighlight(notificationTitle, highlightPhrase, additionalAttributes);
@@ -113,7 +111,7 @@ export class Player {
 	}
 
 	sendRoomHighlight(notificationTitle: string, highlightPhrase?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		this.activity.pmRoom.notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
+		this.activity.getPmRoom().notifyUser(this, notificationTitle, highlightPhrase, additionalAttributes);
 	}
 
 	useCommand(command: string, target?: string): void {
@@ -136,11 +134,11 @@ export class PlayerTeam {
 	}
 
 	destroy(): void {
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
+		for (const player of this.players) {
+			player.team = undefined;
 		}
+
+		Tools.unrefProperties(this);
 	}
 
 	addPlayer(player: Player): boolean {
@@ -194,19 +192,22 @@ export abstract class Activity {
 	baseHtmlPageId: string = '';
 	readonly createTime: number = Date.now();
 	ended: boolean = false;
-	htmlMessageListeners: string[] = [];
+	htmlMessageListeners: IActivityHtmlListener[] = [];
 	htmlPageHeader: string = '';
 	messageListeners: string[] = [];
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
 	players: Dict<Player> = {};
+	playerAvatars: Dict<string> = {};
+	roomCreateListeners: string[] = [];
 	showSignupsHtml: boolean = false;
 	signupsHtmlTimeout: NodeJS.Timer | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
 	startTimer: NodeJS.Timer | null = null;
+	subRoom: Room | null = null;
 	timeout: NodeJS.Timer | null = null;
-	uhtmlMessageListeners: Dict<string[]> = {};
+	uhtmlMessageListeners: Dict<IActivityHtmlListener[]> = {};
 
 	// set in initialize()
 	id!: string;
@@ -231,11 +232,47 @@ export abstract class Activity {
 	abstract forceEnd(user?: User, reason?: string): void;
 	abstract start(): void;
 
+	getPmRoom(): Room {
+		return this.subRoom || this.pmRoom;
+	}
+
 	destroyPlayers(): void {
 		for (const i in this.players) {
 			this.players[i].destroy();
 			// @ts-expect-error
 			this.players[i] = undefined;
+		}
+
+		for (const i in this.pastPlayers) {
+			this.pastPlayers[i].destroy();
+			// @ts-expect-error
+			this.pastPlayers[i] = undefined;
+		}
+	}
+
+	cleanupMisc(): void {
+		for (const roomid of this.roomCreateListeners) {
+			delete Rooms.createListeners[roomid];
+		}
+	}
+
+	cleanupTimers(): void {
+		if (this.signupsHtmlTimeout) {
+			clearTimeout(this.signupsHtmlTimeout);
+			// @ts-expect-error
+			this.signupsHtmlTimeout = undefined;
+		}
+
+		if (this.startTimer) {
+			clearTimeout(this.startTimer);
+			// @ts-expect-error
+			this.startTimer = undefined;
+		}
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
 		}
 	}
 
@@ -282,35 +319,41 @@ export abstract class Activity {
 		const id = Tools.toId(user);
 		if (id in this.players) return null;
 
-		const player = id in this.pastPlayers ? this.pastPlayers[id] : new Player(user, this);
+		const isPastPlayer = id in this.pastPlayers;
+		const player = isPastPlayer ? this.pastPlayers[id] : new Player(user, this);
+		if (isPastPlayer) delete this.pastPlayers[id];
+
 		this.players[id] = player;
-		if (id in this.pastPlayers) delete this.pastPlayers[id];
 		this.playerCount++;
+
+		if (this.onCreatePlayer) this.onCreatePlayer(player, isPastPlayer);
+
 		return player;
 	}
 
-	renamePlayer(user: User, oldId: string): void {
+	renamePlayer(name: string, id: string, oldId: string): void {
 		let pastPlayer = false;
 		if (oldId in this.players) {
-			if (user.id in this.players && oldId !== user.id) return;
+			if (id in this.players && oldId !== id) return;
 		} else {
-			if (!(oldId in this.pastPlayers)) return;
+			if (!(oldId in this.pastPlayers) || (id in this.pastPlayers && oldId !== id)) return;
 			pastPlayer = true;
 		}
 
 		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 		// @ts-expect-error
-		player.name = user.name;
-		if (player.id === user.id) return;
+		player.name = name;
+		if (player.id === id) return;
 		// @ts-expect-error
-		player.id = user.id;
+		player.id = id;
 
+		delete this.players[oldId];
+		delete this.pastPlayers[oldId];
 		if (pastPlayer) {
 			this.pastPlayers[player.id] = player;
 			return;
 		}
 
-		delete this.players[oldId];
 		this.players[player.id] = player;
 		if (this.onRenamePlayer) this.onRenamePlayer(player, oldId);
 	}
@@ -356,22 +399,27 @@ export abstract class Activity {
 		this.deallocate(false);
 	}
 
-	leaveBattleRooms(): void {
+	leaveBattleRoom(battleRoom: Room): void {
+		// @ts-expect-error
+		battleRoom.tournament = undefined;
+		// @ts-expect-error
+		battleRoom.game = undefined;
+
+		const currentRoom = Rooms.get(battleRoom.id);
+		if (currentRoom) currentRoom.leave();
+	}
+
+	cleanupBattleRooms(): void {
 		if (!this.battleData) return;
 
 		this.battleData.forEach((data, battleRoom) => {
-			// @ts-expect-error
-			battleRoom.tournament = undefined;
-			// @ts-expect-error
-			battleRoom.game = undefined;
+			this.leaveBattleRoom(battleRoom);
 
-			if (battleRoom.id) {
-				const room = Rooms.get(battleRoom.id);
-				if (room) {
-					room.leave();
-				}
-			}
+			data.slots.clear();
+			data.wrongTeam.clear();
 		});
+
+		this.battleData.clear();
 	}
 
 	getHtmlPageWithHeader(html: string): string {
@@ -407,57 +455,83 @@ export abstract class Activity {
 
 	on(message: string, listener: MessageListener): void {
 		if (this.ended) return;
+
 		this.messageListeners.push(message);
 		this.room.on(message, listener);
 	}
 
 	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
 		if (this.ended) return;
-		this.htmlMessageListeners.push(html);
+
+		this.htmlMessageListeners.push({html, serverHtml});
 		this.room.onHtml(html, listener, serverHtml);
 	}
 
 	onUhtml(name: string, html: string, listener: MessageListener): void {
 		if (this.ended) return;
+
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];
-		this.uhtmlMessageListeners[id].push(html);
+		this.uhtmlMessageListeners[id].push({name, html});
+
 		this.room.onUhtml(name, html, listener);
 	}
 
 	off(message: string): void {
 		this.room.off(message);
+
 		const index = this.messageListeners.indexOf(message);
 		if (index !== -1) this.messageListeners.splice(index, 1);
 	}
 
 	offHtml(html: string, serverHtml?: boolean): void {
 		this.room.offHtml(html, serverHtml);
-		const index = this.htmlMessageListeners.indexOf(html);
+
+		let index = -1;
+		for (let i = 0; i < this.htmlMessageListeners.length; i++) {
+			const listener = this.htmlMessageListeners[i];
+			if (listener.html === html && (serverHtml === undefined || listener.serverHtml === serverHtml)) {
+				index = i;
+				break;
+			}
+		}
+
 		if (index !== -1) this.htmlMessageListeners.splice(index, 1);
 	}
 
 	offUhtml(name: string, html: string): void {
 		this.room.offUhtml(name, html);
+
 		const id = Tools.toId(name);
 		if (id in this.uhtmlMessageListeners) {
-			const index = this.uhtmlMessageListeners[id].indexOf(html);
+			let index = -1;
+			for (let i = 0; i < this.uhtmlMessageListeners[id].length; i++) {
+				const listener = this.uhtmlMessageListeners[id][i];
+				if (listener.name === name && listener.html === html) {
+					index = i;
+					break;
+				}
+			}
+
 			if (index !== -1) this.uhtmlMessageListeners[id].splice(index, 1);
 		}
 	}
 
 	cleanupMessageListeners(): void {
-		for (const listener of this.htmlMessageListeners) {
-			this.offHtml(listener);
-		}
-
-		for (const listener of this.messageListeners) {
+		const messageListeners = this.messageListeners.slice();
+		for (const listener of messageListeners) {
 			this.off(listener);
 		}
 
-		for (const name in this.uhtmlMessageListeners) {
-			for (const listener of this.uhtmlMessageListeners[name]) {
-				this.offUhtml(name, listener);
+		const htmlMessageListeners = this.htmlMessageListeners.slice();
+		for (const listener of htmlMessageListeners) {
+			this.offHtml(listener.html, listener.serverHtml);
+		}
+
+		for (const id in this.uhtmlMessageListeners) {
+			const uhtmlMessageListeners = this.uhtmlMessageListeners[id].slice();
+			for (const listener of uhtmlMessageListeners) {
+				this.offUhtml(listener.name!, listener.html);
 			}
 		}
 	}
@@ -519,18 +593,24 @@ export abstract class Activity {
 		return playerAttributes;
 	}
 
+	getPlayerUsernameHtml(name: string): string {
+		const id = Tools.toId(name);
+		return (id in this.playerAvatars ? this.playerAvatars[id] : "") + "<username>" + name + "</username>";
+	}
+
 	getPlayerNames(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => player.name, players).map(x => "<username>" + x + "</username>").join(', ');
+		return this.getPlayerAttributes(player => player.name, players).map(x => this.getPlayerUsernameHtml(x)).join(', ');
 	}
 
 	getPlayerNamesText(players?: PlayerList): string[] {
 		return this.getPlayerAttributes(player => player.name, players);
 	}
 
+	onCreatePlayer?(player: Player, isPastPlayer: boolean): void;
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;
-	onUserJoinRoom?(room: Room, user: User, onRename?: boolean): void;
+	onUserJoinRoom?(room: Room, user: User): void;
 	onUserLeaveRoom?(room: Room, user: User): void;
 	onUserUpdateStatus?(user: User, status: string, away: boolean): void;
 }
