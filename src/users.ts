@@ -10,9 +10,9 @@ export class User {
 	avatar: string | null = null;
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
+	customAvatar: boolean | null = null;
 	game: ScriptedGame | null = null;
-	globalRank: string = " ";
-	group: string | null = null;
+	globalRank: string | null = null;
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
@@ -47,13 +47,7 @@ export class User {
 		}
 		this.rooms.clear();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === 'id' || key === 'name') continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		Tools.unrefProperties(this, ["id", "name"]);
 	}
 
 	setName(name: string): void {
@@ -82,11 +76,15 @@ export class User {
 		this.setIsLocked(rank);
 	}
 
-	setRoomRank(room: Room, rank: string): void {
+	/**Returns `true` if the user's rank changed */
+	setRoomRank(room: Room, rank: string): boolean {
 		const roomData = this.rooms.get(room);
+		if (roomData && roomData.rank === rank) return false;
+
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		this.setIsLocked(rank);
+		return true;
 	}
 
 	setIsLocked(rank: string): void {
@@ -114,12 +112,24 @@ export class User {
 		}
 	}
 
-	hasRank(room: Room, targetRank: GroupName): boolean {
-		if (!this.rooms.has(room)) return false;
+	isRoomauth(room: Room): boolean {
+		for (const roomAuthRank in room.auth) {
+			if (room.auth[roomAuthRank].includes(this.id)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	hasRank(room: Room, targetRank: GroupName, roomAuth?: boolean): boolean {
+		if (!this.rooms.has(room) || (roomAuth && !this.isRoomauth(room))) return false;
 		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
 	}
 
 	hasGlobalRank(targetRank: GroupName): boolean {
+		if (!this.globalRank) return false;
+
 		return this.hasRankInternal(this.globalRank, targetRank);
 	}
 
@@ -132,7 +142,8 @@ export class User {
 
 	isGlobalStaff(): boolean {
 		const groupSymbols = Client.getGroupSymbols();
-		return this.group === groupSymbols.driver || this.group === groupSymbols.moderator || this.group === groupSymbols.administrator;
+		return this.globalRank === groupSymbols.driver || this.globalRank === groupSymbols.moderator ||
+			this.globalRank === groupSymbols.administrator;
 	}
 
 	isDeveloper(): boolean {
@@ -181,6 +192,9 @@ export class User {
 			}
 		}
 
+		message = message.trim();
+		if (!message) return;
+
 		const outgoingMessage: IOutgoingMessage = {
 			message: this.getMessageWithClientPrefix(message),
 			text: message,
@@ -199,6 +213,7 @@ export class User {
 	}
 
 	sayCode(code: string): void {
+		code = code.trim();
 		if (!code) return;
 
 		this.say("!code " + code, {
@@ -240,7 +255,15 @@ export class User {
 		if (!this.uhtmlMessageListeners) return;
 		const id = Tools.toId(name);
 		if (!(id in this.uhtmlMessageListeners)) return;
-		delete this.uhtmlMessageListeners[id][Tools.toId(Client.getListenerUhtml(html, true))];
+
+		this.removeUhtmlMessageListener(id, Tools.toId(Client.getListenerUhtml(html, true)));
+	}
+
+	removeUhtmlMessageListener(id: string, htmlId: string): void {
+		if (!this.uhtmlMessageListeners || !(id in this.uhtmlMessageListeners)) return;
+
+		delete this.uhtmlMessageListeners[id][htmlId];
+		if (!Object.keys(this.uhtmlMessageListeners[id]).length) delete this.uhtmlMessageListeners[id];
 	}
 
 	getBotRoom(): Room | undefined {
@@ -254,8 +277,8 @@ export class User {
 
 	private hasRankInternal(rank: string, targetRank: GroupName): boolean {
 		const groupSymbols = Client.getGroupSymbols();
-		if (!(targetRank in groupSymbols)) return false;
 		const serverGroups = Client.getServerGroups();
+		if (!(rank in serverGroups) || !(targetRank in groupSymbols) || !(groupSymbols[targetRank] in serverGroups)) return false;
 		return serverGroups[rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
 	}
 }
@@ -269,7 +292,7 @@ export class Users {
 	constructor() {
 		const username = Config.username || "Self";
 		this.self = this.add(username, Tools.toId(username));
-		this.pruneUsersInterval = setInterval(() => this.pruneUsers(), 5 * 60 * 1000);
+		this.pruneUsersInterval = setInterval(() => this.pruneUsers(), 15 * 60 * 1000);
 	}
 
 	getNameFormattingList(): string[] {
@@ -290,6 +313,8 @@ export class Users {
 		if (!(user.id in this.users)) throw new Error("User " + user.id + " not in users list");
 
 		if (user === this.self) return;
+
+		CommandParser.onDestroyUser(user.id);
 
 		delete this.users[user.id];
 		user.destroy();
@@ -322,21 +347,28 @@ export class Users {
 
 		this.users[id] = user;
 		user.rooms.forEach((value, room) => {
-			if (room.game) room.game.renamePlayer(user, oldId);
-			if (room.searchChallenge) room.searchChallenge.renamePlayer(user, oldId);
-			if (room.tournament) room.tournament.renamePlayer(user, oldId);
-			if (room.userHostedGame) room.userHostedGame.renamePlayer(user, oldId);
+			if (room.game) room.game.renamePlayer(user.name, user.id, oldId);
+			if (room.searchChallenge) room.searchChallenge.renamePlayer(user.name, user.id, oldId);
+			if (room.userHostedGame) room.userHostedGame.renamePlayer(user.name, user.id, oldId);
+
+			// tournament should rename last to avoid double renames in onTournamentPlayerRename()
+			if (room.tournament) room.tournament.renamePlayer(user.name, user.id, oldId);
 		});
+
+		CommandParser.onRenameUser(user, oldId);
 
 		return user;
 	}
 
 	pruneUsers(): void {
-		for (const i in this.users) {
-			if (!this.users[i].rooms.size && !this.users[i].game) {
-				this.remove(this.users[i]);
+		let userKeys: string[] | undefined = Object.keys(this.users);
+		for (const key of userKeys) {
+			if (!this.users[key].rooms.size) {
+				this.remove(this.users[key]);
 			}
 		}
+
+		userKeys = undefined;
 	}
 }
 

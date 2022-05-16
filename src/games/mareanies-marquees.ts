@@ -53,6 +53,7 @@ class MareaniesMarquees extends QuestionAndAnswer {
 
 		if (this.currentIndex === -1) {
 			let index = this.random(this.letters.length);
+			// this.letters.length is always > 1 due to LETTERS_TO_REVEAL
 			while (index === 0) {
 				index = this.random(this.letters.length);
 			}

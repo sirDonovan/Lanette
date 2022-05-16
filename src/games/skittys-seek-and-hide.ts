@@ -119,6 +119,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 
 	tallySelectedPokemon(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+		this.offCommands(['select']);
 
 		this.canSelect = false;
 
@@ -178,6 +179,12 @@ class SkittysSeekAndHide extends ScriptedGame {
 		}
 
 		this.announceWinners();
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.pokemonChoices.clear();
 	}
 }
 

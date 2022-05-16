@@ -107,7 +107,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		if (this.props.textArea) {
 			const configuration = this.props.textAreaConfiguration;
 			html += "<textarea name='" + tagName + "' rows='" + (configuration && configuration.rows ? configuration.rows : 4) +
-				"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'>";
+				"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'" +
+				(this.props.readonly ? " disabled" : "") + ">";
 			if (this.currentInput) {
 				html += this.currentInput;
 			} else if (this.props.placeholder) {
@@ -117,13 +118,16 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		} else {
 			html += "<input name='" + tagName + "'";
 			if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
-			if (this.currentInput) html += " value='" + this.currentInput + "'";
+			if (this.currentInput) html += ' value="' + this.currentInput + '"';
 			if (this.props.inputWidth) html += " style='width:" + this.props.inputWidth + "px'";
+			if (this.props.readonly) html += " disabled";
 			html += " />&nbsp;";
 		}
 
-		html += "<button class='button' type='submit'>" + this.submitText + "</button>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText, !this.currentInput);
+		html += "<button class='button" + (this.props.readonly ? " disabled" : "") + "' type='submit'" +
+			(this.props.readonly ? " disabled" : "") + ">" + this.submitText + "</button>";
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
+			{disabled: !this.currentInput});
 		html += "</form>";
 
 		return html;

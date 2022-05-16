@@ -60,6 +60,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 			this.answerParts = result.answerParts;
 			this.ports = result.ports;
 			this.hint = "<b>" + result.ports.join(" ") + "</b>";
+			this.prng.destroy();
 			this.prng = new PRNG(result.prngSeed);
 		}
 	}

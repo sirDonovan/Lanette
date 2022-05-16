@@ -241,12 +241,19 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		}
 	}
 
-	onDeallocate(): void {
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
 		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
 		for (const key of spaceKeys) {
 			const space = this.spaces[key];
 			if (space instanceof BoardPropertySpace) space.owner = null;
 		}
+
+		this.escapeFromJailCards.clear();
+		this.playerCurrency.clear();
+		this.properties.clear();
+		this.turnsInJail.clear();
 	}
 
 	onRemovePlayer(player: Player): void {

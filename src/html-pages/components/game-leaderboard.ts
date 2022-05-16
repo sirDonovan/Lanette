@@ -18,9 +18,12 @@ export class GameLeaderboard extends LeaderboardBase {
 			label: "Filter by game(s)",
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
+			allowModes: true,
+			allowVariants: true,
 			onClear: () => this.clearFormats(),
 			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.setFormats(output),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 

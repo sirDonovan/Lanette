@@ -188,6 +188,13 @@ class TaurosSafariZone extends ScriptedGame {
 		this.convertPointsToBits(0.5, 0.1);
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.caughtPokemon.clear();
+		this.roundCatches.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<TaurosSafariZone> = {

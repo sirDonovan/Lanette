@@ -1,6 +1,5 @@
 import type { Room } from "../rooms";
 import type { User } from "../users";
-import type { IFormat } from "./pokemon-showdown";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
@@ -21,11 +20,13 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'notifyoffrank' | 'modnote' | 'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' |
 	'tournament-autodq' | 'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' |
 	'tournament-forcetimer' | 'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' |
-	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog';
+	'query-userdetails' | 'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat';
 
 export interface IOutgoingMessageAttributes {
 	filterSend?: () => boolean;
 	announcement?: string;
+	deauthedUserid?: string;
+	disqualifiedUserid?: string;
 	format?: string;
 	html?: string;
 	measure?: boolean;
@@ -107,7 +108,7 @@ export interface IRoomsResponse {
 
 export interface IUserDetailsResponse {
 	autoconfirmed: boolean;
-	avatar: string;
+	avatar: number | string;
 	customgroup: string | undefined;
 	group: string;
 	name: string;
@@ -411,12 +412,12 @@ export interface IClientMessageTypes {
 
 export interface ITournamentMessageTypes {
 	/**
-	 * Format|Generator|Player cap
+	 * Format ID|Generator|Player cap
 	 */
 	create: {
-		readonly format: IFormat;
-		readonly generator: string;
-		readonly playerCap: number;
+		readonly formatid: string;
+		readonly generator?: string;
+		readonly playerCap?: number;
 	};
 
 	/**
@@ -437,7 +438,10 @@ export interface ITournamentMessageTypes {
 
 	forceend: null;
 
-	autodq: null;
+	autodq: {
+		readonly status: string;
+		readonly time: number;
+	}
 
 	autostart: null;
 
@@ -484,4 +488,12 @@ export interface ITournamentMessageTypes {
 		readonly recorded: 'success' | 'fail';
 		readonly roomid: string;
 	};
+
+	/**
+	 * errorType|errorMessage
+	 */
+	error: {
+		readonly errorType: string;
+		readonly errorMessage: string;
+	}
 }

@@ -13,6 +13,8 @@ export class SweetThief extends ScriptedGame {
 	declare readonly room: Room;
 
 	cleanupTimers(): void {
+		super.cleanupTimers();
+
 		if (this.takeBackTimeout) {
 			clearTimeout(this.takeBackTimeout);
 			// @ts-expect-error

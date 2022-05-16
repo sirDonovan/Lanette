@@ -1,13 +1,14 @@
 import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Catch and Evolve";
 const description = "Every player is given a randomly generated Pokemon to use as their starter. Each battle that you win, you " +
 	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
-class CatchAndEvolve extends EliminationTournament {
+class CatchAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = 1;
@@ -16,10 +17,10 @@ class CatchAndEvolve extends EliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
+		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		if (bannedTiers.includes(pokemon.tier)) return false;

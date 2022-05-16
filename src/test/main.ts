@@ -1,4 +1,5 @@
 import fs = require('fs');
+import fsPromises = require('fs/promises');
 import Mocha = require('mocha');
 import path = require('path');
 import stream = require('stream');
@@ -19,6 +20,9 @@ for (const method of methodsToNoOp) {
 	fs[method] = noOp;
 	// @ts-expect-error
 	fs[method + 'Sync'] = noOp;
+
+	// @ts-expect-error
+	fsPromises[method] = () => Promise.resolve(); // eslint-disable-line @typescript-eslint/promise-function-async
 }
 
 Object.assign(fs, {createWriteStream() {
@@ -32,7 +36,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-		require(path.join(rootFolder, 'built', 'app.js'))();
+		require(path.join(rootFolder, 'build', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 
 		// allow tests to assert on Client's outgoingMessageQueue
@@ -56,8 +60,16 @@ module.exports = (inputOptions: Dict<string>): void => {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
+		const loadDex = modulesToTest.includes('dex.js');
 		const loadGames = modulesToTest.includes('games.js');
 		const loadWorkers = modulesToTest.includes('workers.js');
+
+		if (loadDex || loadGames || loadWorkers) {
+			console.log("Loading dex data for tests...");
+			for (let i = 1; i <= Dex.getGen(); i++) {
+				Dex.getDex('gen' + i).getData();
+			}
+		}
 
 		if (!loadGames && loadWorkers) {
 			console.log("Loading worker data for tests...");
@@ -136,6 +148,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 		runMocha();
 	} catch (e) {
 		console.log(e);
+		Games.unrefWorkers();
 		process.exit(1);
 	}
 };

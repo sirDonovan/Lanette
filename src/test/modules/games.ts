@@ -72,6 +72,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
@@ -84,13 +85,16 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						fail();
 					}
 
-					const room = Rooms.get('mocha')!;
-					if (room.game) room.game.deallocate(true);
-					Rooms.remove(room);
+					const room = Rooms.get(roomid);
+					if (room) {
+						if (room.game) room.game.deallocate(true);
+						Rooms.remove(room);
+					}
 				});
 			} else {
 				it(test, function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
+					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
 
@@ -102,9 +106,11 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 						fail();
 					}
 
-					const room = Rooms.get('mocha')!;
-					if (room.game) room.game.deallocate(true);
-					Rooms.remove(room);
+					const room = Rooms.get(roomid);
+					if (room) {
+						if (room.game) room.game.deallocate(true);
+						Rooms.remove(room);
+					}
 				});
 			}
 		}
@@ -259,6 +265,52 @@ describe("Games", () => {
 				Rooms.remove(room);
 			}
 		}
+	});
+
+	it('should properly deallocate games', () => {
+		const room = createTestRoom();
+		Games.createGame(room, Games.getExistingFormat('trivia'));
+		assert(room.game);
+		room.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		room.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		room.game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+
+		assertStrictEqual(Object.keys(room.messageListeners).length, 1);
+		assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 1);
+		assertStrictEqual(Object.keys(room.uhtmlMessageListeners).length, 1);
+
+		room.game.deallocate(true);
+
+		assertStrictEqual(Object.keys(room.messageListeners).length, 0);
+		assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 0);
+		assertStrictEqual(Object.keys(room.uhtmlMessageListeners).length, 0);
+
+		Rooms.remove(room);
+	});
+
+	it('should properly deallocate PM games', () => {
+		const room = createTestRoom();
+		Games.createGame(Users.self, Games.getExistingFormat('trivia'), room, true);
+		assert(Users.self.game);
+		Users.self.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		Users.self.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		Users.self.game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+
+		assert(Users.self.messageListeners);
+		assert(Users.self.htmlMessageListeners);
+		assert(Users.self.uhtmlMessageListeners);
+
+		assertStrictEqual(Object.keys(Users.self.messageListeners).length, 1);
+		assertStrictEqual(Object.keys(Users.self.htmlMessageListeners).length, 1);
+		assertStrictEqual(Object.keys(Users.self.uhtmlMessageListeners).length, 1);
+
+		Users.self.game.deallocate(true);
+
+		assertStrictEqual(Object.keys(Users.self.messageListeners).length, 0);
+		assertStrictEqual(Object.keys(Users.self.htmlMessageListeners).length, 0);
+		assertStrictEqual(Object.keys(Users.self.uhtmlMessageListeners).length, 0);
+
+		Rooms.remove(room);
 	});
 
 	it('should start games through commands', () => {

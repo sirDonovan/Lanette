@@ -37,3 +37,9 @@ export interface IExtractedBattleId {
 	publicId: string;
 	password: string;
 }
+
+export interface IWriteQueueItem<T, U> {
+	data: string;
+	resolve: PromiseResolve<T>;
+	reject: PromiseReject<U>;
+}

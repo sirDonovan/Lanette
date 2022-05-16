@@ -134,15 +134,25 @@ class SpindasExcludedPokemon extends ScriptedGame {
 	}
 
 	setParameter(): void {
-		const species = this.shuffle(data.keys)[0];
-		this.excludedHint = species;
-
 		if (this.moveOnly) {
 			this.category = 'moves';
 		} else {
 			this.category = this.sampleOne(categories);
 			if (this.category !== 'moves' && !this.random(categories.length)) this.category = 'moves';
 		}
+
+		const shuffledKeys = this.shuffle(data.keys);
+		let species = shuffledKeys[0];
+		shuffledKeys.shift();
+		while (data.pokemon[species][this.category].length === 1 && data.pokemon[species][this.category][0] === this.lastParameter) {
+			if (!shuffledKeys.length) {
+				return this.setParameter();
+			}
+
+			species = shuffledKeys[0];
+			shuffledKeys.shift();
+		}
+		this.excludedHint = species;
 
 		let parameter = this.sampleOne(data.pokemon[species][this.category]);
 		while (parameter === this.lastParameter) {

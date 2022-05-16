@@ -1,9 +1,10 @@
 import path = require('path');
 
 import type { PRNGSeed } from '../lib/prng';
+import type { WorkerBaseMessageId } from './worker-base';
 import { WorkerBase } from './worker-base';
 
-export type PortmanteausId = 'search';
+export type PortmanteausId = WorkerBaseMessageId | 'search';
 
 export type PoolType = 'Move' | 'Pokemon';
 

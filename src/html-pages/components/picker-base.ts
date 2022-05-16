@@ -57,13 +57,13 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 
 	renderChoiceElement(choices: Dict<PickType>, key: string): string {
 		const picked = this.currentPicks.includes(key);
-		return this.getQuietPmButton(this.commandPrefix + ", " + this.pickCommand + ", " + key,
-			this.getChoiceButtonHtml(choices[key]), this.singlePick && picked, !this.singlePick && picked ? "opacity: 50%" : "");
+		return this.getQuietPmButton(this.commandPrefix + ", " + this.pickCommand + ", " + key, this.getChoiceButtonHtml(choices[key]),
+			{disabled: this.singlePick && picked, style: !this.singlePick && picked ? "opacity: 50%" : "", selected: picked});
 	}
 
 	renderNoPickElement(): string {
 		return this.getQuietPmButton(this.commandPrefix + ", " + this.pickCommand + ", " + this.noPickName, this.noPickName,
-			!this.currentPicks.length);
+			{selectedAndDisabled: !this.currentPicks.length});
 	}
 
 	isValidChoice(choice: string): boolean {

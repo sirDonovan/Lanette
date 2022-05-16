@@ -170,6 +170,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	}
 
 	onNextRound(): void {
+		this.offCommands(this.actionCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canSwim = false;
 
@@ -236,6 +237,14 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		}
 
 		this.announceWinners();
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.consecutiveWheelSpins.clear();
+		this.playerWheels.clear();
+		this.roundActions.clear();
 	}
 }
 

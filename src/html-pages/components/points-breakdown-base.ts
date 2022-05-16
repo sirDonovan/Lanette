@@ -12,7 +12,7 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 		super(room, parentCommandPrefix, componentCommand, props);
 	}
 
-	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string;
+	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>, maxPercentageLength: number): string;
 
 	onUpdateLeaderboardParameters(noPageUpdate?: boolean): void {
 		this.updateCachedPointBreakdowns();
@@ -33,13 +33,14 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 	}
 
 	getLeaderboardPaginationElements(): IPageElement[] {
+		const maxPercentageLength = this.getMaxPercentageLength();
 		const elements: IPageElement[] = [];
 
 		for (let i = 0; i < this.cachedPointBreakdowns.length; i++) {
 			elements.push({html: "&nbsp;&nbsp;&nbsp;<b>" + Tools.toNumberOrderString(i + 1) + "</b>: <details><summary><username>" +
 				this.cachedPointBreakdowns[i].name + "</username> - " + this.cachedPointBreakdowns[i].breakdown.total + " " +
 				this.pointsName + (this.cachedPointBreakdowns[i].breakdown.total > 1 ? "s" : "") + "</summary>" +
-				this.renderPointBreakdowns(this.cachedPointBreakdowns[i].breakdown.breakdowns) + "</details>"});
+				this.renderPointBreakdowns(this.cachedPointBreakdowns[i].breakdown.breakdowns, maxPercentageLength) + "</details>"});
 		}
 
 		return elements;

@@ -1,13 +1,14 @@
 import type { IGameFile } from '../types/games';
 import type { IPokemon } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Release and Evolve";
 const description = "Every player is given a randomly generated team to start out. Each battle that you win, you " +
 	"must 'release' 1 of your Pokemon (remove it from your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
-class ReleaseAndEvolve extends EliminationTournament {
+class ReleaseAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	dropsPerRound = 1;
 	evolutionsPerRound = 1;
@@ -17,10 +18,10 @@ class ReleaseAndEvolve extends EliminationTournament {
 	requiredEvolution = true;
 	canReroll = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom'];
+		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		if (bannedTiers.includes(pokemon.tier)) return false;

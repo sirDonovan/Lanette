@@ -110,7 +110,8 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 			if (this.props.textAreas && this.props.textAreas[i]) {
 				const configuration = this.props.textAreaConfigurations ? this.props.textAreaConfigurations[i] : null;
 				html += "<textarea name='" + tagNames[i] + "' rows='" + (configuration && configuration.rows ? configuration.rows : 4) +
-					"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'>";
+					"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'" +
+					(this.props.readonly ? " disabled" : "") + ">";
 				if (this.currentInputs[i]) {
 					html += this.currentInputs[i];
 				} else if (this.props.placeholders && this.props.placeholders[i]) {
@@ -121,13 +122,15 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 				html += "<input name='" + tagNames[i] + "'";
 				if (this.props.placeholders && this.props.placeholders[i]) html += " placeholder='" + this.props.placeholders[i] + "'";
 				if (this.currentInputs[i]) html += " value='" + this.currentInputs[i] + "'";
+				if (this.props.readonly) html += " disabled";
 				html += " /><br />";
 			}
 		}
 
-		html += "<br /><button class='button' type='submit'>" + this.submitText + "</button>";
+		html += "<button class='button" + (this.props.readonly ? " disabled" : "") + "' type='submit'" +
+			(this.props.readonly ? " disabled" : "") + ">" + this.submitText + "</button>";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
-			!this.currentInputs.length);
+			{disabled: !this.currentInputs.length});
 		html += "</form>";
 
 		return html;

@@ -22,6 +22,31 @@ describe("Dex", () => {
 		assert(Object.keys(dexData.gifData).length > 1);
 		assert(Object.keys(dexData.gifDataBW).length > 1);
 
+		// data keys by gen
+
+		assert(Dex.getDex("gen1").getData().pokemonKeys.includes("bulbasaur"));
+		assert(!Dex.getDex("gen1").getData().pokemonKeys.includes("chikorita"));
+
+		assert(Dex.getDex("gen2").getData().pokemonKeys.includes("chikorita"));
+		assert(!Dex.getDex("gen2").getData().pokemonKeys.includes("treecko"));
+
+		assert(Dex.getDex("gen3").getData().pokemonKeys.includes("treecko"));
+		assert(!Dex.getDex("gen3").getData().pokemonKeys.includes("turtwig"));
+
+		assert(Dex.getDex("gen4").getData().pokemonKeys.includes("turtwig"));
+		assert(!Dex.getDex("gen4").getData().pokemonKeys.includes("snivy"));
+
+		assert(Dex.getDex("gen5").getData().pokemonKeys.includes("snivy"));
+		assert(!Dex.getDex("gen5").getData().pokemonKeys.includes("chespin"));
+
+		assert(Dex.getDex("gen6").getData().pokemonKeys.includes("chespin"));
+		assert(!Dex.getDex("gen6").getData().pokemonKeys.includes("rowlet"));
+
+		assert(Dex.getDex("gen7").getData().pokemonKeys.includes("rowlet"));
+		assert(!Dex.getDex("gen7").getData().pokemonKeys.includes("grookey"));
+
+		assert(Dex.getDex("gen8").getData().pokemonKeys.includes("grookey"));
+
 		// allPossibleMoves
 		let pokemon = Dex.getExistingPokemon('Charizard');
 		let allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -217,7 +242,7 @@ describe("Dex", () => {
 	});
 	it('should run methods for all data types', function() {
 		// eslint-disable-next-line @typescript-eslint/no-invalid-this
-		this.timeout(15000);
+		this.timeout(45000);
 
 		const dexData = Dex.getData();
 
@@ -441,7 +466,7 @@ describe("Dex", () => {
 	});
 	it('should properly parse custom rules in separateCustomRules()', () => {
 		const customRules: string[] = ["-Pikachu", "+Charizard", "*Kubfu", "Same Type Clause", "!Team Preview"];
-		const separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
+		let separatedCustomRules: ISeparatedCustomRules = Dex.separateCustomRules(customRules);
 		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
 		assertStrictEqual(separatedCustomRules.addedbans[0], "Pikachu");
 		assertStrictEqual(separatedCustomRules.removedbans.length, 1);
@@ -452,6 +477,10 @@ describe("Dex", () => {
 		assertStrictEqual(separatedCustomRules.addedrules[0], "Same Type Clause");
 		assertStrictEqual(separatedCustomRules.removedrules.length, 1);
 		assertStrictEqual(separatedCustomRules.removedrules[0], "Team Preview");
+
+		separatedCustomRules = Dex.separateCustomRules(["-no item"]);
+		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
+		assertStrictEqual(separatedCustomRules.addedbans[0], "No Item");
 	});
 	it('should return proper values from isImmune()', () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');
@@ -660,6 +689,10 @@ describe("Dex", () => {
 
 		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("nationaldexag"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Arceus-Bug').name));
+
+		// all abilities banned
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("aaa"));
+		assert(!usablePokemon.includes(Dex.getExistingPokemon('Komala').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
 		let teams = [['Charmander', 'Squirtle']];
@@ -689,10 +722,31 @@ describe("Dex", () => {
 		assert(formes.includes("Meowth-Alola"));
 		assert(formes.includes("Meowth-Galar"));
 
+		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'), true);
+		assertStrictEqual(formes.length, 1);
+		assert(formes.includes("Gastrodon"));
+
 		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'));
 		assertStrictEqual(formes.length, 2);
 		assert(formes.includes("Gastrodon"));
 		assert(formes.includes("Gastrodon-East"));
+
+		// repeated to test not caching
+		formes = Dex.getFormes(Dex.getExistingPokemon('Gastrodon'), true);
+		assertStrictEqual(formes.length, 1);
+		assert(formes.includes("Gastrodon"));
+
+		formes = Dex.getDex("gen5").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 1);
+
+		formes = Dex.getDex("gen6").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 7);
+
+		formes = Dex.getDex("gen7").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 15);
+
+		formes = Dex.getDex("gen8").getFormes(Dex.getExistingPokemon('Pikachu'));
+		assertStrictEqual(formes.length, 16);
 	});
 	it('should return proper values from getFormeCombinations()', () => {
 		let combinations = Dex.getFormeCombinations(['Bulbasaur']).map(x => x.join(","));

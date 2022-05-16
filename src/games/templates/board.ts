@@ -153,6 +153,13 @@ export abstract class BoardGame extends ScriptedGame {
 		this.onNextPlayer(player);
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerLocations.clear();
+		this.playerLetters.clear();
+	}
+
 	onEnd(): void {
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
@@ -239,7 +246,7 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	getPlayerLetters(players?: PlayerList): string {
-		return this.getPlayerAttributes(player => "<username>" + player.name + "</username> (" + this.playerLetters.get(player) + ")",
+		return this.getPlayerAttributes(player => this.getPlayerUsernameHtml(player.name) + " (" + this.playerLetters.get(player) + ")",
 			players).join(', ');
 	}
 

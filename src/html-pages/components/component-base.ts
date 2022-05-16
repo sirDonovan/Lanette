@@ -1,6 +1,8 @@
 import type { Room } from "../../rooms";
+import type { IQuietPMButtonOptions } from "../html-page-base";
 
 export interface IComponentProps {
+	readonly?: boolean;
 	reRender: () => void;
 }
 
@@ -8,7 +10,9 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	abstract componentId: string;
 
 	active: boolean = true;
+	closed: boolean = false;
 	components: ComponentBase[] = [];
+	timeout: NodeJS.Timer | null = null;
 
 	room: Room;
 	commandPrefix: string;
@@ -27,6 +31,13 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	abstract render(onOpen?: boolean): string;
 	abstract tryCommand(targets: readonly string[]): string | undefined;
 
+	destroy(): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
+		this.closed = true;
+		Tools.unrefProperties(this, ['closed']);
+	}
+
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
 		for (const component of this.components) {
 			if (component.active && component.componentCommand === componentCommand) {
@@ -37,7 +48,16 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
-	getQuietPmButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
-		return Client.getQuietPmButton(this.room, message, label, disabled, buttonStyle);
+	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+		let disabled = options && (options.disabled || options.selectedAndDisabled);
+		if (!disabled && options && !options.enabledReadonly && this.props.readonly) disabled = true;
+
+		let style = options && options.style ? options.style : "";
+		if (options && (options.selected || options.selectedAndDisabled)) {
+			if (style && !style.endsWith(';')) style += ';';
+			style += 'border-color: #ffffff;';
+		}
+
+		return Client.getQuietPmButton(this.room, message, label, disabled, style);
 	}
 }

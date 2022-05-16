@@ -1,12 +1,13 @@
 import type { IGameFile } from '../types/games';
 import type { GameType, IPokemon } from '../types/pokemon-showdown';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Doubles Catch and De-volve";
 const description = "Every player is given 2 randomly generated Pokemon to use as their starters. Each battle that you win, you " +
 	"must 'catch' 2 of your opponent's Pokemon (add them to your team) and then de-volve 2 Pokemon on your team.";
 
-class DoublesCatchAndEvolve extends EliminationTournament {
+class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
 	additionsPerRound = 2;
@@ -18,8 +19,8 @@ class DoublesCatchAndEvolve extends EliminationTournament {
 	requiredAddition = true;
 	requiredEvolution = true;
 	canReroll = true;
-	baseTournamentName = name;
-	tournamentDescription = description;
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 
 	meetsStarterCriteria(pokemon: IPokemon): boolean {
 		return pokemon.evos.length <= 1;

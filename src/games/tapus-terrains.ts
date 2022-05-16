@@ -211,6 +211,12 @@ class TapusTerrains extends ScriptedGame {
 		this.announceWinners();
 	}
 
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundJumps.clear();
+	}
+
 	isValidJump(): boolean {
 		if (this.currentTerrain && this.targetPokemon && data.pokemon[this.currentTerrain].includes(this.targetPokemon)) return true;
 		return false;
@@ -251,6 +257,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 							if (this.players[i] !== player) this.players[i].eliminated = true;
 						}
 						this.end();
+						return true;
 					} else {
 						this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
 						this.timeout = setTimeout(() => {

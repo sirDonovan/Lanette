@@ -31,6 +31,7 @@ export abstract class MapCurrencyGame extends MapGame {
 	}
 
 	onNextRound(): void {
+		this.offCommands(this.moveCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.eliminatePlayers();
 

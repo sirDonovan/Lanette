@@ -91,6 +91,12 @@ class PonytasPinataParty extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundHits.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<PonytasPinataParty> = {

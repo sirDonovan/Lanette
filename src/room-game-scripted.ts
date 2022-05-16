@@ -1,3 +1,5 @@
+import path = require('path');
+
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
@@ -9,6 +11,7 @@ import type {
 	IGameNumberOptionValues, IGameVariant, IRandomGameAnswer, LoadedGameCommands, PlayerList
 } from "./types/games";
 import type { GameActionLocations } from "./types/storage";
+import type { IClientTournamentData } from "./types/tournaments";
 import type { User } from "./users";
 
 const AUTO_START_VOTE_TIME = 5 * 1000;
@@ -23,9 +26,9 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameNumberOptionValues>
 };
 
 export class ScriptedGame extends Game {
-	awardedBits: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	debugLogs: string[] = [];
 	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
@@ -39,8 +42,12 @@ export class ScriptedGame extends Game {
 	signupsRefreshed: boolean = false;
 	startTime: number = 0;
 	usesHtmlPage: boolean = false;
+	usesTournamentStart: boolean = false;
+	usesTournamentJoin: boolean = false;
 	usesWorkers: boolean = false;
 	readonly winnerPointsToBits: number = 50;
+
+	debugLogsEnabled: boolean;
 
 	// set in onInitialize()
 	declare format: IGameFormat;
@@ -65,11 +72,16 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
-	timeEnded?: boolean;
 	timeLimit?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
 		super(room, pmRoom, initialSeed);
+
+		this.debugLogsEnabled = Config.scriptedGameDebugLogs && Config.scriptedGameDebugLogs.includes(room.id) ? true : false;
+		if (this.debugLogsEnabled) {
+			const date = new Date();
+			this.debugLogs.push(date.toUTCString() + " (" + date.toTimeString() + ")");
+		}
 	}
 
 	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined,
@@ -227,6 +239,10 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	debugLog(log: string): void {
+		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
+	}
+
 	setUhtmlBaseName(): void {
 		let gameCount: number;
 		if (this.isPmActivity(this.room)) {
@@ -337,13 +353,16 @@ export class ScriptedGame extends Game {
 		if (this.format.voter) {
 			const id = Tools.toId(this.format.voter);
 			const database = Storage.getDatabase(this.room as Room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+			if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+				this.format.id in database.gameFormatScriptedBoxes[id]) {
+				this.customBox = database.gameFormatScriptedBoxes[id][this.format.id];
+			} else if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
 				this.customBox = database.gameScriptedBoxes[id];
 			}
 		}
 
-		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.voter, description, this.mascot, this.shinyMascot,
-			!this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
+		return Games.getScriptedBoxHtml(this.room as Room, this.name, this.format.id, this.format.voter, description, this.mascot,
+			this.shinyMascot, !this.internalGame && !this.parentGame ? this.getHighlightPhrase() : "",
 			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
@@ -451,8 +470,9 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	start(): boolean {
-		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers)) return false;
+	start(tournamentStart?: boolean): boolean {
+		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
+			(this.usesTournamentStart && !tournamentStart)) return false;
 
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
@@ -531,10 +551,11 @@ export class ScriptedGame extends Game {
 			}
 
 			if (timeEnded) {
-				this.say("The game has reached the time limit!");
-				this.timeEnded = true;
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (!this.ended) this.end();
+				if (!this.ended) {
+					this.say("The game has reached the time limit!");
+					this.end();
+				}
 				return;
 			}
 		}
@@ -621,14 +642,13 @@ export class ScriptedGame extends Game {
 		}
 
 		const now = Date.now();
-		let usedDatabase = false;
 
 		if (this.isMiniGame) {
 			Games.setLastMinigame(this.room, now);
 		} else if (!this.parentGame && !this.internalGame) {
 			Games.clearNextVoteBans(this.room);
 
-			usedDatabase = true;
+			this.updatedDatabase = true;
 			const database = Storage.getDatabase(this.room);
 
 			Games.setLastGame(this.room, now);
@@ -662,8 +682,6 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
-		if (this.awardedBits || usedDatabase) Storage.exportDatabase(this.room.id);
-
 		this.deallocate(false);
 	}
 
@@ -693,38 +711,40 @@ export class ScriptedGame extends Game {
 		this.deallocate(true);
 	}
 
-	deallocate(forceEnd: boolean): void {
-		if (!this.ended) this.ended = true;
-
-		this.cleanupMessageListeners();
-		if (this.cleanupTimers) this.cleanupTimers();
+	cleanupTimers(): void {
+		super.cleanupTimers();
 
 		if (this.botTurnTimeout) {
 			clearTimeout(this.botTurnTimeout);
 			this.botTurnTimeout = undefined;
 		}
+	}
 
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			// @ts-expect-error
-			this.timeout = undefined;
-		}
+	destroyPlayers(): void {
+		super.destroyPlayers();
 
-		if (this.signupsHtmlTimeout) {
-			clearTimeout(this.signupsHtmlTimeout);
-			// @ts-expect-error
-			this.signupsHtmlTimeout = undefined;
-		}
+		this.enabledAssistActions.clear();
+		this.gameActionLocations.clear();
+		this.playerCustomBoxes.clear();
+		this.winners.clear();
+		if (this.lives) this.lives.clear();
+		if (this.points) this.points.clear();
+	}
 
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
+	deallocate(forceEnd: boolean): void {
+		if (!this.ended) this.ended = true;
+
+		this.cleanupMessageListeners();
+		this.cleanupTimers();
+		this.cleanupMisc();
+
+		for (const listener of this.commandsListeners) {
+			this.offCommands(listener.commands);
 		}
 
 		if ((!this.started || this.options.freejoin) && this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
-		this.leaveBattleRooms();
+		this.cleanupBattleRooms();
 
 		if (this.onDeallocate) {
 			try {
@@ -735,10 +755,20 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		// @ts-expect-error
-		if ((this.room as Room).tournament && (this.room as Room).tournament.battleRoomGame === this) {
+		if (!this.isPmActivity(this.room)) {
+			if (this.room.tournament && this.room.tournament.battleRoomGame === this) {
+				this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
+
+			if (this.subRoom && this.subRoom.tournament && this.subRoom.tournament.battleRoomGame === this) {
+				this.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
+
 			// @ts-expect-error
-			this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			if (this.room.searchChallenge === this) {
+				// @ts-expect-error
+				this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+			}
 		}
 
 		if (this.room.game === this) {
@@ -746,14 +776,9 @@ export class ScriptedGame extends Game {
 			this.room.game = undefined;
 		}
 
-		// @ts-expect-error
-		if ((this.room as Room).searchChallenge === this) {
-			// @ts-expect-error
-			this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
-		}
-
 		if (this.parentGame) {
 			this.parentGame.room.game = this.parentGame;
+			this.parentGame.prng.destroy();
 			this.parentGame.prng = new PRNG(this.prng.seed);
 			if (this.parentGame.onChildEnd) {
 				try {
@@ -777,13 +802,19 @@ export class ScriptedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			if (key === "ended" || key === "id" || key === "name") continue;
-
-			// @ts-expect-error
-			this[key] = undefined;
+		if (this.debugLogs.length) {
+			void Tools.safeWriteFile(path.join(Tools.rootFolder, 'game-debug-logs',
+				Tools.getDateFilename() + "-" + this.room.id + "-" + Tools.toId(this.uhtmlBaseName) + ".txt"), this.debugLogs.join("\n\n"))
+					.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
 		}
+
+		if (!this.isPmActivity(this.room)) {
+			this.afterAddBits();
+
+			if (this.updatedBits || this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
+		}
+
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 
 	inheritPlayers(players: Dict<Player>): void {
@@ -805,7 +836,9 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	addPlayer(user: User): Player | undefined {
+	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+		if (this.usesTournamentJoin && !tournamentJoin) return;
+
 		if (this.options.freejoin || this.isMiniGame) {
 			if (!this.joinNotices.has(user.id)) {
 				this.sendFreeJoinNotice(user);
@@ -1251,12 +1284,15 @@ export class ScriptedGame extends Game {
 			if (this.shinyMascot) bits *= 2;
 		}
 
-		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
 				"bits " + this.room.title + "``.");
 		}
-		if (!this.awardedBits) this.awardedBits = true;
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 
@@ -1267,11 +1303,16 @@ export class ScriptedGame extends Game {
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
 		if (this.shinyMascot) bits *= 2;
-		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
 				this.room.title + "``.");
 		}
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 
@@ -1307,7 +1348,7 @@ export class ScriptedGame extends Game {
 	getPlayerLives(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const lives = this.lives!.get(player) || this.startingLives;
-			return "<username>" + player.name + "</username>" + (lives ? " (" + lives + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (lives ? " (" + lives + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -1377,7 +1418,6 @@ export class ScriptedGame extends Game {
 	acceptChallenge?(user: User): boolean;
 	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
-	cleanupTimers?(): void;
 	getForceEndMessage?(): string;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;
@@ -1420,11 +1460,18 @@ export class ScriptedGame extends Game {
 	onStart?(): void;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
-	onTournamentEnd?(): void;
-	onTournamentStart?(players: Dict<Player>): void;
+	onTournamentEnd?(forceEnd?: boolean): void;
+	onTournamentStart?(players: Dict<Player>, rootNode?: IClientTournamentData, ): void;
+	onTournamentPlayerJoin?(player: Player): void;
+	onTournamentPlayerLeave?(name: string): void;
+	onTournamentPlayerRename?(player: Player, oldId: string): void;
+	onTournamentUsersUpdate?(players: Dict<Player>, users: string[]): void;
+	onTournamentBracketUpdate?(players: Dict<Player>, rootNode: IClientTournamentData, tournamentStarted: boolean): void;
+	onTournamentBattleStart?(player: Player, opponent: Player, roomid: string): void;
 	parseChatMessage?(user: User, message: string): void;
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
 	setupChallenge?(challenger: User, challenged: User, format: IGameFormat, options?: Dict<string>): void;
+	startTournament?(): boolean;
 	validateInputProperties?(inputProperties: IGameInputProperties): boolean;
 }

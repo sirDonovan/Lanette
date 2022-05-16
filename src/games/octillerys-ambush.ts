@@ -77,6 +77,13 @@ class OctillerysAmbush extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundActions.clear();
+		this.shields.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<OctillerysAmbush> = {
