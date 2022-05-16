@@ -31,7 +31,7 @@ class XatusNatureClusters extends QuestionAndAnswer {
 				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
 				pokemon.baseStats.spd === pokemon.baseStats.spe) continue;
 
-			const statKeys = Object.keys(pokemon.baseStats) as StatID[];
+			const statKeys = ['atk','def','spa','spd','spe'] as StatID[];
 			statKeys.sort((a, b) => pokemon.baseStats[b] - pokemon.baseStats[a]);
 
 			const highestStat = statKeys[0];
