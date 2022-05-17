@@ -123,6 +123,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8crossevolution': {
 		teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
 	},
+	'gen8pokebilitiesaaa': {
+		teams: 'https://www.smogon.com/forums/threads/3657159/page-22#post-8821047',
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
