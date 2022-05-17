@@ -125,7 +125,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen8pokeaaabilities': {
 		teams: 'https://www.smogon.com/forums/threads/3657159/page-22#post-8821047',
-	},	
+	},
 
 	// Gen 7
 	'gen7letsgoou': {
