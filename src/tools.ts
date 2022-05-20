@@ -1187,8 +1187,6 @@ export class Tools {
 			method: "PATCH",
 			headers: {
 				'Accept': 'application/vnd.github.v3+json',
-				'Content-Type': 'application/json; charset=utf-8',
-				'Content-Length': patchData.length,
 				'User-Agent': username,
 				'Authorization': 'token ' + token,
 			},
