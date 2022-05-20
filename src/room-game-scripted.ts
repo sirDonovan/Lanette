@@ -679,6 +679,7 @@ export class ScriptedGame extends Game {
 				winners: Array.from(this.winners.keys()).map(x => x.id),
 			});
 
+			Games.setOfficialGameTimer(this.room);
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 

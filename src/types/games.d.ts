@@ -341,3 +341,29 @@ export interface IBattleGameData {
 	slots: Map<Player, string>;
 	wrongTeam: Map<Player, boolean>;
 }
+
+export interface IMonthlyGameSchedule {
+	formats: Dict<string[]>;
+	times: [number, number][];
+	year: number;
+}
+
+export interface IRoomGameSchedule {
+	months: Dict<IMonthlyGameSchedule>;
+}
+
+export interface IScheduledGameTimerData {
+	formatid: string;
+	startTime: number;
+	official?: boolean;
+}
+
+export interface IScheduledGame {
+	format: string;
+	time: number;
+	official?: boolean;
+}
+
+export interface IOfficialGame extends IScheduledGame {
+	official: true;
+}

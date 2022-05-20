@@ -562,7 +562,7 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		if (user.game) user.game.deallocate(true);
 
-		const game = Games.createGame(user, format, this.room, true);
+		const game = Games.createGame(user, format, {pmRoom: this.room, minigame: true});
 		if (game) {
 			this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
 			this.generatedAnswer = game.getRandomAnswer!();

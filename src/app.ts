@@ -61,6 +61,9 @@ module.exports = (): void => {
 	console.log("Loading tournament schedules...");
 	Tournaments.loadSchedules();
 
+	console.log("Loading game schedules...");
+	Games.loadSchedules();
+
 	global.__reloadInProgress = false;
 
 	global.__reloadModules = async(username: string, targets: string[]): Promise<void> => {

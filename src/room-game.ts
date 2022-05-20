@@ -26,6 +26,7 @@ export abstract class Game extends Activity {
 	largestTeam: PlayerTeam | null = null;
 	leaveNotices = new Set<string>();
 	minPlayers: number = 4;
+	official: boolean = false;
 	playerOrders: Dict<Player[]> | null = null;
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
@@ -165,7 +166,8 @@ export abstract class Game extends Activity {
 			} else if (!this.isPmActivity(this.room)) {
 				if (Config.onScriptedGameWin) {
 					try {
-						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
+						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points,
+							this.official);
 					} catch (e) {
 						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
 					}

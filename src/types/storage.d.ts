@@ -167,6 +167,12 @@ export interface IGameStat {
 	winners: string[];
 }
 
+interface IQueuedScriptedGame {
+	formatid: string;
+	official: boolean;
+	time: number;
+}
+
 interface IQueuedTournament {
 	formatid: string;
 	playerCap: number;
@@ -218,6 +224,7 @@ export interface IDatabase {
 	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
+	queuedScriptedGame?: IQueuedScriptedGame;
 	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;

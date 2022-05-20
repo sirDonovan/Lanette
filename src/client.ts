@@ -1313,6 +1313,7 @@ export class Client {
 				}
 
 				Tournaments.setNextTournament(room);
+				Games.setNextScheduledGame(room);
 			}
 
 			if (room.id in Rooms.createListeners) {
