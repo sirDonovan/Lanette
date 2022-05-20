@@ -2068,19 +2068,10 @@ export class Games {
 
 		if (!allowsScriptedGames && !allowsUserHostedGames) return;
 
-		const header = room.title + " Game Catalog";
-		let document: string[] = ["# " + header];
-
-		let subHeader = "This document contains information on all ";
-		if (allowsScriptedGames && allowsUserHostedGames) {
-			subHeader += "scripted and user-hosted";
-		} else if (allowsScriptedGames) {
-			subHeader += "scripted";
-		} else if (allowsUserHostedGames) {
-			subHeader += "user-hosted";
-		}
-		subHeader += " games that can be played in the " + room.title + " room.";
-		document.push(subHeader);
+		let scriptedGamesDocument: string[] = ["# " + room.title + " Scripted Games",
+			"This document contains information on all scripted games that can be played in the " + room.title + " room."];
+		let userHostedGamesDocument: string[] = ["# " + room.title + " User-Hosted Games",
+			"This document contains information on all user-hosted games that can be played in the " + room.title + " room."];
 
 		if (allowsUserHostedGames) {
 			const userHostCommands: string[] = ["## User-host commands",
@@ -2173,7 +2164,7 @@ export class Games {
 					"5 trainer sprites",
 			];
 
-			document = document.concat(userHostCommands);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostCommands);
 		}
 
 		let allowChallengeGames = false;
@@ -2202,8 +2193,8 @@ export class Games {
 			];
 
 			const botChallengeGames: string[] = ["## Bot challenges", "Commands:",
-				"* <code>" + commandCharacter + "botch [game] or " + commandCharacter + "botch [options], [game]</code> - challenge " +
-					Users.self.name + " to a game of [game] (see list below)",
+				"* <code>" + commandCharacter + "botch [game]</code> or <code>" + commandCharacter + "botch [options], [game]</code> " +
+					"- challenge " + Users.self.name + " to a game of [game] (see list below)",
 				"* <code>" + commandCharacter + "ccdown [room], bot</code> - check your bot challenge cooldown time for " +
 					"[room] in PMs",
 				"\n\nCompatible games:",
@@ -2227,8 +2218,8 @@ export class Games {
 				}
 			}
 
-			document = document.concat(oneVsOneGames);
-			document = document.concat(botChallengeGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(oneVsOneGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(botChallengeGames);
 		}
 
 		const defaultCategory = "Uncategorized";
@@ -2337,7 +2328,7 @@ export class Games {
 				scriptedGames = scriptedGames.concat(modes[key]);
 				scriptedGames.push("\n");
 			}
-			document = document.concat(scriptedGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(scriptedGames);
 		}
 
 		if (allowsGameAchievements) {
@@ -2373,7 +2364,7 @@ export class Games {
 				achievements.push("---");
 			}
 
-			document = document.concat(achievements);
+			scriptedGamesDocument = scriptedGamesDocument.concat(achievements);
 		}
 
 		if (allowsUserHostedGames) {
@@ -2395,17 +2386,33 @@ export class Games {
 				userHostedGames.push("---");
 			}
 
-			document = document.concat(userHostedGames);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostedGames);
 		}
 
-		const content = document.join("\n").trim();
-		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === content) return;
-		this.lastCatalogUpdates[room.id] = content;
+		const scriptedGamesContent = scriptedGamesDocument.join("\n").trim();
+		const userHostedGamesContent = userHostedGamesDocument.join("\n").trim();
 
-		const filename = Config.gameCatalogGists[room.id].files[0];
+		const lastUpdateCache = scriptedGamesContent + userHostedGamesContent;
+		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === lastUpdateCache) return;
+		this.lastCatalogUpdates[room.id] = lastUpdateCache;
+
+		const files: Dict<{filename: string; content: string}> = {};
+		if (allowsScriptedGames && Config.gameCatalogGists[room.id].files.scripted) {
+			files[Config.gameCatalogGists[room.id].files.scripted!] = {
+				filename: Config.gameCatalogGists[room.id].files.scripted!,
+				content: scriptedGamesContent,
+			};
+		}
+
+		if (allowsUserHostedGames && Config.gameCatalogGists[room.id].files.userHosted) {
+			files[Config.gameCatalogGists[room.id].files.userHosted!] = {
+				filename: Config.gameCatalogGists[room.id].files.userHosted!,
+				content: userHostedGamesContent,
+			};
+		}
 
 		Tools.editGist(Config.githubApiCredentials.gist.username, Config.githubApiCredentials.gist.token,
-			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, {[filename]: {content, filename}});
+			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, files);
 	}
 
 	/* eslint-disable @typescript-eslint/no-unnecessary-condition */

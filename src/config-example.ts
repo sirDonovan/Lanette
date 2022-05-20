@@ -444,7 +444,7 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
 /**
  * For each room in the object, the information for its game catalog gist
  */
-export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
+export let gameCatalogGists: Dict<{description: string; files: {scripted?: string, userHosted?: string}; id: string}> = {};
 
 export let onScriptedGameCreate: ((room: Room, format: IGameFormat, official?: boolean) => void) | undefined = undefined;
 
