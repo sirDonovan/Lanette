@@ -1374,6 +1374,7 @@ export class Dex {
 	joinNameAndCustomRules(format: string | IFormat, customRules: string[] | null): string {
 		let compatibleRules: string[] = [];
 		if (customRules) {
+			// currently only Hackmons Cup allows banlist changes: 7097a9ac753cbb295b484b97e2657898fd5a0932
 			if (typeof format !== 'string' && format.team && !format.id.includes('hackmonscup')) {
 				for (const rule of customRules) {
 					const type = rule.charAt(0);

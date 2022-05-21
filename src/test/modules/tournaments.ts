@@ -49,10 +49,10 @@ describe("Tournaments", () => {
 					for (let i = 1; i <= totalDays; i++) {
 						const day = '' + i;
 						try {
-							Dex.validateFormat(schedule.months[month].formats[day]);
+							assert(Dex.validateFormat(schedule.months[month].formats[day]));
 							const format = Dex.getExistingFormat(schedule.months[month].formats[day], true);
-							Dex.getCustomFormatName(format);
-							Dex.getCustomFormatName(format, true);
+							assert(Dex.getCustomFormatName(format));
+							assert(Dex.getCustomFormatName(format, true));
 							validated++;
 						} catch (e) {
 							errors.push((e as Error).message + " on " + month + "/" + day + " in " + room);

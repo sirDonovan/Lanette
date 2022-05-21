@@ -62,7 +62,7 @@ export class Tournaments {
 
 				for (const month in this.schedules[server][room].months) {
 					for (const day in this.schedules[server][room].months[month].formats) {
-						const scheduled = this.schedules[server][room].months[month].formats[day];
+						const scheduled = this.schedules[server][room].months[month].formats[day].trim();
 						let formatId = scheduled;
 						let customRules: string[] = [];
 						if (scheduled.includes('@@@')) {
@@ -79,9 +79,15 @@ export class Tournaments {
 						}
 
 						try {
-							const format = Dex.getExistingFormat(formatId + (customRules.length ? "@@@" + customRules.join(",") : ""));
-							this.schedules[server][room].months[month].formats[day] = Dex
-								.validateFormat(Dex.joinNameAndCustomRules(format, format.customRules));
+							const validatedFormatId = Dex.validateFormat(Dex.joinNameAndCustomRules(Dex.getExistingFormat(formatId),
+								Dex.resolveCustomRuleAliases(customRules)));
+
+							const validatedFormat = Dex.getExistingFormat(validatedFormatId, true);
+							if (customRules.length && (!validatedFormat.customRules || !validatedFormat.customRules.length)) {
+								throw new Error("Custom rules not added");
+							}
+
+							this.schedules[server][room].months[month].formats[day] = validatedFormatId;
 						} catch (e) {
 							throw new Error(month + "/" + day + " in " + room + ": " + (e as Error).message);
 						}
