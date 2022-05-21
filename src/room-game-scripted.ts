@@ -682,7 +682,7 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
-		Games.setOfficialGameTimer(this.room);
+		Games.setNextScheduledGame(this.room);
 
 		this.deallocate(false);
 	}
