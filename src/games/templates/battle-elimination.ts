@@ -202,6 +202,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	afterInitialize(): void {
 		this.setFormat();
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
+
+		this.debugLog("getPossibleTeamsOptions: " + JSON.stringify(this.getPossibleTeamsOptions()));
 	}
 
 	getNumberOfRounds(players: number): number {
