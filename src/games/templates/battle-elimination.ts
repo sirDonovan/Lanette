@@ -471,9 +471,9 @@ export abstract class BattleElimination extends ScriptedGame {
 					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
 				};
-				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
-				this.debugLog(player.name + " first round bye choices: " + pokemon.join(", "));
+				this.debugLog(player.name + " first round bye team changes: " + JSON.stringify(teamChange));
+				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				this.firstRoundByeAdditions.set(player, pokemon);
 				this.updatePossibleTeams(player, pokemon);
@@ -776,12 +776,15 @@ export abstract class BattleElimination extends ScriptedGame {
 					}
 				}
 
-				winnerTeamChanges.push({
+				const teamChanges: ITeamChange = {
 					additions: additionsThisRound,
 					choices: loserTeam,
 					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
-				});
+				};
+
+				this.debugLog(winner.name + " team changes round " + winner.round + ": " + JSON.stringify(teamChanges));
+				winnerTeamChanges.push(teamChanges);
 
 				this.updatePossibleTeams(winner, loserTeam);
 
