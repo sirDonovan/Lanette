@@ -2426,6 +2426,13 @@ export class Dex {
 
 	getClosestPossibleTeam(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
 		options: IGetPossibleTeamsOptions): IClosestPossibleTeam {
+		const allPossibleNames: string[] = [];
+		for (const possibleTeam of possibleTeams) {
+			for (const name of possibleTeam) {
+				if (!allPossibleNames.includes(name)) allPossibleNames.push(name);
+			}
+		}
+
 		const teamEvolutionLines: Dict<readonly string[][]> = {};
 		const names: string[] = [];
 		for (const slot of team) {
@@ -2451,8 +2458,10 @@ export class Dex {
 			const extraDevolution: Dict<number> = {};
 			const missingDevolution: Dict<number> = {};
 
+			let validTeam = true;
 			for (const name of names) {
 				if (!possibleTeam.includes(name)) {
+					validTeam = false;
 					incorrectPokemon.push(name);
 
 					let semiValidChoice = false;
@@ -2482,18 +2491,22 @@ export class Dex {
 						if (semiValidChoice) break;
 					}
 
-					if (!semiValidChoice) invalidChoices.push(name);
+					if (!semiValidChoice && !allPossibleNames.includes(name)) invalidChoices.push(name);
 				}
 			}
 
+			const incorrectSize = possibleTeam.length - teamLength;
+			if (incorrectSize) validTeam = false;
+
 			validatedPossibleTeams.set(possibleTeam, {
-				incorrectSize: possibleTeam.length - teamLength,
+				incorrectSize,
 				incorrectPokemon,
 				invalidChoices,
 				extraEvolution,
 				missingEvolution,
 				extraDevolution,
 				missingDevolution,
+				validTeam,
 			});
 		}
 
@@ -2526,6 +2539,8 @@ export class Dex {
 	getClosestPossibleTeamSummary(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
 		options: IGetPossibleTeamsOptions): string {
 		const closestTeam = this.getClosestPossibleTeam(team, possibleTeams, options);
+		if (closestTeam.validTeam) return "";
+
 		const summary: string[] = [];
 		if (closestTeam.incorrectSize) {
 			summary.push("Your team needed to have " + (team.length + closestTeam.incorrectSize) + " Pokemon.");
@@ -2558,6 +2573,16 @@ export class Dex {
 		}
 
 		if (evolutions.length) summary.push(Tools.joinList(evolutions) + ".");
+
+		if (!summary.length) {
+			if (options.additions) {
+				return "Your team has an invalid combination of added" + (options.evolutions ? " and evolved" : "") + " Pokemon.";
+			} else if (options.drops) {
+				return "Your team has an invalid combination of removed" + (options.evolutions ? " and evolved" : "") + " Pokemon.";
+			} else if (options.evolutions) {
+				return "Your team has an invalid combination of evolved Pokemon.";
+			}
+		}
 
 		return summary.join(" ");
 	}

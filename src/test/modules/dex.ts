@@ -1268,4 +1268,43 @@ describe("Dex", () => {
 			assert(move.type in Tools.typeHexCodes, move.name);
 		}
 	});
+	it('should return proper summaries in getClosestPossibleTeamSummary()', () => {
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Pikachu']],
+			{additions: 1, evolutions: 1}), "");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard'], [['Charizard', 'Pikachu']], {additions: 1, evolutions: 1}),
+			"Your team needed to have 2 Pokemon.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard']], {additions: -1, evolutions: 1}),
+			"Your team needed to have 1 Pokemon. Pikachu was not possible to have based on your options.");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Raichu']],
+			{additions: 1, evolutions: 1}), "Pikachu needed to be evolved 1 more stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Raichu'], [['Charizard', 'Pikachu']],
+			{additions: 1, evolutions: 1}), "Raichu was evolved 1 extra stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Raichu'], [['Charizard', 'Pichu']],
+			{additions: 1, evolutions: 1}), "Raichu was evolved 2 extra stages.");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Raichu'], [['Charizard', 'Pikachu']],
+			{additions: 1, evolutions: -1}), "Raichu needed to be de-volved 1 more stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pichu'], [['Charizard', 'Pikachu']],
+			{additions: 1, evolutions: -1}), "Pichu was de-volved 1 extra stage.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pichu'], [['Charizard', 'Raichu']],
+			{additions: 1, evolutions: -1}), "Pichu was de-volved 2 extra stages.");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Venusaur'], [['Charizard', 'Blastoise']], {additions: 1}),
+			"Venusaur was not possible to have based on your options.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Meganium', 'Venusaur'], [['Charizard', 'Blastoise']], {additions: 1}),
+			"Meganium and Venusaur were not possible to have based on your options.");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Blastoise'],
+			['Pikachu', 'Blastoise']], {additions: 1}), "Your team has an invalid combination of added Pokemon.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Blastoise'],
+			['Pikachu', 'Blastoise']], {additions: 1, evolutions: 1}),
+			"Your team has an invalid combination of added and evolved Pokemon.");
+
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Blastoise'],
+			['Pikachu', 'Blastoise']], {drops: 1}), "Your team has an invalid combination of removed Pokemon.");
+		assertStrictEqual(Dex.getClosestPossibleTeamSummary(['Charizard', 'Pikachu'], [['Charizard', 'Blastoise'],
+			['Pikachu', 'Blastoise']], {drops: 1, evolutions: 1}), "Your team has an invalid combination of removed and evolved Pokemon.");
+	});
 });
