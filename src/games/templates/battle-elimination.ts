@@ -73,6 +73,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	htmlPageGameDescription: string = '';
 	htmlPageGameName: string = '';
 	internalGame = true;
+	leftBeforeEliminationStarted: Player[] = [];
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
 	monoColor: boolean = false;
@@ -1489,18 +1490,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml(html);
 		}
 
-		const guestUserDqs = new Map<Player, string>();
+		const immediateDqs = new Map<Player, string>();
 		for (const i in this.players) {
-			if (this.players[i].name.startsWith(Tools.guestUserPrefix)) {
+			if (this.players[i].name.startsWith(Tools.guestUserPrefix) || this.leftBeforeEliminationStarted.includes(this.players[i])) {
 				this.players[i].eliminated = true;
-				guestUserDqs.set(this.players[i], "You left the " + this.name + " tournament.");
+				immediateDqs.set(this.players[i], "You left the " + this.name + " tournament.");
 			}
 		}
 
 		if (!this.subRoom) this.generateBracket();
 		this.afterGenerateBracket();
 
-		if (guestUserDqs.size) this.disqualifyPlayers(guestUserDqs);
+		if (immediateDqs.size) this.disqualifyPlayers(immediateDqs);
 	}
 
 	onAddPlayer(player: Player): boolean {
@@ -1593,6 +1594,8 @@ export abstract class BattleElimination extends ScriptedGame {
 			const playerAndReason = new Map<Player, string>();
 			playerAndReason.set(player, "You left the " + this.name + " tournament.");
 			this.disqualifyPlayers(playerAndReason);
+		} else {
+			if (!this.leftBeforeEliminationStarted.includes(player)) this.leftBeforeEliminationStarted.push(player);
 		}
 	}
 
