@@ -1282,16 +1282,15 @@ export class Dex {
 			num = 0;
 		}
 
-		const alternateIconNumbers = this.getData().alternateIconNumbers;
-		if (facingLeft) {
-			if (pokemon && alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
-		} else if (pokemon && pokemon.gender === 'F') {
-			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
-				pokemon.id === 'pyroar') {
+		if (pokemon) {
+			const alternateIconNumbers = this.getData().alternateIconNumbers;
+			if (pokemon.gender === 'F' && alternateIconNumbers.right[pokemon.id + 'f']) {
 				num = alternateIconNumbers.right[pokemon.id + 'f']!;
+			} else if (facingLeft && alternateIconNumbers.left[pokemon.id]) {
+				num = alternateIconNumbers.left[pokemon.id]!;
+			} else if (alternateIconNumbers.right[pokemon.id]) {
+				num = alternateIconNumbers.right[pokemon.id]!;
 			}
-		} else {
-			if (pokemon && alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
 		}
 
 		const top = Math.floor(num / 12) * POKEMON_ICON_HEIGHT;
