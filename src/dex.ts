@@ -1438,7 +1438,7 @@ export class Dex {
 				name = split[0];
 			}
 
-			formatId = name;
+			formatId = Tools.toId(name);
 			if (formatId in customRuleFormats) {
 				const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[formatId].format + '@@@' +
 					customRuleFormats[formatId].banlist);

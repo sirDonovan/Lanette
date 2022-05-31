@@ -382,6 +382,12 @@ describe("Dex", () => {
 		assertStrictEqual(format.customRules[0], '+UUBL');
 		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
+		format = Dex.getExistingFormat("UUBL");
+		assert(format.customRules);
+		assertStrictEqual(format.customRules.length, 1);
+		assertStrictEqual(format.customRules[0], '+UUBL');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+
 		format = Dex.getExistingFormat("uubl@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
