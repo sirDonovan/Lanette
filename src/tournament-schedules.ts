@@ -89,7 +89,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 				},
 				'6': {
 					formats: {
-						'1': 'OU, +Cinderace, +Genesect, +Kyurem, +Kyurem-Black, +Kyurem-White, +Lugia, +Necrozma-Dawn-Wings, +Spectrier, +Zamazenta-Hero',
+						'1': 'OU, +Cinderace, +Genesect, +Kyurem, +Kyurem-Black, +Kyurem-White, +Lugia, +Necrozma-Dawn-Wings, +Spectrier, +Zamazenta-Base',
 						'2': 'Gen 2 OU, Stabmons Move Legality, -snorlax, *bellydrum, *extremespeed, *lovelykiss, *spore',
 						'3': 'OMOTM1',
 						'4': 'Doubles OU, Inverse Mod',
