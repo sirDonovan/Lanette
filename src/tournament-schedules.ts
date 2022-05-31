@@ -87,10 +87,6 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 					times: [[5, 30], [12, 30], [18, 30], [23, 30]],
 					year: 2022,
 				},
-			},
-		},
-		'toursplaza': {
-			months: {
 				'6': {
 					formats: {
 						'1': 'OU, +Cinderace, +Genesect, +Kyurem, +Kyurem-Black, +Kyurem-White, +Lugia, +Necrozma-Dawn-Wings, +Spectrier, +Zamazenta-Hero',
