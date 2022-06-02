@@ -56,6 +56,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	currentPicker: 'badges' | 'bio' | 'format' | 'footer' | 'header' | 'pokemon' | 'table' | 'trainer' = 'trainer';
 	trainerCardUserIdNames: Dict<string> = {};
 
+	trainerCardRoom: Room;
 	trainerCardUserIds: string[];
 	trainerCardUserIdPicker: NamePicker;
 	targetUserId: string | undefined;
@@ -78,7 +79,11 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.viewAllMode = options && options.viewAllMode ? true : false;
 		this.readonly = this.viewAllMode;
 
-		const database = Storage.getDatabase(this.room);
+		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
+		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);
+		this.trainerCardRoom = trainerCardRoom;
+
+		const database = this.getDatabase();
 		if (database.tournamentTrainerCards) {
 			this.trainerCardUserIds = Object.keys(database.tournamentTrainerCards).sort();
 			for (const userId of this.trainerCardUserIds) {
@@ -106,12 +111,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	}
 
 	getDatabase(): IDatabase {
-		let targetRoom = this.room;
-		if (Config.sharedTournamentTrainerCards && this.room.id in Config.sharedTournamentTrainerCards) {
-			targetRoom = Rooms.get(Config.sharedTournamentTrainerCards[this.room.id])!;
-		}
-
-		const database = Storage.getDatabase(targetRoom);
+		const database = Storage.getDatabase(this.trainerCardRoom);
 		if (this.targetUserId) Storage.createTournamentTrainerCard(database, this.targetUserId);
 
 		return database;
@@ -203,7 +203,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	loadTournamentTrainerCard(): void {
 		if (!this.targetUserId) return;
 
-		const database = Storage.getDatabase(this.room);
+		const database = this.getDatabase();
 		let trainerCard: ITournamentTrainerCard | undefined;
 		if (database.tournamentTrainerCards) {
 			if (this.targetUserId in database.tournamentTrainerCards) {
