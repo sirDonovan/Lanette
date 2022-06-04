@@ -477,6 +477,7 @@ export class Storage {
 		if (!leaderboard) throw new Error("Storage.afterAddPoints() called with no leaderboard");
 
 		this.updateLeaderboardPointsCaches(room.id, leaderboard);
+		this.updateLeaderboardPointsBreakdownCaches(room.id, leaderboard);
 		this.updateLeaderboardCachesForSource(room.id, leaderboard, source);
 	}
 
