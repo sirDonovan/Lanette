@@ -441,7 +441,7 @@ export class Client {
 			error.startsWith('A Pok&eacute;mon cannot ') || error.startsWith('A search cannot ') ||
 			error.startsWith('No more than ') || error.startsWith('No value given to compare with ') ||
 			error.endsWith(' is not a recognized egg group.') || error.endsWith(' is not a recognized stat.') ||
-			error.endsWith(' cannot have alternative parameters') || error.endsWith(' did not contain a valid stat') ||
+			error.endsWith(' cannot have alternative parameters.') || error.endsWith(' did not contain a valid stat') ||
 			error.endsWith(" cannot be broadcast.") || error.endsWith(" is a status move and can't be used with 'resists'.") ||
 			error.endsWith(" is a status move and can't be used with 'weak'.") ||
 			error.endsWith(" is not a recognized type or move.") || error.startsWith("You cannot ") ||
