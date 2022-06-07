@@ -713,7 +713,7 @@ const tests: GameFileTests<DarkraisLair> = {
 export const game: IGameFile<DarkraisLair> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["darkrais", "dlair"],
 	class: DarkraisLair,
-	commands: Object.assign(mapGame.commands, commands),
+	commands: Object.assign((Tools.deepClone(mapGame.commands) as unknown) as GameCommandDefinitions<DarkraisLair>, commands),
 	commandDescriptions: mapGame.commandDescriptions!.concat([Config.commandCharacter + "scolumn", Config.commandCharacter + "srow",
 		Config.commandCharacter + "ssphere", Config.commandCharacter + "spit", Config.commandCharacter + "sspike",
 		Config.commandCharacter + "dvision"]),

@@ -587,7 +587,7 @@ const tests: GameFileTests<BulbasaursUno> = {
 export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["bulbasaurs", "uno", "bu"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<BulbasaursUno>, commands),
 	class: BulbasaursUno,
 	description: "Each round, players can play a card that matches the type or color of the top card or draw a new card. " +
 		"<a href='http://psgc.weebly.com/pokeuno.html'>Action card descriptions</a>",

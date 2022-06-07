@@ -658,7 +658,7 @@ export const commands: BaseCommandDefinitions = {
 			if (cmd === 'approveuserhostedtournament' || cmd === 'approveuserhostedtour') {
 				targetRoom.newUserHostedTournaments[link].approvalStatus = "approved";
 				if (targetRoom.newUserHostedTournaments[link].reviewTimer) {
-					clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer!);
+					clearTimeout(targetRoom.newUserHostedTournaments[link].reviewTimer);
 				}
 				if (!targetRoom.approvedUserHostedTournaments) targetRoom.approvedUserHostedTournaments = {};
 				targetRoom.approvedUserHostedTournaments[link] = targetRoom.newUserHostedTournaments[link];
