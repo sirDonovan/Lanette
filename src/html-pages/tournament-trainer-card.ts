@@ -14,6 +14,7 @@ import { PokemonTextInput } from "./components/pokemon-text-input";
 import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { NamePicker } from "./components/name-picker";
+import { TrainerCardRibbonPicker } from "./components/trainer-card-ribbon-picker";
 
 const baseCommand = 'tournamenttrainercard';
 const baseCommandAlias = 'ttc';
@@ -23,6 +24,7 @@ const staffEditCommand = 'staffedit';
 const chooseTrainerPicker = 'choosetrainerpicker';
 const chooseFormatPicker = 'chooseformatpicker';
 const chooseBadgesView = 'choosebadgesview';
+const chooseRibbonsView = 'chooseribbonsview';
 const chooseBioView = 'choosebioview';
 const chooseHeaderView = 'chooseheaderview';
 const chooseTableView = 'choosetableview';
@@ -32,6 +34,7 @@ const choosePokemonView = 'choosepokemonview';
 const setFormatCommand = 'setformat';
 const setTrainerCommand = 'settrainer';
 const setBadgesCommand = 'setbadges';
+const setRibbonsCommand = 'setribbons';
 const setBioCommand = 'setbio';
 const setHeaderColorCommand = 'setheadercolor';
 const setTableColorCommand = 'settablecolor';
@@ -53,7 +56,7 @@ interface ITournamentTrainerCardOptions {
 class TournamentTrainerCard extends HtmlPageBase {
 	pageId = pageId;
 
-	currentPicker: 'badges' | 'bio' | 'format' | 'footer' | 'header' | 'pokemon' | 'table' | 'trainer' = 'trainer';
+	currentPicker: 'badges' | 'bio' | 'format' | 'footer' | 'header' | 'pokemon' | 'ribbons' | 'table' | 'trainer' = 'trainer';
 	trainerCardUserIdNames: Dict<string> = {};
 
 	trainerCardRoom: Room;
@@ -71,6 +74,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 	pokemonPicker!: PokemonTextInput;
 	trainerPicker!: TrainerPicker;
 	trainerCardBadgePicker!: TrainerCardBadgePicker;
+	trainerCardRibbonPicker!: TrainerCardRibbonPicker;
 
 	constructor(room: Room, user: User, options?: ITournamentTrainerCardOptions) {
 		super(room, user, baseCommandAlias, pages);
@@ -144,6 +148,15 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.send();
 	}
 
+	chooseRibbonsView(): void {
+		if (!this.isRoomStaff || this.currentPicker === 'ribbons') return;
+
+		this.currentPicker = 'ribbons';
+		this.toggleActivePicker();
+
+		this.send();
+	}
+
 	chooseBioView(): void {
 		if (!this.isRoomStaff || this.currentPicker === 'bio') return;
 
@@ -194,6 +207,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.formatPicker.active = this.currentPicker === 'format';
 		this.trainerPicker.active = this.currentPicker === 'trainer';
 		this.trainerCardBadgePicker.active = this.currentPicker === 'badges';
+		this.trainerCardRibbonPicker.active = this.currentPicker === 'ribbons';
 		this.headerColorPicker.active = this.currentPicker === 'header';
 		this.tableColorPicker.active = this.currentPicker === 'table';
 		this.footerColorPicker.active = this.currentPicker === 'footer';
@@ -244,6 +258,16 @@ class TournamentTrainerCard extends HtmlPageBase {
 			onClear: (index, dontRender) => this.clearBadges(dontRender),
 			onPick: (index, badge, dontRender) => this.addBadge(badge, dontRender),
 			onUnPick: (index, badge, dontRender) => this.removeBadge(badge, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this.room, this.commandPrefix, setRibbonsCommand, {
+			currentPicks: trainerCard ? trainerCard.ribbons : undefined,
+			maxPicks: 0,
+			onClear: (index, dontRender) => this.clearRibbons(dontRender),
+			onPick: (index, ribbon, dontRender) => this.addRibbon(ribbon, dontRender),
+			onUnPick: (index, ribbon, dontRender) => this.removeRibbon(ribbon, dontRender),
 			readonly: this.readonly,
 			reRender: () => this.send(),
 		});
@@ -310,7 +334,8 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.toggleActivePicker();
 
 		this.components = [this.trainerCardUserIdPicker, this.trainerPicker, this.formatPicker, this.trainerCardBadgePicker,
-			this.bioInput, this.headerColorPicker, this.tableColorPicker, this.footerColorPicker, this.pokemonPicker];
+			this.trainerCardRibbonPicker, this.bioInput, this.headerColorPicker, this.tableColorPicker, this.footerColorPicker,
+			this.pokemonPicker];
 	}
 
 	clearTargetUserId(dontRender?: boolean): void {
@@ -386,6 +411,36 @@ class TournamentTrainerCard extends HtmlPageBase {
 		if (database.tournamentTrainerCards![this.targetUserId!].badges) {
 			const index = database.tournamentTrainerCards![this.targetUserId!].badges!.indexOf(badge);
 			if (index !== -1) database.tournamentTrainerCards![this.targetUserId!].badges!.splice(index, 1);
+		}
+
+		if (!dontRender) this.send();
+	}
+
+	clearRibbons(dontRender?: boolean): void {
+		const database = this.getDatabase();
+		delete database.tournamentTrainerCards![this.targetUserId!].ribbons;
+
+		if (!dontRender) this.send();
+	}
+
+	addRibbon(ribbon: string, dontRender?: boolean): void {
+		const database = this.getDatabase();
+		if (!database.tournamentTrainerCards![this.targetUserId!].ribbons) {
+			database.tournamentTrainerCards![this.targetUserId!].ribbons = [];
+		}
+
+		if (!database.tournamentTrainerCards![this.targetUserId!].ribbons!.includes(ribbon)) {
+			database.tournamentTrainerCards![this.targetUserId!].ribbons!.push(ribbon);
+		}
+
+		if (!dontRender) this.send();
+	}
+
+	removeRibbon(ribbon: string, dontRender?: boolean): void {
+		const database = this.getDatabase();
+		if (database.tournamentTrainerCards![this.targetUserId!].ribbons) {
+			const index = database.tournamentTrainerCards![this.targetUserId!].ribbons!.indexOf(ribbon);
+			if (index !== -1) database.tournamentTrainerCards![this.targetUserId!].ribbons!.splice(index, 1);
 		}
 
 		if (!dontRender) this.send();
@@ -524,6 +579,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 		const format = this.currentPicker === 'format';
 		const pokemon = this.currentPicker === 'pokemon';
 		const badges = this.currentPicker === 'badges';
+		const ribbons = this.currentPicker === 'ribbons';
 		const bio = this.currentPicker === 'bio';
 
 		html += "<b>Options</b>:<br />";
@@ -542,6 +598,8 @@ class TournamentTrainerCard extends HtmlPageBase {
 		if (this.isRoomStaff) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBadgesView, "Badges",
 				{selectedAndDisabled: badges, enabledReadonly: true});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRibbonsView, "Ribbons",
+				{selectedAndDisabled: ribbons, enabledReadonly: true});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBioView, "Bio",
 				{selectedAndDisabled: bio, enabledReadonly: true});
 		}
@@ -561,6 +619,8 @@ class TournamentTrainerCard extends HtmlPageBase {
 			html += this.pokemonPicker.render();
 		} else if (badges) {
 			html += this.trainerCardBadgePicker.render();
+		} else if (ribbons) {
+			html += this.trainerCardRibbonPicker.render();
 		} else if (bio) {
 			html += this.bioInput.render();
 		}
@@ -615,6 +675,9 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseBadgesView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 				pages[user.id].chooseBadgesView();
+			} else if (cmd === chooseRibbonsView) {
+				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				pages[user.id].chooseRibbonsView();
 			} else if (cmd === chooseBioView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 				pages[user.id].chooseBioView();

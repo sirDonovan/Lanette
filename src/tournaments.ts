@@ -916,6 +916,15 @@ export class Tournaments {
 		return "";
 	}
 
+	getRibbonHtml(id: string): string {
+		if (Config.tournamentTrainerCardRibbons && id in Config.tournamentTrainerCardRibbons) {
+			return '<img src="' + Config.tournamentTrainerCardRibbons[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardRibbons[id].name + '" />';
+		}
+
+		return "";
+	}
+
 	getTrainerCardRoom(room: Room): Room | undefined {
 		if (Config.sharedTournamentTrainerCards && room.id in Config.sharedTournamentTrainerCards) {
 			return Rooms.get(Config.sharedTournamentTrainerCards[room.id]);
@@ -1006,7 +1015,7 @@ export class Tournaments {
 		html += "</td>";
 
 		const footerBackground = Tools.getHexBackground(trainerCard.footer || trainerCard.header);
-		if (Config.tournamentTrainerCardBadges && trainerCard.badges && trainerCard.badges.length) {
+		if (trainerCard.badges && trainerCard.badges.length) {
 			const badgesPerLine = 15;
 			const badgesHtml: string[] = [];
 			for (const badge of trainerCard.badges) {
@@ -1020,6 +1029,23 @@ export class Tournaments {
 			if (badgesHtml.length) {
 				html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid;' + footerBackground + '" colspan="3">' +
 					'<b>Badges</b>: ' + badgesHtml.join(" ") + '</td></tr>';
+			}
+		}
+
+		if (trainerCard.ribbons && trainerCard.ribbons.length) {
+			const ribbonsPerLine = 15;
+			const ribbonsHtml: string[] = [];
+			for (const ribbon of trainerCard.ribbons) {
+				let ribbonHtml = this.getRibbonHtml(ribbon);
+				if (ribbonHtml) {
+					if (ribbonsHtml.length && ribbonsHtml.length % ribbonsPerLine === 0) ribbonHtml = "<br />" + ribbonHtml;
+					ribbonsHtml.push(ribbonHtml);
+				}
+			}
+
+			if (ribbonsHtml.length) {
+				html += '<tr style="border: 1px solid; padding: 4px;"><td style="border: 1px solid;' + footerBackground + '" colspan="3">' +
+					'<b>Ribbons</b>: ' + ribbonsHtml.join(" ") + '</td></tr>';
 			}
 		}
 

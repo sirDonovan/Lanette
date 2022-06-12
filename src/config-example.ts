@@ -243,6 +243,11 @@ export let sharedTournamentTrainerCards: Dict<string> = {};
 export let tournamentTrainerCardBadges: Dict<{name: string; source: string; width: number; height: number}> = {};
 
 /**
+ * For each ribbon in the object, the link to the ribbon image
+ */
+ export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
+
+/**
  * A list of rooms (roomids) where hosted tournaments go through the approval process
  */
 export let allowUserHostedTournaments: string[] = [];

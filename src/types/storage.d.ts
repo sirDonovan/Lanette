@@ -49,6 +49,7 @@ export interface ITournamentTrainerCard {
 	footer?: HexCode;
 	header?: HexCode;
 	pokemon?: string[];
+	ribbons?: string[];
 	table?: HexCode;
 }
 
