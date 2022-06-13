@@ -334,6 +334,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen6purehackmons': {
 		teams: 'https://www.smogon.com/forums/threads/3649618/post-8111004',
 	},
+	'gen6zu': {
+		teams: 'https://www.smogon.com/roa/?format=gen6zu',
+	},
 
 	// Gen 5
 	'gen5ubers': {
