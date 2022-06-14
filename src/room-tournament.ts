@@ -48,7 +48,7 @@ export class Tournament extends Activity {
 	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
-	scheduled: boolean = false;
+	official: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
 
@@ -100,7 +100,7 @@ export class Tournament extends Activity {
 		if (this.name !== previousName) this.room.nameTournament(this.name);
 	}
 
-	canAwardPoints(): boolean {
+	formatAwardsPoints(): boolean {
 		if (Config.manualRankedTournaments && Config.manualRankedTournaments.includes(this.room.id) && !this.manuallyEnabledPoints) {
 			return false;
 		}
@@ -121,6 +121,11 @@ export class Tournament extends Activity {
 		}
 
 		return true;
+	}
+
+	willAwardPoints(): boolean {
+		if (this.manuallyEnabledPoints !== undefined) return this.manuallyEnabledPoints;
+		return this.formatAwardsPoints();
 	}
 
 	adjustCap(cap?: number): void {
@@ -280,7 +285,8 @@ export class Tournament extends Activity {
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
 		let awardedPoints = false;
-		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
+		const pointsSource = this.format.id;
+		if (!this.willAwardPoints()) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'),
@@ -292,7 +298,7 @@ export class Tournament extends Activity {
 		} else {
 			awardedPoints = true;
 
-			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
+			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.official);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
 			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
 			const winnerPoints = Tournaments.getWinnerPoints(multiplier);
@@ -301,7 +307,7 @@ export class Tournament extends Activity {
 				'** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
 				'amount, use this command: ``' + Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, pointsSource, true);
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
@@ -310,7 +316,7 @@ export class Tournament extends Activity {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, pointsSource, true);
 				const user = Users.get(runnerUp);
 				if (user) user.say(runnerUpPm);
 			}
@@ -319,12 +325,14 @@ export class Tournament extends Activity {
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const winner of winners) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, pointsSource, true);
 				const user = Users.get(winner);
 				if (user) user.say(winnerPm);
 			}
 
-			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.scheduled ? "Official " : "") + this.format.name,
+			Storage.afterAddPoints(this.room, Storage.tournamentLeaderboard, pointsSource);
+
+			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.official ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 
@@ -334,11 +342,13 @@ export class Tournament extends Activity {
 				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
 
 			if (showTrainerCard) {
-				Tournaments.showWinnerTrainerCard(this.room, winners[0]);
+				Tournaments.displayTrainerCard(this.room, winners[0]);
 			}
 		}
 
-		if (awardedPoints) Storage.tryExportDatabase(this.room.id);
+		if (awardedPoints) {
+			Storage.tryExportDatabase(this.room.id);
+		}
 	}
 
 	forceEnd(): void {
@@ -398,6 +408,8 @@ export class Tournament extends Activity {
 		if (this.info.bracketData.type === 'tree') {
 			if (!this.info.bracketData.rootNode) return;
 			const queue = [this.info.bracketData.rootNode];
+			const allNodes = queue.slice();
+			// queue is only unique items due to allNodes
 			while (queue.length > 0) {
 				const node = queue[0];
 				queue.shift();
@@ -427,7 +439,10 @@ export class Tournament extends Activity {
 				}
 
 				node.children.forEach(child => {
-					queue.push(child);
+					if (!allNodes.includes(child)) {
+						queue.push(child);
+						allNodes.push(child);
+					}
 				});
 			}
 		} else if (this.info.bracketData.type === 'table') {
@@ -470,11 +485,11 @@ export class Tournament extends Activity {
 		const playerId = Tools.toId(playerName);
 		const opponentId = Tools.toId(opponentName);
 		if (!(playerId in this.players)) {
-			throw new Error("Player not found for " + playerName + " in " + roomid);
+			throw new Error("Player not found for " + playerName + " in battle " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		if (!(opponentId in this.players)) {
-			throw new Error("Player not found for " + opponentName + " in " + roomid);
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		const player = this.players[playerId];
@@ -524,11 +539,11 @@ export class Tournament extends Activity {
 		const playerId = Tools.toId(playerName);
 		const opponentId = Tools.toId(opponentName);
 		if (!(playerId in this.players)) {
-			throw new Error("Player not found for " + playerName + " in " + roomid);
+			throw new Error("Player not found for " + playerName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		if (!(opponentId in this.players)) {
-			throw new Error("Player not found for " + opponentName + " in " + roomid);
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
 		const player = this.players[playerId];

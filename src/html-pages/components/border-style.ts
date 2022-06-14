@@ -48,6 +48,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 			onPickLightness: (index, lightness, dontRender) => this.pickColorLightness(dontRender),
 			onClear: (index, dontRender) => this.clearColor(dontRender),
 			onPick: (index, color, dontRender) => this.setColor(color, dontRender),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 
@@ -168,18 +169,19 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		let html = "";
 		if (this.props.minRadius && this.props.maxRadius) {
 			html += "Radius:&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + defaultValue, "Default", !this.radius);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + defaultValue, "Default",
+				{selectedAndDisabled: !this.radius});
 			for (let i = 2; i <= 10; i++) {
 				if (i < this.props.minRadius) continue;
 				if (i > this.props.maxRadius) break;
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + i, i + "px",
-					this.radius === i);
+					{selectedAndDisabled: this.radius === i});
 			}
 
 			if (this.props.maxRadius >= 15) {
 				for (let i = 15; i <= this.props.maxRadius; i += 5) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + i, i + "px",
-						this.radius === i);
+						{selectedAndDisabled: this.radius === i});
 				}
 			}
 
@@ -188,20 +190,23 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 
 		if (this.props.minSize && this.props.maxSize) {
 			html += "Size:&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + defaultValue, "Default", !this.size);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + defaultValue, "Default",
+				{selectedAndDisabled: !this.size});
 			for (let i = 1; i <= this.props.maxSize; i++) {
 				if (i < this.props.minSize) continue;
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + i, i + "px", this.size === i);
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setSizeCommand + ", " + i, i + "px",
+					{selectedAndDisabled: this.size === i});
 			}
 
 			html += "<br /><br />";
 		}
 
 		html += "Type:&nbsp;";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + defaultValue, "Default", !this.type);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + defaultValue, "Default",
+			{selectedAndDisabled: !this.type});
 		for (const borderType of borderTypes) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + borderType, borderType,
-				this.type === borderType);
+				{selectedAndDisabled: this.type === borderType});
 		}
 
 		html += "<br /><br />";

@@ -107,6 +107,7 @@ const clauseNicknames: Dict<string> = {
 	'First Blood Rule': 'First Blood',
 	'Cross Evolution Mod': 'Cross Evolution',
 	'Revelationmons Mod': 'Revelationmons',
+	'Crazyhouse Rule': 'Crazyhouse',
 };
 
 const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry', 'goldberry', 'iceberry', 'mintberry', 'miracleberry',
@@ -341,16 +342,34 @@ export class Dex {
 		return TEAM_PREVIEW_HIDDEN_FORMES;
 	}
 
-	getCharacterTypes(): CharacterTypes {
-		return characterTypes;
+	getCharacterTypes(region?: RegionName): CharacterTypes {
+		if (!region) return characterTypes;
+
+		const characters = this.getData().characters;
+		const regionCharacterTypes: CharacterType[] = [];
+		for (const characterType of characterTypes) {
+			if (!(region in characters) || !characters[region][characterType].length) continue;
+			regionCharacterTypes.push(characterType);
+		}
+
+		return regionCharacterTypes as CharacterTypes;
 	}
 
 	getCharacterTypeNames(): CharacterTypeNames {
 		return characterTypeNames;
 	}
 
-	getLocationTypes(): LocationTypes {
-		return locationTypes;
+	getLocationTypes(region?: RegionName): LocationTypes {
+		if (!region) return locationTypes;
+
+		const locations = this.getData().locations;
+		const regionLocationTypes: LocationType[] = [];
+		for (const locationType of locationTypes) {
+			if (!(region in locations) || !locations[region][locationType].length) continue;
+			regionLocationTypes.push(locationType);
+		}
+
+		return regionLocationTypes as LocationTypes;
 	}
 
 	getLocationTypeNames(): LocationTypeNames {
@@ -413,6 +432,30 @@ export class Dex {
 	getData(): IDataTable {
 		if (!this.dataCache) this.loadData();
 		return this.dataCache!;
+	}
+
+	regionHasCharacters(region: RegionName): boolean {
+		const characters = this.getData().characters;
+		if (!(region in characters)) return false;
+
+		for (const characterType of characterTypes) {
+			if (!(characterType in characters[region])) continue;
+			if (characters[region][characterType].length) return true;
+		}
+
+		return false;
+	}
+
+	regionHasLocations(region: RegionName): boolean {
+		const locations = this.getData().locations;
+		if (!(region in locations)) return false;
+
+		for (const locationType of locationTypes) {
+			if (!(locationType in locations[region])) continue;
+			if (locations[region][locationType].length) return true;
+		}
+
+		return false;
 	}
 
 	fetchClientData(): void {
@@ -1239,16 +1282,15 @@ export class Dex {
 			num = 0;
 		}
 
-		const alternateIconNumbers = this.getData().alternateIconNumbers;
-		if (facingLeft) {
-			if (pokemon && alternateIconNumbers.left[pokemon.id]) num = alternateIconNumbers.left[pokemon.id]!;
-		} else if (pokemon && pokemon.gender === 'F') {
-			if (pokemon.id === 'unfezant' || pokemon.id === 'frillish' || pokemon.id === 'jellicent' || pokemon.id === 'meowstic' ||
-				pokemon.id === 'pyroar') {
+		if (pokemon) {
+			const alternateIconNumbers = this.getData().alternateIconNumbers;
+			if (pokemon.gender === 'F' && alternateIconNumbers.right[pokemon.id + 'f']) {
 				num = alternateIconNumbers.right[pokemon.id + 'f']!;
+			} else if (facingLeft && alternateIconNumbers.left[pokemon.id]) {
+				num = alternateIconNumbers.left[pokemon.id]!;
+			} else if (alternateIconNumbers.right[pokemon.id]) {
+				num = alternateIconNumbers.right[pokemon.id]!;
 			}
-		} else {
-			if (pokemon && alternateIconNumbers.right[pokemon.id]) num = alternateIconNumbers.right[pokemon.id]!;
 		}
 
 		const top = Math.floor(num / 12) * POKEMON_ICON_HEIGHT;
@@ -1305,6 +1347,13 @@ export class Dex {
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
+	getCustomTrainerSprite(id: string): string {
+		if (id.charAt(0) === '#') id = id.substr(1);
+
+		return '<img src="//' + Tools.mainServer + '/sprites/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
+	}
+
 	getTypeHtml(type: ITypeData, width?: number): string {
 		return Tools.getHexLabel(Tools.getTypeHexCode(type.name)!, type.name, width);
 	}
@@ -1324,6 +1373,7 @@ export class Dex {
 	joinNameAndCustomRules(format: string | IFormat, customRules: string[] | null): string {
 		let compatibleRules: string[] = [];
 		if (customRules) {
+			// currently only Hackmons Cup allows banlist changes: 7097a9ac753cbb295b484b97e2657898fd5a0932
 			if (typeof format !== 'string' && format.team && !format.id.includes('hackmonscup')) {
 				for (const rule of customRules) {
 					const type = rule.charAt(0);
@@ -1388,7 +1438,7 @@ export class Dex {
 				name = split[0];
 			}
 
-			formatId = name;
+			formatId = Tools.toId(name);
 			if (formatId in customRuleFormats) {
 				const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[formatId].format + '@@@' +
 					customRuleFormats[formatId].banlist);
@@ -1625,6 +1675,7 @@ export class Dex {
 		if (tag === 'ability') {
 			ruleName = this.dexes.base.getExistingAbility(ruleName).name;
 		} else if (tag === 'item') {
+			if (Tools.toId(ruleName) === 'noitem') return 'No Item';
 			ruleName = this.dexes.base.getExistingItem(ruleName).name;
 		} else if (tag === 'move') {
 			ruleName = this.dexes.base.getExistingMove(ruleName).name;
@@ -2374,6 +2425,13 @@ export class Dex {
 
 	getClosestPossibleTeam(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
 		options: IGetPossibleTeamsOptions): IClosestPossibleTeam {
+		const allPossibleNames: string[] = [];
+		for (const possibleTeam of possibleTeams) {
+			for (const name of possibleTeam) {
+				if (!allPossibleNames.includes(name)) allPossibleNames.push(name);
+			}
+		}
+
 		const teamEvolutionLines: Dict<readonly string[][]> = {};
 		const names: string[] = [];
 		for (const slot of team) {
@@ -2399,8 +2457,10 @@ export class Dex {
 			const extraDevolution: Dict<number> = {};
 			const missingDevolution: Dict<number> = {};
 
+			let validTeam = true;
 			for (const name of names) {
 				if (!possibleTeam.includes(name)) {
+					validTeam = false;
 					incorrectPokemon.push(name);
 
 					let semiValidChoice = false;
@@ -2430,18 +2490,22 @@ export class Dex {
 						if (semiValidChoice) break;
 					}
 
-					if (!semiValidChoice) invalidChoices.push(name);
+					if (!semiValidChoice && !allPossibleNames.includes(name)) invalidChoices.push(name);
 				}
 			}
 
+			const incorrectSize = possibleTeam.length - teamLength;
+			if (incorrectSize) validTeam = false;
+
 			validatedPossibleTeams.set(possibleTeam, {
-				incorrectSize: possibleTeam.length - teamLength,
+				incorrectSize,
 				incorrectPokemon,
 				invalidChoices,
 				extraEvolution,
 				missingEvolution,
 				extraDevolution,
 				missingDevolution,
+				validTeam,
 			});
 		}
 
@@ -2474,6 +2538,8 @@ export class Dex {
 	getClosestPossibleTeamSummary(team: IPokemon[] | string[], possibleTeams: DeepImmutable<string[][]>,
 		options: IGetPossibleTeamsOptions): string {
 		const closestTeam = this.getClosestPossibleTeam(team, possibleTeams, options);
+		if (closestTeam.validTeam) return "";
+
 		const summary: string[] = [];
 		if (closestTeam.incorrectSize) {
 			summary.push("Your team needed to have " + (team.length + closestTeam.incorrectSize) + " Pokemon.");
@@ -2506,6 +2572,16 @@ export class Dex {
 		}
 
 		if (evolutions.length) summary.push(Tools.joinList(evolutions) + ".");
+
+		if (!summary.length) {
+			if (options.additions) {
+				return "Your team has an invalid combination of added" + (options.evolutions ? " and evolved" : "") + " Pokemon.";
+			} else if (options.drops) {
+				return "Your team has an invalid combination of removed" + (options.evolutions ? " and evolved" : "") + " Pokemon.";
+			} else if (options.evolutions) {
+				return "Your team has an invalid combination of evolved Pokemon.";
+			}
+		}
 
 		return summary.join(" ");
 	}
@@ -2856,7 +2932,7 @@ export class Dex {
 			learnsetParent = validator.learnsetParent(learnsetParent);
 
 			// prevent recursion from calling validator.learnsetParent() directly
-			if (learnsetParent && learnsetParent === previousLearnsetParent) break;
+			if (learnsetParent && learnsetParent.name === previousLearnsetParent.name) break;
 		}
 
 		if (possibleMoves.includes('hiddenpower')) {

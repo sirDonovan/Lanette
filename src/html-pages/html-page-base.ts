@@ -2,33 +2,54 @@ import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ComponentBase } from "./components/component-base";
 
+export interface IQuietPMButtonOptions {
+	disabled?: boolean;
+	enabledReadonly?: boolean;
+	selected?: boolean;
+	selectedAndDisabled?: boolean;
+	style?: string;
+}
+
 export abstract class HtmlPageBase {
 	abstract pageId: string;
 
+	closed: boolean = false;
 	components: ComponentBase[] = [];
 	lastRender: string = '';
+	readonly: boolean = false;
 
 	baseCommand: string;
 	commandPrefix: string;
-	isRoomStaff: boolean;
+	pageList: Dict<HtmlPageBase>;
 	room: Room;
-	userName: string;
-	userId: string;
 
-	constructor(room: Room, user: User, baseCommand: string) {
+	isRoomStaff!: boolean;
+	userName!: string;
+	userId!: string;
+
+	constructor(room: Room, user: User, baseCommand: string, pageList: Dict<HtmlPageBase>) {
 		this.room = room;
-		this.userName = user.name;
-		this.userId = user.id;
-		this.isRoomStaff = user.hasRank(room, 'driver') || user.isDeveloper();
 		this.baseCommand = baseCommand;
-		this.commandPrefix = Config.commandCharacter + baseCommand + " " + room.id;
+		this.commandPrefix = Config.commandCharacter + baseCommand + " " + (room.alias || room.id);
+		this.pageList = pageList;
+
+		this.setUser(user);
+
+		if (user.id in pageList) pageList[user.id].destroy();
+		pageList[user.id] = this;
 	}
 
-	abstract onClose(): void;
 	abstract render(onOpen?: boolean): string;
 
 	destroy(): void {
-		Tools.unrefProperties(this);
+		for (const component of this.components) {
+			component.destroy();
+		}
+
+		delete this.pageList[this.userId];
+
+		this.closed = true;
+		Tools.unrefProperties(this, ['closed', 'pageId', 'userName', 'userId']);
 	}
 
 	open(): void {
@@ -36,14 +57,42 @@ export abstract class HtmlPageBase {
 	}
 
 	close(): void {
+		if (this.closed) throw new Error(this.pageId + " page already closed for user " + this.userId);
+
 		const user = Users.get(this.userId);
 		if (user) this.room.closeHtmlPage(user, this.pageId);
 
-		this.onClose();
+		if (this.onClose) this.onClose();
 		this.destroy();
 	}
 
+	setUser(user: User): void {
+		this.userName = user.name;
+		this.userId = user.id;
+		this.isRoomStaff = user.hasRank(this.room, 'driver') || user.isDeveloper();
+	}
+
+	onRenameUser(user: User, oldId: string): void {
+		if (!(oldId in this.pageList)) return;
+
+		if (oldId === user.id) {
+			this.userName = user.name;
+			return;
+		}
+
+		if (user.id in this.pageList) {
+			this.pageList[oldId].destroy();
+		} else {
+			this.setUser(user);
+			this.pageList[user.id] = this;
+		}
+
+		delete this.pageList[oldId];
+	}
+
 	send(onOpen?: boolean): void {
+		if (this.closed) return;
+
 		if (this.beforeSend && !this.beforeSend(onOpen)) return;
 
 		const user = Users.get(this.userId);
@@ -68,11 +117,21 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
-	getQuietPmButton(message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
-		return Client.getQuietPmButton(this.room, message, label, disabled, buttonStyle);
+	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+		let disabled = options && (options.disabled || options.selectedAndDisabled);
+		if (!disabled && options && !options.enabledReadonly && this.readonly) disabled = true;
+
+		let style = options && options.style ? options.style : "";
+		if (options && (options.selected || options.selectedAndDisabled)) {
+			if (style && !style.endsWith(';')) style += ';';
+			style += 'border-color: #ffffff;';
+		}
+
+		return Client.getQuietPmButton(this.room, message, label, disabled, style);
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;
+	onClose?(): void;
 	onOpen?(): void;
 	onSend?(onOpen?: boolean): void;
 }

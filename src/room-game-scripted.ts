@@ -26,10 +26,10 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameNumberOptionValues>
 };
 
 export class ScriptedGame extends Game {
-	awardedBits: boolean = false;
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	debugLogs: string[] = [];
+	debugLogWriteCount: number = 0;
 	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
@@ -73,7 +73,6 @@ export class ScriptedGame extends Game {
 	shinyMascot?: boolean;
 	startingLives?: number;
 	subGameNumber?: number;
-	timeEnded?: boolean;
 	timeLimit?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
@@ -243,6 +242,18 @@ export class ScriptedGame extends Game {
 
 	debugLog(log: string): void {
 		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
+	}
+
+	writeDebugLog(): void {
+		if (this.debugLogs.length) {
+			const filePath = path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" +
+				Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "") + ".txt");
+
+			void Tools.safeWriteFile(filePath, this.debugLogs.join("\n\n"))
+				.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
+		}
+
+		this.debugLogWriteCount++;
 	}
 
 	setUhtmlBaseName(): void {
@@ -556,7 +567,6 @@ export class ScriptedGame extends Game {
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 				if (!this.ended) {
 					this.say("The game has reached the time limit!");
-					this.timeEnded = true;
 					this.end();
 				}
 				return;
@@ -645,14 +655,13 @@ export class ScriptedGame extends Game {
 		}
 
 		const now = Date.now();
-		let usedDatabase = false;
 
 		if (this.isMiniGame) {
 			Games.setLastMinigame(this.room, now);
 		} else if (!this.parentGame && !this.internalGame) {
 			Games.clearNextVoteBans(this.room);
 
-			usedDatabase = true;
+			this.updatedDatabase = true;
 			const database = Storage.getDatabase(this.room);
 
 			Games.setLastGame(this.room, now);
@@ -686,7 +695,7 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
-		if (this.awardedBits || usedDatabase) Storage.tryExportDatabase(this.room.id);
+		Games.setNextScheduledGame(this.room);
 
 		this.deallocate(false);
 	}
@@ -808,10 +817,12 @@ export class ScriptedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		if (this.debugLogs.length) {
-			void Tools.safeWriteFile(path.join(Tools.rootFolder, 'game-debug-logs',
-				Tools.getDateFilename() + "-" + this.room.id + "-" + Tools.toId(this.uhtmlBaseName) + ".txt"), this.debugLogs.join("\n\n"))
-					.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
+		this.writeDebugLog();
+
+		if (!this.isPmActivity(this.room)) {
+			this.afterAddBits();
+
+			if (this.updatedBits || this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
 		}
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
@@ -1288,12 +1299,15 @@ export class ScriptedGame extends Game {
 			if (this.shinyMascot) bits *= 2;
 		}
 
-		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.addPoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You were awarded " + bits + " bits! To see your total amount, use the command ``" + Config.commandCharacter +
 				"bits " + this.room.title + "``.");
 		}
-		if (!this.awardedBits) this.awardedBits = true;
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 
@@ -1304,11 +1318,16 @@ export class ScriptedGame extends Game {
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
 		if (this.shinyMascot) bits *= 2;
-		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.format.id);
+
+		if (!this.updateBitsSource) this.updateBitsSource = this.format.id;
+
+		Storage.removePoints(this.room, Storage.gameLeaderboard, user.name, bits, this.updateBitsSource, true);
 		if (!noPm) {
 			user.say("You lost " + bits + " bits! To see your remaining amount, use the command ``" + Config.commandCharacter + "bits " +
 				this.room.title + "``.");
 		}
+
+		if (!this.updatedBits) this.updatedBits = true;
 		return true;
 	}
 
@@ -1468,5 +1487,6 @@ export class ScriptedGame extends Game {
 	rejectChallenge?(user: User): boolean;
 	repostInformation?(): void;
 	setupChallenge?(challenger: User, challenged: User, format: IGameFormat, options?: Dict<string>): void;
+	startTournament?(): boolean;
 	validateInputProperties?(inputProperties: IGameInputProperties): boolean;
 }

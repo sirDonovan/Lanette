@@ -13,15 +13,18 @@ import { ColorPicker, type IColorPick } from "./components/color-picker";
 import { PokemonTextInput } from "./components/pokemon-text-input";
 import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import type { PokemonChoices } from "./game-host-control-panel";
+import { NamePicker } from "./components/name-picker";
+import { TrainerCardRibbonPicker } from "./components/trainer-card-ribbon-picker";
 
 const baseCommand = 'tournamenttrainercard';
 const baseCommandAlias = 'ttc';
+const viewAllCommand = 'view';
 const staffEditCommand = 'staffedit';
 
-const previewCommand = 'preview';
 const chooseTrainerPicker = 'choosetrainerpicker';
 const chooseFormatPicker = 'chooseformatpicker';
 const chooseBadgesView = 'choosebadgesview';
+const chooseRibbonsView = 'chooseribbonsview';
 const chooseBioView = 'choosebioview';
 const chooseHeaderView = 'chooseheaderview';
 const chooseTableView = 'choosetableview';
@@ -31,11 +34,13 @@ const choosePokemonView = 'choosepokemonview';
 const setFormatCommand = 'setformat';
 const setTrainerCommand = 'settrainer';
 const setBadgesCommand = 'setbadges';
+const setRibbonsCommand = 'setribbons';
 const setBioCommand = 'setbio';
 const setHeaderColorCommand = 'setheadercolor';
 const setTableColorCommand = 'settablecolor';
 const setFooterColorCommand = 'setfootercolor';
 const setPokemonCommand = 'setpokemon';
+const setTargetUserIdCommand = 'settargetuserid';
 const closeCommand = 'close';
 
 const pageId = 'tournament-trainer-card';
@@ -43,139 +48,75 @@ const pageId = 'tournament-trainer-card';
 export const id = pageId;
 export const pages: Dict<TournamentTrainerCard> = {};
 
+interface ITournamentTrainerCardOptions {
+	targetUserId?: string;
+	viewAllMode?: boolean;
+}
+
 class TournamentTrainerCard extends HtmlPageBase {
 	pageId = pageId;
 
-	currentPicker: 'badges' | 'bio' | 'format' | 'footer' | 'header' | 'pokemon' | 'table' | 'trainer' = 'trainer';
+	currentPicker: 'badges' | 'bio' | 'format' | 'footer' | 'header' | 'pokemon' | 'ribbons' | 'table' | 'trainer' = 'trainer';
+	trainerCardUserIdNames: Dict<string> = {};
 
-	bioInput: TextInput;
-	footerColorPicker: ColorPicker;
-	formatPicker: FormatTextInput;
-	headerColorPicker: ColorPicker;
-	tableColorPicker: ColorPicker;
-	pokemonPicker: PokemonTextInput;
-	trainerPicker: TrainerPicker;
-	trainerCardBadgePicker: TrainerCardBadgePicker;
-	targetUserId: string;
+	trainerCardRoom: Room;
+	trainerCardUserIds: string[];
+	trainerCardUserIdPicker: NamePicker;
+	targetUserId: string | undefined;
+	viewAllMode: boolean;
 
-	constructor(room: Room, user: User, targetUserId?: string) {
-		super(room, user, baseCommand);
+	// set in loadTournamentTrainerCard()
+	bioInput!: TextInput;
+	footerColorPicker!: ColorPicker;
+	formatPicker!: FormatTextInput;
+	headerColorPicker!: ColorPicker;
+	tableColorPicker!: ColorPicker;
+	pokemonPicker!: PokemonTextInput;
+	trainerPicker!: TrainerPicker;
+	trainerCardBadgePicker!: TrainerCardBadgePicker;
+	trainerCardRibbonPicker!: TrainerCardRibbonPicker;
 
-		this.targetUserId = targetUserId || this.userId;
+	constructor(room: Room, user: User, options?: ITournamentTrainerCardOptions) {
+		super(room, user, baseCommandAlias, pages);
 
-		const database = Storage.getDatabase(this.room);
-		let trainerCard: ITournamentTrainerCard | undefined;
-		if (database.tournamentTrainerCards && this.targetUserId in database.tournamentTrainerCards) {
-			trainerCard = database.tournamentTrainerCards[this.targetUserId];
+		this.targetUserId = (options && options.targetUserId) || this.userId;
+		this.viewAllMode = options && options.viewAllMode ? true : false;
+		this.readonly = this.viewAllMode;
+
+		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
+		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);
+		this.trainerCardRoom = trainerCardRoom;
+
+		const database = this.getDatabase();
+		if (database.tournamentTrainerCards) {
+			this.trainerCardUserIds = Object.keys(database.tournamentTrainerCards).sort();
+			for (const userId of this.trainerCardUserIds) {
+				const targetUser = Users.get(userId);
+				this.trainerCardUserIdNames[userId] = targetUser ? targetUser.name : database.tournamentLeaderboard &&
+					userId in database.tournamentLeaderboard.entries ? database.tournamentLeaderboard.entries[userId].name : userId;
+			}
+		} else {
+			this.trainerCardUserIds = [];
 		}
 
-		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
-			currentPick: trainerCard ? trainerCard.avatar : undefined,
-			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
-			onClear: (index, dontRender) => this.clearTrainer(dontRender),
-			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
+		this.trainerCardUserIdPicker = new NamePicker(room, this.commandPrefix, setTargetUserIdCommand, {
+			currentPick: this.targetUserId,
+			names: this.trainerCardUserIds,
+			namesHtml: this.trainerCardUserIdNames,
+			label: "Choose a user",
+			pagesLabel: "Names",
+			onClear: (index, dontRender) => this.clearTargetUserId(dontRender),
+			onPick: (index, name, dontRender) => this.selectTargetUserId(name, dontRender),
 			reRender: () => this.send(),
 		});
+		this.trainerCardUserIdPicker.active = this.viewAllMode;
 
-		let format: IFormat | undefined;
-		if (trainerCard && trainerCard.favoriteFormat) {
-			format = Dex.getFormat(trainerCard.favoriteFormat);
-		}
-
-		this.formatPicker = new FormatTextInput(room, this.commandPrefix, setFormatCommand, {
-			currentInput: format ? format.name : "",
-			inputWidth: Tools.minRoomWidth,
-			placeholder: "Enter a format",
-			maxFormats: 1,
-			onClear: () => this.clearFormatInput(),
-			onErrors: () => this.send(),
-			onSubmit: (output) => this.submitFormatInput(output),
-			reRender: () => this.send(),
-		});
-
-		this.trainerCardBadgePicker = new TrainerCardBadgePicker(room, this.commandPrefix, setBadgesCommand, {
-			currentPicks: trainerCard ? trainerCard.badges : undefined,
-			maxPicks: 0,
-			onClear: (index, dontRender) => this.clearBadges(dontRender),
-			onPick: (index, badge, dontRender) => this.addBadge(badge, dontRender),
-			onUnPick: (index, badge, dontRender) => this.removeBadge(badge, dontRender),
-			reRender: () => this.send(),
-		});
-
-		this.bioInput = new TextInput(room, this.commandPrefix, setBioCommand, {
-			placeholder: "Enter bio",
-			stripHtmlCharacters: true,
-			onClear: () => this.clearBio(),
-			onErrors: () => this.send(),
-			onSubmit: (output) => this.setBio(output),
-			reRender: () => this.send(),
-		});
-
-		this.headerColorPicker = new ColorPicker(this.room, this.commandPrefix, setHeaderColorCommand, {
-			currentPick: trainerCard ? trainerCard.header : undefined,
-			onPickHueVariation: (index, hueVariation, dontRender) => this.pickHeaderHueVariation(dontRender),
-			onPickLightness: (index, lightness, dontRender) => this.pickHeaderLightness(dontRender),
-			onClear: (index, dontRender) => this.clearHeaderColor(dontRender),
-			onPick: (index, color, dontRender) => this.setHeaderColor(color, dontRender),
-			reRender: () => this.send(),
-		});
-
-		this.tableColorPicker = new ColorPicker(this.room, this.commandPrefix, setTableColorCommand, {
-			currentPick: trainerCard ? trainerCard.table : undefined,
-			onPickHueVariation: (index, hueVariation, dontRender) => this.pickTableHueVariation(dontRender),
-			onPickLightness: (index, lightness, dontRender) => this.pickTableLightness(dontRender),
-			onClear: (index, dontRender) => this.clearTableColor(dontRender),
-			onPick: (index, color, dontRender) => this.setTableColor(color, dontRender),
-			reRender: () => this.send(),
-		});
-
-		this.footerColorPicker = new ColorPicker(this.room, this.commandPrefix, setFooterColorCommand, {
-			currentPick: trainerCard ? trainerCard.footer : undefined,
-			onPickHueVariation: (index, hueVariation, dontRender) => this.pickFooterHueVariation(dontRender),
-			onPickLightness: (index, lightness, dontRender) => this.pickFooterLightness(dontRender),
-			onClear: (index, dontRender) => this.clearFooterColor(dontRender),
-			onPick: (index, color, dontRender) => this.setFooterColor(color, dontRender),
-			reRender: () => this.send(),
-		});
-
-		PokemonPickerBase.loadData();
-
-		this.pokemonPicker = new PokemonTextInput(room, this.commandPrefix, setPokemonCommand, {
-			gif: false,
-			currentInput: trainerCard && trainerCard.pokemon ? trainerCard.pokemon.join(", ") : "",
-			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
-			inputWidth: Tools.minRoomWidth,
-			minPokemon: 1,
-			maxPokemon: 6,
-			placeholder: "Enter all Pokemon",
-			clearText: "Clear all",
-			submitText: "Update all",
-			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.send(),
-			onSubmit: (output) => this.submitAllPokemonInput(output),
-			reRender: () => this.send(),
-		});
-
-		this.toggleActivePicker();
-
-		this.components = [this.trainerPicker, this.formatPicker, this.trainerCardBadgePicker, this.bioInput,
-			this.headerColorPicker, this.tableColorPicker, this.footerColorPicker, this.pokemonPicker];
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
+		this.loadTournamentTrainerCard();
 	}
 
 	getDatabase(): IDatabase {
-		let targetRoom = this.room;
-		if (Config.sharedTournamentTrainerCards && this.room.id in Config.sharedTournamentTrainerCards) {
-			targetRoom = Rooms.get(Config.sharedTournamentTrainerCards[this.room.id])!;
-		}
-
-		const database = Storage.getDatabase(targetRoom);
-		Storage.createTournamentTrainerCard(database, this.targetUserId);
+		const database = Storage.getDatabase(this.trainerCardRoom);
+		if (this.targetUserId) Storage.createTournamentTrainerCard(database, this.targetUserId);
 
 		return database;
 	}
@@ -202,6 +143,15 @@ class TournamentTrainerCard extends HtmlPageBase {
 		if (!this.isRoomStaff || this.currentPicker === 'badges') return;
 
 		this.currentPicker = 'badges';
+		this.toggleActivePicker();
+
+		this.send();
+	}
+
+	chooseRibbonsView(): void {
+		if (!this.isRoomStaff || this.currentPicker === 'ribbons') return;
+
+		this.currentPicker = 'ribbons';
 		this.toggleActivePicker();
 
 		this.send();
@@ -257,10 +207,152 @@ class TournamentTrainerCard extends HtmlPageBase {
 		this.formatPicker.active = this.currentPicker === 'format';
 		this.trainerPicker.active = this.currentPicker === 'trainer';
 		this.trainerCardBadgePicker.active = this.currentPicker === 'badges';
+		this.trainerCardRibbonPicker.active = this.currentPicker === 'ribbons';
 		this.headerColorPicker.active = this.currentPicker === 'header';
 		this.tableColorPicker.active = this.currentPicker === 'table';
 		this.footerColorPicker.active = this.currentPicker === 'footer';
 		this.pokemonPicker.active = this.currentPicker === 'pokemon';
+	}
+
+	loadTournamentTrainerCard(): void {
+		if (!this.targetUserId) return;
+
+		const database = this.getDatabase();
+		let trainerCard: ITournamentTrainerCard | undefined;
+		if (database.tournamentTrainerCards) {
+			if (this.targetUserId in database.tournamentTrainerCards) {
+				trainerCard = database.tournamentTrainerCards[this.targetUserId];
+			}
+		}
+
+		this.trainerPicker = new TrainerPicker(this.room, this.commandPrefix, setTrainerCommand, {
+			currentPick: trainerCard ? trainerCard.avatar : undefined,
+			userId: this.targetUserId,
+			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
+			onClear: (index, dontRender) => this.clearTrainer(dontRender),
+			onPick: (index, trainer, dontRender) => this.selectTrainer(trainer, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		let format: IFormat | undefined;
+		if (trainerCard && trainerCard.favoriteFormat) {
+			format = Dex.getFormat(trainerCard.favoriteFormat);
+		}
+
+		this.formatPicker = new FormatTextInput(this.room, this.commandPrefix, setFormatCommand, {
+			currentInput: format ? format.name : "",
+			inputWidth: Tools.minRoomWidth,
+			placeholder: "Enter a format",
+			maxFormats: 1,
+			onClear: () => this.clearFormatInput(),
+			onErrors: () => this.send(),
+			onSubmit: (output) => this.submitFormatInput(output),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.trainerCardBadgePicker = new TrainerCardBadgePicker(this.room, this.commandPrefix, setBadgesCommand, {
+			currentPicks: trainerCard ? trainerCard.badges : undefined,
+			maxPicks: 0,
+			onClear: (index, dontRender) => this.clearBadges(dontRender),
+			onPick: (index, badge, dontRender) => this.addBadge(badge, dontRender),
+			onUnPick: (index, badge, dontRender) => this.removeBadge(badge, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this.room, this.commandPrefix, setRibbonsCommand, {
+			currentPicks: trainerCard ? trainerCard.ribbons : undefined,
+			maxPicks: 0,
+			onClear: (index, dontRender) => this.clearRibbons(dontRender),
+			onPick: (index, ribbon, dontRender) => this.addRibbon(ribbon, dontRender),
+			onUnPick: (index, ribbon, dontRender) => this.removeRibbon(ribbon, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.bioInput = new TextInput(this.room, this.commandPrefix, setBioCommand, {
+			placeholder: "Enter bio",
+			stripHtmlCharacters: true,
+			onClear: () => this.clearBio(),
+			onErrors: () => this.send(),
+			onSubmit: (output) => this.setBio(output),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.headerColorPicker = new ColorPicker(this.room, this.commandPrefix, setHeaderColorCommand, {
+			currentPick: trainerCard ? trainerCard.header : undefined,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickHeaderHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickHeaderLightness(dontRender),
+			onClear: (index, dontRender) => this.clearHeaderColor(dontRender),
+			onPick: (index, color, dontRender) => this.setHeaderColor(color, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.tableColorPicker = new ColorPicker(this.room, this.commandPrefix, setTableColorCommand, {
+			currentPick: trainerCard ? trainerCard.table : undefined,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickTableHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickTableLightness(dontRender),
+			onClear: (index, dontRender) => this.clearTableColor(dontRender),
+			onPick: (index, color, dontRender) => this.setTableColor(color, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.footerColorPicker = new ColorPicker(this.room, this.commandPrefix, setFooterColorCommand, {
+			currentPick: trainerCard ? trainerCard.footer : undefined,
+			onPickHueVariation: (index, hueVariation, dontRender) => this.pickFooterHueVariation(dontRender),
+			onPickLightness: (index, lightness, dontRender) => this.pickFooterLightness(dontRender),
+			onClear: (index, dontRender) => this.clearFooterColor(dontRender),
+			onPick: (index, color, dontRender) => this.setFooterColor(color, dontRender),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		PokemonPickerBase.loadData();
+
+		this.pokemonPicker = new PokemonTextInput(this.room, this.commandPrefix, setPokemonCommand, {
+			gif: false,
+			currentInput: trainerCard && trainerCard.pokemon ? trainerCard.pokemon.join(", ") : "",
+			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
+			inputWidth: Tools.minRoomWidth,
+			minPokemon: 1,
+			maxPokemon: 6,
+			placeholder: "Enter all Pokemon",
+			clearText: "Clear all",
+			submitText: "Update all",
+			onClear: () => this.clearPokemonInput(),
+			onErrors: () => this.send(),
+			onSubmit: (output) => this.submitAllPokemonInput(output),
+			readonly: this.readonly,
+			reRender: () => this.send(),
+		});
+
+		this.toggleActivePicker();
+
+		this.components = [this.trainerCardUserIdPicker, this.trainerPicker, this.formatPicker, this.trainerCardBadgePicker,
+			this.trainerCardRibbonPicker, this.bioInput, this.headerColorPicker, this.tableColorPicker, this.footerColorPicker,
+			this.pokemonPicker];
+	}
+
+	clearTargetUserId(dontRender?: boolean): void {
+		if (!this.viewAllMode || !this.targetUserId) return;
+
+		this.targetUserId = "";
+
+		if (!dontRender) this.send();
+	}
+
+	selectTargetUserId(userId: string, dontRender?: boolean): void {
+		if (!this.viewAllMode || userId === this.targetUserId) return;
+
+		this.targetUserId = userId;
+		this.loadTournamentTrainerCard();
+
+		if (!dontRender) this.send();
 	}
 
 	setTrainerGen(dontRender?: boolean): void {
@@ -269,44 +361,46 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	clearTrainer(dontRender?: boolean): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].avatar;
+		delete database.tournamentTrainerCards![this.targetUserId!].avatar;
+		delete database.tournamentTrainerCards![this.targetUserId!].customAvatar;
 
 		if (!dontRender) this.send();
 	}
 
 	selectTrainer(trainer: ITrainerPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].avatar = trainer.trainer;
+		database.tournamentTrainerCards![this.targetUserId!].avatar = trainer.trainer;
+		database.tournamentTrainerCards![this.targetUserId!].customAvatar = !!trainer.customAvatar;
 
 		if (!dontRender) this.send();
 	}
 
 	clearFormatInput(): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].favoriteFormat;
+		delete database.tournamentTrainerCards![this.targetUserId!].favoriteFormat;
 
 		this.send();
 	}
 
 	submitFormatInput(output: string): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].favoriteFormat = output;
+		database.tournamentTrainerCards![this.targetUserId!].favoriteFormat = output;
 
 		this.send();
 	}
 
 	clearBadges(dontRender?: boolean): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].badges;
+		delete database.tournamentTrainerCards![this.targetUserId!].badges;
 
 		if (!dontRender) this.send();
 	}
 
 	addBadge(badge: string, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		if (!database.tournamentTrainerCards![this.targetUserId].badges) database.tournamentTrainerCards![this.targetUserId].badges = [];
-		if (!database.tournamentTrainerCards![this.targetUserId].badges!.includes(badge)) {
-			database.tournamentTrainerCards![this.targetUserId].badges!.push(badge);
+		if (!database.tournamentTrainerCards![this.targetUserId!].badges) database.tournamentTrainerCards![this.targetUserId!].badges = [];
+		if (!database.tournamentTrainerCards![this.targetUserId!].badges!.includes(badge)) {
+			database.tournamentTrainerCards![this.targetUserId!].badges!.push(badge);
 		}
 
 		if (!dontRender) this.send();
@@ -314,9 +408,39 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	removeBadge(badge: string, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		if (database.tournamentTrainerCards![this.targetUserId].badges) {
-			const index = database.tournamentTrainerCards![this.targetUserId].badges!.indexOf(badge);
-			if (index !== -1) database.tournamentTrainerCards![this.targetUserId].badges!.splice(index, 1);
+		if (database.tournamentTrainerCards![this.targetUserId!].badges) {
+			const index = database.tournamentTrainerCards![this.targetUserId!].badges!.indexOf(badge);
+			if (index !== -1) database.tournamentTrainerCards![this.targetUserId!].badges!.splice(index, 1);
+		}
+
+		if (!dontRender) this.send();
+	}
+
+	clearRibbons(dontRender?: boolean): void {
+		const database = this.getDatabase();
+		delete database.tournamentTrainerCards![this.targetUserId!].ribbons;
+
+		if (!dontRender) this.send();
+	}
+
+	addRibbon(ribbon: string, dontRender?: boolean): void {
+		const database = this.getDatabase();
+		if (!database.tournamentTrainerCards![this.targetUserId!].ribbons) {
+			database.tournamentTrainerCards![this.targetUserId!].ribbons = [];
+		}
+
+		if (!database.tournamentTrainerCards![this.targetUserId!].ribbons!.includes(ribbon)) {
+			database.tournamentTrainerCards![this.targetUserId!].ribbons!.push(ribbon);
+		}
+
+		if (!dontRender) this.send();
+	}
+
+	removeRibbon(ribbon: string, dontRender?: boolean): void {
+		const database = this.getDatabase();
+		if (database.tournamentTrainerCards![this.targetUserId!].ribbons) {
+			const index = database.tournamentTrainerCards![this.targetUserId!].ribbons!.indexOf(ribbon);
+			if (index !== -1) database.tournamentTrainerCards![this.targetUserId!].ribbons!.splice(index, 1);
 		}
 
 		if (!dontRender) this.send();
@@ -324,14 +448,14 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	clearBio(): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].bio;
+		delete database.tournamentTrainerCards![this.targetUserId!].bio;
 
 		this.send();
 	}
 
 	setBio(bio: string): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].bio = bio;
+		database.tournamentTrainerCards![this.targetUserId!].bio = bio;
 
 		this.room.modnote(this.userName + " set " + (this.userId === this.targetUserId ? "their" : this.targetUserId + "'s") +
 			" tournament trainer card bio to '" + bio + "'");
@@ -349,14 +473,14 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	clearHeaderColor(dontRender?: boolean): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].header;
+		delete database.tournamentTrainerCards![this.targetUserId!].header;
 
 		if (!dontRender) this.send();
 	}
 
 	setHeaderColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].header = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].header = color.hexCode;
 
 		if (!dontRender) this.send();
 	}
@@ -371,14 +495,14 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	clearTableColor(dontRender?: boolean): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].table;
+		delete database.tournamentTrainerCards![this.targetUserId!].table;
 
 		if (!dontRender) this.send();
 	}
 
 	setTableColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].table = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].table = color.hexCode;
 
 		if (!dontRender) this.send();
 	}
@@ -393,50 +517,60 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	clearFooterColor(dontRender?: boolean): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].footer;
+		delete database.tournamentTrainerCards![this.targetUserId!].footer;
 
 		if (!dontRender) this.send();
 	}
 
 	setFooterColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].footer = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].footer = color.hexCode;
 
 		if (!dontRender) this.send();
 	}
 
 	clearPokemonInput(): void {
 		const database = this.getDatabase();
-		delete database.tournamentTrainerCards![this.targetUserId].pokemon;
+		delete database.tournamentTrainerCards![this.targetUserId!].pokemon;
 
 		this.send();
 	}
 
 	submitAllPokemonInput(output: PokemonChoices): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId].pokemon = output.filter(x => x !== undefined).map(x => x!.pokemon);
+		database.tournamentTrainerCards![this.targetUserId!].pokemon = output.filter(x => x !== undefined).map(x => x!.pokemon);
 
 		this.send();
 	}
 
 	render(): string {
-		let name = this.targetUserId;
-		const user = Users.get(this.targetUserId);
+		let name = this.targetUserId ? this.trainerCardUserIdNames[this.targetUserId] : "";
+		const user = name ? Users.get(name) : undefined;
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Tournament Trainer " +
 			"Card</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close", {enabledReadonly: true});
 
 		html += "<br />";
-		const currentCard = Tournaments.getTrainerCardHtml(this.room, name);
+		const currentCard = name ? Tournaments.getTrainerCardHtml(this.room, name) : "";
 		if (currentCard) {
 			html += currentCard;
 		} else {
-			html += "<br /><b>Select a format or trainer to see your preview</b>!";
+			html += "<br />";
+			if (this.viewAllMode) {
+				html += "<b>Select a user to see their trainer card!</b>!";
+			} else {
+				html += "<b>Select a format or trainer to see your preview</b>!";
+			}
 		}
 		html += "<br />";
 		html += "</center>";
+
+		if (this.viewAllMode) {
+			html += this.trainerCardUserIdPicker.render();
+			html += "<br /><br />";
+		}
 
 		const trainer = this.currentPicker === 'trainer';
 		const header = this.currentPicker === 'header';
@@ -445,18 +579,29 @@ class TournamentTrainerCard extends HtmlPageBase {
 		const format = this.currentPicker === 'format';
 		const pokemon = this.currentPicker === 'pokemon';
 		const badges = this.currentPicker === 'badges';
+		const ribbons = this.currentPicker === 'ribbons';
 		const bio = this.currentPicker === 'bio';
 
 		html += "<b>Options</b>:<br />";
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer", trainer);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHeaderView, "Header", header);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTableView, "Table", table);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFooterView, "Footer", footer);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatPicker, "Format", format);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon", pokemon);
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseTrainerPicker, "Trainer",
+			{selectedAndDisabled: trainer, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHeaderView, "Header",
+			{selectedAndDisabled: header, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTableView, "Table",
+			{selectedAndDisabled: table, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFooterView, "Footer",
+			{selectedAndDisabled: footer, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatPicker, "Format",
+			{selectedAndDisabled: format, enabledReadonly: true});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon",
+			{selectedAndDisabled: pokemon, enabledReadonly: true});
 		if (this.isRoomStaff) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBadgesView, "Badges", badges);
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBioView, "Bio", bio);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBadgesView, "Badges",
+				{selectedAndDisabled: badges, enabledReadonly: true});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRibbonsView, "Ribbons",
+				{selectedAndDisabled: ribbons, enabledReadonly: true});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBioView, "Bio",
+				{selectedAndDisabled: bio, enabledReadonly: true});
 		}
 		html += "<br /><br />";
 
@@ -474,6 +619,8 @@ class TournamentTrainerCard extends HtmlPageBase {
 			html += this.pokemonPicker.render();
 		} else if (badges) {
 			html += this.trainerCardBadgePicker.render();
+		} else if (ribbons) {
+			html += this.trainerCardRibbonPicker.render();
 		} else if (bio) {
 			html += this.bioInput.render();
 		}
@@ -506,56 +653,51 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new TournamentTrainerCard(targetRoom, user).open();
-			} else if (cmd === 'view' || cmd === 'show' || cmd === previewCommand) {
-				const trainerCard = Tournaments.getTrainerCardHtml(targetRoom, user.name);
-				if (!trainerCard) return this.say("You do not have a tournament trainer card.");
-				targetRoom.pmUhtml(user, targetRoom.id + "-tournament-trainer-card", trainerCard);
-			} else if (cmd === chooseTrainerPicker) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand && cmd !== viewAllCommand && cmd !== staffEditCommand) {
+				new TournamentTrainerCard(targetRoom, user);
+			}
+
+			if (cmd === chooseTrainerPicker) {
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === chooseHeaderView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseHeaderView();
 			} else if (cmd === chooseTableView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseTableView();
 			} else if (cmd === chooseFooterView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseFooterView();
 			} else if (cmd === choosePokemonView) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].choosePokemonView();
 			} else if (cmd === chooseFormatPicker) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				pages[user.id].chooseFormatPicker();
 			} else if (cmd === chooseBadgesView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
-
-				if (!(user.id in pages)) {
-					return this.say("You must first use ``" + Config.commandCharacter + baseCommandAlias + " " + staffEditCommand +
-						", [user]`` to open the panel.");
-				}
 				pages[user.id].chooseBadgesView();
+			} else if (cmd === chooseRibbonsView) {
+				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				pages[user.id].chooseRibbonsView();
 			} else if (cmd === chooseBioView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
-
-				if (!(user.id in pages)) {
-					return this.say("You must first use ``" + Config.commandCharacter + baseCommandAlias + " " + staffEditCommand +
-						", [user]`` to open the panel.");
-				}
 				pages[user.id].chooseBioView();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
+			} else if (cmd === viewAllCommand) {
+				let targetUserId;
+				const possibleUserId = Tools.toId(targets[0]);
+				if (Tools.isUsernameLength(possibleUserId)) {
+					targetUserId = possibleUserId;
+				}
+
+				new TournamentTrainerCard(targetRoom, user, {targetUserId, viewAllMode: true}).open();
 			} else if (cmd === staffEditCommand) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 
 				const targetUserId = Tools.toId(targets[0]);
 				if (!Tools.isUsernameLength(targetUserId)) return this.say(CommandParser.getErrorText(['invalidUsernameLength']));
-				new TournamentTrainerCard(targetRoom, user, targetUserId).open();
+				new TournamentTrainerCard(targetRoom, user, {targetUserId}).open();
 			} else {
-				if (!(user.id in pages)) new TournamentTrainerCard(targetRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

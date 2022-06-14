@@ -122,10 +122,16 @@ export const commands: BaseCommandDefinitions = {
 
 			const action = Tools.toId(targets[0]);
 			if (action === 'off' || action === 'end' || action === 'stop' || action === 'delete' || action === 'remove') {
-				const messageId = Tools.toId(targets[1]);
-				if (!repeatRoom.repeatedMessages || !(messageId in repeatRoom.repeatedMessages)) {
-					return this.say("There is no repeating message with the name '" + targets[1].trim() + "'.");
+				if (!repeatRoom.repeatedMessages) {
+					return this.say("There are no repeating messages for " + repeatRoom.title + ".");
 				}
+
+				const messageId = Tools.toId(targets[1]);
+				if (!messageId) return this.say("Please specify a valid message name.");
+				if (!(messageId in repeatRoom.repeatedMessages)) {
+					return this.say("There is no repeating message with the name '" + (targets[1] ? targets[1].trim() : "") + "'.");
+				}
+
 				clearInterval(repeatRoom.repeatedMessages[messageId].timer);
 				const name = repeatRoom.repeatedMessages[messageId].name;
 				delete repeatRoom.repeatedMessages[messageId];
@@ -596,10 +602,13 @@ export const commands: BaseCommandDefinitions = {
 				region = id;
 			} else {
 				region = Tools.sampleOne(regions);
+				while (!Dex.regionHasCharacters(region)) {
+					region = Tools.sampleOne(regions);
+				}
 			}
 
 			const characters = Dex.getData().characters;
-			const characterTypes = Dex.getCharacterTypes();
+			const characterTypes = Dex.getCharacterTypes(region);
 			const characterTypeNames = Dex.getCharacterTypeNames();
 			const regionNames = Dex.getRegionNames();
 
@@ -611,9 +620,6 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				type = Tools.sampleOne(characterTypes);
-				while (!characters[region][type].length) {
-					type = Tools.sampleOne(characterTypes);
-				}
 			}
 
 			this.say('Randomly generated' + (target ? ' ' + regionNames[region] : '') + (targets[1] ? ' ' +
@@ -637,10 +643,13 @@ export const commands: BaseCommandDefinitions = {
 				region = id;
 			} else {
 				region = Tools.sampleOne(regions);
+				while (!Dex.regionHasLocations(region)) {
+					region = Tools.sampleOne(regions);
+				}
 			}
 
 			const locations = Dex.getData().locations;
-			const locationTypes = Dex.getLocationTypes();
+			const locationTypes = Dex.getLocationTypes(region);
 			const locationTypeNames = Dex.getLocationTypeNames();
 			const regionNames = Dex.getRegionNames();
 
@@ -652,9 +661,6 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				type = Tools.sampleOne(locationTypes);
-				while (!locations[region][type].length) {
-					type = Tools.sampleOne(locationTypes);
-				}
 			}
 
 			this.say('Randomly generated' + (target ? ' ' + regionNames[region] : '') + (targets[1] ? ' ' +

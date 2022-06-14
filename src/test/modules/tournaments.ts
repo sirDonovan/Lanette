@@ -49,8 +49,10 @@ describe("Tournaments", () => {
 					for (let i = 1; i <= totalDays; i++) {
 						const day = '' + i;
 						try {
-							Dex.validateFormat(schedule.months[month].formats[day]);
-							Dex.getExistingFormat(schedule.months[month].formats[day], true);
+							assert(Dex.validateFormat(schedule.months[month].formats[day]));
+							const format = Dex.getExistingFormat(schedule.months[month].formats[day], true);
+							assert(Dex.getCustomFormatName(format));
+							assert(Dex.getCustomFormatName(format, true));
 							validated++;
 						} catch (e) {
 							errors.push((e as Error).message + " on " + month + "/" + day + " in " + room);
@@ -89,15 +91,15 @@ describe("Tournaments", () => {
 		Tournaments.loadSchedules();
 
 		// @ts-expect-error
-		let scheduledTournaments = Tournaments.scheduledTournaments[serverId][room.id];
-		assertStrictEqual(scheduledTournaments.length, lastDayOfMonth * times.length);
+		let officialTournaments = Tournaments.officialTournaments[serverId][room.id];
+		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		let day = 1;
 		date.setDate(day);
 		for (let i = 0; i < times.length; i++) {
 			date.setHours(times[i][0], times[i][1], 0, 0);
-			assertStrictEqual(scheduledTournaments[i].format, formats[day]);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats[day]);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		// 1 official on day 1, 3 officials on day 2
@@ -111,8 +113,8 @@ describe("Tournaments", () => {
 
 		Tournaments.loadSchedules();
 		// @ts-expect-error
-		scheduledTournaments = Tournaments.scheduledTournaments[serverId][room.id];
-		assertStrictEqual(scheduledTournaments.length, lastDayOfMonth * times.length);
+		officialTournaments = Tournaments.officialTournaments[serverId][room.id];
+		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		day = 1;
 		date.setDate(day);
@@ -122,8 +124,8 @@ describe("Tournaments", () => {
 				date.setDate(day);
 			}
 			date.setHours(times[i][0], times[i][1], 0, 0);
-			assertStrictEqual(scheduledTournaments[i].format, formats['2']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['2']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		day = lastDayOfMonth;
@@ -137,8 +139,8 @@ describe("Tournaments", () => {
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
-			assertStrictEqual(scheduledTournaments[i].format, formats['3']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['3']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		// 2 officials on day 1, 2 officials on day 2
@@ -151,8 +153,8 @@ describe("Tournaments", () => {
 
 		Tournaments.loadSchedules();
 		// @ts-expect-error
-		scheduledTournaments = Tournaments.scheduledTournaments[serverId][room.id];
-		assertStrictEqual(scheduledTournaments.length, lastDayOfMonth * times.length);
+		officialTournaments = Tournaments.officialTournaments[serverId][room.id];
+		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		date.setMonth(month, 1);
 		day = 1;
@@ -162,8 +164,8 @@ describe("Tournaments", () => {
 				date.setDate(day);
 			}
 			date.setHours(times[i][0], times[i][1], 0, 0);
-			assertStrictEqual(scheduledTournaments[i].format, formats['1']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['1']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		day = lastDayOfMonth;
@@ -177,8 +179,8 @@ describe("Tournaments", () => {
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
-			assertStrictEqual(scheduledTournaments[i].format, formats['2']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['2']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		// 3 officials on day 1, 1 official on day 2
@@ -191,8 +193,8 @@ describe("Tournaments", () => {
 
 		Tournaments.loadSchedules();
 		// @ts-expect-error
-		scheduledTournaments = Tournaments.scheduledTournaments[serverId][room.id];
-		assertStrictEqual(scheduledTournaments.length, lastDayOfMonth * times.length);
+		officialTournaments = Tournaments.officialTournaments[serverId][room.id];
+		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		date.setMonth(month, 1);
 		day = 1;
@@ -202,8 +204,8 @@ describe("Tournaments", () => {
 				date.setDate(day);
 			}
 			date.setHours(times[i][0], times[i][1], 0, 0);
-			assertStrictEqual(scheduledTournaments[i].format, formats['1']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['1']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		day = lastDayOfMonth;
@@ -217,8 +219,8 @@ describe("Tournaments", () => {
 			}
 			date.setHours(times[timesIndex][0], times[timesIndex][1], 0, 0);
 			timesIndex++;
-			assertStrictEqual(scheduledTournaments[i].format, formats['2']);
-			assertStrictEqual(scheduledTournaments[i].time, date.getTime());
+			assertStrictEqual(officialTournaments[i].format, formats['2']);
+			assertStrictEqual(officialTournaments[i].time, date.getTime());
 		}
 
 		Rooms.remove(room);

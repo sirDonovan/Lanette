@@ -10,8 +10,9 @@ export class User {
 	avatar: string | null = null;
 	away: boolean | null = null;
 	chatLog: IChatLogEntry[] = [];
+	customAvatar: boolean | null = null;
 	game: ScriptedGame | null = null;
-	globalRank: string = " ";
+	globalRank: string | null = null;
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
@@ -75,11 +76,15 @@ export class User {
 		this.setIsLocked(rank);
 	}
 
-	setRoomRank(room: Room, rank: string): void {
+	/**Returns `true` if the user's rank changed */
+	setRoomRank(room: Room, rank: string): boolean {
 		const roomData = this.rooms.get(room);
+		if (roomData && roomData.rank === rank) return false;
+
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		this.setIsLocked(rank);
+		return true;
 	}
 
 	setIsLocked(rank: string): void {
@@ -107,12 +112,24 @@ export class User {
 		}
 	}
 
-	hasRank(room: Room, targetRank: GroupName): boolean {
-		if (!this.rooms.has(room)) return false;
+	isRoomauth(room: Room): boolean {
+		for (const roomAuthRank in room.auth) {
+			if (room.auth[roomAuthRank].includes(this.id)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	hasRank(room: Room, targetRank: GroupName, roomAuth?: boolean): boolean {
+		if (!this.rooms.has(room) || (roomAuth && !this.isRoomauth(room))) return false;
 		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
 	}
 
 	hasGlobalRank(targetRank: GroupName): boolean {
+		if (!this.globalRank) return false;
+
 		return this.hasRankInternal(this.globalRank, targetRank);
 	}
 
@@ -175,6 +192,9 @@ export class User {
 			}
 		}
 
+		message = message.trim();
+		if (!message) return;
+
 		const outgoingMessage: IOutgoingMessage = {
 			message: this.getMessageWithClientPrefix(message),
 			text: message,
@@ -193,6 +213,7 @@ export class User {
 	}
 
 	sayCode(code: string): void {
+		code = code.trim();
 		if (!code) return;
 
 		this.say("!code " + code, {
@@ -256,8 +277,8 @@ export class User {
 
 	private hasRankInternal(rank: string, targetRank: GroupName): boolean {
 		const groupSymbols = Client.getGroupSymbols();
-		if (!(targetRank in groupSymbols)) return false;
 		const serverGroups = Client.getServerGroups();
+		if (!(rank in serverGroups) || !(targetRank in groupSymbols) || !(groupSymbols[targetRank] in serverGroups)) return false;
 		return serverGroups[rank].ranking >= serverGroups[groupSymbols[targetRank]].ranking;
 	}
 }
@@ -292,6 +313,8 @@ export class Users {
 		if (!(user.id in this.users)) throw new Error("User " + user.id + " not in users list");
 
 		if (user === this.self) return;
+
+		CommandParser.onDestroyUser(user.id);
 
 		delete this.users[user.id];
 		user.destroy();
@@ -331,6 +354,8 @@ export class Users {
 			// tournament should rename last to avoid double renames in onTournamentPlayerRename()
 			if (room.tournament) room.tournament.renamePlayer(user.name, user.id, oldId);
 		});
+
+		CommandParser.onRenameUser(user, oldId);
 
 		return user;
 	}

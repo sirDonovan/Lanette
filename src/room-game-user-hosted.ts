@@ -32,6 +32,7 @@ export class UserHostedGame extends Game {
 	subHostId: string | null = null;
 	subHostName: string | null = null;
 	twist: string | null = null;
+	updatedDatabase: boolean = false;
 
 	// set in onInitialize()
 	declare format: IUserHostedFormat;
@@ -388,6 +389,7 @@ export class UserHostedGame extends Game {
 	end(): void {
 		if (this.ended) throw new Error("Game already ended");
 		this.ended = true;
+		this.updatedDatabase = true;
 
 		const now = Date.now();
 		Games.setLastUserHostTime(this.room, this.hostId, now);
@@ -515,6 +517,8 @@ export class UserHostedGame extends Game {
 
 		this.destroyTeams();
 		this.destroyPlayers();
+
+		if (this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}

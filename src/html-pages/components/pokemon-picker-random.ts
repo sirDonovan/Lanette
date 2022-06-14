@@ -88,6 +88,7 @@ export class PokemonPickerRandom extends PokemonPickerBase {
 			noPickName: "Random",
 			onClear: (index, dontRender) => this.clearType(dontRender),
 			onPick: (index, type, dontRender) => this.pickType(type, dontRender),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 

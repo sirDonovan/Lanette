@@ -60,6 +60,7 @@ export interface IGetPossibleTeamsOptions {
 }
 
 export interface IClosestPossibleTeam {
+	validTeam: boolean;
 	incorrectSize: number;
 	incorrectPokemon: string[];
 	invalidChoices: string[];
