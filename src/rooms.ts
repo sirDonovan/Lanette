@@ -16,7 +16,10 @@ type RoomCreateListener = (room: Room) => void;
 const DEFAULT_MODCHAT = 'off';
 
 export class Room {
+	alias: string | null = null;
 	approvedUserHostedTournaments: Dict<IUserHostedTournament> | null = null;
+	/**Maps symbol to list of userids */
+	auth: Dict<string[]> = {};
 	battle: boolean | null = null;
 	chatBlockedByModchat: boolean = false;
 	chatLog: IChatLogEntry[] = [];
@@ -161,6 +164,18 @@ export class Room {
 	}
 
 	updateConfigSettings(): void {
+		if (Config.roomAliases) {
+			const aliases: string[] = [];
+			for (const alias in Config.roomAliases) {
+				if (Config.roomAliases[alias] === this.id) {
+					aliases.push(alias);
+				}
+			}
+
+			aliases.sort((a, b) => a.length - b.length);
+			this.alias = aliases[0];
+		}
+
 		this.configBannedWordsRegex = null;
 
 		if (Config.roomBannedWords && this.id in Config.roomBannedWords) {
@@ -209,6 +224,14 @@ export class Room {
 			if (!this.users.has(user)) this.onUserJoin(user, rank);
 		}
 
+		const serverGroups = Client.getServerGroups();
+
+		this.auth = {};
+		for (const rank in response.auth) {
+			if (!(rank in serverGroups) || serverGroups[rank].type === 'punishment' || !serverGroups[rank].name) continue;
+			this.auth[rank] = response.auth[rank].map(x => Tools.toId(x));
+		}
+
 		this.setModchat(response.modchat === false ? DEFAULT_MODCHAT : response.modchat);
 	}
 
@@ -241,7 +264,9 @@ export class Room {
 		if (!this.users.has(user)) {
 			this.onUserJoin(user, rank);
 		} else {
-			user.setRoomRank(this, rank);
+			if (user.setRoomRank(this, rank) && this.type === 'chat') {
+				Client.getRoomInfo(this);
+			}
 		}
 	}
 
@@ -271,6 +296,9 @@ export class Room {
 				return;
 			}
 		}
+
+		message = message.trim();
+		if (!message) return;
 
 		const baseOutgoingMessage: Partial<IOutgoingMessage> = {
 			roomid: options && options.roomid ? options.roomid : this.id,

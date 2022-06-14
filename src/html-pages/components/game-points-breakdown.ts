@@ -14,17 +14,21 @@ export class GamePointsBreakdown extends PointsBreakdownBase {
 		}));
 	}
 
-	renderPointBreakdowns(breakdown: Dict<IPointBreakdown>): string {
-		const maxPercentageLength = this.getMaxPercentageLength();
-
+	renderPointBreakdowns(breakdown: Dict<IPointBreakdown>, maxPercentageLength: number): string {
 		let html = "";
 		for (const source in breakdown) {
 			let name: string;
-			if (source === Storage.manualSource) {
-				name = "<code>" + Config.commandCharacter + "abits</code>";
+			if (source in this.sourceNameCache) {
+				name = this.sourceNameCache[source];
 			} else {
-				const format = Games.getFormat(source);
-				name = Array.isArray(format) ? source : format.name;
+				if (source === Storage.manualSource) {
+					name = "<code>" + Config.commandCharacter + "abits</code>";
+				} else {
+					const format = Games.getFormat(source);
+					name = Array.isArray(format) ? source : format.name;
+				}
+
+				this.sourceNameCache[source] = name;
 			}
 
 			let percentage = "" + breakdown[source].percentage;

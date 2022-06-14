@@ -11,6 +11,11 @@ export interface ITreeRootPlaces<T> {
 export interface IScheduledTournament {
 	format: string;
 	time: number;
+	official?: boolean;
+}
+
+export interface IOfficialTournament extends IScheduledTournament {
+	official: true;
 }
 
 export interface IMonthlyTournamentSchedule {
@@ -102,6 +107,6 @@ export interface ITournamentTimerData {
 	cap: number;
 	formatid: string;
 	startTime: number;
-	scheduled?: boolean;
+	official?: boolean;
 	tournamentName?: string;
 }

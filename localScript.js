@@ -10,5 +10,5 @@ if (!options.script) {
 (async () => {
 	await require(path.join(__dirname, 'app.js'));
 
-	require(path.join(__dirname, "built", "local-scripts", options.script + ".js"));
+	require(path.join(__dirname, "build", "local-scripts", options.script + ".js"));
 })();

@@ -428,7 +428,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		const currentRound = this.round;
 		let player = this.getNextPlayer();
-		if (!player || this.timeEnded) return;
+		if (this.ended) return;
+		if (!player) throw new Error("No player given by Game.getNextPlayer");
 
 		if (this.topCard.action && this.topCard.action.skipPlayers) {
 			this.say(player.name + "'s turn was skipped!");
@@ -442,6 +443,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		let turnCards = this.getTurnCards(player);
 		let hasPlayableCard = this.hasPlayableCard(turnCards);
 		let skippedPlayerCount = 0;
+		let unlockedSkippedPlayerAchievement = false;
 		let finalPlayer = false;
 		while (!hasPlayableCard) {
 			if (this.startingLives) {
@@ -461,6 +463,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 				skippedPlayerCount++;
 			}
 
+			if (this.skippedPlayerAchievement && this.skippedPlayerAchievementAmount && this.lastPlayer && !this.lastPlayer.eliminated &&
+				skippedPlayerCount >= this.skippedPlayerAchievementAmount && !unlockedSkippedPlayerAchievement) {
+				unlockedSkippedPlayerAchievement = true;
+				this.unlockAchievement(this.lastPlayer, this.skippedPlayerAchievement);
+			}
+
 			if (this.finitePlayerCards) {
 				const cards = this.drawCard(player);
 				let drawnCards = autoDraws.get(player) || [];
@@ -469,20 +477,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}
 
 			player = this.getNextPlayer();
-			if (!player) {
-				if (this.timeEnded) break; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-				throw new Error("No player given by Game.getNextPlayer");
-			}
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (this.ended) return;
+			if (!player) throw new Error("No player given by Game.getNextPlayer");
+
 			turnCards = this.getTurnCards(player);
 			hasPlayableCard = this.hasPlayableCard(turnCards);
 		}
-
-		if (this.skippedPlayerAchievement && this.skippedPlayerAchievementAmount && this.lastPlayer && !this.lastPlayer.eliminated &&
-			skippedPlayerCount >= this.skippedPlayerAchievementAmount) {
-			this.unlockAchievement(this.lastPlayer, this.skippedPlayerAchievement);
-		}
-
-		if (this.timeEnded) return; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 
 		if (autoDraws.size) {
 			const names: string[] = [];
@@ -498,7 +499,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.currentPlayer = player;
 		this.awaitingCurrentPlayerCard = true;
 
-		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><b><username>" + player!.name +
+		const html = this.getMascotAndNameHtml() + "<br /><center>" + this.getTopCardHtml() + "<br /><b><username>" + player.name +
 			"</username></b>'s turn!</center>";
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
@@ -823,7 +824,7 @@ export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClo
 			enabled: true,
 		},
 	},
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<CardMatching>, commands),
 	modes: undefined,
 	modeProperties: undefined,
 	tests: Object.assign({}, cardGame.tests, tests),

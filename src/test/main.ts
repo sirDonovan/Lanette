@@ -36,7 +36,7 @@ module.exports = (inputOptions: Dict<string>): void => {
 
 	try {
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-call
-		require(path.join(rootFolder, 'built', 'app.js'))();
+		require(path.join(rootFolder, 'build', 'app.js'))();
 		clearInterval(Storage.globalDatabaseExportInterval);
 
 		// allow tests to assert on Client's outgoingMessageQueue

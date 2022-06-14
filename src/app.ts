@@ -61,6 +61,9 @@ module.exports = (): void => {
 	console.log("Loading tournament schedules...");
 	Tournaments.loadSchedules();
 
+	console.log("Loading game schedules...");
+	Games.loadSchedules();
+
 	global.__reloadInProgress = false;
 
 	global.__reloadModules = async(username: string, targets: string[]): Promise<void> => {
@@ -120,12 +123,12 @@ module.exports = (): void => {
 		if (user) user.say("Running ``tsc``...");
 
 		for (const moduleId of modules) {
-			Tools.uncacheTree(path.join(Tools.builtFolder, moduleFilenames[moduleId] + '.js'));
+			Tools.uncacheTree(path.join(Tools.buildFolder, moduleFilenames[moduleId] + '.js'));
 		}
 
-		if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.builtFolder, configLoaderFilename + '.js'));
+		if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.buildFolder, configLoaderFilename + '.js'));
 		if (modules.includes('games') || modules.includes('tournaments')) {
-			Tools.uncacheTree(path.join(Tools.builtFolder, 'room-activity.js'));
+			Tools.uncacheTree(path.join(Tools.buildFolder, 'room-activity.js'));
 		}
 
 		const buildScript = path.join(Tools.rootFolder, 'build.js');
@@ -135,7 +138,7 @@ module.exports = (): void => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
 		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
 			for (const moduleId of modules) {
-				const modulePath = path.join(Tools.builtFolder, moduleFilenames[moduleId] + '.js');
+				const modulePath = path.join(Tools.buildFolder, moduleFilenames[moduleId] + '.js');
 
 				if (moduleId === 'client') {
 					global.Tools.unrefProperties(client);
@@ -151,7 +154,7 @@ module.exports = (): void => {
 					if (!modules.includes('games')) global.Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
 					let oldConfig = global.Config;
-					const configLoader = require(path.join(Tools.builtFolder,
+					const configLoader = require(path.join(Tools.buildFolder,
 						configLoaderFilename + '.js')) as typeof import('./config-loader');
 					const newConfig = configLoader.load(require(modulePath) as typeof import('./config-example'));
 					global.Config = newConfig;

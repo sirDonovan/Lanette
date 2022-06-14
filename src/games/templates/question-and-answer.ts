@@ -783,7 +783,8 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const room = game.room;
 			game.deallocate(true);
 
-			const minigame = Games.createGame(room, (format as unknown) as IGameFormat, room as Room, true) as QuestionAndAnswer;
+			const minigame = Games.createGame(room, (format as unknown) as IGameFormat,
+				{pmRoom: room as Room, minigame: true}) as QuestionAndAnswer;
 			minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
@@ -806,7 +807,8 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
-			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat, room as Room, true) as QuestionAndAnswer;
+			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat,
+				{pmRoom: room as Room, minigame: true}) as QuestionAndAnswer;
 
 			pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);

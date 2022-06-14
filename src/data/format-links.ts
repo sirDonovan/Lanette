@@ -120,6 +120,14 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8godlygift': {
 		teams: 'https://www.smogon.com/forums/threads/3660461/#post-8376501',
 	},
+	'gen8crossevolution': {
+		teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
+	},
+	/*
+	'gen8pokebilitiesaaa': {
+		teams: 'https://www.smogon.com/forums/threads/3657159/page-22#post-8821047',
+	},
+	*/
 
 	// Gen 7
 	'gen7letsgoou': {
@@ -384,6 +392,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3661945/post-8411584',
 		viability: 'https://www.smogon.com/forums/threads/3661945/post-8411584',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5monotype',
+	},
+	'gen5zu': {
+		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen5zu',
 	},
 
 	// Gen 4

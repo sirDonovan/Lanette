@@ -220,7 +220,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 			html += "Model generation:";
 			for (const i in PokemonPickerBase.pokemonGens) {
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setGeneration + "," + i,
-					i.toUpperCase(), this.generation === i);
+					i.toUpperCase(), {selectedAndDisabled: this.generation === i});
 			}
 		}
 
@@ -231,9 +231,11 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		let html = "";
 		if (this.props.gif && this.generation !== 'rb') {
 			html = "Shiny: ";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes",
+				{selectedAndDisabled: this.shininess});
 			html += "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No",
+				{selectedAndDisabled: !this.shininess});
 		}
 
 		return html;

@@ -689,6 +689,10 @@ export const commands: BaseCommandDefinitions = {
 					maximumTime = larger;
 				}
 
+				if (minimumTime === maximumTime) {
+					return this.say("The minimum and maximum amount of minutes must have different values.");
+				}
+
 				while (time < minimumTime || time > maximumTime) {
 					time = gameRoom.userHostedGame.random(maximumTime) + 1;
 				}
@@ -1521,7 +1525,11 @@ export const commands: BaseCommandDefinitions = {
 					(room.userHostedGame.teams ? "team" : "player") + ".");
 			}
 
+			let addedBits = false;
+			const bitsSource = 'userhosted';
 			if (Config.rankedGames && Config.rankedGames.includes(room.id)) {
+				addedBits = true;
+
 				let playerDifficulty: GameDifficulty;
 				if (Config.userHostedGamePlayerDifficulties && room.userHostedGame.format.id in Config.userHostedGamePlayerDifficulties) {
 					playerDifficulty = Config.userHostedGamePlayerDifficulties[room.userHostedGame.format.id];
@@ -1542,10 +1550,14 @@ export const commands: BaseCommandDefinitions = {
 				if (Config.afd) playerBits *= (room.userHostedGame.random(50) + 1);
 
 				for (const player of players) {
-					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, 'userhosted');
+					Storage.addPoints(room, Storage.gameLeaderboard, player.name, playerBits, bitsSource, true);
 					player.say("You were awarded " + playerBits + " bits! To see your total amount, use this command: ``" +
 						Config.commandCharacter + "bits " + room.title + "``");
 				}
+			}
+
+			if (addedBits) {
+				Storage.afterAddPoints(room, Storage.gameLeaderboard, bitsSource);
 			}
 
 			for (const player of players) {
@@ -1657,7 +1669,7 @@ export const commands: BaseCommandDefinitions = {
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 
-			const game = Games.createGame(room, format, pmRoom);
+			const game = Games.createGame(room, format, {pmRoom});
 			if (game) {
 				const randomAnswer = game.getRandomAnswer!();
 				this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +

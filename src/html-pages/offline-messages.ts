@@ -42,7 +42,7 @@ class OfflineMessages extends HtmlPageBase {
 	timezone: TimeZone;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
 
@@ -56,12 +56,6 @@ class OfflineMessages extends HtmlPageBase {
 
 		this.calculateTimezoneOffsets();
 		this.sortMessages(true);
-
-		pages[this.userId] = this;
-	}
-
-	onClose(): void {
-		delete pages[this.userId];
 	}
 
 	sortMessages(onOpen?: boolean): void {
@@ -287,15 +281,18 @@ class OfflineMessages extends HtmlPageBase {
 			const showingDiscarded = this.messageType === 'discarded';
 
 			html += "<b>Message type</b>: ";
-			html += this.getQuietPmButton(this.commandPrefix + " " + newMessagesCommand, "New", showingNew) + "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + " " + oldMessagesCommand, "Old", showingOld) + "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded", showingDiscarded);
+			html += this.getQuietPmButton(this.commandPrefix + " " + newMessagesCommand, "New",
+				{selectedAndDisabled: showingNew}) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + oldMessagesCommand, "Old",
+				{selectedAndDisabled: showingOld}) + "&nbsp;";
+			html += this.getQuietPmButton(this.commandPrefix + " " + discardedMessagesCommand, "Discarded",
+				{selectedAndDisabled: showingDiscarded});
 
 			html += "<br /><br /><details><summary><b>Set your timezone</b> (currently " + this.timezone + "):</summary>";
 			let rowCount = 0;
 			for (const timezone of Tools.timezones) {
 				html += this.getQuietPmButton(this.commandPrefix + " " + timezoneCommand + ", " + timezone, timezone,
-					this.timezone === timezone) + "&nbsp;";
+					{selectedAndDisabled: this.timezone === timezone}) + "&nbsp;";
 				rowCount++;
 				if (rowCount === 6) {
 					html += "<br />";
@@ -318,7 +315,7 @@ class OfflineMessages extends HtmlPageBase {
 				html += "<b>Date</b>: ";
 				for (const date of this.dateOptions) {
 					html += this.getQuietPmButton(this.commandPrefix + " " + dateCommand + ", " + date, date,
-						this.selectedDate === date) + "&nbsp;";
+						{selectedAndDisabled: this.selectedDate === date}) + "&nbsp;";
 				}
 				html += "<br /><div class='pmbox'>" + this.displayedMessagesByDate[this.selectedDate] + "</div>";
 			} else {
@@ -346,20 +343,21 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new OfflineMessages(botRoom, user).open();
-			} else if (cmd === newMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new OfflineMessages(botRoom, user);
+
+			if (cmd === newMessagesCommand) {
 				pages[user.id].selectNewMessages();
 			} else if (cmd === oldMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].selectOldMessages();
 			} else if (cmd === discardedMessagesCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].selectDiscardedMessages();
 			} else if (cmd === timezoneCommand) {
 				const timezone = targets[0].trim() as TimeZone;
 				if (!Tools.timezones.includes(timezone)) return this.say("Invalid timezone.");
 
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].setTimezone(timezone);
 			} else if (cmd === discardCommand || cmd === undoDiscardCommand) {
 				const database = Storage.getGlobalDatabase();
@@ -374,15 +372,11 @@ export const commands: BaseCommandDefinitions = {
 
 				database.offlineMessages[user.id].messages[index].discarded = cmd === discardCommand ? true : false;
 
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				pages[user.id].discardOrUndoDiscard();
 			} else if (cmd === dateCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
 				if (!pages[user.id].setDate(targets[0].trim())) this.say("Invalid date.");
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new OfflineMessages(botRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
 				this.say("Unknown sub-command '" + cmd + "'.");
 			}

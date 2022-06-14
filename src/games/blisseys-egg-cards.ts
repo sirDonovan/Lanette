@@ -182,12 +182,17 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let targets: string[] = [game.sampleOne(eggGroupKeys)];
-				while (!this.isPlayableTarget(game, targets)) {
-					targets = [game.sampleOne(eggGroupKeys)];
+				const shuffledEggGroups = game.shuffle(eggGroupKeys);
+				let usableEggGroup: string | undefined;
+				for (const eggGroup of shuffledEggGroups) {
+					if (this.isPlayableTarget(game, [eggGroup])) {
+						usableEggGroup = eggGroup;
+						break;
+					}
 				}
 
-				return this.name + ", " + targets[0];
+				if (!usableEggGroup) return;
+				return this.name + ", " + usableEggGroup;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
@@ -225,12 +230,25 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 				return game.pokemonToActionCard(this);
 			},
 			getRandomTarget(game) {
-				let randomEggGroups = game.sampleMany(eggGroupKeys, 2);
-				while (!this.isPlayableTarget(game, randomEggGroups)) {
-					randomEggGroups = game.sampleMany(eggGroupKeys, 2);
+				const shuffledEggGroups = game.shuffle(eggGroupKeys);
+				let usableEggGroups: string | undefined;
+				for (let i = 0; i < shuffledEggGroups.length; i++) {
+					const eggGroupA = shuffledEggGroups[i];
+					for (let j = 0; j < shuffledEggGroups.length; j++) {
+						if (j === i) continue;
+						const eggGroupB = shuffledEggGroups[j];
+						if (this.isPlayableTarget(game, [eggGroupA, eggGroupB])) {
+							usableEggGroups = eggGroupA + ", " + eggGroupB;
+							break;
+						}
+					}
+
+					if (usableEggGroups) break;
 				}
 
-				return this.name + ", " + randomEggGroups.join(", ");
+				if (!usableEggGroups) return;
+
+				return this.name + ", " + usableEggGroups;
 			},
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
@@ -777,7 +795,7 @@ const tests: GameFileTests<BlisseysEggCards> = {
 export const game: IGameFile<BlisseysEggCards> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["blisseys", "eggcards", "bec"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<BlisseysEggCards>, commands),
 	class: BlisseysEggCards,
 	description: "Each round, players can play 1-2 cards that share an egg group with the top card or draw a card.",
 	name: "Blissey's Egg Cards",

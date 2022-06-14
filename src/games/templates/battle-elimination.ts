@@ -73,6 +73,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	htmlPageGameDescription: string = '';
 	htmlPageGameName: string = '';
 	internalGame = true;
+	leftBeforeEliminationStarted: Player[] = [];
 	maxPlayers: number = POTENTIAL_MAX_PLAYERS[POTENTIAL_MAX_PLAYERS.length - 1];
 	minPlayers: number = 4;
 	monoColor: boolean = false;
@@ -202,6 +203,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	afterInitialize(): void {
 		this.setFormat();
 		this.firstRoundTime = this.activityWarnTimeout + this.activityDQTimeout + this.firstRoundExtraTime;
+
+		this.debugLog("getPossibleTeamsOptions: " + JSON.stringify(this.getPossibleTeamsOptions()));
 	}
 
 	getNumberOfRounds(players: number): number {
@@ -238,6 +241,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	getCustomRules(): string[] {
 		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
 		const allPokemon: string[] = [];
+		const checkedPokemon: Dict<boolean> = {};
+
 		for (const name of this.pokedex) {
 			const pokemon = Dex.getExistingPokemon(name);
 
@@ -251,19 +256,58 @@ export abstract class BattleElimination extends ScriptedGame {
 				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
 				for (const line of evolutionLines) {
 					for (const stage of line) {
+						if (stage in checkedPokemon) continue;
+
 						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+						const usableStageFormes: string[] = [];
 						for (const stageForme of stageFormes) {
-							if (this.battleFormat.usablePokemon!.includes(stageForme) && !allPokemon.includes(stageForme)) {
-								allPokemon.push(stageForme);
+							if (this.battleFormat.usablePokemon!.includes(stageForme)) usableStageFormes.push(stageForme);
+						}
+
+						let addBaseModifier = false;
+						if (!Dex.getExistingPokemon(stage).forme && usableStageFormes.length !== stageFormes.length) {
+							for (const usableStageForme of usableStageFormes) {
+								if (!Dex.getExistingPokemon(usableStageForme).forme) {
+									addBaseModifier = true;
+									break;
+								}
 							}
 						}
+
+						if (addBaseModifier) {
+							const baseModifier = stage + "-Base";
+							if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+						}
+
+						for (const usableStageForme of usableStageFormes) {
+							if (addBaseModifier && usableStageForme === stage) continue;
+
+							if (!allPokemon.includes(usableStageForme)) allPokemon.push(usableStageForme);
+						}
+
+						checkedPokemon[stage] = true;
 					}
 				}
 			} else {
-				if (!allPokemon.includes(pokemon.name)) allPokemon.push(pokemon.name);
+				let addBaseModifier = false;
+				if (!pokemon.forme && usableFormes.length !== formes.length) {
+					for (const forme of usableFormes) {
+						if (!Dex.getExistingPokemon(forme).forme) {
+							addBaseModifier = true;
+							break;
+						}
+					}
+				}
 
-				for (const forme of usableFormes) {
-					if (!allPokemon.includes(forme)) allPokemon.push(forme);
+				if (addBaseModifier) {
+					const baseModifier = pokemon.name + "-Base";
+					if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+				}
+
+				for (const usableForme of usableFormes) {
+					if (addBaseModifier && usableForme === pokemon.name) continue;
+
+					if (!allPokemon.includes(usableForme)) allPokemon.push(usableForme);
 				}
 			}
 		}
@@ -428,9 +472,9 @@ export abstract class BattleElimination extends ScriptedGame {
 					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
 				};
-				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
-				this.debugLog(player.name + " first round bye choices: " + pokemon.join(", "));
+				this.debugLog(player.name + " first round bye team changes: " + JSON.stringify(teamChange));
+				this.teamChanges.set(player, (this.teamChanges.get(player) || []).concat([teamChange]));
 
 				this.firstRoundByeAdditions.set(player, pokemon);
 				this.updatePossibleTeams(player, pokemon);
@@ -551,16 +595,24 @@ export abstract class BattleElimination extends ScriptedGame {
 			matchesByRound[i] = [];
 		}
 
+		const allNodes: EliminationNode<Player>[] = [this.treeRoot];
 		const queue: {node: EliminationNode<Player>, round: number}[] = [{node: this.treeRoot, round: this.totalRounds}];
-		let item;
+		// queue is only unique items due to allNodes
 		while (queue.length) {
-			item = queue.shift();
+			const item = queue.shift();
 			if (!item || !item.node.children) continue;
 
 			matchesByRound[item.round].push(item.node);
 
-			queue.push({node: item.node.children[0], round: item.round - 1});
-			queue.push({node: item.node.children[1], round: item.round - 1});
+			if (!allNodes.includes(item.node.children[0])) {
+				allNodes.push(item.node.children[0]);
+				queue.push({node: item.node.children[0], round: item.round - 1});
+			}
+
+			if (!allNodes.includes(item.node.children[1])) {
+				allNodes.push(item.node.children[1]);
+				queue.push({node: item.node.children[1], round: item.round - 1});
+			}
 		}
 
 		return matchesByRound;
@@ -591,45 +643,19 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.subRoom.disqualifyFromTournament(player.name);
 			}
 
-			/**
-			 * The user either has a single available battle or no available battles
-			 */
-			const found: {match: [Player, Player], result: 'win' | 'loss', score: [number, number]} | undefined = this.treeRoot.
-				find(node => {
-				if (node.state === 'available') {
-					if (!node.children) {
-						throw new Error("Match node state is not available in disqualifyPlayers(" +
-							players.map(x => x.name).join(", ") + ")");
-					}
-					if (node.children[0].user === player) {
-						return {
-							match: [player, node.children[1].user!],
-							result: 'loss',
-							score: [0, 1],
-						};
-					} else if (node.children[1].user === player) {
-						return {
-							match: [node.children[0].user!, player],
-							result: 'win',
-							score: [1, 0],
-						};
-					}
-				}
-				return undefined;
-			});
-
-			if (found) {
+			const node = this.findPlayerMatchNode(player);
+			if (node) {
 				let winner: Player;
-				if (found.match[0] === player) {
-					winner = found.match[1];
+				if (node.children![0].user === player) {
+					winner = node.children![1].user!;
 				} else {
-					winner = found.match[0];
+					winner = node.children![0].user!;
 				}
 
 				this.disqualifiedOpponents.set(winner, player);
 
 				this.debugLog(winner.name + " won by DQ against " + player.name);
-				const teamChanges = this.setMatchResult(found.match, found.result, found.score);
+				const teamChanges = this.setMatchResult(node, winner);
 				if (this.ended) break;
 
 				if (!players.includes(winner)) {
@@ -658,7 +684,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	eliminateInactivePlayers(player: Player, opponent: Player, inactivePlayers: Player[]): void {
-		const node = this.findAvailableMatchNode(player, opponent);
+		const node = this.findPlayerMatchNode(player, opponent);
 		if (node) this.clearNodeTimers(node);
 
 		const playerReason = this.getDisqualifyReasonText("for failing to battle " + opponent.name + " in time");
@@ -691,31 +717,18 @@ export abstract class BattleElimination extends ScriptedGame {
 		return nodes;
 	}
 
-	setMatchResult(players: [Player, Player], result: 'win' | 'loss', score: [number, number], loserTeam?: string[]): ITeamChange[] {
-		if (!this.treeRoot) {
-			throw new Error("setMatchResult() called before bracket generated ([" + players.map(x => x.name).join(', ') + "], " +
-				result + ")");
+	setMatchResult(node: EliminationNode<Player>, winner: Player, loserTeam?: string[]): ITeamChange[] {
+		if (node.state !== 'available' || !node.children || !node.children[0].user || !node.children[1].user) {
+			throw new Error("setMatchResult() called with unavailable node");
 		}
 
-		const p1 = players[0];
-		const p2 = players[1];
+		const p1 = node.children[0].user;
+		const p2 = node.children[1].user;
 
-		const targetNode = this.treeRoot.find(node => {
-			if (node.state === 'available' && node.children![0].user === p1 && node.children![1].user === p2) {
-				return node;
-			}
-			return undefined;
-		});
+		const winnerP1 = winner === p1;
+		const loser = winnerP1 ? p2 : p1;
 
-		if (!targetNode) {
-			throw new Error("Match node not found in setMatchResult([" + players.map(x => x.name).join(', ') + "], " + result + ")");
-		}
-		if (!targetNode.children) {
-			throw new Error("Match node state is not available in setMatchResult([" + players.map(x => x.name).join(', ') + "], " +
-				result + ")");
-		}
-
-		this.clearNodeTimers(targetNode);
+		this.clearNodeTimers(node);
 
 		this.playerOpponents.delete(p1);
 		this.playerOpponents.delete(p2);
@@ -723,13 +736,10 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.playerBattleRooms.delete(p1);
 		this.playerBattleRooms.delete(p2);
 
-		targetNode.state = 'finished';
-		targetNode.result = result;
-		targetNode.score = score.slice();
-
-		const winner = targetNode.children[result === 'win' ? 0 : 1].user!;
-		const loser = targetNode.children[result === 'loss' ? 0 : 1].user!;
-		targetNode.user = winner;
+		node.state = 'finished';
+		node.result = winnerP1 ? 'win' : 'loss';
+		node.score = winnerP1 ? [1, 0] : [0, 1];
+		node.user = winner;
 
 		loser.eliminated = true;
 
@@ -767,12 +777,15 @@ export abstract class BattleElimination extends ScriptedGame {
 					}
 				}
 
-				winnerTeamChanges.push({
+				const teamChanges: ITeamChange = {
 					additions: additionsThisRound,
 					choices: loserTeam,
 					drops: dropsThisRound,
 					evolutions: this.evolutionsPerRound,
-				});
+				};
+
+				this.debugLog(winner.name + " team changes round " + winner.round + ": " + JSON.stringify(teamChanges));
+				winnerTeamChanges.push(teamChanges);
 
 				this.updatePossibleTeams(winner, loserTeam);
 
@@ -783,18 +796,18 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		winner.round!++;
 
-		if (targetNode.parent) {
-			const userA = targetNode.parent.children![0].user;
-			const userB = targetNode.parent.children![1].user;
+		if (node.parent) {
+			const userA = node.parent.children![0].user;
+			const userB = node.parent.children![1].user;
 			if (userA && userB) {
-				targetNode.parent.state = 'available';
+				node.parent.state = 'available';
 
 				if (userA.eliminated) {
 					this.debugLog(userB.name + " automatic win against " + userA.name);
-					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'loss', [0, 1]));
+					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult(node.parent, userB));
 				} else if (userB.eliminated) {
 					this.debugLog(userA.name + " automatic win against " + userB.name);
-					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult([userA, userB], 'win', [1, 0]));
+					winnerTeamChanges = winnerTeamChanges.concat(this.setMatchResult(node.parent, userA));
 				}
 			}
 		}
@@ -978,7 +991,7 @@ export abstract class BattleElimination extends ScriptedGame {
 					(this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound ? "starting " : "") +
 					(this.startingTeamsLength === 1 ? "Pokemon" : "team") + " " + (pastTense ? "was" : "is") + ":";
 				html += "<br />" + this.getPokemonIcons(starterPokemon).join("");
-				if (this.canReroll && !this.rerolls.has(player)) {
+				if (this.canReroll && this.playerCanReroll(player)) {
 					html += "<br /><br />If you are not satisfied, you have 1 chance to reroll but you must keep whatever you receive! " +
 						Client.getPmSelfButton(Config.commandCharacter + "reroll", "Reroll Pokemon");
 				}
@@ -1188,6 +1201,13 @@ export abstract class BattleElimination extends ScriptedGame {
 			team.push(pokemon);
 		}
 		return team;
+	}
+
+	playerCanReroll(player: Player): boolean {
+		if (this.rerolls.has(player) || !this.starterPokemon.has(player) || this.playerBattleRooms.has(player) ||
+			(player.round! > 1 && !(this.firstRoundByes.has(player) && player.round === 2))) return false;
+
+		return true;
 	}
 
 	giveStartingTeam(player: Player): void {
@@ -1470,18 +1490,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml(html);
 		}
 
-		const guestUserDqs = new Map<Player, string>();
+		const immediateDqs = new Map<Player, string>();
 		for (const i in this.players) {
-			if (this.players[i].name.startsWith(Tools.guestUserPrefix)) {
+			if (this.players[i].name.startsWith(Tools.guestUserPrefix) || this.leftBeforeEliminationStarted.includes(this.players[i])) {
 				this.players[i].eliminated = true;
-				guestUserDqs.set(this.players[i], "You left the " + this.name + " tournament.");
+				immediateDqs.set(this.players[i], "You left the " + this.name + " tournament.");
 			}
 		}
 
 		if (!this.subRoom) this.generateBracket();
 		this.afterGenerateBracket();
 
-		if (guestUserDqs.size) this.disqualifyPlayers(guestUserDqs);
+		if (immediateDqs.size) this.disqualifyPlayers(immediateDqs);
 	}
 
 	onAddPlayer(player: Player): boolean {
@@ -1574,6 +1594,8 @@ export abstract class BattleElimination extends ScriptedGame {
 			const playerAndReason = new Map<Player, string>();
 			playerAndReason.set(player, "You left the " + this.name + " tournament.");
 			this.disqualifyPlayers(playerAndReason);
+		} else {
+			if (!this.leftBeforeEliminationStarted.includes(player)) this.leftBeforeEliminationStarted.push(player);
 		}
 	}
 
@@ -1649,16 +1671,23 @@ export abstract class BattleElimination extends ScriptedGame {
 		return team;
 	}
 
-	findAvailableMatchNode(player: Player, opponent: Player): EliminationNode<Player> | null {
-		for (const availableMatchNode of this.availableMatchNodes) {
-			const playerA = availableMatchNode.children![0].user!;
-			const playerB = availableMatchNode.children![1].user!;
-			if ((playerA === player && playerB === opponent) || (playerA === opponent && playerB === player)) {
-				return availableMatchNode;
-			}
-		}
+	findPlayerMatchNode(player: Player, opponent?: Player): EliminationNode<Player> | undefined {
+		if (!this.treeRoot) throw new Error("findAvailableMatchNode() called before bracket generated");
+		if (player === opponent) throw new Error("findAvailableMatchNode() called with duplicate player");
 
-		return null;
+		return this.treeRoot.find(node => {
+			if (node.state === 'available') {
+				if (!node.children) {
+					throw new Error("Node marked available without players");
+				}
+
+				if ((node.children[0].user === player || node.children[1].user === player) &&
+					(!opponent || node.children[0].user === opponent || node.children[1].user === opponent)) {
+					return node;
+				}
+			}
+			return undefined;
+		});
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
@@ -1721,7 +1750,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		const players = this.getPlayersFromBattleData(room);
 		if (players) {
-			const node = this.findAvailableMatchNode(players[0], players[1]);
+			const node = this.findPlayerMatchNode(players[0], players[1]);
 			if (!node) throw new Error(this.name + ": no available match for " + players[0].name + " and " + players[1].name);
 			this.clearNodeTimers(node);
 		}
@@ -1906,15 +1935,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		const loserTeam = battleData.pokemon[loserSlot];
-		const node = this.findAvailableMatchNode(winner, loser);
+		const node = this.findPlayerMatchNode(winner, loser);
 		if (!node) throw new Error("No available match for " + winner.name + " and " + loser.name);
 
-		const result: 'win' | 'loss' = node.children![0].user === winner ? 'win' : 'loss';
-		const win = result === 'win';
-
 		this.debugLog(winner.name + " won their battle against " + loser.name);
-		const teamChanges = this.setMatchResult([node.children![0].user!, node.children![1].user!], result, win ? [1, 0] : [0, 1],
-			loserTeam);
+		const teamChanges = this.setMatchResult(node, winner, loserTeam);
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this.ended) {
@@ -2035,6 +2060,12 @@ export abstract class BattleElimination extends ScriptedGame {
 			database.lastGameFormatTimes[idWithOptions] = now;
 		}
 
+		if (!database.pastTournamentGames) database.pastTournamentGames = [];
+		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
+		while (database.pastTournamentGames.length > 8) {
+			database.pastTournamentGames.pop();
+		}
+
 		const places = Tournaments.getPlacesFromTree(this.treeRoot);
 		if (places.winner && places.runnerup && places.semifinalists) {
 			const winners: Player[] = [places.winner];
@@ -2058,7 +2089,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'bits ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				this.addBits(runnerUp, runnerUpPoints);
+				this.addBits(runnerUp, runnerUpPoints, true);
 				const user = Users.get(runnerUp.name);
 				if (user) user.say(runnerUpPm);
 			}
@@ -2077,7 +2108,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 
 			if (winners.length === 1) {
-				Tournaments.showWinnerTrainerCard(this.room, winners[0].name);
+				Tournaments.displayTrainerCard(this.room, winners[0].name);
 			}
 		}
 
@@ -2225,7 +2256,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			}
 
 			const player = this.players[user.id];
-			if (this.rerolls.has(player) || this.playerBattleRooms.has(player)) return false;
+			if (!this.playerCanReroll(player)) return false;
 
 			const starterPokemon = this.starterPokemon.get(player);
 			if (!starterPokemon) return false;

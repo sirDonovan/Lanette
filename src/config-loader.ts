@@ -110,8 +110,8 @@ export function load(config: typeof Config): typeof Config {
 	if (config.unrankedTournamentFormats) {
 		config.unrankedTournamentFormats = objectKeysToRoomId(stringArrayObjectToIds(config.unrankedTournamentFormats));
 	}
-	if (config.scheduledTournamentsMaxPlayerCap) {
-		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
+	if (config.randomTournamentCustomRules) {
+		config.randomTournamentCustomRules = objectKeysToRoomId(stringArrayObjectToIds(config.randomTournamentCustomRules));
 	}
 	if (config.displayTournamentFormatInfo) config.displayTournamentFormatInfo = arrayToRoomIds(config.displayTournamentFormatInfo);
 	if (config.displayUnrankedTournamentResults) {
@@ -143,6 +143,7 @@ export function load(config: typeof Config): typeof Config {
 		config.sharedTournamentTrainerCards = objectKeysToRoomId(stringObjectToRoomIds(config.sharedTournamentTrainerCards));
 	}
 	if (config.tournamentTrainerCardBadges) config.tournamentTrainerCardBadges = objectKeysToId(config.tournamentTrainerCardBadges);
+	if (config.tournamentTrainerCardRibbons) config.tournamentTrainerCardRibbons = objectKeysToId(config.tournamentTrainerCardRibbons);
 	if (config.userHostedTournamentRanks) objectKeysToRoomId(config.userHostedTournamentRanks);
 	if (config.gameCatalogGists) objectKeysToRoomId(config.gameCatalogGists);
 

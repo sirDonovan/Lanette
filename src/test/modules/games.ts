@@ -42,7 +42,7 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 
 function createIndividualTestGame(format: IGameFormat): ScriptedGame {
 	const room = createTestRoom();
-	const game = Games.createGame(room, format, room, false, initialSeed) as ScriptedGame;
+	const game = Games.createGame(room, format, {pmRoom: room, initialSeed}) as ScriptedGame;
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
@@ -196,7 +196,7 @@ describe("Games", () => {
 
 			if (format.canGetRandomAnswer) {
 				const room = createTestRoom();
-				const game = Games.createGame(room, format, room, false, initialSeed);
+				const game = Games.createGame(room, format, {pmRoom: room, initialSeed});
 				assert(game);
 				assertStrictEqual(typeof game.getRandomAnswer, 'function');
 				game.deallocate(true);
@@ -232,7 +232,7 @@ describe("Games", () => {
 		for (const format of formatsToTest) {
 			const room = createTestRoom();
 			try {
-				Games.createGame(room, format, room, false, initialSeed);
+				Games.createGame(room, format, {pmRoom: room, initialSeed});
 			} catch (e) {
 				console.log(e);
 				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
@@ -255,7 +255,7 @@ describe("Games", () => {
 				const format = Games.getExistingFormat(formatId + "," + mode);
 				const room = createTestRoom();
 				try {
-					Games.createGame(room, format, room, false, initialSeed);
+					Games.createGame(room, format, {pmRoom: room, initialSeed});
 				} catch (e) {
 					console.log(e);
 					fail((e as Error).message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " +
@@ -290,7 +290,7 @@ describe("Games", () => {
 
 	it('should properly deallocate PM games', () => {
 		const room = createTestRoom();
-		Games.createGame(Users.self, Games.getExistingFormat('trivia'), room, true);
+		Games.createGame(Users.self, Games.getExistingFormat('trivia'), {pmRoom: room, minigame: true});
 		assert(Users.self.game);
 		Users.self.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 		Users.self.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
@@ -343,7 +343,7 @@ describe("Games", () => {
 		const room = createTestRoom();
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
-			const game = Games.createGame(room, format, room, false, prng.initialSeed.slice() as PRNGSeed) as ScriptedGame;
+			const game = Games.createGame(room, format, {pmRoom: room, initialSeed: prng.initialSeed.slice() as PRNGSeed}) as ScriptedGame;
 			for (let i = 0; i < game.prng.initialSeed.length; i++) {
 				assert(game.prng.initialSeed[i] === prng.initialSeed[i], format.name);
 			}

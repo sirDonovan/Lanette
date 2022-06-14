@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameCachedData, IGameFile } from "../types/games";
-import type { INature, StatID } from "../types/pokemon-showdown";
+import type { INature, StatIDExceptHP } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 class XatusNatureClusters extends QuestionAndAnswer {
@@ -30,7 +30,7 @@ class XatusNatureClusters extends QuestionAndAnswer {
 				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
 				pokemon.baseStats.spd === pokemon.baseStats.spe) continue;
 
-			const statKeys = Object.keys(pokemon.baseStats) as StatID[];
+			const statKeys: StatIDExceptHP[] = ['atk', 'def', 'spa', 'spd', 'spe'];
 			statKeys.sort((a, b) => pokemon.baseStats[b] - pokemon.baseStats[a]);
 
 			const highestStat = statKeys[0];

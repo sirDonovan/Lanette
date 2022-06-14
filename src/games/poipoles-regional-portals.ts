@@ -61,7 +61,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	onNextRound(): void {
 		this.canTravel = false;
 
-		if (this.roundLocations.length) {
+		if (this.roundLocations.length && !this.roundTravels.size) {
 			this.inactiveRounds++;
 			if (this.inactiveRounds === this.inactiveRoundLimit) {
 				this.inactivityEnd();
@@ -85,7 +85,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		}
 
 		let region = this.sampleOne(regionKeys);
-		while (region === this.lastRegion) {
+		while (region === this.lastRegion || (regionTypeKeys[region].length === 1 && regionTypeKeys[region][0] === this.lastType)) {
 			region = this.sampleOne(regionKeys);
 		}
 		this.lastRegion = region;

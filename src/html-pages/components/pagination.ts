@@ -97,7 +97,7 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 			for (let i = 0; i < this.totalPages; i++) {
 				const page = "" + (i + 1);
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + pageCommand + ", " + page, page,
-					this.currentPage === i);
+					{selectedAndDisabled: this.currentPage === i});
 			}
 		}
 

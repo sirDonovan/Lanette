@@ -113,8 +113,8 @@ class MalamarsBowls extends QuestionAndAnswer {
 
 	updateHint(): void {
 		while (this.pokemonGifHints && !this.getHintKeyGif(this.roundPokemon[0])) {
-			if (!this.roundPokemon.length) break;
 			this.roundPokemon.shift();
+			if (!this.roundPokemon.length) break;
 		}
 
 		if (this.roundPokemon.length) {

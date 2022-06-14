@@ -1,4 +1,5 @@
 exports.alternateIconNumbers = {
+	// pokemon-showdown-client -> battle-dex-data.ts -> BattlePokemonIconIndexes
 	right: {
 		egg: 900 + 1,
 		pikachubelle: 900 + 2,
@@ -116,6 +117,7 @@ exports.alternateIconNumbers = {
 		furfroustar: 900 + 114,
 		meowsticf: 900 + 115,
 		aegislashblade: 900 + 116,
+		xerneasneutral: 900 + 117,
 		hoopaunbound: 900 + 118,
 		rattataalola: 900 + 119,
 		raticatealola: 900 + 120,
@@ -338,6 +340,8 @@ exports.alternateIconNumbers = {
 		astrolotl: 1308 + 29,
 		miasmaw: 1308 + 30,
 		chromera: 1308 + 31,
+		venomicon: 1308 + 32,
+		venomiconepilogue: 1308 + 33,
 
 		syclar: 1344 + 0,
 		embirch: 1344 + 1,
@@ -374,6 +378,7 @@ exports.alternateIconNumbers = {
 		miasmite: 1344 + 32,
 		dorsoil: 1344 + 33,
 	},
+	// pokemon-showdown-client -> battle-dex-data.ts -> BattlePokemonIconIndexesLeft
 	left: {
 		pikachubelle: 1200 + 0,
 		pikachupopstar: 1200 + 1,

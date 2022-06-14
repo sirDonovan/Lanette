@@ -26,11 +26,16 @@ export abstract class Game extends Activity {
 	largestTeam: PlayerTeam | null = null;
 	leaveNotices = new Set<string>();
 	minPlayers: number = 4;
+	official: boolean = false;
 	playerOrders: Dict<Player[]> | null = null;
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
+	updateBitsSource: string = "";
+	updatedBits: boolean = false;
+	updatedBitsSourceCache: boolean = false;
+	updatedDatabase: boolean = false;
 	readonly winners = new Map<Player, number>();
 
 	// set in initialize()
@@ -137,6 +142,13 @@ export abstract class Game extends Activity {
 		}
 	}
 
+	afterAddBits(): void {
+		if (!this.updatedBitsSourceCache && this.updatedBits && this.updateBitsSource && !this.isPmActivity(this.room)) {
+			Storage.afterAddPoints(this.room, Storage.gameLeaderboard, this.updateBitsSource);
+			this.updatedBitsSourceCache = true;
+		}
+	}
+
 	announceWinners(): void {
 		if (this.parentGame) return;
 
@@ -154,7 +166,8 @@ export abstract class Game extends Activity {
 			} else if (!this.isPmActivity(this.room)) {
 				if (Config.onScriptedGameWin) {
 					try {
-						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
+						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points,
+							this.official);
 					} catch (e) {
 						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
 					}
@@ -163,6 +176,8 @@ export abstract class Game extends Activity {
 
 			let trainerCardsShown = false;
 			if (!this.isPmActivity(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
+				this.afterAddBits();
+
 				const trainerCards: string[] = [];
 				const noTrainerCards: string[] = [];
 				this.winners.forEach((points, player) => {
@@ -455,6 +470,8 @@ export abstract class Game extends Activity {
 	}
 
 	generateTeams(numberOfTeams: number, teamNames?: string[]): Dict<PlayerTeam> {
+		if (numberOfTeams < 2) throw new Error("generateTeams called with less than 2 teams");
+
 		const teams: Dict<PlayerTeam> = {};
 		const playerList = this.shufflePlayers();
 		if (!teamNames) teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);

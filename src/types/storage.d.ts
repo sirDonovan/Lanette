@@ -44,11 +44,12 @@ export interface ITournamentTrainerCard {
 	avatar?: TrainerSpriteId;
 	badges?: string[];
 	bio?: string;
-	customAvatar?: string;
+	customAvatar?: boolean;
 	favoriteFormat?: string;
 	footer?: HexCode;
 	header?: HexCode;
 	pokemon?: string[];
+	ribbons?: string[];
 	table?: HexCode;
 }
 
@@ -56,6 +57,7 @@ export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
 	background?: HexCode;
+	customAvatar?: boolean;
 	pokemonGifs?: boolean;
 }
 
@@ -84,6 +86,7 @@ export interface IGameCustomBox {
 export interface IGameHostBox extends IGameCustomBox {
 	pokemon: IPokemonPick[];
 	avatar?: TrainerSpriteId;
+	customAvatar?: boolean;
 }
 
 export interface IGameScriptedBox extends IGameCustomBox {
@@ -165,10 +168,16 @@ export interface IGameStat {
 	winners: string[];
 }
 
+interface IQueuedScriptedGame {
+	formatid: string;
+	official: boolean;
+	time: number;
+}
+
 interface IQueuedTournament {
 	formatid: string;
 	playerCap: number;
-	scheduled: boolean;
+	official: boolean;
 	time: number;
 	tournamentName?: string;
 }
@@ -213,9 +222,10 @@ export interface IDatabase {
 	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
 	pastGames?: IPastGame[];
+	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];
 	pastUserHostedGames?: IPastGame[];
-	previousCycles?: IPreviousCycle[];
+	queuedScriptedGame?: IQueuedScriptedGame;
 	queuedTournament?: IQueuedTournament;
 	roomSampleTeamsLink?: string;
 	scriptedGameCounts?: Dict<number>;
@@ -230,6 +240,10 @@ export interface IDatabase {
 	userHostedGameStats?: Dict<IGameStat[]>;
 	userHostedGameQueue?: IQueuedUserHostedGame[];
 	userHostStatuses?: Dict<IUserHostStatusData>;
+}
+
+export interface IArchiveDatabase {
+	previousCycles?: IPreviousCycle[];
 }
 
 interface IOfflineMessage {

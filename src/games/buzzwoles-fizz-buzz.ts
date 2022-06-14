@@ -72,13 +72,11 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.currentNumber = 0;
 		let firstMultiple = 2;
 		let secondMultiple = 2;
-		while (firstMultiple % secondMultiple === 0 || secondMultiple % firstMultiple === 0) {
+		const finalTwo = this.getRemainingPlayerCount() === 2;
+		while (firstMultiple % secondMultiple === 0 || secondMultiple % firstMultiple === 0 || (finalTwo &&
+			(firstMultiple % 2 === 0 || secondMultiple % 2 === 0))) {
 			firstMultiple = this.random(3) + 2;
 			secondMultiple = this.random(8) + 2;
-		}
-		if (this.getRemainingPlayerCount() === 2 && (firstMultiple % 2 === 0 || secondMultiple % 2 === 0)) {
-			this.resetCount();
-			return;
 		}
 
 		const multiples = [firstMultiple, secondMultiple].sort((a, b) => a - b);

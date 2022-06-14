@@ -51,6 +51,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			onClear: () => this.clearAllPokemonInput(),
 			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		};
 
@@ -80,7 +81,8 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			onClear: (index, dontRender) => this.clearPokemon(index, dontRender),
 			onPick: (index, pokemon, dontRender) =>
 				this.selectPokemon(index, pokemon, dontRender),
-			reRender: () => props.reRender(),
+			readonly: this.props.readonly,
+			reRender: () => this.props.reRender(),
 		};
 
 		this.maxPickerIndex = props.maxPokemon - 1;
@@ -257,7 +259,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 		let html = "Model generations:";
 		for (const generation of Dex.getModelGenerations()) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setGenerationCommand + "," + generation,
-				generation.toUpperCase(), this.currentModelGeneration === generation);
+				generation.toUpperCase(), {selectedAndDisabled: this.currentModelGeneration === generation});
 		}
 
 		html += "<br /><br />";
@@ -275,7 +277,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 		const currentIndex = this.pokemonPickerIndex + 1;
 		for (let i = 1; i <= this.props.maxPokemon; i++) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setPokemonPickerIndexCommand + ", " + i,
-				"" + i, currentIndex === i);
+				"" + i, {selectedAndDisabled: currentIndex === i});
 		}
 
 		html += "<br /><br />";
