@@ -871,6 +871,10 @@ export class ScriptedGame extends Game {
 
 			failedToJoin = true;
 		}
+		// prevent non-challenging players from joining a one vs. one game or a bot challenge
+		if (this.minPlayers === 2) {
+			failedToJoin = true;
+		}
 
 		if (this.started && !this.canLateJoin) {
 			if (!this.joinNotices.has(user.id)) {
