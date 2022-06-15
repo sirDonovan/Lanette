@@ -14,6 +14,7 @@ class EggToss extends ScriptedGame {
 	currentHolder: Player | null = null;
 	explodeTimeout: NodeJS.Timer | null = null;
 	internalGame: boolean = true;
+	managedPlayers = true;
 	lastHolder: Player | null = null;
 
 	// hack for selectUser()
