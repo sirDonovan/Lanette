@@ -355,7 +355,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 
 	for(const tier of allTiers) {
-	if(tier==guess) {
+	if(tier==this.tierSwap(guess)) {
 	valtier++; break;
 	}
 	}
