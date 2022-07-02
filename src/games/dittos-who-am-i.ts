@@ -28,25 +28,19 @@ class DittosWhoAmI extends ScriptedGame {
 	currentPlayer: Player | null = null;
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
+	roundPlayerOrder: Player[] = [];
+
 	points = new Map<Player, number>();
 	playerPokemon = new Map<Player, IPokemon>();
 	megaWeakList = new Map<Player, string>();
 	megaResList = new Map<Player, string>();
 	frozenList = new Map<Player, boolean>();
 
-
 	realPoke = Dex.getExistingPokemon("mew");
 	realPokeName = "nyaa~";
 
-
-
-
-
 	weakList = "";
 	resList = "";
-
-	roundPlayerOrder: Player[] = [];
-
 
 	valpoke = 0;
 	VALID_QUESTION = -1;
@@ -124,8 +118,6 @@ class DittosWhoAmI extends ScriptedGame {
 				continue;
 
 			lastid = id;
-
-
 
 			this.playerPokemon.set(player, pokemon);
 
@@ -369,7 +361,7 @@ if (valmove) {
 				const condition = guess == this.sanctify(name);
 				const condition2 = guess == this.sanctify(name + "type");
 				if (condition || condition2) {
-this.typeflag = true; break;
+					this.typeflag = true; break;
 				} else this.typeflag = false;
 
 				}
@@ -712,8 +704,8 @@ this.typeflag = true; break;
 		MAX_GUESSES--;
 
 		if (win2) {
-this.announceWinners(); this.end();
-}
+			this.announceWinners(); this.end();
+		}
 		if (!win2){
 
 		this.roundPlayerOrder = this.shufflePlayers();
@@ -727,8 +719,8 @@ this.announceWinners(); this.end();
 		const currentPlayer = this.playerOrder[0];
 		this.playerOrder.shift();
 		if (currentPlayer.eliminated ) {
-this.say("onnextround's case, player switching now"); this.fancyElim();
-}
+		this.say("onnextround's case, player switching now"); this.fancyElim();
+		}
 
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
@@ -816,7 +808,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 };
 
 export const game: IGameFile<DittosWhoAmI> = {
-	aliases: ["dittos", "q3", "quack3"],
+	aliases: ["dittos", "who am i", "q3", "quack3"],
 	category: 'puzzle',
 	class: DittosWhoAmI,
 	commands,
