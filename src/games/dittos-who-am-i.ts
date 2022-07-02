@@ -1,82 +1,26 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import { addPlayers, assertStrictEqual } from "../test/test-tools";
 import type { IPokemon } from "../types/pokemon-showdown";
 
 
-
-interface IPokemonData {
-	color: string[];
-	eggGroup: string[];
-	generation: string[];
-	moves: string[];
-	type: readonly string[];
-}
-type IPokemonCategory = keyof IPokemonData;
-
-const data: {pokemon: Dict<IPokemonData>, keys: string[], allParameters: KeyedDict<IPokemonCategory, string[]>} = {
-	pokemon: {},
-	keys: [],
-	allParameters: {
-		color: [],
-		eggGroup: [],
-		generation: [],
-		moves: [],
-		type: [],
-	},
-};
-
-
+let MAX_GUESSES = 20;
+const roundTimer = 30;
+const turnTimer = 5;
 const pokemonList = Dex.getPokemonList();
 
-var MAX_GUESSES = 20;
-var win_flag = false;
-const round_timer = 30;
-const turn_timer = 5;
-var real_poke = Dex.getExistingPokemon("mew");
-var real_poke_name = "nyaa~";
-var valid_question = -1;
-var master_index = 0;
-var playerPokemon = new Map<Player, IPokemon>();
-var mega_weak_list = new Map<Player, String> ();
-var mega_res_list = new Map<Player, String> ();
-var frozen_list = new Map<Player, boolean> ();
-
-var weak_list = "";
-var res_list = "";
-
-let moveflag=false;
-let typeflag=false;
-let weakflag=false;
-let resflag=false;
-let monoflag=false;
-let tierflag=false;
-let genflag=false;
-let formflag=false;
-let abilflag=false;
-let pokeflag=false;
-let evoflag=false;
-let statflag=false;
-let elimflag=false;
-let colorflag=false;
-let eggflag=false;
-let megaflag=false;
-let alolaflag=false;
-let galarflag=false;
-let totemflag=false;
-let gmaxflag=false;
-
-let invalid_prompt =false;
-
-
-
-const allTypes = ["bug","dark","dragon","electric","fairy","fighting","fire","flying","ghost","grass","ground","ice","normal","poison","psychic","rock","steel","water"];
-const allTiers = ["uber","ubers","ou","overused","uubl","uu","underused","rubl","ru","rarelyused","nubl","nu","neverused","publ","pu","zubl","zu","ag","anythinggoes","lc","littlecup","nfe","illegal"];
-const allStats = ["hp", "hitpoints", "atk", "attack", "def", "defense", "spa", "spatk", "specialattack", "spc", "special", "spd", "spdef", "specialdefense", "spe", "speed", "bst", "basestattotal","ht", "height", "weight", "wt"];
+const allTypes = ["bug", "dark", "dragon", "electric", "fairy", "fighting", "fire", "flying",
+"ghost", "grass", "ground", "ice", "normal", "poison", "psychic", "rock", "steel", "water"];
+const allTiers = ["uber", "ubers", "ou", "overused", "uubl", "uu", "underused", "rubl", "ru", "rarelyused",
+"nubl", "nu", "neverused", "publ", "pu", "zubl", "zu", "ag", "anythinggoes", "lc", "littlecup", "nfe", "illegal"];
+const allStats = ["hp", "hitpoints", "atk", "attack", "def", "defense", "spa", "spatk",
+ "specialattack", "spc", "special", "spd", "spdef", "specialdefense", "spe", "speed", "bst",
+  "basestattotal", "ht", "height", "weight", "wt"];
 const allCols = ["red", "blue", "green", "yellow", "brown", "black", "white", "pink", "purple", "gray"];
-const allEggs = ["monster", "humanlike", "water1", "water2", "water3", "bug", "mineral", "flying", "amorphous", "field", "fairy", "grass", "dragon", "ditto", "undiscovered"];
-const badForms = ["Pikachu-", "Unown-","Deerling-","Sawsbuck-","Keldeo-","Genesect-","Vivillon-", "Furfrou-","Flabebe-", "Floette-", "Florges-","Minior-","Alcremie-", "Morpeko-", "Zarude-"];
+const allEggs = ["monster", "humanlike", "water1", "water2", "water3", "bug", "mineral", "flying",
+ "amorphous", "field", "fairy", "grass", "dragon", "ditto", "undiscovered"];
+const badForms = ["Pikachu-", "Unown-", "Deerling-", "Sawsbuck-", "Keldeo-", "Genesect-", "Vivillon-",
+ "Furfrou-", "Flabebe-", "Floette-", "Florges-", "Minior-", "Alcremie-", "Morpeko-", "Zarude-"];
 
 
 class DittosWhoAmI extends ScriptedGame {
@@ -86,43 +30,51 @@ class DittosWhoAmI extends ScriptedGame {
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
 	playerPokemon = new Map<Player, IPokemon>();
-	mega_weak_list = new Map<Player, String> ();
-	mega_res_list = new Map<Player, String> ();
-	frozen_list = new Map<Player, boolean> ();
+	megaWeakList = new Map<Player, string>();
+	megaResList = new Map<Player, string>();
+	frozenList = new Map<Player, boolean>();
 
-	weak_list="";
-	res_list="";
+
+	realPoke = Dex.getExistingPokemon("mew");
+	realPokeName = "nyaa~";
+
+
+
+
+
+	weakList = "";
+	resList = "";
 
 	roundPlayerOrder: Player[] = [];
 
-	
+
 	valpoke = 0;
-	valid_question = -1;
-	master_index = 0;
+	VALID_QUESTION = -1;
+	MASTER_INDEX = 0;
+	invalidPrompt = false;
 
-	moveflag=false;
-	typeflag=false;
-	weakflag=false;
-	resflag=false;
-	monoflag=false;
-	tierflag=false;
-	genflag=false;
-	formflag=false;
-	abilflag=false;
-	pokeflag=false;
-	evoflag=false;
-	statflag=false;
-	elimflag=false;
-	win_flag=false;
-	colorflag=false;
-	eggflag=false;
-	megaflag=false;
-	alolaflag=false;
-	galarflag=false;
-	totemflag=false;
-	gmaxflag=false;
+	moveflag = false;
+	typeflag = false;
+	weakflag = false;
+	resflag = false;
+	monoflag = false;
+	tierflag = false;
+	genflag = false;
+	formflag = false;
+	abilflag = false;
+	pokeflag = false;
+	evoflag = false;
+	statflag = false;
+	elimflag = false;
+	win_flag = false;
+	colorflag = false;
+	eggflag = false;
+	megaflag = false;
+	alolaflag = false;
+	galarflag = false;
+	totemflag = false;
+	gmaxflag = false;
 
-	invalid_prompt = false;
 
 
 	onAddPlayer(player: Player, latejoin?: boolean): boolean {
@@ -140,449 +92,421 @@ class DittosWhoAmI extends ScriptedGame {
 		 "g [parameter]``. If you're sure about what Pokemon you have, guess it with ``" + Config.commandCharacter + "g [Pokemon]``!";
 
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), turn_timer * 1000);
+			this.timeout = setTimeout(() => this.nextRound(), turnTimer * 1000);
 		});
 
 		this.say(text);
 
 
-		var last_id="";
-		var reset_flag = false;
+		let lastid = "";
+		let resetFlag = false;
 
-		for (var id in this.players) {
-			if(last_id=="") 
-				last_id=id;
-			if(reset_flag){
-				id=last_id;
-				reset_flag=false;
+		for (let id in this.players) {
+			if (lastid == "")
+				lastid = id;
+			if (resetFlag){
+				id = lastid;
+				resetFlag = false;
 			}
-			var player = this.players[id];
+			const player = this.players[id];
 
-			var randnum = this.random(pokemonList.length);
-			var pokemonName = pokemonList[randnum].name;
-			var pokemon = Dex.getExistingPokemon(pokemonName);
+			const randnum = this.random(pokemonList.length);
+			const pokemonName = pokemonList[randnum].name;
+			const pokemon = Dex.getExistingPokemon(pokemonName);
 
-			for(const form in badForms) {
-				if(pokemonName.includes(form)){
-					id=last_id;
-					reset_flag = true;
+			for (const form in badForms) {
+				if (pokemonName.includes(form)){
+					id = lastid;
+					resetFlag = true;
 					break;
 				}
-			}			
-			if(reset_flag)
+			}
+			if (resetFlag)
 				continue;
-			
-			last_id=id;	
-		
-	
+
+			lastid = id;
+
+
 
 			this.playerPokemon.set(player, pokemon);
-			
+
 			//this.say(player.name+" has been given "+pokemon.name+".");
-			this.frozen_list.set(player,false);
+			this.frozenList.set(player, false);
 			const typeKeys = Dex.getData().typeKeys;
-			var res_list="";
-			var weak_list="";
+			let resList = "";
+			let weakList = "";
 			for (const key of typeKeys) {
 
 				const type = Dex.getExistingType(key).name;
 				if (Dex.isImmune(type, pokemon.types)) {
-					res_list+=" ("+type+") ";
+					resList += type;
 				} else {
 					const effectiveness = Dex.getEffectiveness(type, pokemon.types);
 					if (effectiveness <= -1) {
-						res_list+=type+", ";
+						resList += type;
 					} else if (effectiveness >= 1) {
-						weak_list+=type+", ";
+						weakList += type;
 					}
 				}
 			}
-			
-			if(res_list.length < 1 ) res_list = "none2";
-			this.mega_res_list.set(player,this.sanctify(res_list));
-			if(weak_list.length < 1) weak_list = "none2";
-			this.mega_weak_list.set(player,this.sanctify(weak_list));
-		
+
+			if (resList.length < 1 ) resList = "none2";
+			this.megaResList.set(player, this.sanctify(resList));
+			if (weakList.length < 1) weakList = "none2";
+			this.megaWeakList.set(player, this.sanctify(weakList));
+
 		}
 
 
 	}
 
-	getBST(real_poke: IPokemon) :number{
-		let i=0;
-		for (const meta in Object.values(real_poke.baseStats)) {
-				i+=Object.values(real_poke.baseStats)[meta];
+	getBST(realPoke: IPokemon): number{
+		let i = 0;
+		for (const meta in Object.values(realPoke.baseStats)) {
+				i += Object.values(realPoke.baseStats)[meta];
 			}
 		return i;
 	}
 
-	tierSwap(input: string) : string{
-		if(input == "anythinggoes") return "ag";
-		if(input == "ubers") return "uber";
-		if(input == "overused") return "ou";
-		if(input == "underused") return "uu";
-		if(input == "underusedbanlist") return "uubl";
-		if(input == "rarelyused") return "ru";
-		if(input == "rarelusedbanlist") return "rubl";
-		if(input == "neverused") return "nu";
-		if(input == "neverusedbanlist") return "nubl";
-		if(input == "littlecup") return "lc";
+	tierSwap(input: string): string{
+		if (input == "anythinggoes") return "ag";
+		if (input == "ubers") return "uber";
+		if (input == "overused") return "ou";
+		if (input == "underused") return "uu";
+		if (input == "underusedbanlist") return "uubl";
+		if (input == "rarelyused") return "ru";
+		if (input == "rarelusedbanlist") return "rubl";
+		if (input == "neverused") return "nu";
+		if (input == "neverusedbanlist") return "nubl";
+		if (input == "littlecup") return "lc";
 		return input;
 
 	}
 
 	findSmallestNonZero(a: number, b: number, c: number): number {
-		var i = [];
-		i[0]=a;
-		i[1]=b;
-		i[2]=c;
-		var ret=99;
-		for(const x in i){
-			if(i[x]<0) continue;
-			if(i[x]<ret) ret=i[x];
+		const i = [];
+		i[0] = a;
+		i[1] = b;
+		i[2] = c;
+		let ret = 99;
+		for (const x in i){
+			if (i[x] < 0) continue;
+			if (i[x] < ret) ret = i[x];
 		}
 		return ret;
 
 
 	}
 
-	sanctify(input : string): string {
-		var copycat="";
+	sanctify(input: string): string {
+		let copycat = "";
 
-		if(!input) return "";
-		
-		for(var i=0;i<input.length;i++) {
-			var x=input.charAt(i);
-			if(x == '-' || x == ' ' || x == '\'' || x == '~' || x == ',' || x == '?' || x == '(' || x == ')' || x == '~') continue;
-			
-			copycat+=x;
-			
+		if (!input) return "";
+
+		for (let i = 0;i < input.length;i++) {
+			const x = input.charAt(i);
+			if (x == '-' || x == ' ' || x == '\'' || x == '~' || x == ',' || x == '?' || x == '(' || x == ')' || x == '~') continue;
+
+			copycat += x;
+
 		}
-		return copycat.replace("é","e").toLowerCase().replace("generation","gen");
+		return copycat.replace("é", "e").toLowerCase().replace("generation", "gen");
 
 	}
 
-	refresh (): void {
-		this.moveflag=false;
-		this.typeflag=false;
-		this.weakflag=false;
-		this.resflag=false;
-		this.monoflag=false;
-		this.tierflag=false;
-		this.genflag=false;
-		this.formflag=false;
-		this.abilflag=false;
-		this.pokeflag=false;
-		this.evoflag=false;
-		this.statflag=false;
-		this.colorflag=false;
-		this.eggflag=false;
-		this.megaflag=false;
-		this.alolaflag=false;
-		this.galarflag=false;
-		this.totemflag=false;
-		this.gmaxflag=false;
-		this.valid_question=-1;
+	refresh(): void {
+		this.moveflag = false;
+		this.typeflag = false;
+		this.weakflag = false;
+		this.resflag = false;
+		this.monoflag = false;
+		this.tierflag = false;
+		this.genflag = false;
+		this.formflag = false;
+		this.abilflag = false;
+		this.pokeflag = false;
+		this.evoflag = false;
+		this.statflag = false;
+		this.colorflag = false;
+		this.eggflag = false;
+		this.megaflag = false;
+		this.alolaflag = false;
+		this.galarflag = false;
+		this.totemflag = false;
+		this.gmaxflag = false;
+		this.VALID_QUESTION = -1;
 
-		
+
 
 	}
 
-	parser (guess:string, player: Player): boolean {
+	parser(guess: string, player: Player): boolean {
 
-		real_poke_name = (this.playerPokemon.get(player)!.name);
-		real_poke = Dex.getExistingPokemon(real_poke_name);
-		let finres=false;
-		let flag=0;
-		let negation=false;
+		this.realPokeName = this.playerPokemon.get(player)!.name;
+		this.realPoke = Dex.getExistingPokemon(this.realPokeName);
+		let finres = false;
+		const flag = 0;
+		let negation = false;
 		this.refresh();
-		if(guess.charAt(0)=="!"){
-			negation=true;
-			guess=guess.substring(1,guess.length);
-		}
-		else 
-			negation=false;
+		if (guess.charAt(0) == "!"){
+			negation = true;
+			guess = guess.substring(1, guess.length);
+		} else
+			negation = false;
 
-		monoflag=(guess == "mono" || guess == "monotype");
-		tierflag=(this.tierSwap(guess) == this.sanctify(real_poke.tier));
-		genflag=(guess.includes("gen") && guess.length <5 );
-		formflag=(guess == "forme" || guess == "form") ;
-		evoflag=(guess == "fe" || guess == "fullyevolved");
-		megaflag=(guess.includes("mega") && guess.length < 6);
-		alolaflag=(guess.includes("alola")&& guess.length < 7);
-		galarflag=(guess.includes("galar")&& guess.length < 7);
-		totemflag=(guess.includes("totem")&& guess.length < 7);
-		gmaxflag=(guess.includes("gmax")&& guess.length < 6);
+		this.monoflag = guess == "mono" || guess == "monotype";
+		this.tierflag = this.tierSwap(guess) == this.sanctify(this.realPoke.tier);
+		this.genflag = guess.includes("gen") && guess.length < 5 ;
+		this.formflag = guess == "forme" || guess == "form" ;
+		this.evoflag = guess == "fe" || guess == "fullyevolved";
+		this.megaflag = guess.includes("mega") && guess.length < 6;
+		this.alolaflag = guess.includes("alola") && guess.length < 7;
+		this.galarflag = guess.includes("galar") && guess.length < 7;
+		this.totemflag = guess.includes("totem") && guess.length < 7;
+		this.gmaxflag = guess.includes("gmax") && guess.length < 6;
 
-		let valmove=0;
-		let valtype=0;
-		let valtier=0;
-		let valgen=parseInt(guess.substring(3,guess.length));
-		let valabil=0;
-		let valpoke=0;
-		let valstat=0;
-		let valcolor=0;
-		let valegg=0;
-		let lessindex=guess.indexOf("<");
-		let moreindex=guess.indexOf(">");
-		let eqindex=guess.indexOf("=");
-		let statcon=false;
+		let valmove = 0;
+		let valtype = 0;
+		let valtier = 0;
+		const valgen = parseInt(guess.substring(3, guess.length));
+		let valabil = 0;
+		let valpoke = 0;
+		let valstat = 0;
+		let valcolor = 0;
+		let valegg = 0;
+		const lessindex = guess.indexOf("<");
+		const moreindex = guess.indexOf(">");
+		const eqindex = guess.indexOf("=");
+		let statcon = false;
 
-		this.monoflag=monoflag;
-		this.tierflag=valtier!=0;
-		this.genflag=genflag;
-		this.formflag=formflag;
-		this.evoflag=evoflag;
-		this.gmaxflag=gmaxflag;
+		this.tierflag = valtier != 0;
 
-		this.megaflag=megaflag;
-		this.alolaflag=alolaflag;
-		this.galarflag=galarflag;
-		this.totemflag=totemflag;
 
 	for (const move of Games.getMovesList()) {
-	if(this.sanctify(move.id) == guess){
+	if (this.sanctify(move.id) == guess){
 		valmove++; break;
 	}
 
 	}
 
-	for(const type of allTypes) {
-	if(((type+"type") ==guess) || type==guess) {
+	for (const type of allTypes) {
+	if (((type + "type") == guess) || type == guess) {
 	valtype++; break;
 	}
 	}
 
 
-	for(const tier of allTiers) {
-	if(tier==this.tierSwap(guess)) {
+	for (const tier of allTiers) {
+	if (tier == this.tierSwap(guess)) {
 	valtier++; break;
 	}
 	}
 
 	for (const abil of Games.getAbilitiesList()) {
-	if(this.sanctify(abil.id) == guess){
+	if (this.sanctify(abil.id) == guess){
 		valabil++; break;
 	}
 
 	}
 
-	for(const poke of pokemonList) {
-		if(this.sanctify(poke.name).replace('.','') == guess.replace('.','')) {
+	for (const poke of pokemonList) {
+		if (this.sanctify(poke.name).replace('.', '') == guess.replace('.', '')) {
 			valpoke++; break;
 		}
 
 	}
-	
-	for(const stat of allStats){
-		
-		if(guess.substring(0,this.findSmallestNonZero(moreindex,lessindex,eqindex)) == stat){
+
+	for (const stat of allStats){
+
+		if (guess.substring(0, this.findSmallestNonZero(moreindex, lessindex, eqindex)) == stat){
 			valstat++; break;
-		
+
 		}
 	}
 
-	for(const col of allCols) {
-		if(guess == col) {
+	for (const col of allCols) {
+		if (guess == col) {
 			valcolor++; break;
 		}
 	}
 
-	for(const egg of allEggs){
-		if(guess == egg+"group" || guess==egg) {
+	for (const egg of allEggs){
+		if (guess == egg + "group" || guess == egg) {
 			valegg++; break;
 		}
 
 	}
-statflag=valstat!=0;
-this.valpoke=valpoke;
-this.statflag=statflag;
-this.colorflag=valcolor!=0;
-this.eggflag=valegg!=0;
+this.valpoke = valpoke;
+this.statflag = valstat != 0;
+this.colorflag = valcolor != 0;
+this.eggflag = valegg != 0;
 
-if(guess==this.sanctify(real_poke.abilities[0]) || guess==this.sanctify(String(real_poke.abilities[1])) ||
- guess==this.sanctify(String(real_poke.abilities['H'])) || guess==this.sanctify(String(real_poke.abilities['S'])))
-	abilflag=true; 
-else abilflag=false;
+if (guess == this.sanctify(this.realPoke.abilities[0]) || guess == this.sanctify(String(this.realPoke.abilities[1])) ||
+ guess == this.sanctify(String(this.realPoke.abilities['H'])) || guess == this.sanctify(String(this.realPoke.abilities['S'])))
+	this.abilflag = true;
+else this.abilflag = false;
 
-if(guess==this.sanctify(real_poke.eggGroups[0]) || guess==this.sanctify(real_poke.eggGroups[1]))
-	eggflag=true;
-else eggflag=false;
+if (guess == this.sanctify(this.realPoke.eggGroups[0]) || guess == this.sanctify(this.realPoke.eggGroups[1]))
+	this.eggflag = true;
+else this.eggflag = false;
 
-if(guess==this.sanctify(real_poke.color))
-	colorflag=true;
-else colorflag=false;
+if (guess == this.sanctify(this.realPoke.color))
+	this.colorflag = true;
+else this.colorflag = false;
 
-if(valmove) {
-	for (const move of Dex.getAllPossibleMoves(real_poke)) {
-	if(this.sanctify(move) == guess){
-		moveflag=true; break;
+if (valmove) {
+	for (const move of Dex.getAllPossibleMoves(this.realPoke)) {
+	if (this.sanctify(move) == guess){
+		this.moveflag = true; break;
 	} else
-	moveflag=false;
-
-	}		
+	this.moveflag = false;
 
 	}
 
-		if(valtype) {
+	}
 
-			for (const name of real_poke.types) {
-				let condition = (guess == this.sanctify(name));
-				let condition2 = ((guess) == this.sanctify(name+"type"));				
-				if (condition || condition2) {typeflag=true; break;
-				} else typeflag = false;
-					
+		if (valtype) {
+
+			for (const name of this.realPoke.types) {
+				const condition = guess == this.sanctify(name);
+				const condition2 = guess == this.sanctify(name + "type");
+				if (condition || condition2) {
+this.typeflag = true; break;
+				} else this.typeflag = false;
+
 				}
 			}
 
-		if(valstat){
-			
-			let max_affected_stat = (Math.max(Math.max(moreindex,lessindex),eqindex));
-			let metric=guess.substring(0,max_affected_stat);
-		
-			let metval=guess.substring(max_affected_stat+1,guess.length);
-			let raw_stat=-1;
-			let value=parseFloat(metval);
-			if(metric.charAt(metric.length-1) == "<" || metric.charAt(metric.length-1) == ">")
-				metric=metric.substring(0,metric.length-1);
+		if (valstat){
 
-			if(value==NaN || value<0)
-			{
+			const MAX_AFFECTED_STAT = Math.max(Math.max(moreindex, lessindex), eqindex);
+			let metric = guess.substring(0, MAX_AFFECTED_STAT);
+
+			const metval = guess.substring(MAX_AFFECTED_STAT + 1, guess.length);
+			let RAW_STAT = -1;
+			const value = parseFloat(metval);
+			if (metric.charAt(metric.length - 1) == "<" || metric.charAt(metric.length - 1) == ">")
+				metric = metric.substring(0, metric.length - 1);
+
+			if (isNaN(value) || value < 0) {
 				this.say("You did not enter a valid numeric stat.");
 				return false;
 			}
-			if(metric=="hp" || metric == "hitpoints")
-				raw_stat = Object.values(real_poke.baseStats)[0];
-			else if(metric=="atk" || metric == "attack")
-				raw_stat = Object.values(real_poke.baseStats)[1];
-			else if(metric=="def" || metric == "defense")
-				raw_stat = Object.values(real_poke.baseStats)[2];
-			else if(metric=="spa" || metric == "spatk" || metric == "specialattack" || metric == "spc" || metric == "special")
-				raw_stat = Object.values(real_poke.baseStats)[3];
-			else if(metric=="spd" || metric == "spdef" || metric == "specialdefense")
-				raw_stat = Object.values(real_poke.baseStats)[4];
-			else if(metric=="spe" || metric == "speed")
-				raw_stat = Object.values(real_poke.baseStats)[5];
-			else if(metric=="bst" || metric == "basestattotal")
-				raw_stat = this.getBST(real_poke);
-			else if(metric=="ht" || metric == "height")
-				raw_stat = (real_poke.heightm);
-			else if(metric=="wt" || metric == "weight")
-				raw_stat = (real_poke.weightkg);
+			if (metric == "hp" || metric == "hitpoints")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[0];
+			else if (metric == "atk" || metric == "attack")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[1];
+			else if (metric == "def" || metric == "defense")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[2];
+			else if (metric == "spa" || metric == "spatk" || metric == "specialattack" || metric == "spc" || metric == "special")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[3];
+			else if (metric == "spd" || metric == "spdef" || metric == "specialdefense")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[4];
+			else if (metric == "spe" || metric == "speed")
+				RAW_STAT = Object.values(this.realPoke.baseStats)[5];
+			else if (metric == "bst" || metric == "basestattotal")
+				RAW_STAT = this.getBST(this.realPoke);
+			else if (metric == "ht" || metric == "height")
+				RAW_STAT = this.realPoke.heightm;
+			else if (metric == "wt" || metric == "weight")
+				RAW_STAT = this.realPoke.weightkg;
 
-			
-			if(eqindex>0)
-				statcon = (raw_stat == value);
-			if(moreindex>0)
-				statcon = (statcon || raw_stat > value);
-			if(lessindex>0)
-				statcon = (statcon || raw_stat < value);
-		} 
-		
 
-			this.abilflag=valabil!=0;
-			this.typeflag=valtype!=0;
-			this.moveflag=valmove!=0;
-			this.tierflag=valtier!=0;
-			if(this.mega_weak_list && this.currentPlayer !=null)
-			weak_list = String(this.mega_weak_list.get(this.currentPlayer));
-		else weak_list ="none";
-		if(this.mega_res_list && this.currentPlayer !=null)
-			res_list = String(this.mega_res_list.get(this.currentPlayer));
-		else res_list= "none;";
+			if (eqindex > 0)
+				statcon = RAW_STAT == value;
+			if (moreindex > 0)
+				statcon = statcon || RAW_STAT > value;
+			if (lessindex > 0)
+				statcon = statcon || RAW_STAT < value;
+		}
 
-			if (moveflag && valmove>0){ 
-				finres=true;
-				//this.say("**YES, move is learnt.**"); 
-			}
-			else if(!moveflag && valmove>0) { 
-				//this.say("**NO, move is NOT learnt.**"); 
-			}
- 			else if (typeflag && valtype>0) {
- 				finres=true;
- 				//this.say("**YES, type is matched.**");  
- 			} 
- 			else if (!typeflag && valtype>0) {
+
+			this.abilflag = valabil != 0;
+			this.typeflag = valtype != 0;
+			this.moveflag = valmove != 0;
+			this.tierflag = valtier != 0;
+			if (this.megaWeakList && this.currentPlayer != null)
+			this.weakList = String(this.megaWeakList.get(this.currentPlayer));
+		else this.weakList = "none";
+		if (this.megaResList && this.currentPlayer != null)
+			this.resList = String(this.megaResList.get(this.currentPlayer));
+		else this.resList = "none;";
+
+			if (this.moveflag && valmove > 0){
+				finres = true;
+				//this.say("**YES, move is learnt.**");
+			} else if (!this.moveflag && valmove > 0) {
+				//this.say("**NO, move is NOT learnt.**");
+			} else if (this.typeflag && valtype > 0) {
+ 				finres = true;
+ 				//this.say("**YES, type is matched.**");
+ 			} else if (!this.typeflag && valtype > 0) {
  				//this.say("**NO, type is NOT matched.**");
- 			}
- 			else if (tierflag && valtier>0) {
- 				finres=true;
+ 			} else if (this.tierflag && valtier > 0) {
+ 				finres = true;
  				//this.say("**YES, tier is matched.**");
- 			}
- 			else if (!tierflag && valtier>0) {
- 				//this.say("**NO, tier is NOT matched.**"); 
- 			}
- 			else if (abilflag && valabil>0) {
- 				finres=true;
+ 			} else if (!this.tierflag && valtier > 0) {
+ 				//this.say("**NO, tier is NOT matched.**");
+ 			} else if (this.abilflag && valabil > 0) {
+ 				finres = true;
  				//this.say("**YES, abiliy is matched**");
- 			}
- 			else if (!abilflag && valabil>0 ) {
- 				//this.say("**NO, ability is NOT matched.**"); 
- 			}
- 			else if (eggflag && valegg>0) {
- 				finres=true;
+ 			} else if (!this.abilflag && valabil > 0 ) {
+ 				//this.say("**NO, ability is NOT matched.**");
+ 			} else if (this.eggflag && valegg > 0) {
+ 				finres = true;
  				//this.say("**YES, egg group is matched**");
- 			}
- 			else if (!eggflag && valegg>0 ) {
- 				//this.say("**NO, egg group is NOT matched.**"); 
- 			}
- 			else if (colorflag && valcolor>0) {
- 				finres=true;
+ 			} else if (!this.eggflag && valegg > 0 ) {
+ 				//this.say("**NO, egg group is NOT matched.**");
+ 			} else if (this.colorflag && valcolor > 0) {
+ 				finres = true;
  				//this.say("**YES, color is matched**");
- 			}
- 			else if (!colorflag && valcolor>0 ) {
- 				//this.say("**NO, color is NOT matched.**"); 
- 			}
- 			else if ( !monoflag && !genflag && !formflag && !evoflag && !valpoke && 
- 				!statflag  && !colorflag && !valstat && !megaflag && !alolaflag && !galarflag && !totemflag && !gmaxflag) {
- 					var am_i_weak = guess.indexOf("weak");
- 					if(am_i_weak<0)
- 						am_i_weak=-99;
- 					var am_i_res = guess.indexOf("resists");
- 					if(am_i_res<0)
- 						am_i_res=-99;
- 					var present;
- 					if(am_i_res >= 0 || am_i_weak >=0){
+ 			} else if (!this.colorflag && valcolor > 0 ) {
+ 				//this.say("**NO, color is NOT matched.**");
+ 			} else if ( !this.monoflag && !this.genflag && !this.formflag && !this.evoflag && !this.valpoke &&
+ 			 !this.statflag  && !this.colorflag && !valstat && !this.megaflag && !this.alolaflag &&
+ 			 !this.galarflag && !this.totemflag && !this.gmaxflag) {
+ 					let am_i_weak = guess.indexOf("weak");
+ 					if (am_i_weak < 0)
+ 						am_i_weak = -99;
+ 					let am_i_res = guess.indexOf("resists");
+ 					if (am_i_res < 0)
+ 						am_i_res = -99;
+ 					let present;
+ 					if (am_i_res >= 0 || am_i_weak >= 0){
 
- 					guess=this.sanctify(guess.substring(Math.max(am_i_weak+4,am_i_res+7),guess.length));
- 					var metatype=0;
- 					for(const type of allTypes) {
-						if(((type+"type") ==guess) || type==guess) {
+ 					guess = this.sanctify(guess.substring(Math.max(am_i_weak + 4, am_i_res + 7), guess.length));
+ 					let metatype = 0;
+ 					for (const type of allTypes) {
+						if (((type + "type") == guess) || type == guess) {
 						metatype++; break;
 						}
 						}
-					if(metatype==0) {
+					if (metatype == 0) {
 						this.say("Invalid type.");
 						return false;
 					} else {
 
- 					if(am_i_weak>=0 && am_i_res <0) {
- 						present=(weak_list.includes(guess));
- 						weakflag=true;
- 						this.weakflag=weakflag;
- 						if(present) {
- 							finres=true;	
+ 					if (am_i_weak >= 0 && am_i_res < 0) {
+ 						present = this.weakList.includes(guess);
+ 						this.weakflag = true;
+ 						if (present) {
+ 							finres = true;
  					//	this.say("**YES, the Pokemon is weak to that type.**");
- 					}
- 					
- 						else {
+ 					} else {
  						//this.say("**NO, the Pokemon is NOT weak to that type.**")
  					}
 
  					}
 
- 					if(am_i_res>=0 && am_i_weak<0) {
- 						present=(res_list.includes(guess));
- 						resflag=true;
- 						this.resflag=resflag;
- 						//this.say("My present to you is "+present+ " found from "+res_list);
+ 					if (am_i_res >= 0 && am_i_weak < 0) {
+ 						present = this.resList.includes(guess);
+ 						this.resflag = true;
+ 						//this.say("My present to you is "+present+ " found from "+resList);
 
- 						if(present) {
- 							finres=true;	
+ 						if (present) {
+ 							finres = true;
  						//this.say("**YES, the Pokemon does resist that type.**");
- 					}
- 				
- 					else {
+ 					} else {
  						//this.say("**NO, the Pokemon does NOT resist that type.**")
  					}
 
@@ -590,186 +514,173 @@ if(valmove) {
 
  					}
  				}
-			}
-
- 					else if(monoflag)
- 						if((real_poke.types.length==1)) {
- 							finres=true;	
+			} else if (this.monoflag)
+ 						if (this.realPoke.types.length == 1) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is monotype.**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT monotype.**");
  						}
 
- 						else if(megaflag)
- 						if((real_poke_name.includes("-Mega"))) {
- 							finres=true;	
+ 						else if (this.megaflag)
+ 						if (this.realPokeName.includes("-Mega")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is mega.**");
- 						}
- 						else {
+ 						} else {
  							//this.say("**NO, the pokemon is NOT mega.**");
  						}
 
- 						else if(alolaflag)
- 						if((real_poke_name.includes("-Alola"))) {
- 							finres=true;	
+ 						else if (this.alolaflag)
+ 						if (this.realPokeName.includes("-Alola")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is alola.**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT alola.**");
  						}
 
- 						else if(galarflag)
- 						if((real_poke_name.includes("-Galar"))) {
- 							finres=true;	
+ 						else if (this.galarflag)
+ 						if (this.realPokeName.includes("-Galar")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is galar.**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT galar.**");
  						}
 
- 						else if(totemflag)
- 						if((real_poke_name.includes("-Totem"))) {
- 							finres=true;	
+ 						else if (this.totemflag)
+ 						if (this.realPokeName.includes("-Totem")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is totem.**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT totem.**");
  						}
 
- 						else if(gmaxflag)
- 						if((real_poke_name.includes("-Gmax"))) {
- 							finres=true;	
+ 						else if (this.gmaxflag)
+ 						if (this.realPokeName.includes("-Gmax")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is a gmax.**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT a gmax.**");
  						}
 
 
- 						
 
- 					else if (genflag && valgen != NaN && (valgen > 0 && valgen < 10))
- 						if(valgen == real_poke.gen){
- 							finres=true;	
+
+ 					else if (this.genflag && valgen != NaN && (valgen > 0 && valgen < 10))
+ 						if (valgen == this.realPoke.gen){
+ 							finres = true;
  						//	this.say("**YES, the pokemon is from that generation**");
- 						}
- 						else{
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT from that generation.**");
  						}
 
- 					else if(formflag)
- 						if((real_poke_name.includes("-")) && !(real_poke_name == "Porygon-Z") && !(real_poke_name == "Jangmo-o") && 
- 							!(real_poke_name == "Hakamo-o") && !(real_poke_name == "Kommo-o")) {
- 							finres=true;	
+ 					else if (this.formflag)
+ 						if (this.realPokeName.includes("-") && !(this.realPokeName == "Porygon-Z") &&
+ 						 !(this.realPokeName == "Jangmo-o") &&
+ 							!(this.realPokeName == "Hakamo-o") && !(this.realPokeName == "Kommo-o")) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is a forme**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT a forme.**");
  						}
 
- 					else if(evoflag)
- 						if((real_poke.evos.length <=0)) {
- 							finres=true;	
+ 					else if (this.evoflag)
+ 						if (this.realPoke.evos.length <= 0) {
+ 							finres = true;
  						//	this.say("**YES, the pokemon is fully evolved**");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO, the pokemon is NOT fully evolved**");
  						}
 
- 					else if(statflag)
- 						if(statcon){
- 							finres=true;
+ 					else if (this.statflag)
+ 						if (statcon){
+ 							finres = true;
  						//	this.say("**YES**, the stat falls in the specified range.");
- 						}
- 						else {
+ 						} else {
  						//	this.say("**NO**, the stat does NOT fall in the specified range.")
  						}
 
- 					else if(valpoke>0)
- 						if(guess.replace(".","")==this.sanctify(real_poke_name).replace(".","")) {
- 							finres=true;
- 							
- 							if(this.currentPlayer) {
-							this.say("**Correct!** " + this.currentPlayer.name+" has guessed their Pokemon.");
+ 					else if (this.valpoke > 0)
+ 						if (guess.replace(".", "") == this.sanctify(this.realPokeName).replace(".", "")) {
+ 							finres = true;
+
+ 							if (this.currentPlayer) {
+							this.say("**Correct!** " + this.currentPlayer.name + " has guessed their Pokemon.");
 							this.points.set(this.currentPlayer, 1);
 
 						}
- 						}
- 					
- 						else {
- 							 
- 							if(this.currentPlayer) {
+ 						} else {
 
- 							this.say("**Incorrect!** "+this.currentPlayer.name+" has been eliminated for the wrong guess. Their Pokemon was "+
- 								real_poke_name+".");
+ 							if (this.currentPlayer) {
+
+ 							this.say("**Incorrect!** " + this.currentPlayer.name + " has been eliminated for the wrong guess." +
+ 							" Their Pokemon was " + this.realPokeName + ".");
  							this.eliminatePlayer(this.currentPlayer);
  						}
 
  						}
 
  	//		else
- 	//			this.say("**NO. blanket case.**"); 
+ 	//			this.say("**NO. blanket case.**");
 
 
- 		//	this.say("in order, they are " + !monoflag + !genflag + !formflag + !evoflag + !valpoke + 
+ 		//	this.say("in order, they are " + !monoflag + !genflag + !formflag + !evoflag + !valpoke +
  		//		!statflag  + !colorflag + !valstat);
 
- 		if(negation) finres=!finres;
+ 		if (negation) finres = !finres;
 		return finres;
 	}
 
-	switchPlayer() : void {
-		this.invalid_prompt = false;
+	switchPlayer(): void {
+		this.invalidPrompt = false;
 		if (this.timeout) clearTimeout(this.timeout);
-		if(this.currentPlayer == null || ! (this.roundPlayerOrder) || this.roundPlayerOrder.length < 1) {this.onNextRound();}
-		master_index++;
+		if (this.currentPlayer == null || ! this.roundPlayerOrder || this.roundPlayerOrder.length < 1) {
+this.onNextRound();
+}
+		this.MASTER_INDEX++;
 
-		//if(master_index == 0)
-	
+		//if(this.MASTER_INDEX == 0)
+
 		//this.say(this.roundPlayerOrder.length+" players are left.");
-		if(master_index >= this.roundPlayerOrder.length ) {
-			master_index = 0;
+		if (this.MASTER_INDEX >= this.roundPlayerOrder.length ) {
+			this.MASTER_INDEX = 0;
 			this.say("All players have taken their turns, moving to the next round~");
 			this.nextRound();
 		} else {
-				
-		this.currentPlayer = this.roundPlayerOrder[master_index];
-		if(!this.currentPlayer) {
-			this.currentPlayer = this.roundPlayerOrder[0]; 
-			master_index = 0;
-		    this.say("current player undefined(why?), he has been reset to the first available and is now "+this.currentPlayer.name); 
+
+		this.currentPlayer = this.roundPlayerOrder[this.MASTER_INDEX];
+		if (!this.currentPlayer) {
+			this.currentPlayer = this.roundPlayerOrder[0];
+			this.MASTER_INDEX = 0;
+		    this.say("current player undefined(why?), he has been reset to the first available and is now " + this.currentPlayer.name);
 		}
-		if(master_index>0)
-			this.say("**"+this.currentPlayer.name+"** it is your turn now!");
-		this.timeout = setTimeout(() => this.fancyElim(), (round_timer) * 1000);
-	
-	}
+		if (this.MASTER_INDEX > 0)
+			this.say("**" + this.currentPlayer.name + "** it is your turn now!");
+		this.timeout = setTimeout(() => this.fancyElim(), roundTimer * 1000);
 
 	}
 
-	fancyElim() : void {
-		if(this.currentPlayer && this.frozen_list.get(this.currentPlayer)) {
-			this.say("Timer DQ for "+this.currentPlayer.name+".");
+	}
+
+	fancyElim(): void {
+		if (this.currentPlayer && this.frozenList.get(this.currentPlayer)) {
+			this.say("Timer DQ for " + this.currentPlayer.name + ".");
 			this.eliminatePlayer(this.currentPlayer);
-		}
-		else if(this.currentPlayer && !this.frozen_list.get(this.currentPlayer)) {
-			this.say(this.currentPlayer.name+" has been skipped for this turn, any further skipped turns result in their elimination.");
-			this.frozen_list.set(this.currentPlayer, true);
+		} else if (this.currentPlayer && !this.frozenList.get(this.currentPlayer)) {
+			this.say(this.currentPlayer.name + " has been skipped for this turn, any further skipped turns result in their elimination.");
+			this.frozenList.set(this.currentPlayer, true);
 		}
 		this.switchPlayer();
 	}
 
-	
+
 
 
 	onNextRound(): void {
 
 
 		if (this.timeout) clearTimeout(this.timeout);
-		
-		if (this.getRemainingPlayerCount() < 1 && !this.win_flag)
-		{
+
+		if (this.getRemainingPlayerCount() < 1 && !this.win_flag) {
 			this.say("Everyone has been eliminated!");
 			this.say("No winners this game!");
 			this.end();
@@ -777,55 +688,59 @@ if(valmove) {
 		}
 		if (this.currentPlayer) {
 			if (this.addPlayerInactiveRound(this.currentPlayer)) {
-				if(valid_question < 0) {
+				if (this.VALID_QUESTION < 0) {
 				this.say(this.currentPlayer.name + " did not guess a parameter or the Pokemon and has been eliminated from " +
 					"the game!");
 				this.eliminatePlayer(this.currentPlayer);
 				}
-			} 
+			}
 		}
-		var win2 = false;
+		let win2 = false;
 
 		for (const id in this.players) {
 			if (this.players[id].eliminated) continue;
 			const player = this.players[id];
 			const points = this.points.get(player);
-		
+
 			if (points && points > 0) {
-				if(!win2)
+				if (!win2)
 				this.say("Some guesses have been correct!");
-				win2= true;
+				win2 = true;
 				this.onEnd();
 			}
 		}
-		if(MAX_GUESSES==1){
-			this.say("The **last round** has started! Now's the time to use .guess [pokemon] to have a chance at winning.")
+		if (MAX_GUESSES == 1){
+			this.say("The **last round** has started! Now's the time to use .guess [pokemon] to have a chance at winning.");
 		}
-		if(MAX_GUESSES<=0) {
+		if (MAX_GUESSES <= 0) {
 			this.say("Twenty rounds have elapsed! The game is now concluding.");
-			win2=true;
+			win2 = true;
 		}
 		MAX_GUESSES--;
 
-		if(win2) {this.announceWinners(); this.end();}
-		if(!win2){
-		
+		if (win2) {
+this.announceWinners(); this.end();
+}
+		if (!win2){
+
 		this.roundPlayerOrder = this.shufflePlayers();
 			this.playerOrder = this.roundPlayerOrder.slice();
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(players => this.getPlayerPoints(players)));
 
-		if (!this.playerOrder.length) {			
+		if (!this.playerOrder.length) {
 			this.playerOrder = this.roundPlayerOrder;
 		}
 
 		const currentPlayer = this.playerOrder[0];
 		this.playerOrder.shift();
-		if (currentPlayer.eliminated ) {this.say("onnextround's case, player switching now"); this.fancyElim();}
+		if (currentPlayer.eliminated ) {
+this.say("onnextround's case, player switching now"); this.fancyElim();
+}
 
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
-			this.timeout = setTimeout(() => this.fancyElim(), (round_timer) * 1000);
+			this.timeout = setTimeout(() => this.fancyElim(), roundTimer * 1000);
 		});
 		this.say(text);
 	}
@@ -838,69 +753,68 @@ if(valmove) {
 			const points = this.points.get(player);
 			if (points && points > 0) {
 				this.winners.set(player, points);
-				this.addBits(player, 500); 
-			} 
+				this.addBits(player, 500);
+			}
 		}
 		this.win_flag = true;
-		
+
 	}
 }
 
 const commands: GameCommandDefinitions<DittosWhoAmI> = {
-	
+
 	guess: {
 		command(target, room, user) {
 
 			this.refresh();
 			target = this.sanctify(target);
 			const player = this.players[user.id];
-			if(player !== this.currentPlayer && this.currentPlayer) {
-				this.say("__"+this.currentPlayer.name+"__ should be the one currently asking.");
+			if (player !== this.currentPlayer && this.currentPlayer) {
+				this.say("__" + this.currentPlayer.name + "__ should be the one currently asking.");
 				return false;
 			}
-			var alternatives = target.split("|");
-			if(!alternatives || alternatives.length < 1) alternatives = ["meow"];
-			if(alternatives.length > 5) {
+			let alternatives = target.split("|");
+			if (!alternatives || alternatives.length < 1) alternatives = ["meow"];
+			if (alternatives.length > 5) {
 				this.say("You're asking too many questions in one go, try asking less. (You can ask again).");
 				return false;
 			}
-			var effectiveCondition  = false;
-			valid_question = 0;
-			for(const each of alternatives) {
-				if(each == "") continue;
+			let effectiveCondition  = false;
+			this.VALID_QUESTION = 0;
+			for (const each of alternatives) {
+				if (each == "") continue;
 
-				effectiveCondition = effectiveCondition || this.parser(each,player);
-				if(this.tierflag || this.eggflag || this.colorflag || this.statflag || this.moveflag || 
-					this.typeflag || this.monoflag || this.genflag || this.formflag || this.evoflag || 
-					this.valpoke>0 || this.resflag || this.weakflag || this.abilflag || this.megaflag ||
+				effectiveCondition = effectiveCondition || this.parser(each, player);
+				if (this.tierflag || this.eggflag || this.colorflag || this.statflag || this.moveflag ||
+					this.typeflag || this.monoflag || this.genflag || this.formflag || this.evoflag ||
+					this.valpoke > 0 || this.resflag || this.weakflag || this.abilflag || this.megaflag ||
 					this.alolaflag || this.galarflag || this.totemflag || this.gmaxflag)
-					valid_question=1;
-				
+					this.VALID_QUESTION = 1;
+
 			}
 
-			
-			if(valid_question !=1 && this.invalid_prompt==false) {
+
+			if (this.VALID_QUESTION != 1 && !this.invalidPrompt) {
 				this.say("That wasn't a valid question. Try again!");
 
 			}
-			this.invalid_prompt=true;
-			if(valid_question == 1) {
+			this.invalidPrompt = true;
+			if (this.VALID_QUESTION == 1) {
 				if (this.timeout) clearTimeout(this.timeout);
-			
 
-			if(effectiveCondition) {
-				this.say("**Yes!**");			
 
-				
-			}
-			else {
+			if (effectiveCondition) {
+				this.say("**Yes!**");
+
+
+			} else {
 				this.say("**No!**");
-				
+
 			}
-			this.timeout = setTimeout(() => this.switchPlayer(), (turn_timer) * 1000);
+			this.timeout = setTimeout(() => this.switchPlayer(), turnTimer * 1000);
 
 		}
-			
+
 			return true;
 		},
 		aliases: ['g'],
@@ -919,5 +833,5 @@ export const game: IGameFile<DittosWhoAmI> = {
 	freejoin:false,
 	mascot: "Ditto",
 	nonTrivialLoadData: true,
-	
+
 };
