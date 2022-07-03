@@ -68,6 +68,7 @@ class DittosWhoAmI extends ScriptedGame {
 	galarflag = false;
 	totemflag = false;
 	gmaxflag = false;
+	hisuiflag = false;
 
 
 
@@ -225,6 +226,7 @@ class DittosWhoAmI extends ScriptedGame {
 		this.galarflag = false;
 		this.totemflag = false;
 		this.gmaxflag = false;
+		this.hisuiflag = false;
 		this.VALID_QUESTION = -1;
 
 
@@ -254,6 +256,7 @@ class DittosWhoAmI extends ScriptedGame {
 		this.galarflag = guess.includes("galar") && guess.length < 7;
 		this.totemflag = guess.includes("totem") && guess.length < 7;
 		this.gmaxflag = guess.includes("gmax") && guess.length < 6;
+		this.hisuiflag = guess.includes("hisui") && guess.length < 7;
 
 		let valmove = 0;
 		let valtype = 0;
@@ -454,7 +457,7 @@ if (valmove) {
 				//this.say("**NO, color is NOT matched.**");
 			} else if ( !this.monoflag && !this.genflag && !this.formflag && !this.evoflag && !this.valpoke &&
 					!this.statflag  && !this.colorflag && !valstat && !this.megaflag && !this.alolaflag &&
-					!this.galarflag && !this.totemflag && !this.gmaxflag) {
+					!this.galarflag && !this.totemflag && !this.gmaxflag && !this.hisuiflag) {
 					let AM_I_WEAK = guess.indexOf("weak");
 					if (AM_I_WEAK < 0)
 						AM_I_WEAK = -99;
@@ -550,6 +553,14 @@ if (valmove) {
 						//	this.say("**YES, the pokemon is a gmax.**");
 						} else {
 						//	this.say("**NO, the pokemon is NOT a gmax.**");
+						}
+
+						else if (this.hisuiflag)
+						if (this.realPokeName.includes("-Hisui")) {
+							finres = true;
+						//	this.say("**YES, the pokemon is hisui.**");
+						} else {
+						//	this.say("**NO, the pokemon is NOT hisui.**");
 						}
 
 
@@ -774,7 +785,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 				if (this.tierflag || this.eggflag || this.colorflag || this.statflag || this.moveflag ||
 					this.typeflag || this.monoflag || this.genflag || this.formflag || this.evoflag ||
 					this.valpoke > 0 || this.resflag || this.weakflag || this.abilflag || this.megaflag ||
-					this.alolaflag || this.galarflag || this.totemflag || this.gmaxflag)
+					this.alolaflag || this.galarflag || this.totemflag || this.gmaxflag || this.hisuiflag)
 					this.VALID_QUESTION = 1;
 
 			}
