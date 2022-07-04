@@ -11,6 +11,7 @@ export class HeadToHead extends ScriptedGame {
 	rightPlayer: Player | null = null;
 	rightPromotedName: string = '';
 	internalGame: boolean = true;
+	managedPlayers = true;
 	noForceEndMessage: boolean = true;
 	originalModchat: string = '';
 	winner: Player | undefined;

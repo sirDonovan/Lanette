@@ -37,6 +37,7 @@ export class ScriptedGame extends Game {
 	internalGame: boolean = false;
 	lateJoinQueue: Player[] = [];
 	readonly loserPointsToBits: number = 10;
+	managedPlayers: boolean = false;
 	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined = undefined;
@@ -848,6 +849,8 @@ export class ScriptedGame extends Game {
 	}
 
 	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+		if (this.managedPlayers) return;
+
 		if (this.usesTournamentJoin && !tournamentJoin) return;
 
 		if (this.options.freejoin || this.isMiniGame) {

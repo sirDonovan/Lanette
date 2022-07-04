@@ -11,6 +11,7 @@ export class BotChallenge extends ScriptedGame {
 	childGame: ScriptedGame | null = null;
 	defender: Player | null = null;
 	internalGame: boolean = true;
+	managedPlayers = true;
 	noForceEndMessage: boolean = true;
 	originalModchat: string = '';
 	winner: Player | undefined;

@@ -20,6 +20,7 @@ export class Vote extends ScriptedGame {
 	endedVoting: boolean = false;
 	finalVotesUhtmlName: string = '';
 	internalGame: boolean = true;
+	managedPlayers = true;
 	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
 	privateVoteUhtmlName: string = '';
