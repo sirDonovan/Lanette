@@ -111,7 +111,8 @@ export class Tournament extends Activity {
 			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(this.room.id)) return false;
 		}
 
-		if (this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id)) {
+		if (this.format.unranked && !this.official && Config.useDefaultUnrankedTournaments &&
+			Config.useDefaultUnrankedTournaments.includes(this.room.id)) {
 			return false;
 		}
 
