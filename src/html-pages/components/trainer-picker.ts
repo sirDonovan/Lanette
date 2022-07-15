@@ -23,7 +23,7 @@ const genTwoSuffixes: string[] = ['gen2', 'gen2jp', 'gen2kanto', 'gen2c', 'gen2a
 const genThreeSuffixes: string[] = ['gen3', 'gen3jp', 'gen3rs', 'gen3frlg', 'gen3two', 'gen3champion'];
 const genFourSuffixes: string[] = ['gen4', 'gen4dp', 'gen4pt', 'gen4jp'];
 const genFiveSuffixes: string[] = ['gen5', 'gen5bw', 'gen5bw2'];
-const genSixSuffixes: string[] = ['gen6'];
+const genSixSuffixes: string[] = ['gen6', 'gen6xy', 'gen6oras'];
 const genSevenSuffixes: string[] = ['gen7'];
 const genEightSuffixes: string[] = ['gen8'];
 

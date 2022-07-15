@@ -53,7 +53,7 @@ const pageId = 'game-host-control-panel';
 export const id = pageId;
 export const pages: Dict<GameHostControlPanel> = {};
 
-class GameHostControlPanel extends HtmlPageBase {
+export class GameHostControlPanel extends HtmlPageBase {
 	static compatibleHintGames: string[] = [];
 	static GameHostControlPanelLoaded: boolean = false;
 
