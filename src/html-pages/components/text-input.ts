@@ -17,6 +17,7 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	submitText?: string;
 	textArea?: boolean;
 	textAreaConfiguration?: ITextAreaConfiguration;
+	hideClearButton?: boolean;
 	onClear: () => void;
 	onErrors: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
@@ -126,8 +127,12 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 		html += "<button class='button" + (this.props.readonly ? " disabled" : "") + "' type='submit'" +
 			(this.props.readonly ? " disabled" : "") + ">" + this.submitText + "</button>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
-			{disabled: !this.currentInput});
+
+		if (!this.props.hideClearButton) {
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
+				{disabled: !this.currentInput});
+		}
+
 		html += "</form>";
 
 		return html;

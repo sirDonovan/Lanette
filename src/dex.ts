@@ -12,8 +12,8 @@ import type {
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
-	IPokemonShowdownDex, IPokemonShowdownDexModule, IPokemonShowdownValidator, IPokemonShowdownValidatorModule, IPSFormat, ITypeData,
-	RuleTable, ValidatedRule
+	IPokemonShowdownDex, IPokemonShowdownDexModule, IPokemonShowdownTagsModule, IPokemonShowdownValidator, IPokemonShowdownValidatorModule,
+	IPSFormat, ITagData, ITypeData, RuleTable, ValidatedRule
 } from './types/pokemon-showdown';
 import type { IParsedSmogonLink } from './types/tools';
 
@@ -259,6 +259,8 @@ export class Dex {
 	private readonly pokemonShowdownDex: IPokemonShowdownDex;
 	private readonly pokemonShowdownValidatorModule: IPokemonShowdownValidatorModule;
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
+	private readonly pokemonShowdownTagsModule: IPokemonShowdownTagsModule;
+	private readonly pokemonShowdownTags: Dict<ITagData> = {};
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesList: readonly IAbility[] | null = null;
@@ -281,6 +283,8 @@ export class Dex {
 	private readonly natureCache: Dict<INature> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
+	private pokemonTagsList: readonly string[] | null = null;
+	private rulesList: readonly IFormat[] | null = null;
 	private readonly formesCache: Dict<string[]> = Object.create(null);
 	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
 	private readonly resistancesCache: Dict<string[]> = Object.create(null);
@@ -301,6 +305,7 @@ export class Dex {
 			this.dexes.base = this;
 			this.dexes[CURRENT_GEN_STRING] = this;
 
+			const dataDist = ".data-dist";
 			const simDist = ".sim-dist";
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
@@ -310,11 +315,17 @@ export class Dex {
 			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 			this.pokemonShowdownValidatorModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js")) as IPokemonShowdownValidatorModule;
 			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
+
+			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			this.pokemonShowdownTagsModule = require(path.join(Tools.pokemonShowdownFolder, dataDist, "tags.js")) as IPokemonShowdownTagsModule;
+			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
 		} else {
 			this.pokemonShowdownDexModule = this.dexes.base.pokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.dexes.base.pokemonShowdownDex.mod(mod);
 			this.pokemonShowdownValidatorModule = this.dexes.base.pokemonShowdownValidatorModule;
 			this.pokemonShowdownValidator = this.dexes.base.pokemonShowdownValidator;
+			this.pokemonShowdownTagsModule = this.dexes.base.pokemonShowdownTagsModule;
+			this.pokemonShowdownTags = this.dexes.base.pokemonShowdownTags;
 		}
 
 		this.clientDataDirectory = path.join(Tools.rootFolder, 'client-data');
@@ -736,6 +747,20 @@ export class Dex {
 
 		this.pokemonList = pokedex;
 		return pokedex;
+	}
+
+	getPokemonTagsList(): readonly string[] {
+		if (this.pokemonTagsList) return this.pokemonTagsList;
+
+		const pokemonTagsList: string[] = [];
+		for (const i in this.pokemonShowdownTags) {
+			if (!this.pokemonShowdownTags[i].speciesFilter) continue;
+
+			pokemonTagsList.push(this.pokemonShowdownTags[i].name);
+		}
+
+		this.pokemonTagsList = pokemonTagsList;
+		return pokemonTagsList;
 	}
 
 	isPokemon(object: {effectType: string, name: string}): object is IPokemon {
@@ -1497,8 +1522,8 @@ export class Dex {
 			format.nameWithoutGen = format.name;
 		}
 
-		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
-		format.quickFormat = format.ruleTable.pickedTeamSize && format.ruleTable.pickedTeamSize <= 2 ? true : false;
+		if (!format.ruleTable && format.effectType === 'Format') format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
+		format.quickFormat = format.ruleTable && format.ruleTable.pickedTeamSize && format.ruleTable.pickedTeamSize <= 2 ? true : false;
 
 		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
 		format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
@@ -1583,6 +1608,19 @@ export class Dex {
 		const format = this.getFormat(name, isTrusted);
 		if (!format) throw new Error("No format returned for '" + name + "'");
 		return format;
+	}
+
+	/** Returns a list of format rules */
+	getRulesList(): readonly IFormat[] {
+		if (this.rulesList) return this.rulesList;
+
+		const rules: IFormat[] = [];
+		for (const i of this.getData().rulesetKeys) {
+			rules.push(this.getExistingFormat(i));
+		}
+
+		this.rulesList = rules;
+		return rules;
 	}
 
 	getFormatInfoDisplay(format: IFormat, tournamentRoom?: string): string {
@@ -1706,12 +1744,16 @@ export class Dex {
 
 		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const littleCup = ruleTable.has("littlecup");
+		const forceMonotype = ruleTable.has("forcemonotype") ? this.getExistingType(ruleTable.valueRules.get("forcemonotype")!).name : "";
 		const usablePokemon: string[] = [];
 		for (const key of formatDex.getData().pokemonKeys) {
 			const formes = formatDex.getFormes(formatDex.getExistingPokemon(key));
 			for (const forme of formes) {
 				// use PS tier in isBannedSpecies()
 				const pokemon = formatDex.pokemonShowdownDex.species.get(forme);
+
+				if (forceMonotype && !pokemon.types.includes(forceMonotype)) continue;
+
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const set: Dict<any> = {};
 
@@ -1836,6 +1878,23 @@ export class Dex {
 
 		format.usableMoves = usableMoves;
 		return usableMoves;
+	}
+
+	getUsablePokemonTags(format: IFormat): string[] {
+		if (format.usablePokemonTags) return format.usablePokemonTags;
+
+		const ruleTable = this.getRuleTable(format);
+		const usablePokemonTags: string[] = [];
+		for (const i in this.pokemonShowdownTags) {
+			if (!this.pokemonShowdownTags[i].speciesFilter) continue;
+
+			if (!ruleTable.check('pokemontag:' + i)) {
+				usablePokemonTags.push(this.pokemonShowdownTags[i].name);
+			}
+		}
+
+		format.usablePokemonTags = usablePokemonTags;
+		return usablePokemonTags;
 	}
 
 	combineCustomRules(separatedCustomRules: ISeparatedCustomRules): string[] {
@@ -2603,6 +2662,8 @@ export class Dex {
 			}
 			Tools.unrefProperties(previousDexes[mod].pokemonShowdownValidator);
 
+			Tools.unrefProperties(previousDexes[mod].pokemonShowdownTags);
+
 			if (previousDexes[mod] !== previous) {
 				Tools.unrefProperties(previousDexes[mod]);
 			}
@@ -2610,6 +2671,7 @@ export class Dex {
 
 		Tools.unrefProperties(previous.pokemonShowdownDexModule);
 		Tools.unrefProperties(previous.pokemonShowdownValidatorModule);
+		Tools.unrefProperties(previous.pokemonShowdownTagsModule);
 		Tools.unrefProperties(previous);
 
 		this.loadBaseData();
@@ -2789,14 +2851,28 @@ export class Dex {
 			if (this.getItem(alias)) continue;
 		}
 
+		const formatKeys = this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) :
+			this.dexes.base.dataCache!.formatKeys.slice();
+
+		let filteredRulesetKeys: string[] = [];
+		if (this.isBase) {
+			const rulesetKeys = Object.keys(this.pokemonShowdownDex.data.Rulesets);
+			for (const key of rulesetKeys) {
+				if (!formatKeys.includes(key)) filteredRulesetKeys.push(key);
+			}
+		} else {
+			filteredRulesetKeys = this.dexes.base.dataCache!.rulesetKeys.slice();
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
-			formatKeys: this.isBase ? this.pokemonShowdownDex.formats.all().map(x => x.id) : this.dexes.base.dataCache!.formatKeys.slice(),
+			formatKeys,
 			itemKeys: filteredItemKeys,
 			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
+			rulesetKeys: filteredRulesetKeys,
 			typeKeys: filteredTypeKeys,
 			alternateIconNumbers,
 			badges: badgeData,

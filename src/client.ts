@@ -2379,6 +2379,7 @@ export class Client {
 
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
+
 			switch (type) {
 			case 'create': {
 				const messageArguments: ITournamentMessageTypes['create'] = {

@@ -54,6 +54,8 @@ describe("pokemon-showdown", () => {
 		assert(formatKeys.includes('gen8ou'));
 		assert(formatKeys.includes('gen1ou'));
 
+		assert(Dex.getData().rulesetKeys.includes('sametypeclause'));
+
 		for (const i of formatKeys) {
 			const format = Dex.getFormat(i);
 			assert(format, i);
