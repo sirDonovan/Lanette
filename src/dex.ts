@@ -51,14 +51,17 @@ const tagNames: Dict<string> = {
 	'zu': 'ZU',
 	'nfe': 'NFE',
 	'lc': 'LC',
-	'cap': 'Cap',
-	'caplc': 'Cap LC',
-	'capnfe': 'Cap NFE',
-	'ag': 'Anything Goes',
+	'cap': 'CAP',
+	'caplc': 'CAP LC',
+	'capnfe': 'CAP NFE',
+	'captier': 'CAP Tier',
+	'ag': 'AG',
 	'duber': 'DUber',
 	'dou': 'DOU',
 	'dbl': 'DBL',
 	'duu': 'DUU',
+	'dnu': 'DNU',
+	'nduubl': 'ND UUBL',
 	'mega': 'Mega',
 	'glitch': 'Glitch',
 	'past': 'Past',
@@ -66,6 +69,9 @@ const tagNames: Dict<string> = {
 	'lgpe': 'LGPE',
 	'unobtainable': 'Unobtainable',
 	'custom': 'Custom',
+	'mythical': 'Mythical',
+	'sublegendary': 'Sub-Legendary',
+	'restrictedlegendary': 'Restricted Legendary',
 	'allpokemon': 'All Pokemon',
 	'allitems': 'All Items',
 	'allmoves': 'All Moves',
@@ -163,7 +169,6 @@ const customRuleAliases: Dict<string[]> = {
 	publ: ['+PUBL'],
 	doubl: ['+DUber'],
 	duubl: ['+DBL'],
-	cap: ['+CAP', '+CAP NFE', '+CAP LC'],
 	monotype: ['Same Type Clause'],
 	stabmons: ['STABmons Move Legality'],
 	camomons: ['[Gen 8] Camomons'],
@@ -1722,7 +1727,7 @@ export class Dex {
 		} else if (tag === 'pokemon' || tag === 'basepokemon') {
 			ruleName = this.dexes.base.getExistingPokemon(ruleName).name;
 		} else if (tag === 'pokemontag') {
-			ruleName = tagNames[ruleName];
+			if (ruleName in tagNames) ruleName = tagNames[ruleName];
 		} else {
 			const format = this.getFormat(ruleName);
 			if (format) ruleName = format.name;
