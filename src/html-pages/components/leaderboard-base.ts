@@ -23,6 +23,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 	selectedCycle: string = Storage.currentCycle;
 	selectedFormatNames: string[] = [];
 	selectedFormatIds: string[] = [];
+	sourceNameCache: Dict<string> = {};
 
 	cycleLeaderboard: ILeaderboard | undefined;
 	cycleOptions: string[];
@@ -40,8 +41,10 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		const database = Storage.getDatabase(this.room);
 		this.cycleLeaderboard = database[this.leaderboardType];
 		this.cycleOptions = [Storage.currentCycle];
-		if (database.previousCycles) {
-			for (const previousCycle of database.previousCycles) {
+
+		const archiveDatabase = Storage.getArchiveDatabase(this.room);
+		if (archiveDatabase.previousCycles) {
+			for (const previousCycle of archiveDatabase.previousCycles) {
 				if (!previousCycle[this.leaderboardType]) continue;
 				this.cycleOptions.push(this.getCycleId(previousCycle));
 			}
@@ -54,6 +57,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			pagesLabel: "Users",
 			noElementsLabel: "The leaderboard is empty",
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 
@@ -71,7 +75,8 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 				this.cycleLeaderboard = database[this.leaderboardType];
 			} else {
 				const parts = cycle.split(" - ");
-				for (const previousCycle of database.previousCycles!) {
+				const archiveDatabase = Storage.getArchiveDatabase(this.room);
+				for (const previousCycle of archiveDatabase.previousCycles!) {
 					if (previousCycle.cycleStartDate === parts[0] && previousCycle.cycleEndDate === parts[1]) {
 						this.cycleLeaderboard = previousCycle[this.leaderboardType];
 					}
@@ -186,7 +191,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		let html = "<b>Cycles</b>: ";
         for (const option of this.cycleOptions) {
             html += this.getQuietPmButton(this.commandPrefix + ", " + this.cycleCommand + ", " + option, option,
-				this.selectedCycle === option) + "&nbsp;";
+				{selectedAndDisabled: this.selectedCycle === option}) + "&nbsp;";
         }
 		return html;
 	}

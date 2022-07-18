@@ -20,6 +20,7 @@ export class Vote extends ScriptedGame {
 	endedVoting: boolean = false;
 	finalVotesUhtmlName: string = '';
 	internalGame: boolean = true;
+	managedPlayers = true;
 	botSuggestions: string[] = [];
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
 	privateVoteUhtmlName: string = '';
@@ -369,6 +370,30 @@ export class Vote extends ScriptedGame {
 				(this.chosenVoter ? "createpickedskippedcooldowngame " + this.chosenVoter + "," : "createskippedcooldowngame") + " " +
 				this.chosenFormat, Date.now());
 		}
+	}
+
+	cleanupTimers(): void {
+		super.cleanupTimers();
+
+		if (this.updateVotesHtmlTimeout) {
+			clearTimeout(this.updateVotesHtmlTimeout);
+			// @ts-expect-error
+			this.updateVotesHtmlTimeout = undefined;
+		}
+
+		for (const i in this.privateVotesHtmlTimeouts) {
+			if (this.privateVotesHtmlTimeouts[i]) {
+				clearTimeout(this.privateVotesHtmlTimeouts[i]!);
+				// @ts-expect-error
+				this.privateVotesHtmlTimeouts[i] = undefined;
+			}
+		}
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.votes.clear();
 	}
 }
 

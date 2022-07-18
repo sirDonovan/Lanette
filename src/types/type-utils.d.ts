@@ -9,6 +9,8 @@ type FilterByType<T, U> = { [P in keyof T as T[P] extends U ? P : never]: T[P] }
 
 type PromiseResolve<T> = (value: T | PromiseLike<T>) => void;
 
+type PromiseReject<T> = (reason: T) => void;
+
 // Credit to @ahejlsberg - https://github.com/microsoft/TypeScript/issues/42939#issuecomment-785316256
 type Branded<T, A> = A & { __brand: T };
 type BrandOf<A> = [A] extends [Branded<infer R, unknown>] ? R : never;

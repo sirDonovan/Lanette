@@ -102,6 +102,12 @@ class Survival {
 		}
 
 		this.announceWinners();
+
+		this.playerRounds.clear();
+	}
+
+	onForceEnd(this: SurvivalThis): void {
+		this.playerRounds.clear();
 	}
 
 	canGuessAnswer(this: SurvivalThis, player: Player | undefined): boolean {

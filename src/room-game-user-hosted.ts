@@ -32,6 +32,7 @@ export class UserHostedGame extends Game {
 	subHostId: string | null = null;
 	subHostName: string | null = null;
 	twist: string | null = null;
+	updatedDatabase: boolean = false;
 
 	// set in onInitialize()
 	declare format: IUserHostedFormat;
@@ -39,42 +40,15 @@ export class UserHostedGame extends Game {
 	declare readonly room: Room;
 
 	reset(): void {
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			// @ts-expect-error
-			this.timeout = undefined;
-		}
-
-		if (this.gameTimer) {
-			clearTimeout(this.gameTimer);
-			// @ts-expect-error
-			this.gameTimer = undefined;
-		}
-
-		if (this.hostTimeout) {
-			clearTimeout(this.hostTimeout);
-			// @ts-expect-error
-			this.hostTimeout = undefined;
-		}
-
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
-		}
-
-		if (this.signupsHtmlTimeout) {
-			clearTimeout(this.signupsHtmlTimeout);
-			// @ts-expect-error
-			this.signupsHtmlTimeout = undefined;
-		}
-
+		this.cleanupTimers();
 		this.clearHangman();
 		this.clearSignupsNotification();
 
+		this.points.clear();
+		this.winners.clear();
+
 		this.endTime = 0;
 		this.mascots = [];
-		this.points.clear();
 		this.savedWinners = [];
 		this.scoreCap = 0;
 		this.shinyMascot = false;
@@ -415,6 +389,7 @@ export class UserHostedGame extends Game {
 	end(): void {
 		if (this.ended) throw new Error("Game already ended");
 		this.ended = true;
+		this.updatedDatabase = true;
 
 		const now = Date.now();
 		Games.setLastUserHostTime(this.room, this.hostId, now);
@@ -506,11 +481,28 @@ export class UserHostedGame extends Game {
 		if (!this.started || this.options.freejoin) this.room.notifyOffRank("all");
 	}
 
+	cleanupTimers(): void {
+		super.cleanupTimers();
+
+		if (this.gameTimer) {
+			clearTimeout(this.gameTimer);
+			// @ts-expect-error
+			this.gameTimer = undefined;
+		}
+
+		if (this.hostTimeout) {
+			clearTimeout(this.hostTimeout);
+			// @ts-expect-error
+			this.hostTimeout = undefined;
+		}
+	}
+
 	deallocate(forceEnd: boolean): void {
 		if (!this.ended) this.ended = true;
 
 		this.reset();
 		this.cleanupMessageListeners();
+		this.cleanupMisc();
 
 		if (this.room.userHostedGame === this) {
 			// @ts-expect-error
@@ -526,11 +518,9 @@ export class UserHostedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
-		}
+		if (this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
+
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
 	}
 }
 
@@ -585,14 +575,6 @@ export const game: IUserHostedFile = {
 			aliases: ['DDE'],
 			description: "Each round, players create a brand new Pokedex entry for each Pokemon the host presents. Entries are judged by " +
 				"creativity and originality.",
-			freejoin: true,
-		},
-		{
-			name: "Elgyem's Number Encoder",
-			mascot: "Elgyem",
-			aliases: ['ENE', 'Elgyems'],
-			description: "Players guess answers that are encrypted in numbers (eg. 19-20-21-14-6-9-19-11 = Stunfisk)! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/elgyem-39-s-number-encoder-t820.html'>More info</a>",
 			freejoin: true,
 		},
 		{
@@ -701,6 +683,14 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Meloetta's Melodies",
+			mascot: "Meloetta",
+			aliases: ['Meloettas'],
+			description: "Players guess themes from Pokemon games based on a given audio clip! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/meloetta-39-s-melodies-t785.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Metagross' Mind Mash",
 			mascot: "Metagross",
 			aliases: ['mmm', 'metagrosssmindmash'],
@@ -793,6 +783,15 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
+			name: "Purugly's Purfect Params",
+			mascot: "Purugly",
+			aliases: ['Puruglys'],
+			description: "Players search for a parameter that when entered into <code>/nds</code> with a given parameter, " +
+				"results in a specific amount of Pokemon! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/purugly-s-purfect-params-t1003.html'>More info</a>",
+			freejoin: true,
+		},
+		{
 			name: "Ralts' Ability Race",
 			mascot: "Ralts",
 			aliases: ['RAR', 'Ralts'],
@@ -856,6 +855,14 @@ export const game: IUserHostedFile = {
 			description: "Each round, the host will announce an action. If the action is preceded by 'Simon Says', players must do the " +
 				"action using <code>/me [action]</code>. If players do the action when it is not preceded by 'Simon Says', they are " +
 				"eliminated.",
+		},
+		{
+			name: "Sinistea's Synonyms",
+			mascot: "Sinistea",
+			aliases: ['Sinisteas'],
+			description: "Players guess something Pokemon related that the given synonym is referring to! " +
+				"<a href='https://www.tapatalk.com/groups/ps_game_corner/sinistea-s-synonyms-t1154.html'>More info</a>",
+			freejoin: true,
 		},
 		{
 			name: "Spot The Reference",

@@ -29,7 +29,7 @@ class CommandsGuide extends HtmlPageBase {
 	commandsPagination!: Pagination;
 
 	constructor(room: Room, user: User) {
-		super(room, user, baseCommand);
+		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
 
@@ -48,8 +48,6 @@ class CommandsGuide extends HtmlPageBase {
 		this.components = [this.commandsPagination];
 
 		this.setCommandGuide(true);
-
-		pages[this.userId] = this;
 	}
 
 	chooseDeveloper(): void {
@@ -115,10 +113,6 @@ class CommandsGuide extends HtmlPageBase {
 		this.send();
 	}
 
-	onClose(): void {
-		delete pages[this.userId];
-	}
-
 	setCommandGuide(onOpen?: boolean): void {
 		const commandGuide = CommandParser.getCommandGuide(this.currentView);
 		if (!commandGuide) return;
@@ -182,15 +176,22 @@ class CommandsGuide extends HtmlPageBase {
 
 		html += "<b>Options</b>:";
 		if (this.showDeveloperCommands) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseDeveloper, "Development", developerView);
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseDeveloper, "Development",
+				{selectedAndDisabled: developerView});
 		}
 
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInfo, "Informational", infoView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseScriptedGame, "Scripted Game", scriptedGameView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseStorage, "Storage", storageView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTournament, "Tournament", tournamentView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUserHostedGame, "User Hosted Game", userHostedGameView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUtil, "Utility", utilView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInfo, "Informational",
+			{selectedAndDisabled: infoView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseScriptedGame, "Scripted Game",
+			{selectedAndDisabled: scriptedGameView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseStorage, "Storage",
+			{selectedAndDisabled: storageView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseTournament, "Tournament",
+			{selectedAndDisabled: tournamentView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUserHostedGame, "User Hosted Game",
+			{selectedAndDisabled: userHostedGameView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUtil, "Utility",
+			{selectedAndDisabled: utilView});
 		html += "</center>";
 
 		html += this.commandsPagination.render();
@@ -213,33 +214,28 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!cmd) {
 				new CommandsGuide(botRoom, user).open();
-			} else if (cmd === chooseDeveloper) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
+				return;
+			}
+
+			if (!(user.id in pages) && cmd !== closeCommand) new CommandsGuide(botRoom, user);
+
+			if (cmd === chooseDeveloper) {
 				pages[user.id].chooseDeveloper();
 			} else if (cmd === chooseInfo) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseInfo();
 			} else if (cmd === chooseScriptedGame) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseScriptedGame();
 			} else if (cmd === chooseStorage) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseStorage();
 			} else if (cmd === chooseTournament) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseTournament();
 			} else if (cmd === chooseUserHostedGame) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseUserHostedGame();
 			} else if (cmd === chooseUtil) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				pages[user.id].chooseUtil();
 			} else if (cmd === closeCommand) {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
-				pages[user.id].close();
-				delete pages[user.id];
+				if (user.id in pages) pages[user.id].close();
 			} else {
-				if (!(user.id in pages)) new CommandsGuide(botRoom, user);
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}

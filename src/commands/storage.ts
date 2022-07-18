@@ -112,6 +112,8 @@ export const commands: BaseCommandDefinitions = {
 
 			if (target.includes("|")) {
 				this.runMultipleTargets("|", cmd);
+				Storage.afterAddPoints(leaderboardRoom, leaderboardType, Storage.manualSource);
+				Storage.tryExportDatabase(leaderboardRoom.id);
 				return;
 			}
 
@@ -158,9 +160,11 @@ export const commands: BaseCommandDefinitions = {
 				const targetUser = Users.get(users[i]);
 				if (targetUser) users[i] = targetUser.name;
 				if (remove) {
-					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
+					Storage.removePoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource,
+						this.runningMultipleTargets ? true : false);
 				} else {
-					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource);
+					Storage.addPoints(leaderboardRoom, leaderboardType, users[i], points, Storage.manualSource,
+						this.runningMultipleTargets ? true : false);
 					if (targetUser && targetUser.rooms.has(leaderboardRoom)) {
 						targetUser.say("You were awarded " + points + " " + pointsName + "! To see your total amount, use this command: " +
 							"``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + leaderboardRoom.title + "``");
@@ -183,7 +187,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			Storage.exportDatabase(room.id);
+			if (!this.runningMultipleTargets) Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['apt', 'addpoint', 'removepoint', 'removepoints', 'apoint', 'apoints', 'rpoint', 'rpoints', 'rpt']
 			.concat(addGamePointsAliases),
@@ -208,7 +212,7 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(',');
 			if (targets.length !== 3 && targets.length !== 4) {
 				return this.say("Usage: ``" + Config.commandCharacter + cmd + " " + "[" + placeName + "], [format], [players], " +
-					"[scheduled]``");
+					"[official]``");
 			}
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
@@ -222,10 +226,10 @@ export const commands: BaseCommandDefinitions = {
 					Tournaments.maxPlayerCap + " players.");
 			}
 
-			const scheduledOption = Tools.toId(targets[3]);
-			const scheduled = scheduledOption === 'official' || scheduledOption === 'scheduled';
+			const officialOption = Tools.toId(targets[3]);
+			const official = officialOption === 'official' || officialOption === 'scheduled';
 
-			const points = Tournaments.getPlacePoints(placeName, format, players, scheduled);
+			const points = Tournaments.getPlacePoints(placeName, format, players, official);
 			const pointsString = points + " point" + (points > 1 ? "s" : "");
 
 			let targetUserName = targets[0].trim();
@@ -236,14 +240,14 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded " + pointsString + " for being " + (placeName === "semifinalist" ? "a" : "the") + " " +
-					placeName + " in a " + (scheduled ? "scheduled " : "") + format.name + " tournament! To see your total amount, use " +
+					placeName + " in " + (official ? "an official " : "a ") + format.name + " tournament! To see your total amount, use " +
 					"this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
-			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for a " +
-				(scheduled ? "scheduled " : "") + players + "-man " + format.name + " tournament");
+			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for " +
+				(official ? "an official " : "a ") + players + "-player " + format.name + " tournament");
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['addsemipoints', 'addsemispoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
@@ -281,9 +285,9 @@ export const commands: BaseCommandDefinitions = {
 					Tournaments.maxPlayerCap + " players.");
 			}
 
-			const scheduledPoints = Tournaments.getPlacePoints(placeName, format, players, true);
+			const officialPoints = Tournaments.getPlacePoints(placeName, format, players, true);
 			const regularPoints = Tournaments.getPlacePoints(placeName, format, players, false);
-			const points = scheduledPoints - regularPoints;
+			const points = officialPoints - regularPoints;
 			const pointsString = points + " missing point" + (points > 1 ? "s" : "");
 
 			let targetUserName = targets[0].trim();
@@ -294,14 +298,14 @@ export const commands: BaseCommandDefinitions = {
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded your " + pointsString + " for being " +
-					(placeName === "semifinalist" ? "a" : "the") + " " + placeName + " in a scheduled " + format.name + " tournament! " +
+					(placeName === "semifinalist" ? "a" : "the") + " " + placeName + " in an official " + format.name + " tournament! " +
 					"To see your total amount, use this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
 			}
 
 			room.modnote(user.name + " awarded " + targetUserName + " missing " + placeName + " points (" + points + ") " +
-				"for a scheduled " + players + "-man " + format.name + " tournament");
+				"for an official " + players + "-player " + format.name + " tournament");
 
-			Storage.exportDatabase(room.id);
+			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
 		aliases: ['makesemipointsofficial', 'makesemispointsofficial', 'makesemifinalpointsofficial', 'makerunneruppointsofficial',
@@ -341,7 +345,7 @@ export const commands: BaseCommandDefinitions = {
 
 			database.leaderboardManagers = database.leaderboardManagers.concat(ids);
 			this.say("The specified user(s) can now use ``" + Config.commandCharacter + "apt/rpt`` for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['addlbmanager', 'addleaderboardmanagers', 'addlbmanagers'],
 		syntax: ["[user]"],
@@ -385,7 +389,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			this.say("The specified user(s) can no longer add or remove points for " + leaderboardRoom.title + ".");
-			Storage.exportDatabase(leaderboardRoom.id);
+			Storage.tryExportDatabase(leaderboardRoom.id);
 		},
 		aliases: ['removelbmanager', 'removeleaderboardmanagers', 'removelbmanagers'],
 		syntax: ["[user]"],
@@ -678,19 +682,64 @@ export const commands: BaseCommandDefinitions = {
 				const targets = target.split(",");
 				for (const type of targets) {
 					const id = Tools.toId(type) as LeaderboardType;
-					if (!Storage.allLeaderboardTypes.includes(id)) {
+					if (!(id in Storage.allLeaderboardTypesById)) {
 						return this.say("'" + type.trim() + "' is not a valid leaderboard type.");
 					}
-					leaderboardTypes.push(id);
+					leaderboardTypes.push(Storage.allLeaderboardTypesById[id]);
 				}
 			}
 
-			Storage.clearLeaderboard(room.id, leaderboardTypes);
-			this.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
+			Storage.clearLeaderboard(room.id, leaderboardTypes)
+				.then(() => {
+					const currentRoom = Rooms.get(room.id);
+					if (currentRoom) currentRoom.say("The leaderboard" + (leaderboards > 1 ? "s were" : " was") + " cleared.");
+				})
+				.catch((e: Error) => {
+					const currentRoom = Rooms.get(room.id);
+					if (currentRoom) {
+						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s" : "") + ".");
+					}
+
+					Tools.logError(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
+				});
 		},
 		chatOnly: true,
 		aliases: ['resetleaderboard'],
 		description: ["ends the current leaderboard cycle and starts a new one"],
+	},
+	clearleaderboardpoints: {
+		command(target, room, user) {
+			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
+			const database = Storage.getDatabase(room);
+			let leaderboards = 0;
+			for (const type of Storage.allLeaderboardTypes) {
+				if (database[type]) leaderboards++;
+			}
+
+			if (!leaderboards) return this.say("There is no leaderboard for the " + room.title + " room.");
+
+			const targets = target.split(",");
+			if (targets.length !== 2) return this.say("You must specify a leaderboard type and user.");
+
+			let leaderboardTypeId = Tools.toId(targets[0]);
+			if (leaderboardTypeId + 'leaderboard' in Storage.allLeaderboardTypesById) {
+				leaderboardTypeId += 'leaderboard';
+			} else if (!(leaderboardTypeId in Storage.allLeaderboardTypesById)) {
+				return this.say("'" + targets[0].trim() + "' is not a valid leaderboard type.");
+			}
+
+			if (Storage.removeAllPoints(room, Storage.allLeaderboardTypesById[leaderboardTypeId], targets[1])) {
+				this.say("Cleared all " + Storage.allLeaderboardNames[Storage.allLeaderboardTypesById[leaderboardTypeId]] +
+					" points for " + targets[1].trim() + ".");
+			} else {
+				this.say(targets[1].trim() + " does not have any " +
+					Storage.allLeaderboardNames[Storage.allLeaderboardTypesById[leaderboardTypeId]] + " points.");
+			}
+		},
+		chatOnly: true,
+		aliases: ['resetleaderboardpoints'],
+		syntax: ["[leaderboard type], [user]"],
+		description: ["clears the user's points from the specified leaderboard"],
 	},
 	transferdata: {
 		command(target, room, user) {
@@ -800,6 +849,107 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['chieved', 'unlockedachievements', 'unlockedchieves'],
 		syntax: ["[room], [achievement]"],
 		description: ["displays the list of users who have unlocked the given achievement in the room"],
+	},
+	tournamentprofile: {
+		command(target, room, user) {
+			if (this.isPm(room)) {
+				this.say("To preview your tournament trainer profile, use the command ``" + Config.commandCharacter + "ttc [room]``.");
+				return;
+			}
+
+			if (!user.hasRank(room, 'star')) return;
+
+			let targetName = target || user.name;
+			const targetUser = Users.get(targetName);
+			if (targetUser) {
+				targetName = targetUser.name;
+			}
+
+			if (!Tournaments.getTrainerCardHtml(room, targetName)) {
+				return this.say(targetName + " does not have a tournament trainer profile.");
+			}
+
+			// update global rank
+			Tournaments.displayTrainerCard(room, targetName);
+		},
+		aliases: ['tourprofile'],
+		syntax: ["[user]"],
+		description: ["displays the tournament trainer profile of the given user"],
+	},
+	tournamenttrainercardbadges: {
+		command(target, room, user) {
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(target);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+				tournamentRoom = targetRoom;
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				tournamentRoom = room;
+			}
+
+			const badgesHtml: string[] = [];
+			if (Config.tournamentTrainerCardBadges) {
+				for (const i in Config.tournamentTrainerCardBadges) {
+					const badgeHtml = Tournaments.getBadgeHtml(i);
+					if (badgeHtml) badgesHtml.push(badgeHtml);
+				}
+			}
+
+			if (!badgesHtml.length) {
+				return this.say("There are no tournament trainer card badges for " + tournamentRoom.title + ".");
+			}
+
+			this.sayHtml("<b>" + tournamentRoom.title + " trainer card badges</b>:<br />" + badgesHtml.join(""), tournamentRoom);
+		},
+		aliases: ['tourtrainercardbadges', 'tourbadges', 'tourbadgelist', 'ttcbadges'],
+		syntax: ["[room]"],
+		description: ["displays the list of tournament trainer card badges for the given room"],
+	},
+	tournamenttrainercardbadgeholders: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let tournamentRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				tournamentRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				tournamentRoom = room;
+			}
+
+			const id = Tools.toId(targets[0]);
+			if (!id) return this.say("You must specify a badge name.");
+
+			if (!Config.tournamentTrainerCardBadges || !(id in Config.tournamentTrainerCardBadges)) {
+				return this.say("'" + targets[0].trim() + "' is not a valid tournament trainer card badge.");
+			}
+
+			const trainerCardRoom = Tournaments.getTrainerCardRoom(tournamentRoom);
+			if (!trainerCardRoom) {
+				return this.say("The tournament trainer card badges for " + tournamentRoom.title + " cannot currently be viewed.");
+			}
+
+			const database = Storage.getDatabase(trainerCardRoom);
+			const users: string[] = [];
+			if (database.tournamentTrainerCards) {
+				for (const i in database.tournamentTrainerCards) {
+					if (database.tournamentTrainerCards[i].badges && database.tournamentTrainerCards[i].badges!.includes(id)) {
+						const badgeUser = Users.get(i);
+						users.push(badgeUser ? badgeUser.name : i);
+					}
+				}
+			}
+
+			if (!users.length) return this.say("No one holds the " + Config.tournamentTrainerCardBadges[id].name + " badge.");
+			this.sayHtml("<b>" + Config.tournamentTrainerCardBadges[id].name + " badge holders</b>:<br />" + users.join(", "),
+				tournamentRoom);
+		},
+		aliases: ['tourtrainercardbadgeholders', 'tourbadgeholders', 'ttcbh'],
+		syntax: ["[room], [badge]"],
+		description: ["displays the list of users who hold the given badge on their tournament trainer card"],
 	},
 	eventlink: {
 		command(target, room, user) {

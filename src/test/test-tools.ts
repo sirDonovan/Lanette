@@ -13,6 +13,19 @@ export function getBasePlayerName(): string {
 	return basePlayerName;
 }
 
+export function createTestRoom(id?: string, title?: string): Room {
+	if (!id) id = 'mocha';
+	const oldRoom = Rooms.get(id);
+	if (oldRoom) Rooms.remove(oldRoom);
+
+	const room = Rooms.add(id);
+	room.setPublicRoom(true);
+	room.setTitle(title || 'Mocha');
+	room.onUserJoin(Users.self, Client.getGroupSymbols().bot);
+
+	return room;
+}
+
 function getAdditionalInformation(message: string): string {
 	const roomInformation: string[] = [];
 	const room = Rooms.get('mocha');

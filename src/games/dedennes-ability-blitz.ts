@@ -123,6 +123,12 @@ class DedennesAbilityBlitz extends ScriptedGame {
 		});
 		*/
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundSelections.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<DedennesAbilityBlitz> = {

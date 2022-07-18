@@ -11,4 +11,5 @@
 /private-data/**
 /roomlogs/**
 /src/config.ts
+/src/local-scripts/**
 *.js

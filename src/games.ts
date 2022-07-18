@@ -2,19 +2,22 @@ import fs = require('fs');
 import path = require('path');
 import type { SearchChallenge } from './games/templates/search-challenge';
 
+import { gameSchedules } from './game-schedules';
 import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
 import type { Room } from "./rooms";
 import type { CommandErrorArray } from "./types/command-parser";
+import type { ModelGeneration } from './types/dex';
 import type {
 	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, GameNumberOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
 	IGameModeFile, IGameOptions, IGameNumberOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed,
-	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
+	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable, IOfficialGame,
+	IScheduledGameTimerData
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
-import type { IGameCustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IGameScriptedBox, IPastGame } from './types/storage';
+import type { ICustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
 import type { HexCode } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
@@ -28,6 +31,13 @@ type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
 type Modes = Dict<IGameMode>;
 type UserHostedFormats = Dict<IUserHostedComputed>;
 type GameCategoryNames = Readonly<KeyedDict<GameCategory, string>>;
+
+interface ICreateGameOptions {
+	minigame?: boolean;
+	official?: boolean;
+	pmRoom?: Room;
+	initialSeed?: PRNGSeed;
+}
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
@@ -49,8 +59,8 @@ const internalGamePaths: Readonly<KeyedDict<InternalGame, string>> = {
 };
 
 const categoryNames: GameCategoryNames = {
+	'battle-elimination': 'Battle Elimination',
 	'chain': 'Chain',
-	'elimination-tournament': 'Elimination Tournament',
 	'identification-1': 'Identification Group 1',
 	'identification-2': 'Identification Group 2',
 	'knowledge-1': 'Knowledge Group 1',
@@ -101,11 +111,14 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 const gameChallenges: GameChallenge[] = ['botchallenge', 'onevsone'];
 
 export class Games {
+	readonly delayedOfficialGameTime: number = 15 * 1000;
+
 	private readonly achievements: Achievements = {};
 	private readonly aliases: Dict<string> = {};
 	private autoCreateTimers: Dict<NodeJS.Timer> = {};
 	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	private readonly formats: Formats = {};
+	private readonly formatModules: NodeModule[] = [];
 	private readonly freejoinFormatTargets: string[] = [];
 	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
 	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
@@ -134,6 +147,12 @@ export class Games {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
 	};
+
+	private nextOfficialGames: Dict<IOfficialGame> = {};
+	private officialGames: Dict<Dict<IOfficialGame[]>> = {};
+	private readonly schedules: typeof gameSchedules = gameSchedules;
+	private scheduledGameTimerData: Dict<IScheduledGameTimerData> = {};
+	private scheduledGameTimers: Dict<NodeJS.Timer> = {};
 
 	private readonly commands: LoadedGameCommands;
 	private readonly sharedCommands: LoadedGameCommands;
@@ -251,31 +270,211 @@ export class Games {
 		return Object.assign(Tools.deepClone(template), game);
 	}
 
+	loadSchedules(): void {
+		for (const server in this.schedules) {
+			const rooms = Object.keys(this.schedules[server]);
+			for (const room of rooms) {
+				const id = Tools.toRoomId(room);
+				if (id !== room) {
+					this.schedules[server][id] = this.schedules[server][room];
+					delete this.schedules[server][room];
+				}
+			}
+		}
+
+		for (const server in this.schedules) {
+			this.officialGames[server] = {};
+
+			for (const room in this.schedules[server]) {
+				this.officialGames[server][room] = [];
+
+				for (const month in this.schedules[server][room].months) {
+					for (const day in this.schedules[server][room].months[month].formats) {
+						for (const format of this.schedules[server][room].months[month].formats[day]) {
+							try {
+								if (format) this.getExistingFormat(format);
+							} catch (e) {
+								throw new Error(month + "/" + day + " in " + room + ": " + (e as Error).message);
+							}
+						}
+					}
+				}
+
+				const months = Object.keys(this.schedules[server][room].months).map(x => parseInt(x));
+				let month = months[0];
+				months.shift();
+
+				let formats = this.schedules[server][room].months[month].formats;
+				let times = this.schedules[server][room].months[month].times;
+				let formatIndex = times[0][0] > times[1][0] ? 2 : 1;
+				const date = new Date();
+				let day = 1;
+				date.setMonth(month - 1, day);
+				date.setDate(day);
+				date.setFullYear(this.schedules[server][room].months[month].year);
+				let lastDayOfMonth = Tools.getLastDayOfMonth(date);
+
+				const rolloverDay = (): void => {
+					formatIndex++;
+					if (!(formatIndex in formats)) {
+						if (months.length) {
+							formats = this.schedules[server][room].months[months[0]].formats;
+							formatIndex = 1;
+						} else {
+							formatIndex--;
+						}
+					}
+
+					day++;
+					if (day > lastDayOfMonth) {
+						day = 1;
+						const previousMonth = month;
+						month = months[0];
+						months.shift();
+						if (month) {
+							date.setMonth(month - 1, day);
+							date.setFullYear(this.schedules[server][room].months[month].year);
+
+							times = this.schedules[server][room].months[month].times;
+							lastDayOfMonth = Tools.getLastDayOfMonth(date);
+						} else {
+							// previousMonth + 1 - 1
+							date.setMonth(previousMonth, day);
+						}
+					}
+					date.setDate(day);
+				};
+
+				// month is eventually undefined due to rolloverDay()
+				while (month) {
+					let rolledOverDay = false;
+					for (let i = 0; i < times.length; i++) {
+						if (i > 0 && times[i][0] < times[i - 1][0]) {
+							rolloverDay();
+							rolledOverDay = true;
+						}
+
+						date.setHours(times[i][0], times[i][1], 0, 0);
+
+						let format = "";
+						for (let j = i; j >= 0; j--) {
+							format = formats[formatIndex][j];
+							if (format) break;
+						}
+
+						if (format) this.officialGames[server][room].push({format, time: date.getTime(), official: true});
+					}
+
+					if (!rolledOverDay) rolloverDay();
+				}
+
+				this.officialGames[server][room].sort((a, b) => a.time - b.time);
+			}
+		}
+	}
+
+	setNextScheduledGame(room: Room): void {
+		this.setOfficialGame(room);
+
+		const database = Storage.getDatabase(room);
+		if (database.queuedScriptedGame && (!(room.id in this.nextOfficialGames) ||
+			database.queuedScriptedGame.time < this.nextOfficialGames[room.id].time)) {
+			const format = this.getFormat(database.queuedScriptedGame.formatid);
+			if (!Array.isArray(format)) {
+				const now = Date.now();
+				if (database.queuedScriptedGame.time <= now) database.queuedScriptedGame.time = now + this.delayedOfficialGameTime;
+
+				this.setCreateGameTimer(room, database.queuedScriptedGame.time, format, false);
+			}
+		}
+	}
+
+	setOfficialGame(room: Room): void {
+		const serverId = Client.getServerId();
+		if (!(serverId in this.officialGames) || !(room.id in this.officialGames[serverId])) return;
+
+		delete this.nextOfficialGames[room.id];
+
+		const now = Date.now();
+		let nextOfficialIndex = -1;
+
+		for (let i = 0; i < this.officialGames[serverId][room.id].length; i++) {
+			if (this.officialGames[serverId][room.id][i].time >= now) {
+				nextOfficialIndex = i;
+				break;
+			}
+		}
+
+		if (nextOfficialIndex === -1) return;
+
+		if (nextOfficialIndex > 0) {
+			this.officialGames[serverId][room.id] = this.officialGames[serverId][room.id].slice(nextOfficialIndex);
+		}
+
+		this.nextOfficialGames[room.id] = this.officialGames[serverId][room.id][0];
+		this.setOfficialGameTimer(room);
+	}
+
+	setOfficialGameTimer(room: Room): void {
+		if (room.id in this.nextOfficialGames) {
+			this.setCreateGameTimer(room, this.nextOfficialGames[room.id].time,
+				this.getExistingFormat(this.nextOfficialGames[room.id].format), true);
+		}
+	}
+
+	setCreateGameTimer(room: Room, startTime: number, format: IGameFormat, official?: boolean): void {
+		if (room.id in this.scheduledGameTimers) clearTimeout(this.scheduledGameTimers[room.id]);
+
+		let timer = startTime - Date.now();
+		if (timer <= 0) timer = this.delayedOfficialGameTime;
+
+		this.scheduledGameTimerData[room.id] = {formatid: format.inputTarget, startTime, official};
+		this.scheduledGameTimers[room.id] = setTimeout(() => {
+			if (room.game) return;
+			const game = global.Games.createGame(room, format, {official});
+			if (game) {
+				game.signups();
+			}
+
+			delete this.scheduledGameTimers[room.id];
+		}, timer);
+	}
+
 	loadFormats(): void {
+		const userHostedModule = require(path.join(Tools.buildFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
+		typeof import('./room-game-user-hosted');
+
 		// @ts-expect-error
-		this.userHosted = (require(path.join(Tools.builtFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-			typeof import('./room-game-user-hosted')).game;
+		this.formatModules.push(userHostedModule);
+
+		// @ts-expect-error
+		this.userHosted = userHostedModule.game;
 
 		const internalGameKeys = Object.keys(internalGamePaths) as InternalGame[];
 		for (const key of internalGameKeys) {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(internalGamePaths[key]).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(internalGamePaths[key]);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
+
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + internalGamePaths[key]);
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 				for (const i in commands) {
 					if (i in BaseCommands) {
-						throw new Error("Internal game " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Internal game " + game.name + " command '" + i + "' already exists as a regular command.");
 					}
 					if (!(i in this.commands)) this.commands[i] = commands[i];
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.internalFormats[key] = Object.assign({}, file, {commands, id: Tools.toId(file.name)});
+			this.internalFormats[key] = Object.assign({}, game, {commands, id: Tools.toId(game.name)});
 		}
 
 		const modesDirectory = path.join(gamesDirectory, "modes");
@@ -283,50 +482,60 @@ export class Games {
 		for (const fileName of modeFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(modePath).mode as DeepImmutable<IGameModeFile> | undefined;
-			if (!file) throw new Error("No mode exported from " + modePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(modePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.modes) throw new Error("The name '" + file.name + "' is already used by another mode.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const mode = file.mode as DeepImmutable<IGameModeFile> | undefined;
+			if (!mode) throw new Error("No mode exported from " + modePath);
 
-			if (file.commands) {
-				for (const i in file.commands) {
+			const id = Tools.toId(mode.name);
+			if (id in this.modes) throw new Error("The name '" + mode.name + "' is already used by another mode.");
+
+			if (mode.commands) {
+				for (const i in mode.commands) {
 					if (i in BaseCommands) {
-						throw new Error("Mode " + file.name + " command '" + i + "' already exists as a regular command.");
+						throw new Error("Mode " + mode.name + " command '" + i + "' already exists as a regular command.");
 					}
-					if (!(i in this.commands)) this.commands[i] = file.commands[i];
+					if (!(i in this.commands)) this.commands[i] = mode.commands[i];
 				}
 			}
 
-			if (file.aliases) {
-				for (const alias of file.aliases) {
+			if (mode.aliases) {
+				for (const alias of mode.aliases) {
 					const aliasId = Tools.toId(alias);
 					if (aliasId in this.modeAliases) {
-						throw new Error(file.name + " mode's alias '" + alias + " is already used by " +
+						throw new Error(mode.name + " mode's alias '" + alias + " is already used by " +
 							this.modes[this.modeAliases[aliasId]].name + ".");
 					}
 					this.modeAliases[aliasId] = id;
 				}
 			}
 
-			this.modes[id] = Object.assign({}, file as IGameMode, {id});
+			this.modes[id] = Object.assign({}, mode as IGameMode, {id});
 		}
 
 		const gameFiles = fs.readdirSync(gamesDirectory);
 		for (const fileName of gameFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-var-requires
-			const file = require(gamePath).game as DeepImmutable<IGameFile> | undefined;
-			if (!file) throw new Error("No game exported from " + gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			const file = require(gamePath);
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			this.formatModules.push(file);
 
-			const id = Tools.toId(file.name);
-			if (id in this.formats) throw new Error("The name '" + file.name + "' is already used by another game.");
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+			const game = file.game as DeepImmutable<IGameFile> | undefined;
+			if (!game) throw new Error("No game exported from " + gamePath);
+
+			const id = Tools.toId(game.name);
+			if (id in this.formats) throw new Error("The name '" + game.name + "' is already used by another game.");
 
 			let challengeSettings: GameChallengeSettings | undefined;
-			if (file.challengeSettings) {
-				challengeSettings = Tools.deepClone(file.challengeSettings);
+			if (game.challengeSettings) {
+				challengeSettings = Tools.deepClone(game.challengeSettings);
 				for (const gameChallenge of gameChallenges) {
 					if (!challengeSettings[gameChallenge]) continue;
 					if (challengeSettings[gameChallenge]!.options) {
@@ -341,31 +550,31 @@ export class Games {
 			}
 
 			let commands;
-			if (file.commands) {
-				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(file.commands));
+			if (game.commands) {
+				commands = CommandParser.loadCommandDefinitions<ScriptedGame, GameCommandReturnType>(Tools.deepClone(game.commands));
 			}
 
 			let variants;
-			if (file.variants) {
-				variants = Tools.deepClone(file.variants);
+			if (game.variants) {
+				variants = Tools.deepClone(game.variants);
 				for (const variant of variants) {
 					variant.variantAliases = variant.variantAliases.map(x => Tools.toId(x));
 				}
 			}
 
 			let modes: string[] | undefined;
-			if (file.modes) {
+			if (game.modes) {
 				modes = [];
-				for (const mode of file.modes) {
+				for (const mode of game.modes) {
 					const modeId = Tools.toId(mode);
-					if (!(modeId in this.modes)) throw new Error(file.name + "'s mode '" + mode + "' is not a valid mode.");
+					if (!(modeId in this.modes)) throw new Error(game.name + "'s mode '" + mode + "' is not a valid mode.");
 					modes.push(modeId);
 				}
 			}
 
-			if (file.class.achievements) this.loadFileAchievements(file);
+			if (game.class.achievements) this.loadFileAchievements(game);
 
-			this.formats[id] = Object.assign({}, file, {challengeSettings, commands, id, modes, variants});
+			this.formats[id] = Object.assign({}, game, {challengeSettings, commands, id, modes, variants});
 		}
 
 		for (const format of this.userHosted.formats) {
@@ -536,21 +745,37 @@ export class Games {
 							if (result) returnedResult = result;
 						} else {
 							user.rooms.forEach((value, userRoom) => {
+								const games: ScriptedGame[] = [];
 								if (userRoom.game) {
-									const result = userRoom.game.tryCommand(target, user, user, command, timestamp);
-									if (result) returnedResult = result;
-								} else if (userRoom.searchChallenge) {
-									const result = userRoom.searchChallenge.tryCommand(target, user, user, command, timestamp);
+									games.push(userRoom.game);
+								}
+								if (userRoom.tournament && userRoom.tournament.battleRoomGame) {
+									games.push(userRoom.tournament.battleRoomGame);
+								}
+								if (userRoom.searchChallenge) {
+									games.push(userRoom.searchChallenge);
+								}
+
+								for (const game of games) {
+									const result = game.tryCommand(target, user, user, command, timestamp);
 									if (result) returnedResult = result;
 								}
 							});
 						}
 					} else {
+						const games: ScriptedGame[] = [];
 						if (room.game) {
-							const result = room.game.tryCommand(target, room, user, command, timestamp);
-							if (result) returnedResult = result;
-						} else if (room.searchChallenge) {
-							const result = room.searchChallenge.tryCommand(target, room, user, command, timestamp);
+							games.push(room.game);
+						}
+						if (room.tournament && room.tournament.battleRoomGame) {
+							games.push(room.tournament.battleRoomGame);
+						}
+						if (room.searchChallenge) {
+							games.push(room.searchChallenge);
+						}
+
+						for (const game of games) {
+							const result = game.tryCommand(target, room, user, command, timestamp);
 							if (result) returnedResult = result;
 						}
 					}
@@ -593,13 +818,12 @@ export class Games {
 
 					const format = global.Games.getFormat(formatName + (target ? "," + target : ""), true);
 					if (Array.isArray(format)) return this.sayError(format);
-					if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 					if (format.mode) return this.say("Minigames cannot be played in modes.");
 
 					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
-					const game = global.Games.createGame(room, format, pmRoom, true);
+					const game = global.Games.createGame(room, format, {pmRoom, minigame: true});
 					if (game) game.signups();
 				},
 			};
@@ -1094,9 +1318,10 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean,
-		initialSeed?: PRNGSeed): ScriptedGame | undefined {
-		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
+	createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): ScriptedGame | undefined {
+		const minigame = options && options.minigame;
+		const official = options && options.official;
+		if (!minigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
 			if (format.nonTrivialLoadData) {
@@ -1106,10 +1331,12 @@ export class Games {
 			format.class.loadedData = true;
 		}
 
-		const game = new format.class(room, pmRoom, initialSeed);
-		if (isMinigame) game.isMiniGame = true;
+		const game = new format.class(room, options ? options.pmRoom : undefined, options ? options.initialSeed : undefined);
+		if (minigame) game.isMiniGame = true;
+		if (official) game.official = true;
+
 		if (game.initialize(format)) {
-			if (isMinigame) {
+			if (minigame) {
 				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
 				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
 					'freejoin' in format.resolvedInputProperties.customizableNumberOptions) {
@@ -1118,14 +1345,20 @@ export class Games {
 			}
 
 			room.game = game;
+
+			if (Config.onScriptedGameCreate && !game.isPmActivity(room)) Config.onScriptedGameCreate(room, format, official);
 			return room.game;
 		} else {
-			game.deallocate(true);
+			if (!game.ended) game.deallocate(true);
 		}
 	}
 
 	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame | undefined {
-		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
+		const childGame = this.createGame(parentGame.room, format, {
+			pmRoom: parentGame.pmRoom,
+			initialSeed: parentGame.prng.seed.slice() as PRNGSeed,
+		});
+
 		if (childGame) {
 			childGame.canLateJoin = false;
 			childGame.parentGame = parentGame;
@@ -1486,8 +1719,12 @@ export class Games {
 
 		let avatarHtml = "";
 		if (trainerCard.avatar) {
-			const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
-			if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			if (trainerCard.customAvatar) {
+				avatarHtml += Dex.getCustomTrainerSprite(trainerCard.avatar);
+			} else {
+				const avatarSpriteId = Dex.getTrainerSpriteId(trainerCard.avatar);
+				if (avatarSpriteId) avatarHtml = Dex.getTrainerSprite(avatarSpriteId);
+			}
 		}
 
 		const emptySpan = '<span style="display: inline-block ; height: 30px ; width: 40px"></span>';
@@ -1567,7 +1804,7 @@ export class Games {
 				background = customBox.background;
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsBackgroundBorder && Object.keys(customBox.signupsBackgroundBorder).length) {
 				border = customBox.signupsBackgroundBorder;
 			} else if (game && customBox.gameBackgroundBorder && Object.keys(customBox.gameBackgroundBorder).length) {
@@ -1613,7 +1850,7 @@ export class Games {
 				}
 			}
 
-			let border: IGameCustomBorder = {};
+			let border: ICustomBorder = {};
 			if (signups && customBox.signupsButtonsBorder && Object.keys(customBox.signupsButtonsBorder).length) {
 				border = customBox.signupsButtonsBorder;
 			} else if (game && customBox.gameButtonsBorder && Object.keys(customBox.gameButtonsBorder).length) {
@@ -1628,36 +1865,44 @@ export class Games {
 		return buttonStyle;
 	}
 
-	getScriptedBoxHtml(room: Room, gameName: string, voter?: string, description?: string, mascot?: IPokemon, shinyMascot?: boolean,
-		highlightPhrase?: string, modeHighlightPhrase?: string): string {
-		let scriptedBox: IGameScriptedBox | undefined;
+	getScriptedBoxHtml(room: Room, gameName: string, formatId: string, voter?: string, description?: string, mascot?: IPokemon,
+		shinyMascot?: boolean, highlightPhrase?: string, modeHighlightPhrase?: string): string {
+		let scriptedBox: IGameCustomBox | undefined;
+		let mascotGeneration: ModelGeneration | undefined;
+
 		if (voter) {
 			const user = Users.get(voter);
 			if (user) voter = user.name;
 
 			const id = Tools.toId(voter);
 			const database = Storage.getDatabase(room);
-			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) scriptedBox = database.gameScriptedBoxes[id];
+			if (database.gameScriptedBoxes && id in database.gameScriptedBoxes) {
+				mascotGeneration = database.gameScriptedBoxes[id].mascotGeneration;
+
+				if (database.gameFormatScriptedBoxes && id in database.gameFormatScriptedBoxes &&
+					formatId in database.gameFormatScriptedBoxes[id]) {
+					scriptedBox = database.gameFormatScriptedBoxes[id][formatId];
+				} else {
+					scriptedBox = database.gameScriptedBoxes[id];
+				}
+			}
 		}
 
 		let content = "";
 		if (voter) {
-			let iconHtml = "";
-			if (scriptedBox) {
-				const icons: string[] = [];
-				for (const pokemon of scriptedBox.pokemon) {
-					const icon = Dex.getPokemonIcon(Dex.getExistingPokemon(pokemon));
-					if (icon) icons.push(icon);
-				}
-
-				if (icons.length) iconHtml = icons.join("&nbsp;") + " ";
-			}
-
-			content += iconHtml + "<b>" + voter + "</b>'s pick<br /><br />";
+			content += "<b>" + voter + "</b>'s pick<br />";
 		}
 
 		if (mascot) {
-			const gif = Dex.getPokemonModel(mascot, undefined, undefined, shinyMascot);
+			let generation: ModelGeneration | undefined;
+			if (mascotGeneration) {
+				const maxGeneration = Dex.getModelGenerationMaxGen(mascotGeneration);
+				if (mascot.gen <= maxGeneration) {
+					generation = mascotGeneration;
+				}
+			}
+
+			const gif = Dex.getPokemonModel(mascot, generation, undefined, shinyMascot);
 			if (gif) content += gif;
 		}
 		content += "<h3>" + gameName + "</h3>";
@@ -1696,9 +1941,13 @@ export class Games {
 		if (hostBox) {
 			let trainerHtml = "";
 			if (hostBox.avatar) {
-				const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
-				if (trainerSpriteId) {
-					trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+				if (hostBox.customAvatar) {
+					trainerHtml += Dex.getCustomTrainerSprite(hostBox.avatar);
+				} else {
+					const trainerSpriteId = Dex.getTrainerSpriteId(hostBox.avatar);
+					if (trainerSpriteId) {
+						trainerHtml += Dex.getTrainerSprite(trainerSpriteId);
+					}
 				}
 			}
 
@@ -1742,10 +1991,10 @@ export class Games {
 		return "<center>" + this.getCustomBoxDiv(content, hostBox) + "</center>";
 	}
 
-	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number, playerNames: string):
-		string {
-		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, "<br /><b>Players (" + playerCount + ")</b>: " +
-			playerNames);
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number,
+		playerNames: string, pokemonAvatars?: boolean): string {
+		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
+			"<b>Players (" + playerCount + ")</b>: " + playerNames);
 	}
 
 	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {
@@ -1819,19 +2068,10 @@ export class Games {
 
 		if (!allowsScriptedGames && !allowsUserHostedGames) return;
 
-		const header = room.title + " Game Catalog";
-		let document: string[] = ["# " + header];
-
-		let subHeader = "This document contains information on all ";
-		if (allowsScriptedGames && allowsUserHostedGames) {
-			subHeader += "scripted and user-hosted";
-		} else if (allowsScriptedGames) {
-			subHeader += "scripted";
-		} else if (allowsUserHostedGames) {
-			subHeader += "user-hosted";
-		}
-		subHeader += " games that can be played in the " + room.title + " room.";
-		document.push(subHeader);
+		let scriptedGamesDocument: string[] = ["# " + room.title + " Scripted Games",
+			"This document contains information on all scripted games that can be played in the " + room.title + " room."];
+		let userHostedGamesDocument: string[] = ["# " + room.title + " User-Hosted Games",
+			"This document contains information on all user-hosted games that can be played in the " + room.title + " room."];
 
 		if (allowsUserHostedGames) {
 			const userHostCommands: string[] = ["## User-host commands",
@@ -1924,7 +2164,7 @@ export class Games {
 					"5 trainer sprites",
 			];
 
-			document = document.concat(userHostCommands);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostCommands);
 		}
 
 		let allowChallengeGames = false;
@@ -1953,8 +2193,8 @@ export class Games {
 			];
 
 			const botChallengeGames: string[] = ["## Bot challenges", "Commands:",
-				"* <code>" + commandCharacter + "botch [game] or " + commandCharacter + "botch [options], [game]</code> - challenge " +
-					Users.self.name + " to a game of [game] (see list below)",
+				"* <code>" + commandCharacter + "botch [game]</code> or <code>" + commandCharacter + "botch [options], [game]</code> " +
+					"- challenge " + Users.self.name + " to a game of [game] (see list below)",
 				"* <code>" + commandCharacter + "ccdown [room], bot</code> - check your bot challenge cooldown time for " +
 					"[room] in PMs",
 				"\n\nCompatible games:",
@@ -1978,8 +2218,8 @@ export class Games {
 				}
 			}
 
-			document = document.concat(oneVsOneGames);
-			document = document.concat(botChallengeGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(oneVsOneGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(botChallengeGames);
 		}
 
 		const defaultCategory = "Uncategorized";
@@ -2088,7 +2328,7 @@ export class Games {
 				scriptedGames = scriptedGames.concat(modes[key]);
 				scriptedGames.push("\n");
 			}
-			document = document.concat(scriptedGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(scriptedGames);
 		}
 
 		if (allowsGameAchievements) {
@@ -2124,7 +2364,7 @@ export class Games {
 				achievements.push("---");
 			}
 
-			document = document.concat(achievements);
+			scriptedGamesDocument = scriptedGamesDocument.concat(achievements);
 		}
 
 		if (allowsUserHostedGames) {
@@ -2146,21 +2386,45 @@ export class Games {
 				userHostedGames.push("---");
 			}
 
-			document = document.concat(userHostedGames);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostedGames);
 		}
 
-		const content = document.join("\n").trim();
-		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === content) return;
-		this.lastCatalogUpdates[room.id] = content;
+		const scriptedGamesContent = scriptedGamesDocument.join("\n").trim();
+		const userHostedGamesContent = userHostedGamesDocument.join("\n").trim();
 
-		const filename = Config.gameCatalogGists[room.id].files[0];
+		const lastUpdateCache = scriptedGamesContent + userHostedGamesContent;
+		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === lastUpdateCache) return;
+		this.lastCatalogUpdates[room.id] = lastUpdateCache;
+
+		const files: Dict<{filename: string; content: string}> = {};
+		if (allowsScriptedGames && Config.gameCatalogGists[room.id].files.scripted) {
+			files[Config.gameCatalogGists[room.id].files.scripted!] = {
+				filename: Config.gameCatalogGists[room.id].files.scripted!,
+				content: scriptedGamesContent,
+			};
+		}
+
+		if (allowsUserHostedGames && Config.gameCatalogGists[room.id].files.userHosted) {
+			files[Config.gameCatalogGists[room.id].files.userHosted!] = {
+				filename: Config.gameCatalogGists[room.id].files.userHosted!,
+				content: userHostedGamesContent,
+			};
+		}
 
 		Tools.editGist(Config.githubApiCredentials.gist.username, Config.githubApiCredentials.gist.token,
-			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, {[filename]: {content, filename}});
+			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, files);
 	}
 
 	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Games): void {
+		if (previous.scheduledGameTimers) {
+			for (const i in previous.scheduledGameTimers) {
+				clearTimeout(previous.scheduledGameTimers[i]);
+				// @ts-expect-error
+				previous.scheduledGameTimers[i] = undefined;
+			}
+		}
+
 		if (previous.autoCreateTimers) {
 			for (const i in previous.autoCreateTimers) {
 				clearTimeout(previous.autoCreateTimers[i]);
@@ -2213,13 +2477,42 @@ export class Games {
 			}
 		}
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const formatModule of previous.formatModules) {
+			Tools.unrefProperties(formatModule);
 		}
 
+		for (const i in previous.workers) {
+			// @ts-expect-error
+			Tools.unrefProperties(previous.workers[i]);
+		}
+
+		Tools.unrefProperties(previous);
+
 		this.loadFormats();
+		this.loadSchedules();
+
+		const serverId = Client.getServerId();
+		const now = Date.now();
+		Users.self.rooms.forEach((rank, room) => {
+			if (serverId in this.schedules && room.id in this.schedules[serverId] && (!(room.id in this.nextOfficialGames) ||
+			now < this.nextOfficialGames[room.id].time)) {
+				this.setOfficialGame(room);
+			}
+		});
+
+		if (previous.scheduledGameTimerData) {
+			for (const i in previous.scheduledGameTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.scheduledGameTimerData[i];
+					const format = this.getFormat(data.formatid);
+					if (!Array.isArray(format)) {
+						this.setCreateGameTimer(room, data.startTime, format, data.official);
+					}
+				}
+			}
+		}
+
 		if (Config.gameCatalogGists) {
 			for (const i in Config.gameCatalogGists) {
 				const room = Rooms.get(i);
@@ -2263,12 +2556,13 @@ export class Games {
 }
 
 export const instantiate = (): void => {
-	const oldGames = global.Games as Games | undefined;
+	let oldGames = global.Games as Games | undefined;
 
 	global.Games = new Games();
 
 	if (oldGames) {
 		// @ts-expect-error
 		global.Games.onReload(oldGames);
+		oldGames = undefined;
 	}
 };

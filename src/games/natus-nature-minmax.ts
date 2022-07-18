@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { IGameCachedData, IGameFile } from "../types/games";
-import type { INature, StatID } from "../types/pokemon-showdown";
+import type { INature, StatIDExceptHP } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 class NatusNatureMinMax extends QuestionAndAnswer {
@@ -17,15 +17,19 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 
 		const natures: INature[] = [];
 		for (const key of Dex.getData().natureKeys) {
-			natures.push(Dex.getExistingNature(key));
+			const nature = Dex.getExistingNature(key);
+			if (nature.plus && nature.minus) {
+				natures.push(nature);
+			}
 		}
 
+		const highestLowestCache: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.baseStats.hp === pokemon.baseStats.atk && pokemon.baseStats.atk === pokemon.baseStats.def &&
 				pokemon.baseStats.def === pokemon.baseStats.spa && pokemon.baseStats.spa === pokemon.baseStats.spd &&
 				pokemon.baseStats.spd === pokemon.baseStats.spe) continue;
 
-			const statKeys = Object.keys(pokemon.baseStats) as StatID[];
+			const statKeys: StatIDExceptHP[] = ['atk', 'def', 'spa', 'spd', 'spe'];
 			statKeys.sort((a, b) => pokemon.baseStats[b] - pokemon.baseStats[a]);
 
 			const highestStat = statKeys[0];
@@ -43,7 +47,6 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 				}
 			}
 
-			const highestLowestCache: Dict<string[]> = {};
 			const combinationCache: Dict<string[]> = {};
 			const dataKey = highestStats.join(',') + "|" + lowestStats.join(',');
 			if (!(dataKey in highestLowestCache)) {

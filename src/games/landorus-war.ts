@@ -55,12 +55,12 @@ class LandorusWar extends ScriptedGame {
 		const aliases = this.sampleMany(Dex.getData().trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
 		const playerAliases: string[] = [];
-		const playerPokemon: string[] = [];
+		const usedPokemon: string[] = [];
 		for (const id in this.players) {
 			const player = this.players[id];
 			const pokemon = Dex.getExistingPokemon(pokemonList[0]);
 			pokemonList.shift();
-			playerPokemon.push(pokemon.name);
+			usedPokemon.push(pokemon.baseSpecies);
 			this.playerPokemon.set(player, pokemon);
 
 			const alias = aliases[0];
@@ -71,14 +71,19 @@ class LandorusWar extends ScriptedGame {
 			player.say("You were assigned the **" + alias + "** trainer class and a **" + pokemon.name + "**!");
 		}
 
+		outer:
 		for (let i = 0; i < this.playerCount; i++) {
 			let decoy = Dex.getExistingPokemon(pokemonList[0]);
 			pokemonList.shift();
-			while (decoy.baseSpecies !== decoy.name && playerPokemon.includes(decoy.baseSpecies)) {
+			while (usedPokemon.includes(decoy.baseSpecies)) {
+				if (!pokemonList.length) break outer;
+
 				decoy = Dex.getExistingPokemon(pokemonList[0]);
 				pokemonList.shift();
 			}
+
 			this.decoyPokemon.push(decoy.name);
+			usedPokemon.push(decoy.baseSpecies);
 		}
 
 		this.nextRound();
@@ -129,6 +134,16 @@ class LandorusWar extends ScriptedGame {
 		}
 
 		this.announceWinners();
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerAliases.clear();
+		this.playerPokemon.clear();
+		this.suspectedPlayers.clear();
+		this.roundMoves.clear();
+		this.roundSuspects.clear();
 	}
 
 	getPlayerSummary(player: Player): void {

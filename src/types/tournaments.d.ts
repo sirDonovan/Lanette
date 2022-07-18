@@ -1,5 +1,4 @@
 import type { Player } from "../room-activity";
-import type { Room } from "../rooms";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 
@@ -12,6 +11,11 @@ export interface ITreeRootPlaces<T> {
 export interface IScheduledTournament {
 	format: string;
 	time: number;
+	official?: boolean;
+}
+
+export interface IOfficialTournament extends IScheduledTournament {
+	official: true;
 }
 
 export interface IMonthlyTournamentSchedule {
@@ -96,13 +100,13 @@ export interface ITournamentCreateJson {
 interface ICurrentTournamentBattle {
 	readonly playerA: Player;
 	readonly playerB: Player;
-	readonly room: Room;
+	readonly roomid: string;
 }
 
 export interface ITournamentTimerData {
 	cap: number;
 	formatid: string;
 	startTime: number;
-	scheduled?: boolean;
+	official?: boolean;
 	tournamentName?: string;
 }

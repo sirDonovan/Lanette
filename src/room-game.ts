@@ -26,11 +26,16 @@ export abstract class Game extends Activity {
 	largestTeam: PlayerTeam | null = null;
 	leaveNotices = new Set<string>();
 	minPlayers: number = 4;
+	official: boolean = false;
 	playerOrders: Dict<Player[]> | null = null;
 	readonly round: number = 0;
 	signupsStarted: boolean = false;
 	signupsTime: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
+	updateBitsSource: string = "";
+	updatedBits: boolean = false;
+	updatedBitsSourceCache: boolean = false;
+	updatedDatabase: boolean = false;
 	readonly winners = new Map<Player, number>();
 
 	// set in initialize()
@@ -110,6 +115,40 @@ export abstract class Game extends Activity {
 		return true;
 	}
 
+	cleanupMisc(): void {
+		super.cleanupMisc();
+
+		this.prng.destroy();
+	}
+
+	setPlayerCap(playerCap: number): void {
+		this.playerCap = playerCap;
+		if (this.playerCount >= playerCap) {
+			this.start();
+		} else {
+			this.say("The game's player cap has been set to **" + playerCap + "**.");
+		}
+	}
+
+	onCreatePlayer(player: Player): void {
+		if (!this.isPmActivity(this.room)) {
+			const database = Storage.getDatabase(this.room);
+			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes &&
+				database.gameScriptedBoxes[player.id].pokemonAvatar) {
+				const pokemon = Dex.getPokemon(database.gameScriptedBoxes[player.id].pokemonAvatar!);
+				const icon = pokemon ? Dex.getPokemonIcon(pokemon) : "";
+				if (icon) this.playerAvatars[player.id] = icon;
+			}
+		}
+	}
+
+	afterAddBits(): void {
+		if (!this.updatedBitsSourceCache && this.updatedBits && this.updateBitsSource && !this.isPmActivity(this.room)) {
+			Storage.afterAddPoints(this.room, Storage.gameLeaderboard, this.updateBitsSource);
+			this.updatedBitsSourceCache = true;
+		}
+	}
+
 	announceWinners(): void {
 		if (this.parentGame) return;
 
@@ -127,7 +166,8 @@ export abstract class Game extends Activity {
 			} else if (!this.isPmActivity(this.room)) {
 				if (Config.onScriptedGameWin) {
 					try {
-						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points);
+						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points,
+							this.official);
 					} catch (e) {
 						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
 					}
@@ -136,6 +176,8 @@ export abstract class Game extends Activity {
 
 			let trainerCardsShown = false;
 			if (!this.isPmActivity(this.room) && Config.showGameTrainerCards && Config.showGameTrainerCards.includes(this.room.id)) {
+				this.afterAddBits();
+
 				const trainerCards: string[] = [];
 				const noTrainerCards: string[] = [];
 				this.winners.forEach((points, player) => {
@@ -143,7 +185,7 @@ export abstract class Game extends Activity {
 					if (trainerCard) {
 						trainerCards.push(trainerCard);
 					} else {
-						noTrainerCards.push("<username>" + player.name + "</username>");
+						noTrainerCards.push(this.getPlayerUsernameHtml(player.name));
 					}
 				});
 
@@ -199,7 +241,7 @@ export abstract class Game extends Activity {
 
 	getSignupsPlayersHtml(): string {
 		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerNames());
+			this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
 	}
 
 	getJoinButtonHtml(lateJoin?: boolean): string {
@@ -271,10 +313,12 @@ export abstract class Game extends Activity {
 	}
 
 	getPlayerOrPickedCustomBox(player?: Player): IGameCustomBox | undefined {
+		if (this.isPmActivity(this.room)) return;
+
 		if (!player) return this.customBox;
 
 		if (!this.playerCustomBoxes.has(player)) {
-			const database = Storage.getDatabase(this.room as Room);
+			const database = Storage.getDatabase(this.room);
 			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
 				this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
 			} else {
@@ -426,6 +470,8 @@ export abstract class Game extends Activity {
 	}
 
 	generateTeams(numberOfTeams: number, teamNames?: string[]): Dict<PlayerTeam> {
+		if (numberOfTeams < 2) throw new Error("generateTeams called with less than 2 teams");
+
 		const teams: Dict<PlayerTeam> = {};
 		const playerList = this.shufflePlayers();
 		if (!teamNames) teamNames = this.sampleOne(teamNameLists['' + numberOfTeams]);
@@ -566,7 +612,7 @@ export abstract class Game extends Activity {
 		return this.getPlayerAttributes(player => {
 			const points = this.points!.get(player) || this.startingPoints;
 			const pointsDisplay = this.getPointsDisplay(points);
-			return "<username>" + player.name + "</username>" + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (pointsDisplay ? " (" + pointsDisplay + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -581,7 +627,7 @@ export abstract class Game extends Activity {
 	getPlayerWins(players?: PlayerList): string {
 		return this.getPlayerAttributes(player => {
 			const wins = this.winners.get(player);
-			return "<username>" + player.name + "</username>" + (wins ? " (" + wins + ")" : "");
+			return this.getPlayerUsernameHtml(player.name) + (wins ? " (" + wins + ")" : "");
 		}, players).join(', ');
 	}
 
@@ -594,7 +640,7 @@ export abstract class Game extends Activity {
 			const team = this.teams[i];
 			teamPlayers[team.id] = [];
 			for (const player of team.players) {
-				if (players.includes(player)) teamPlayers[team.id].push("<username>" + player.name + "</username>");
+				if (players.includes(player)) teamPlayers[team.id].push(this.getPlayerUsernameHtml(player.name));
 			}
 		}
 

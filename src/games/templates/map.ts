@@ -78,8 +78,14 @@ export class MapFloor {
 	}
 
 	reset(): void {
+		this.attributes = {};
+
 		for (const i in this.spaces) {
 			this.spaces[i].reset();
+		}
+
+		for (const i in this.traversedCoordinates) {
+			this.traversedCoordinates[i].clear();
 		}
 	}
 }
@@ -775,6 +781,25 @@ export abstract class MapGame extends ScriptedGame {
 		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
 
 		return true;
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		if (this.map) {
+			this.map.reset();
+		} else {
+			this.individualMaps.forEach(map => map.reset());
+		}
+
+		this.floors.clear();
+		this.individualMaps.clear();
+		this.playerCoordinates.clear();
+		this.playerRoundInfo.clear();
+		this.roundsWithoutCurrency.clear();
+		if (this.escapedPlayers) this.escapedPlayers.clear();
+		if (this.roundActions) this.roundActions.clear();
+		if (this.trappedPlayers) this.trappedPlayers.clear();
 	}
 
 	getSpaceDisplay?(player: Player, floor: MapFloor, space: MapFloorSpace): ISpaceDisplayData | undefined;

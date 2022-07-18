@@ -126,21 +126,26 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 	return {answers, ports, answerParts: formattedAnswerParts, prngSeed: prng.seed.slice() as PRNGSeed};
 }
 
-worker_threads.parentPort!.on('message', (incommingMessage: string) => {
-	const parts = incommingMessage.split("|");
+worker_threads.parentPort!.on('message', (incomingMessage: string) => {
+	const parts = incomingMessage.split("|");
 	const messageNumber = parts[0];
 	const id = parts[1] as PortmanteausId;
 	const message = parts.slice(2).join("|");
 	let response: IPortmanteausResponse | null = null;
 	try {
-		if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (id === 'memory-usage') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			const memUsage = process.memoryUsage();
+			// @ts-expect-error
+			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
+			prng.destroy();
 		}
 	} catch (e) {
 		console.log(e);
-		Tools.logError(e as NodeJS.ErrnoException);
+		Tools.logError(e as NodeJS.ErrnoException, "Incoming message: " + incomingMessage);
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));

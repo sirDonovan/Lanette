@@ -131,6 +131,13 @@ class MachopsMatchups extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerPokemon.clear();
+		this.roundActions.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<MachopsMatchups> = {

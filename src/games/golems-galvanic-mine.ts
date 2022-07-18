@@ -94,6 +94,12 @@ class GolemsGalvanicMine extends ScriptedGame {
 		if (this.winners.size) this.convertPointsToBits(500 / this.options.points!, 100 / this.options.points!);
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundMines.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<GolemsGalvanicMine> = {

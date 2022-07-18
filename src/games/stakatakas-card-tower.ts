@@ -216,13 +216,24 @@ const tests: GameFileTests<StakatakasCardTower> = {
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
 			game.playerCards.set(player, newCards);
 			assert(!game.hasPlayableCard(game.getTurnCards(player)));
+
 			// beginning of chain behind
 			newCards.push(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
+
 			// beginning of chain in front
 			newCards.pop();
 			newCards.unshift(game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")));
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
+
+			// top card doesn't pair
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Ralts"));
+			newCards.unshift(game.pokemonToCard(Dex.getExistingPokemon("Pikachu")));
+			assertStrictEqual(game.playRegularCard(newCards[0], player, ["Stunfisk"], newCards), false);
+
+			// top card pairs
+			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pichu"));
+			assertStrictEqual(game.playRegularCard(newCards[0], player, ["Stunfisk"], newCards), true);
 		},
 	},
 	'it should not create new card arrays for actions': {
@@ -331,7 +342,7 @@ export const game: IGameFile<StakatakasCardTower> = Games.copyTemplateProperties
 		},
 	}),
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon], [Pokemon], [...]", Config.commandCharacter + "draw"],
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<StakatakasCardTower>, commands),
 	class: StakatakasCardTower,
 	customizableNumberOptions: {
 		cards: {min: 6, base: 6, max: 8},

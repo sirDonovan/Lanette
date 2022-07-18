@@ -95,6 +95,13 @@ class JigglypuffsDodgeball extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundActions.clear();
+		this.shields.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<JigglypuffsDodgeball> = {

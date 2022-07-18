@@ -22,7 +22,7 @@ export type LoadedGameCommands<T extends ScriptedGame = ScriptedGame> = LoadedCo
 export type GameDifficulty = 'easy' | 'medium' | 'hard';
 export type AutoCreateTimerType = 'scripted' | 'tournament' | 'userhosted';
 
-export type GameCategory = 'chain' | 'elimination-tournament' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
+export type GameCategory = 'battle-elimination' | 'chain' | 'identification-1' | 'identification-2' | 'knowledge-1' | 'knowledge-2' |
 	'knowledge-3' | 'luck' | 'map' | 'puzzle' | 'reaction' | 'search-challenge' | 'speed' | 'tabletop';
 
 export type GameMode = 'abridged' | 'collectiveteam' | 'multianswer' | 'pmtimeattack' | 'prolix' | 'spotlightteam' | 'survival' |
@@ -105,7 +105,7 @@ export interface IGameTestAttributes {
 }
 
 type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
-	format: IGameFormat<T>, attributes: IGameTestAttributes) => void);}>;
+	format: IGameFormat<T>, attributes: IGameTestAttributes) => Promise<void> | void);}>;
 
 export interface IRandomGameAnswer {
 	answers: readonly string[];
@@ -340,4 +340,30 @@ export interface IBattleGameData {
 	remainingPokemon: Dict<number>;
 	slots: Map<Player, string>;
 	wrongTeam: Map<Player, boolean>;
+}
+
+export interface IMonthlyGameSchedule {
+	formats: Dict<string[]>;
+	times: [number, number][];
+	year: number;
+}
+
+export interface IRoomGameSchedule {
+	months: Dict<IMonthlyGameSchedule>;
+}
+
+export interface IScheduledGameTimerData {
+	formatid: string;
+	startTime: number;
+	official?: boolean;
+}
+
+export interface IScheduledGame {
+	format: string;
+	time: number;
+	official?: boolean;
+}
+
+export interface IOfficialGame extends IScheduledGame {
+	official: true;
 }

@@ -11,6 +11,7 @@ export class HeadToHead extends ScriptedGame {
 	rightPlayer: Player | null = null;
 	rightPromotedName: string = '';
 	internalGame: boolean = true;
+	managedPlayers = true;
 	noForceEndMessage: boolean = true;
 	originalModchat: string = '';
 	winner: Player | undefined;
@@ -43,7 +44,7 @@ export class HeadToHead extends ScriptedGame {
 		if (options) this.challengeOptions = options;
 
 		this.originalModchat = this.room.modchat;
-		this.room.setModchat("+");
+		this.room.setRoomModchat("+");
 		if (!leftUser.hasRank(this.room, 'voice')) {
 			this.room.roomVoice(leftUser.name);
 			this.leftPromotedName = leftUser.id;
@@ -141,7 +142,7 @@ export class HeadToHead extends ScriptedGame {
 	}
 
 	resetModchatAndRanks(): void {
-		if (this.originalModchat) this.room.setModchat(this.originalModchat);
+		if (this.originalModchat) this.room.setRoomModchat(this.originalModchat);
 		if (this.leftPromotedName) this.room.roomDeAuth(this.leftPromotedName);
 		if (this.rightPromotedName) this.room.roomDeAuth(this.rightPromotedName);
 	}

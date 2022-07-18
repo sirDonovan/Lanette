@@ -181,7 +181,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(eggTossFormat);
 			}
 
-			const game = Games.createGame(room, eggTossFormat, room, true);
+			const game = Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
 			if (game) {
 				game.signups();
 				const canEgg = this.run('toss') as boolean;
@@ -242,7 +242,7 @@ export const commands: BaseCommandDefinitions = {
 
 			sweetThiefFormat.minigameCreator = user.id;
 
-			const game = Games.createGame(room, sweetThiefFormat, room, true) as SweetThief;
+			const game = Games.createGame(room, sweetThiefFormat, {pmRoom: room, minigame: true}) as SweetThief;
 			game.signups();
 			game.currentHolder = game.createPlayer(targetUser)!;
 
@@ -664,7 +664,7 @@ export const commands: BaseCommandDefinitions = {
 	createtournamentgame: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
-			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
 			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
 				return this.sayError(['disabledTournamentGameFeatures', room.title]);
 			}
@@ -700,7 +700,7 @@ export const commands: BaseCommandDefinitions = {
 				format = inputFormat;
 			}
 
-			const game = Games.createGame(room, format, room);
+			const game = Games.createGame(room, format, {pmRoom: room});
 			if (game) game.signups();
 		},
 		chatOnly: true,
@@ -780,12 +780,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
-
-			const gameCategories = Games.getCategoryNames();
+			const gameCategories = Object.keys(Games.getCategoryNames()).map(x => Tools.toId(x));
 			let category = Tools.toId(target);
 			let variant = "";
-			if (!(category in gameCategories)) {
+			if (!gameCategories.includes(category)) {
 				variant = category;
 				category = "";
 			}
@@ -818,7 +816,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	creategame: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (this.isPm(room) || (!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -903,8 +901,13 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice') || room.game.started) return;
-				if (!room.game.start()) this.say("Not enough players have joined the game.");
+				if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game.started) return;
+				if (room.game.usesTournamentStart) {
+					if (!room.game.startTournament) return this.say("You must wait for the tournament to start.");
+					if (!room.game.startTournament()) this.say("Not enough players have joined the tournament.");
+				} else {
+					if (!room.game.start()) this.say("Not enough players have joined the game.");
+				}
 			} else if (room.userHostedGame) {
 				const isHost = room.userHostedGame.isHost(user);
 				const isAuth = !isHost && user.hasRank(room, 'voice');
@@ -923,7 +926,7 @@ export const commands: BaseCommandDefinitions = {
 					room.game.forceEnd(user, target.trim());
 				}
 			} else {
-				if (!user.hasRank(room, 'voice')) return;
+				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
 				if (room.game) {
 					room.game.forceEnd(user, target.trim());
 				} else if (room.userHostedGame) {
@@ -974,13 +977,13 @@ export const commands: BaseCommandDefinitions = {
 				if (!chatRoom) return;
 
 				if (chatRoom.game) {
-					chatRoom.game.removePlayer(user);
+					if (!chatRoom.game.usesTournamentJoin) chatRoom.game.removePlayer(user);
 				} else if (chatRoom.userHostedGame) {
 					chatRoom.userHostedGame.removePlayer(user);
 				}
 			} else {
 				if (room.game) {
-					room.game.removePlayer(user);
+					if (!room.game.usesTournamentJoin)room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.removePlayer(user);
 				}
@@ -1034,7 +1037,7 @@ export const commands: BaseCommandDefinitions = {
 
 				this.say(playerName + " has been banned from participating in tournament games for " +
 					Tools.toDurationString(banDuration) + ".");
-				Storage.exportDatabase(gameRoom.id);
+				Storage.tryExportDatabase(gameRoom.id);
 			} else {
 				const now = Date.now();
 				if (!database.tournamentGameBanlist || !(playerId in database.tournamentGameBanlist) ||
@@ -1076,7 +1079,7 @@ export const commands: BaseCommandDefinitions = {
 
 			delete database.tournamentGameBanlist[playerId];
 			this.say(playerName + " has been unbanned from participating in tournament games.");
-			Storage.exportDatabase(gameRoom.id);
+			Storage.tryExportDatabase(gameRoom.id);
 		},
 		aliases: ['tourgameunban'],
 		syntax: ["[user]"],
@@ -1268,6 +1271,54 @@ export const commands: BaseCommandDefinitions = {
 		pmSyntax: ["[room], {times}"],
 		syntax: ["{times}"],
 		description: ["displays the previously played games in the room, optionally with the times they ended"],
+	},
+	pasttournamentgames: {
+		command(target, room, user) {
+			const targets = target.split(',');
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(targetRoom.id)) {
+					return this.sayError(['disabledTournamentGameFeatures', targetRoom.title]);
+				}
+				gameRoom = targetRoom;
+				targets.shift();
+			} else {
+				if (!user.hasRank(room, 'star')) return;
+				if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
+					return this.sayError(['disabledTournamentGameFeatures', room.title]);
+				}
+				gameRoom = room;
+			}
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.pastTournamentGames) return this.say("The past tournament games list is empty.");
+
+			const names: string[] = [];
+			const option = Tools.toId(targets[0]);
+			const displayTimes = option === 'time' || option === 'times';
+			const now = Date.now();
+			for (const pastGame of database.pastTournamentGames) {
+				const format = Games.getFormat(pastGame.inputTarget);
+				let game = Array.isArray(format) ? pastGame.name : format.nameWithOptions;
+
+				if (displayTimes) {
+					let duration = now - pastGame.time;
+					if (duration < 1000) duration = 1000;
+					game += " <i>(" + Tools.toDurationString(duration, {hhmmss: true}) + " ago)</i>";
+				}
+
+				names.push(game);
+			}
+
+			this.sayHtml("<b>Past tournament games</b>" + (displayTimes ? "" : " (most recent first)") + ": " +
+				Tools.joinList(names) + ".", gameRoom);
+		},
+		aliases: ["pasttourgames"],
+		pmSyntax: ["[room], {times}"],
+		syntax: ["{times}"],
+		description: ["displays the previously played tournament games in the room, optionally with the times they ended"],
 	},
 	lastgame: {
 		command(target, room, user) {

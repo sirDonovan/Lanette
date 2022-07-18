@@ -1,28 +1,19 @@
 import type { IGameFile } from '../types/games';
-import { EliminationTournament, game as eliminationTournamentGame } from './templates/elimination-tournament';
+import {
+	game as sameBattleEliminationTournamentGame, SameBattleEliminationTournament
+} from './templates/same-battle-elimination-tournament';
 
 const name = "Same Six";
 const description = "Every player battles with the same randomly generated team!";
 
-class SameSix extends EliminationTournament {
-	canChangeFormat = true;
+class SameSix extends SameBattleEliminationTournament {
 	firstRoundExtraTime = 5 * 60 * 1000;
-	additionsPerRound = 0;
-	evolutionsPerRound = 0;
 	startingTeamsLength = 6;
-	maxPlayers = 16;
-	baseTournamentName = name;
-	tournamentDescription = description;
-	fullyEvolved = true;
-	sharedTeams = true;
-	canRejoin = true;
-
-	getStartingTeam(): readonly string[] {
-		return this.pokedex.slice(0, this.startingTeamsLength);
-	}
+	baseHtmlPageGameName = name;
+	htmlPageGameDescription = description;
 }
 
-export const game: IGameFile<SameSix> = Games.copyTemplateProperties(eliminationTournamentGame, {
+export const game: IGameFile<SameSix> = Games.copyTemplateProperties(sameBattleEliminationTournamentGame, {
 	aliases: ['ssix'],
 	class: SameSix,
 	description,

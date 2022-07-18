@@ -1,6 +1,6 @@
 import type { Room } from '../../rooms';
 import type { GroupName, IOutgoingMessage } from '../../types/client';
-import { assert, assertStrictEqual } from './../test-tools';
+import { assert, assertStrictEqual, createTestRoom } from './../test-tools';
 
 /* eslint-env mocha */
 
@@ -44,7 +44,7 @@ describe("Client", () => {
 		}
 	});
 	it('should support all join and leave message types', () => {
-		const room = Rooms.get('mocha')!;
+		const room = createTestRoom();
 
 		parseMessage(room, "|J|+Voice", Date.now());
 		let voiceUser = Users.get('Voice')!;
@@ -64,9 +64,11 @@ describe("Client", () => {
 		// use /logout
 		parseMessage(room, "|L|voice", Date.now());
 		assert(!Users.get('Voice'));
+
+		Rooms.remove(room);
 	});
 	it('should support all rename scenarios', () => {
-		const room = Rooms.get('mocha')!;
+		const room = createTestRoom();
 
 		// different name
 		parseMessage(room, "|J| A", Date.now());
@@ -99,9 +101,11 @@ describe("Client", () => {
 		parseMessage(room, "|N| B|a", Date.now());
 		assert(Users.get("B") !== user);
 		parseMessage(room, "|L| B", Date.now());
+
+		Rooms.remove(room);
 	});
 	it('should properly parse PM messages', () => {
-		const room = Rooms.add('lobby');
+		const room = createTestRoom('lobby', 'Lobby');
 
 		parseMessage(room, "|pm| Regular| " + Users.self.name + "|test", Date.now());
 		let regularUser = Users.get('Regular');
@@ -122,12 +126,14 @@ describe("Client", () => {
 		voiceUser = Users.get('Voice');
 		assert(voiceUser);
 		Users.remove(voiceUser);
+
+		Rooms.remove(room);
 	});
 	it('should properly clear lastOutgoingMessage', () => {
 		const htmlChatCommand = Client.getHtmlChatCommand();
 		const uhtmlChatCommand = Client.getUhtmlChatCommand();
 		const uhtmlChangeChatCommand = Client.getUhtmlChangeChatCommand();
-		const room = Rooms.get('mocha')!;
+		const room = createTestRoom();
 
 		let lastOutgoingMessage: IOutgoingMessage = {
 			message: "",
@@ -321,6 +327,8 @@ describe("Client", () => {
 		setLastOutgoingMessage(lastOutgoingMessage);
 		parseMessage(room, "|pm| " + Users.self.name + "| A|" + uhtmlChangeChatCommand + "test,&amp;<br />", Date.now());
 		assert(!Client.getLastOutgoingMessage());
+
+		Rooms.remove(room);
 	});
 	it('should properly extract battle ids', () => {
 		const replayServerAddress = Client.getReplayServerAddress();

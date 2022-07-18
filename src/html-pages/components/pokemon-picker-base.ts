@@ -11,8 +11,6 @@ export interface IPokemonPick {
 
 export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	gif: boolean;
-	maxGifs: number;
-	maxIcons: number;
 	onPickLetter: (pickerIndex: number, letter: string, dontRender: boolean | undefined) => void;
 	onPickGeneration: (pickerIndex: number, generation: ModelGeneration, dontRender: boolean | undefined) => void;
 	onPickShininess: (pickerIndex: number, shininess: boolean, dontRender: boolean | undefined) => void;
@@ -137,7 +135,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 	}
 
 	tryParentPickGeneration(generation: ModelGeneration): void {
-		if (!this.currentPick || this.isInGeneration(generation, this.currentPick)) this.parentPickGeneration(generation);
+		if (!this.currentPicks.length || this.isInGeneration(generation, this.currentPicks[0])) this.parentPickGeneration(generation);
 	}
 
 	onPickGeneration(previousGeneration: ModelGeneration, dontRender?: boolean, replicatedFrom?: PokemonPickerBase): void {
@@ -222,7 +220,7 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 			html += "Model generation:";
 			for (const i in PokemonPickerBase.pokemonGens) {
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setGeneration + "," + i,
-					i.toUpperCase(), this.generation === i);
+					i.toUpperCase(), {selectedAndDisabled: this.generation === i});
 			}
 		}
 
@@ -233,9 +231,11 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 		let html = "";
 		if (this.props.gif && this.generation !== 'rb') {
 			html = "Shiny: ";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes", this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setShiny, "Yes",
+				{selectedAndDisabled: this.shininess});
 			html += "&nbsp;";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No", !this.shininess);
+			html += this.getQuietPmButton(this.commandPrefix + ", " + setShininess + "," + setNotShiny, "No",
+				{selectedAndDisabled: !this.shininess});
 		}
 
 		return html;

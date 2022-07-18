@@ -93,10 +93,13 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 
 		let illuminatedLetters = '';
 		let hint: string[] = [];
-		while (!hint.length || illuminatedLetters === this.lastIlluminatedletters ||
-			Client.checkFilters(illuminatedLetters, !this.isPmActivity(this.room) ? this.room : undefined)) {
+		let attempts = 0;
+		while ((!hint.length || illuminatedLetters === this.lastIlluminatedletters ||
+			Client.checkFilters(illuminatedLetters, !this.isPmActivity(this.room) ? this.room : undefined)) && attempts < 50) {
+			attempts++;
 			illuminatedLetters = '';
 			hint = [];
+
 			const chosenIndices = this.sampleMany(this.currentIndicies, LETTERS_TO_REVEAL);
 			for (let i = 0; i < this.letters.length; i++) {
 				let cell = "<td style='background: ";

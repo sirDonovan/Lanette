@@ -33,6 +33,13 @@ export class PRNG {
 		] as PRNGSeed;
 	}
 
+	destroy(): void {
+		// @ts-expect-error
+		this.initialSeed = undefined;
+		// @ts-expect-error
+		this.seed = undefined;
+	}
+
 	/**
 	 * Getter to the initial seed.
 	 *

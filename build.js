@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-const builtFolder = path.join(__dirname, "built");
+const buildFolder = path.join(__dirname, "build");
 const srcFolder = path.join(__dirname, "src");
 const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
@@ -43,7 +43,7 @@ function deleteFolderRecursive(folder) {
 			}
 		}
 
-		if (folder !== builtFolder) fs.rmdirSync(folder);
+		if (folder !== buildFolder) fs.rmdirSync(folder);
 	}
 }
 
@@ -70,19 +70,19 @@ function listFilesRecursive(folder) {
 }
 
 function pruneBuiltFiles() {
-	const builtFiles = listFilesRecursive(builtFolder);
+	const builtFiles = listFilesRecursive(buildFolder);
 	const srcFiles = listFilesRecursive(srcFolder);
 	for (let i = 0; i < builtFiles.length; i++) {
 		if (!builtFiles[i].endsWith('.js') && !builtFiles[i].endsWith('.js.map')) {
 			if (fs.lstatSync(builtFiles[i]).isDirectory()) {
-				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(builtFolder.length + 1)))) {
+				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(buildFolder.length + 1)))) {
 					fs.rmdirSync(builtFiles[i]);
 				}
 			}
 			continue;
 		}
 
-		const filepath = builtFiles[i].substr(builtFolder.length + 1);
+		const filepath = builtFiles[i].substr(buildFolder.length + 1);
 		let filename;
 		if (filepath.endsWith('.js.map')) {
 			filename = filepath.substr(0, filepath.length - 7);
@@ -150,7 +150,7 @@ module.exports = async (options) => {
 			pruneBuiltFiles();
 			console.log("Pruned built folder")
 		} else {
-			deleteFolderRecursive(builtFolder);
+			deleteFolderRecursive(buildFolder);
 			console.log("Deleted old built folder");
 		}
 	}
@@ -214,9 +214,11 @@ module.exports = async (options) => {
 
 		const currentSha = revParseOutput.stdout.replace("\n", "");
 		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString().trim();
-		let buildPokemonShowdown = false;
-		if (currentSha !== lanetteSha) {
-			buildPokemonShowdown = true;
+		const differentSha = currentSha !== lanetteSha;
+
+		let installPokemonShowdownDependencies = false;
+		if (differentSha) {
+			installPokemonShowdownDependencies = true;
 
 			// revert build and package.json changes
 			let cmd = await exec('git reset --hard').catch(e => console.log(e));
@@ -240,38 +242,37 @@ module.exports = async (options) => {
 		} else {
 			for (const dist of pokemonShowdownDist) {
 				if (!fs.existsSync(dist)) {
-					buildPokemonShowdown = true;
+					installPokemonShowdownDependencies = true;
 					break;
 				}
 			}
 		}
 
-		if (buildPokemonShowdown) {
+		if (installPokemonShowdownDependencies) {
 			console.log("Installing pokemon-showdown dependencies...");
 
 			deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
 
 			rewritePokemonShowdownPackageJson();
+			rewritePokemonShowdownBuild();
 
 			const npmInstallOutput = await exec('npm install --ignore-scripts').catch(e => console.log(e));
 			if (!npmInstallOutput || npmInstallOutput.Error) {
-				await setToSha(currentSha);
+				if (differentSha) await setToSha(currentSha);
 				throw new Error("npm install error");
 			}
+		}
 
-			for (const dist of pokemonShowdownDist) {
-				deleteFolderRecursive(dist);
-			}
+		console.log("Running pokemon-showdown build script...");
 
-			console.log("Running pokemon-showdown build script...");
+		for (const dist of pokemonShowdownDist) {
+			deleteFolderRecursive(dist);
+		}
 
-			rewritePokemonShowdownBuild();
-
-			const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
-			if (!nodeBuildOutput || nodeBuildOutput.Error) {
-				await setToSha(currentSha);
-				throw new Error("pokemon-showdown build script error");
-			}
+		const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
+		if (!nodeBuildOutput || nodeBuildOutput.Error) {
+			if (differentSha) await setToSha(currentSha);
+			throw new Error("pokemon-showdown build script error");
 		}
 
 		process.chdir(__dirname);

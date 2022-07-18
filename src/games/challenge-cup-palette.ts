@@ -50,7 +50,7 @@ class ChallengeCupPalette extends SearchChallengeTournament {
 					this.announce(player.name + " found " + this.targetPokemon + " Pokemon and won the challenge!");
 					this.winners.set(player, 1);
 					this.addBits(player, 1000);
-					this.end();
+					return this.end();
 				}
 
 				this.playerCounts.set(player, count);
@@ -100,6 +100,13 @@ class ChallengeCupPalette extends SearchChallengeTournament {
 		}
 
 		super.onTournamentEnd();
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerCounts.clear();
+		this.lastAnnouncedCounts.clear();
 	}
 }
 

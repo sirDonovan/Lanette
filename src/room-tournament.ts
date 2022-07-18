@@ -40,15 +40,15 @@ export class Tournament extends Activity {
 	};
 	isRoundRobin: boolean = false;
 	isSingleElimination: boolean = false;
-	lastUpdateEndTime: number = 0;
-	lastRunAutoDqTime: number = 0;
 	manuallyNamed: boolean = false;
 	manuallyEnabledPoints: boolean | undefined = undefined;
 	originalFormat: string = '';
+	playerBattleRooms = new Map<Player, Room>();
 	playerLosses = new Map<Player, number>();
+	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
 	runAutoDqTimeout: NodeJS.Timer | null = null;
-	scheduled: boolean = false;
+	official: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
 
@@ -100,7 +100,7 @@ export class Tournament extends Activity {
 		if (this.name !== previousName) this.room.nameTournament(this.name);
 	}
 
-	canAwardPoints(): boolean {
+	formatAwardsPoints(): boolean {
 		if (Config.manualRankedTournaments && Config.manualRankedTournaments.includes(this.room.id) && !this.manuallyEnabledPoints) {
 			return false;
 		}
@@ -111,7 +111,8 @@ export class Tournament extends Activity {
 			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(this.room.id)) return false;
 		}
 
-		if (this.format.unranked && Config.useDefaultUnrankedTournaments && Config.useDefaultUnrankedTournaments.includes(this.room.id)) {
+		if (this.format.unranked && !this.official && Config.useDefaultUnrankedTournaments &&
+			Config.useDefaultUnrankedTournaments.includes(this.room.id)) {
 			return false;
 		}
 
@@ -121,6 +122,11 @@ export class Tournament extends Activity {
 		}
 
 		return true;
+	}
+
+	willAwardPoints(): boolean {
+		if (this.manuallyEnabledPoints !== undefined) return this.manuallyEnabledPoints;
+		return this.formatAwardsPoints();
 	}
 
 	adjustCap(cap?: number): void {
@@ -148,6 +154,7 @@ export class Tournament extends Activity {
 
 	setAutoDqMinutes(minutes: number): void {
 		this.runAutoDqTime = (minutes * 60 * 1000) - AUTO_DQ_WARNING_TIMEOUT;
+		if (this.started) this.setRunAutoDqTimeout();
 	}
 
 	setRunAutoDqTimeout(): void {
@@ -157,26 +164,16 @@ export class Tournament extends Activity {
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.runAutoDqTimeout = null;
 
-			if (!this.lastUpdateEndTime || !this.lastRunAutoDqTime || this.lastUpdateEndTime > this.lastRunAutoDqTime) {
-				this.room.runTournamentAutoDq();
-				this.lastRunAutoDqTime = Date.now();
-
-				if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
-			}
+			this.room.runTournamentAutoDq();
+			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
 		}, this.runAutoDqTime);
 	}
 
-	deallocate(): void {
+	deallocate(forceEnd?: boolean): void {
 		if (this.adjustCapTimer) {
 			clearTimeout(this.adjustCapTimer);
 			// @ts-expect-error
 			this.adjustCapTimer = undefined;
-		}
-
-		if (this.startTimer) {
-			clearTimeout(this.startTimer);
-			// @ts-expect-error
-			this.startTimer = undefined;
 		}
 
 		if (this.runAutoDqTimeout) {
@@ -185,19 +182,61 @@ export class Tournament extends Activity {
 			this.runAutoDqTimeout = undefined;
 		}
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd();
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentEnd) this.battleRoomGame.onTournamentEnd(forceEnd);
 
-		this.leaveBattleRooms();
+		this.cleanupMisc();
+		this.cleanupTimers();
+		this.cleanupMessageListeners();
+		this.cleanupBattleRooms();
 
 		// @ts-expect-error
 		this.room.tournament = undefined;
 
+		this.playerBattleRooms.clear();
+		this.playerLosses.clear();
+		this.playerOpponents.clear();
+
 		this.destroyPlayers();
 
-		const keys = Object.getOwnPropertyNames(this);
-		for (const key of keys) {
-			// @ts-expect-error
-			this[key] = undefined;
+		Tools.unrefProperties(this, ["ended", "id", "name"]);
+	}
+
+	addPlayer(name: string): void {
+		const player = this.createPlayer(name) || this.players[Tools.toId(name)];
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (player) {
+			if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerJoin) {
+				this.battleRoomGame.onTournamentPlayerJoin(player);
+			}
+		}
+	}
+
+	removePlayer(name: string): void {
+		const player = this.destroyPlayer(name);
+		if (player) {
+			const opponent = this.playerOpponents.get(player);
+			if (opponent) {
+				for (let i = 0; i < this.currentBattles.length; i++) {
+					if ((this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent) ||
+						(this.currentBattles[i].playerA === opponent && this.currentBattles[i].playerB === player)) {
+						this.currentBattles.splice(i, 1);
+						break;
+					}
+				}
+			}
+
+			const battleRoom = this.playerBattleRooms.get(player);
+			if (battleRoom && !this.battleRoomGame) this.leaveBattleRoom(battleRoom);
+		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerLeave) {
+			this.battleRoomGame.onTournamentPlayerLeave(name);
+		}
+	}
+
+	onRenamePlayer(player: Player, oldId: string): void {
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentPlayerRename) {
+			this.battleRoomGame.onTournamentPlayerRename(player, oldId);
 		}
 	}
 
@@ -208,10 +247,14 @@ export class Tournament extends Activity {
 		this.startTime = Date.now();
 		this.setRunAutoDqTimeout();
 
-		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) this.battleRoomGame.onTournamentStart(this.players);
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentStart) {
+			this.battleRoomGame.onTournamentStart(this.players, this.info.isStarted ? this.info.bracketData : undefined);
+		}
 	}
 
 	onEnd(): void {
+		if (!Config.allowTournaments || !Config.allowTournaments.includes(this.room.id)) return;
+
 		const now = Date.now();
 		const database = Storage.getDatabase(this.room);
 		if (!database.pastTournaments) database.pastTournaments = [];
@@ -229,7 +272,7 @@ export class Tournament extends Activity {
 		let semiFinalists: string[] = [];
 		if (this.info.bracketData.type === 'tree') {
 			if (this.info.bracketData.rootNode) {
-				const places = Tournaments.getPlacesFromTree(Tournaments.clientToEliminationNode(this.info.bracketData.rootNode));
+				const places = Tournaments.getPlacesFromTree(Tournaments.resultsToEliminationNode(this.info.bracketData.rootNode));
 				if (places.winner) winners = [places.winner];
 				if (places.runnerup) runnersUp = [places.runnerup];
 				if (places.semifinalists) semiFinalists = places.semifinalists;
@@ -242,7 +285,9 @@ export class Tournament extends Activity {
 
 		if (!winners.length || !runnersUp.length || (this.isSingleElimination && semiFinalists.length < 2)) return;
 
-		if ((!this.canAwardPoints() && !this.manuallyEnabledPoints) || this.manuallyEnabledPoints === false) {
+		let awardedPoints = false;
+		const pointsSource = this.format.id;
+		if (!this.willAwardPoints()) {
 			if (!Config.displayUnrankedTournamentResults || !Config.displayUnrankedTournamentResults.includes(this.room.id)) return;
 
 			const text = ["runner" + (runnersUp.length > 1 ? "s" : "") + "-up " + Tools.joinList(runnersUp, '**'),
@@ -252,7 +297,9 @@ export class Tournament extends Activity {
 			}
 			this.room.announce('Congratulations to ' + Tools.joinList(text));
 		} else {
-			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.scheduled);
+			awardedPoints = true;
+
+			const multiplier = Tournaments.getCombinedPointMultiplier(this.format, this.totalPlayers, this.official);
 			const semiFinalistPoints = Tournaments.getSemiFinalistPoints(multiplier);
 			const runnerUpPoints = Tournaments.getRunnerUpPoints(multiplier);
 			const winnerPoints = Tournaments.getWinnerPoints(multiplier);
@@ -261,7 +308,7 @@ export class Tournament extends Activity {
 				'** for being ' + (semiFinalists.length > 1 ? 'a' : 'the') + ' semi-finalist in the tournament! To see your total ' +
 				'amount, use this command: ``' + Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const semiFinalist of semiFinalists) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, semiFinalist, semiFinalistPoints, pointsSource, true);
 				const user = Users.get(semiFinalist);
 				if (user) user.say(semiFinalistPm);
 			}
@@ -270,7 +317,7 @@ export class Tournament extends Activity {
 				'the') + ' runner-up in the tournament! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const runnerUp of runnersUp) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, runnerUp, runnerUpPoints, pointsSource, true);
 				const user = Users.get(runnerUp);
 				if (user) user.say(runnerUpPm);
 			}
@@ -279,24 +326,35 @@ export class Tournament extends Activity {
 				(winners.length > 1 ? 'a' : 'the') + ' tournament winner! To see your total amount, use this command: ``' +
 				Config.commandCharacter + 'rank ' + this.room.title + '``.';
 			for (const winner of winners) {
-				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, this.format.id);
+				Storage.addPoints(this.room, Storage.tournamentLeaderboard, winner, winnerPoints, pointsSource, true);
 				const user = Users.get(winner);
 				if (user) user.say(winnerPm);
 			}
 
-			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.scheduled ? "Official " : "") + this.format.name,
+			Storage.afterAddPoints(this.room, Storage.tournamentLeaderboard, pointsSource);
+
+			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.official ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
 			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
-			this.sayHtml("<div class='infobox-limited'>" + placesHtml + (formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") +
-				"</div>");
+
+			const showTrainerCard = winners.length === 1 && Config.showTournamentTrainerCards &&
+				Config.showTournamentTrainerCards.includes(this.room.id);
+			this.sayHtml("<div class='infobox-limited'" + (showTrainerCard ? " style='max-height:125px'" : "") + ">" + placesHtml +
+				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
+
+			if (showTrainerCard) {
+				Tournaments.displayTrainerCard(this.room, winners[0]);
+			}
 		}
 
-		Storage.exportDatabase(this.room.id);
+		if (awardedPoints) {
+			Storage.tryExportDatabase(this.room.id);
+		}
 	}
 
 	forceEnd(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.deallocate();
+		this.deallocate(true);
 	}
 
 	update(json: Partial<ITournamentUpdateJson & ITournamentEndJson>): void {
@@ -334,8 +392,15 @@ export class Tournament extends Activity {
 			}
 		}
 
+		if (this.battleRoomGame) {
+			if (this.info.isStarted && this.battleRoomGame.onTournamentBracketUpdate) {
+				this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
+			} else if (!this.info.isStarted && this.info.bracketData.users && this.battleRoomGame.onTournamentUsersUpdate) {
+				this.battleRoomGame.onTournamentUsersUpdate(this.players, this.info.bracketData.users);
+			}
+		}
+
 		this.updates = {};
-		this.lastUpdateEndTime = Date.now();
 	}
 
 	updateBracket(): void {
@@ -344,33 +409,41 @@ export class Tournament extends Activity {
 		if (this.info.bracketData.type === 'tree') {
 			if (!this.info.bracketData.rootNode) return;
 			const queue = [this.info.bracketData.rootNode];
+			const allNodes = queue.slice();
+			// queue is only unique items due to allNodes
 			while (queue.length > 0) {
 				const node = queue[0];
 				queue.shift();
 				if (!node.children) continue;
 
+				let userA;
+				let userB;
+
 				if (node.children[0] && node.children[0].team) {
-					const userA = Tools.toId(node.children[0].team);
+					userA = Tools.toId(node.children[0].team);
 					if (!players[userA]) players[userA] = Tools.stripHtmlCharacters(node.children[0].team);
+				}
 
-					if (node.children[1] && node.children[1].team) {
-						const userB = Tools.toId(node.children[1].team);
-						if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				if (node.children[1] && node.children[1].team) {
+					userB = Tools.toId(node.children[1].team);
+					if (!players[userB]) players[userB] = Tools.stripHtmlCharacters(node.children[1].team);
+				}
 
-						if (node.state === 'finished') {
-							if (node.result === 'win') {
-								if (!losses[userB]) losses[userB] = 0;
-								losses[userB]++;
-							} else if (node.result === 'loss') {
-								if (!losses[userA]) losses[userA] = 0;
-								losses[userA]++;
-							}
-						}
+				if (userA && userB && node.state === 'finished') {
+					if (node.result === 'win') {
+						if (!losses[userB]) losses[userB] = 0;
+						losses[userB]++;
+					} else if (node.result === 'loss') {
+						if (!losses[userA]) losses[userA] = 0;
+						losses[userA]++;
 					}
 				}
 
 				node.children.forEach(child => {
-					queue.push(child);
+					if (!allNodes.includes(child)) {
+						queue.push(child);
+						allNodes.push(child);
+					}
 				});
 			}
 		} else if (this.info.bracketData.type === 'table') {
@@ -381,11 +454,17 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (!this.totalPlayers) this.totalPlayers = Object.keys(players).length;
+		if (!this.totalPlayers) {
+			this.totalPlayers = Object.keys(players).length;
+			this.playerCount = this.totalPlayers;
+		}
 
 		// clear users who are now guests (currently can't be tracked)
 		for (const i in this.players) {
-			if (!(i in players)) delete this.players[i];
+			if (!(i in players)) {
+				this.players[i].destroy();
+				delete this.players[i];
+			}
 		}
 
 		for (const i in players) {
@@ -401,61 +480,92 @@ export class Tournament extends Activity {
 		}
 	}
 
-	onBattleStart(usernameA: string, usernameB: string, roomid: string): void {
+	onBattleStart(playerName: string, opponentName: string, roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in battle " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
-		const room = Rooms.add(roomid);
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
+		this.playerOpponents.set(player, opponent);
+		this.playerOpponents.set(opponent, player);
 
 		this.currentBattles.push({
-			playerA: this.players[idA],
-			playerB: this.players[idB],
-			room,
+			playerA: player,
+			playerB: opponent,
+			roomid,
 		});
 
-		this.battleRooms.push(room.publicId);
+		let publicId = roomid;
+		const extractedBattleId = Client.extractBattleId(roomid);
+		if (extractedBattleId) {
+			publicId = extractedBattleId.publicId;
+		}
+		this.battleRooms.push(publicId);
 
 		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
-			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + room.id + ">>!");
+			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
 		}
 
 		if (this.joinBattles || this.battleRoomGame) {
-			if (this.joinBattles) room.tournament = this;
-			if (this.battleRoomGame) room.game = this.battleRoomGame;
+			Rooms.addCreateListener(roomid, room => {
+				this.playerBattleRooms.set(player, room);
+				this.playerBattleRooms.set(opponent, room);
 
-			Client.joinRoom(room.id);
+				if (this.joinBattles) room.tournament = this;
+				if (this.battleRoomGame) room.game = this.battleRoomGame;
+			});
+			this.roomCreateListeners.push(roomid);
+
+			Client.joinRoom(roomid);
+		}
+
+		if (this.battleRoomGame && this.battleRoomGame.onTournamentBattleStart) {
+			this.battleRoomGame.onTournamentBattleStart(player, opponent, roomid);
 		}
 	}
 
-	onBattleEnd(usernameA: string, usernameB: string, score: [string, string], roomid: string): void {
+	onBattleEnd(playerName: string, opponentName: string, score: [string, string], roomid: string): void {
 		this.setRunAutoDqTimeout();
 
-		const idA = Tools.toId(usernameA);
-		const idB = Tools.toId(usernameB);
-		if (!(idA in this.players) || !(idB in this.players)) {
-			console.log("Player not found for " + usernameA + " vs. " + usernameB + " in " + roomid);
-			return;
+		const playerId = Tools.toId(playerName);
+		const opponentId = Tools.toId(opponentName);
+		if (!(playerId in this.players)) {
+			throw new Error("Player not found for " + playerName + " in " + roomid + " (tournament in " + this.room.title + ")");
 		}
 
-		const room = Rooms.get(roomid);
+		if (!(opponentId in this.players)) {
+			throw new Error("Player not found for " + opponentName + " in " + roomid + " (tournament in " + this.room.title + ")");
+		}
+
+		const player = this.players[playerId];
+		const opponent = this.players[opponentId];
+
+		this.playerBattleRooms.delete(player);
+		this.playerBattleRooms.delete(opponent);
+
+		this.playerOpponents.delete(player);
+		this.playerOpponents.delete(opponent);
 
 		for (let i = 0; i < this.currentBattles.length; i++) {
-			if (this.currentBattles[i].playerA === this.players[idA] && this.currentBattles[i].playerB === this.players[idB] &&
-				this.currentBattles[i].room === room) {
+			if (this.currentBattles[i].playerA === player && this.currentBattles[i].playerB === opponent &&
+				this.currentBattles[i].roomid === roomid) {
 				this.currentBattles.splice(i, 1);
 				break;
 			}
 		}
 
-		if (this.joinBattles) {
-			if (room) room.leave();
-		}
+		const room = Rooms.get(roomid);
+		if (room && !this.battleRoomGame) this.leaveBattleRoom(room);
 	}
 
 	onBattlePlayer(room: Room, slot: string, username: string): void {

@@ -96,6 +96,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 				onClear: () => this.clearPokemonInput(),
 				onErrors: () => this.props.reRender(),
 				onSubmit: (output) => this.submitPokemonInput(output),
+				readonly: this.props.readonly,
 				reRender: () => this.props.reRender(),
 			});
 			pokemonTextInputs[generation].active = this.generation === generation;
@@ -121,6 +122,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 					rowsPerPage: 6,
 					pagesLabel,
 					onSelectPage: () => this.props.reRender(),
+					readonly: this.props.readonly,
 					reRender: () => this.props.reRender(),
 				});
 				this.letterPaginations[generation][letter].active = false;
@@ -211,7 +213,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 	renderLetterElement(letter: string): string {
 		return this.getQuietPmButton(this.commandPrefix + ", " + setLetterCommand + "," + letter, letter,
-			this.letterViews[this.generation] === letter);
+			{selectedAndDisabled: this.letterViews[this.generation] === letter});
 	}
 
 	onClear(dontRender?: boolean, replicatedFrom?: PokemonPickerManual): void {
@@ -282,7 +284,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 
 			if (previousLetter in this.letterPaginations[this.generation]) {
 				this.parentPickLetter(previousLetter);
-				if (this.currentPick) this.letterPaginations[this.generation][previousLetter].autoSelectPage();
+				if (this.currentPicks.length) this.letterPaginations[this.generation][previousLetter].autoSelectPage();
 			} else {
 				this.choices = this.choicesByGeneration[previousGeneration];
 				this.parentClear();
@@ -298,11 +300,11 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	}
 
 	autoSetPokemonTextInput(): void {
-		if (!this.currentPick) return;
+		if (!this.currentPicks.length) return;
 
 		this.pokemonTextInputs[this.generation].setModelGeneration(this.generation);
 		this.pokemonTextInputs[this.generation].setShiny(this.shininess);
-		this.pokemonTextInputs[this.generation].onSubmit(this.currentPick);
+		this.pokemonTextInputs[this.generation].onSubmit(this.currentPicks[0]);
 	}
 
 	setPokemonAttributes(pick: IPokemonPick, textInput?: boolean): void {
@@ -315,7 +317,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		const letter = pick.pokemon.charAt(0).toUpperCase();
 		this.parentPickLetter(letter);
 		if (!textInput) {
-			this.currentPick = undefined;
+			this.currentPicks = [];
 			this.parentPick(pick.pokemon);
 			this.autoSetPokemonTextInput();
 		}
@@ -356,8 +358,10 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		const inputView = this.currentView === 'input';
 
 		html += "<b>Input type</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInputView, "Manual", inputView);
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLetterView, "By letter", !inputView);
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInputView, "Manual",
+			{selectedAndDisabled: inputView});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLetterView, "By letter",
+			{selectedAndDisabled: !inputView});
 		html += "<br />";
 
 		if (inputView) {

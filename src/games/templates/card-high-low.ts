@@ -4,6 +4,12 @@ import type { ICard } from './card';
 import { Card, game as cardGame } from './card';
 import type { IPokemon } from '../../types/pokemon-showdown';
 
+export interface IRoundCardInfo {
+	card: ICard;
+	detail: number;
+	player?: Player;
+}
+
 export abstract class CardHighLow extends Card {
 	abstract categoryAbbreviations: Dict<string>;
 	abstract categoryNames: Dict<string>;
@@ -58,17 +64,21 @@ export abstract class CardHighLow extends Card {
 			this.categoryAbbreviations[this.currentCategory], this.detailLabelWidth);
 	}
 
+	sortCardInfoForRound(cardInfo: IRoundCardInfo[]): IRoundCardInfo[] {
+		const sortHigh = this.highOrLow === 'High';
+		return cardInfo.slice().sort((a, b) => {
+			if (sortHigh) return b.detail - a.detail;
+			return a.detail - b.detail;
+		});
+	}
+
 	getCardsPrivateHtml(cards: ICard[], player?: Player): string {
 		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
 			cardInfo.push({card: card, detail: this.getCardDetail(card, this.currentCategory)});
 		}
 
-		const sortHigh = this.highOrLow === 'High';
-		const sorted = cardInfo.slice().sort((a, b) => {
-			if (sortHigh) return b.detail - a.detail;
-			return a.detail - b.detail;
-		});
+		const sorted = this.sortCardInfoForRound(cardInfo);
 
 		const canPlay = this.currentCategory && player && !this.roundPlays.has(player);
 		let bestDetail = -1;
@@ -206,8 +216,9 @@ export abstract class CardHighLow extends Card {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			const text = "The randomly chosen category is **" + this.highOrLow + " " + this.categoryAbbreviations[category] + " (" +
-				this.categoryNames[category] + ")**!";
+			const text = "The randomly chosen category is **" + this.highOrLow + " " + this.categoryAbbreviations[category] +
+				(this.categoryAbbreviations[category] !== this.categoryNames[category] ? " (" + this.categoryNames[category] + ")" : "") +
+				"**!";
 			this.on(text, () => {
 				this.canPlay = true;
 				this.timeout = setTimeout(() => {
@@ -222,6 +233,12 @@ export abstract class CardHighLow extends Card {
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
+	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.roundPlays.clear();
 	}
 
 	onEnd(): void {
@@ -290,7 +307,7 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 };
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<CardHighLow>, commands),
 	modeProperties: undefined,
 	tests: undefined,
 	variants: undefined,

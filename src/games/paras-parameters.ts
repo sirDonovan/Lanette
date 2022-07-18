@@ -106,6 +106,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		} else {
 			this.params = result.params;
 			this.pokemon = result.pokemon;
+			this.prng.destroy();
 			this.prng = new PRNG(result.prngSeed);
 
 			this.answers = [this.getParamNames(result.params).join(',')];

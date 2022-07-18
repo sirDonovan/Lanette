@@ -14,6 +14,7 @@ interface IPaginationProps extends IComponentProps {
 	currentPage?: number;
 	pagesLabel?: string;
 	noElementsLabel?: string;
+	noPickElement?: boolean;
 	hideSinglePageNavigation?: boolean;
 	onSelectPage: (selectedPage: number) => void;
 }
@@ -86,14 +87,17 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 
 		let html = "";
 		if (!(this.props.hideSinglePageNavigation && this.totalPages === 1)) {
-			html += this.pagesLabel + " (" + (totalElements ? startIndex + 1 : 0) + "-" + endIndex + "/" + totalElements + "):";
+			const endIndexDisplay = "" + (endIndex === totalElements && this.props.noPickElement ? totalElements - 1 : endIndex);
+			const totalElementsDisplay = "" + (this.props.noPickElement ? totalElements - 1 : totalElements);
+			html += this.pagesLabel + " (" + (totalElements ? startIndex + 1 : 0) + "-" + endIndexDisplay + "/" +
+				totalElementsDisplay + "):";
 		}
 
 		if (this.totalPages > 1) {
 			for (let i = 0; i < this.totalPages; i++) {
 				const page = "" + (i + 1);
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + pageCommand + ", " + page, page,
-					this.currentPage === i);
+					{selectedAndDisabled: this.currentPage === i});
 			}
 		}
 

@@ -63,26 +63,35 @@ typings/
 # OS files
 desktop.ini
 
-# Lanette files
+# historical Lanette files
 archived-databases/*
 !archived-databases/README.md
 built/
-client-data/pokedex-mini.js
-client-data/pokedex-mini-bw.js
 data/pokedex-mini.js
 data/pokedex-mini-bw.js
-databases/*
+Pokemon-Showdown/
+pokemon-showdown-lkg.txt
+roomlogs/
+
+# current Lanette files
+build/
+client-data/pokedex-mini.js
+client-data/pokedex-mini-bw.js
+databases/*.json
 !databases/README.md
+databases/archives/*.json
+!databases/archives/README.md
+databases/snapshots/*.json
+!databases/snapshots/README.md
 design.txt
 errors/*
 !errors/README.md
-*.heapsnapshot
+game-debug-logs/*
+!game-debug-logs/README.md
 local-utils/
-Pokemon-Showdown/
+notes.txt
 pokemon-showdown/
-pokemon-showdown-lkg.txt
 private-data/
-roomlogs/
 src/commands/private/*
 !src/commands/private/README.md
 src/config.ts
@@ -90,3 +99,9 @@ src/local-scripts/*
 src/message-parsers/private/*
 !src/message-parsers/private/README.md
 src/plugins/private.ts
+
+*.out
+*.sh
+*.json
+*.service
+*.heapsnapshot

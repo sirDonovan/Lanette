@@ -848,11 +848,13 @@ export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLink
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;
+	hasValue?: boolean;
 	tournamentName?: string;
 	usableAbilities?: string[];
 	usableItems?: string[];
 	usableMoves?: string[];
 	usablePokemon?: string[];
+	usablePokemonTags?: string[];
 	separatedCustomRules?: ISeparatedCustomRules;
 }
 
@@ -928,6 +930,25 @@ export interface IPSTypeData extends ITypeData {
 	exists: boolean;
 }
 
+export interface IPokemonShowdownDexModule {
+	Dex: IPokemonShowdownDex;
+}
+
+export interface IPokemonShowdownTagsModule {
+	Tags: Dict<ITagData>;
+}
+
+export interface ITagData {
+	name: string;
+	desc?: string;
+	speciesFilter?: (species: IPSPokemon) => boolean;
+	moveFilter?: (move: IPSMove) => boolean;
+	genericFilter?: (thing: IPSPokemon | IPSMove | IPSItem | IPSAbility) => boolean;
+	speciesNumCol?: (species: IPSPokemon) => number;
+	moveNumCol?: (move: IPSMove) => number;
+	genericNumCol?: (thing: IPSPokemon | IPSMove | IPSItem | IPSAbility) => number;
+}
+
 export interface IPokemonShowdownDex {
 	data: {
 		Abilities: Dict<unknown>;
@@ -937,9 +958,9 @@ export interface IPokemonShowdownDex {
 		Moves: Dict<unknown>;
 		Natures: Dict<unknown>;
 		Pokedex: Dict<unknown>;
+		Rulesets: Dict<unknown>;
 		TypeChart: Dict<unknown>;
 	}
-	dexes: Dict<IPokemonShowdownDex>;
 	gen: number;
 	abilities: {
 		get: (name: string | IPSAbility) => IPSAbility;
@@ -980,8 +1001,14 @@ export interface IPokemonShowdownDex {
 		all: () => readonly IPSTypeData[];
 		names: () => readonly string[];
 	}
+	forFormat: (format: IFormat) => IPokemonShowdownDex;
+	includeMods: () => void;
 	includeModData: () => void;
 	mod: (mod: string) => IPokemonShowdownDex;
+}
+
+export interface IPokemonShowdownValidatorModule {
+	TeamValidator: IPokemonShowdownValidator;
 }
 
 export interface IPokemonShowdownValidator {

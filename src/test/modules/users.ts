@@ -1,4 +1,4 @@
-import { assertStrictEqual } from "../test-tools";
+import { assert, assertStrictEqual, createTestRoom } from "../test-tools";
 
 /* eslint-env mocha */
 
@@ -45,16 +45,34 @@ describe("Users", () => {
 		Users.remove(user);
 	});
 	it('should handle renames properly', () => {
-		const user = Users.add("olduser", "olduser");
-		Users.rename("newuser", 'olduser');
-		assertStrictEqual(user.name, "newuser");
+		const room = createTestRoom();
+		const user = Users.add("Old User", "olduser");
+		room.onUserJoin(user, " ");
 
-		Users.rename("NEWUSER", 'newuser');
-		assertStrictEqual(user.name, "NEWUSER");
+		const newUser = Users.rename("New User", 'olduser');
+		assertStrictEqual(user, newUser);
+		assertStrictEqual(newUser.name, "New User");
+		assertStrictEqual(newUser.id, "newuser");
+		assert(!Users.getUserIds().includes("olduser"));
+		assert(Users.getUserIds().includes("newuser"));
+
+		const caseChange = Users.rename("NEWUSER", 'newuser');
+		assertStrictEqual(newUser, caseChange);
+		assertStrictEqual(caseChange.name, "NEWUSER");
+		assert(Users.getUserIds().includes("newuser"));
 
 		for (const format of Users.getNameFormattingList()) {
 			Users.rename(format + "newUser" + format, 'newuser');
 			assertStrictEqual(user.name, "newUser");
 		}
+
+		const userToMerge = Users.add("mergeuser", "mergeuser");
+		room.onUserJoin(userToMerge, " ");
+
+		const mergedUser = Users.rename("newuser", 'mergeuser');
+		assertStrictEqual(newUser, mergedUser);
+		assert(Users.getUserIds().includes("newuser"));
+		assert(!Users.getUserIds().includes("mergeuser"));
+		assertStrictEqual(userToMerge.rooms, undefined);
 	});
 });

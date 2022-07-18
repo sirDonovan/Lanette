@@ -88,8 +88,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		ColorPicker.loadData();
 
-		if (this.currentPick && this.currentPick in Tools.hexCodes) {
-			const hexCode = this.currentPick as HexCode;
+		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
+			const hexCode = this.currentPicks[0] as HexCode;
 			if (Tools.hexCodes[hexCode]!.category === 'shade') {
 				this.lightness = 'shade';
 				this.hueVariation = 'standardvariation';
@@ -133,7 +133,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				}
 			}
 		} else {
-			this.currentPick = undefined;
+			this.currentPicks = [];
 			this.noPickElement.html = this.renderNoPickElement();
 			this.noPickElement.selected = true;
 			this.lightness = 'lowlightness';
@@ -345,13 +345,15 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,
 			pagesLabel,
+			noPickElement: true,
 			onSelectPage: () => this.props.reRender(),
+			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});
 	}
 
 	getChoiceButtonHtml(choice: IColorPick): string {
-		const currentColor = this.currentPick === choice.hexCode;
+		const currentColor = this.currentPicks[0] === choice.hexCode;
 
 		let colorDiv = "<div style='background: " + Tools.hexCodes[choice.hexCode]!.gradient + ";height: 15px;width: 15px";
 		if (currentColor) {
@@ -462,7 +464,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		}
 
 		let color = Tools.sampleOne(colors);
-		while (color === this.currentPick) {
+		while (color === this.currentPicks[0]) {
 			color = Tools.sampleOne(colors);
 		}
 
@@ -515,19 +517,19 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		let html = "Lightness:&nbsp;";
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + shade, "Shade",
-			currentShade);
+			{selectedAndDisabled: currentShade});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + lowLightness, "Low",
-			currentLowLightness);
+			{selectedAndDisabled: currentLowLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + standardLightness, "Standard",
-			currentStandardLightness);
+			{selectedAndDisabled: currentStandardLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + highLightness, "High",
-			currentHighLightness);
+			{selectedAndDisabled: currentHighLightness});
 		html += "&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + lightnessCommand + ", " + tint, "Tint",
-			currentTint);
+			{selectedAndDisabled: currentTint});
 		html += "<br />";
 
 		const currentLowHueVariation = this.hueVariation === 'lowvariation';
@@ -539,16 +541,16 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			html += "Hue Variation:&nbsp;";
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + lowVariation, "Low",
-				currentLowHueVariation);
+				{selectedAndDisabled: currentLowHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + standardVariation, "Standard",
-				currentStandardHueVariation);
+				{selectedAndDisabled: currentStandardHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + highVariation, "High",
-				currentHighHueVariation);
+				{selectedAndDisabled: currentHighHueVariation});
 			html += "&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hueVariationCommand + ", " + maxVariation, "Max",
-				currentMaxHueVariation);
+				{selectedAndDisabled: currentMaxHueVariation});
 			html += "<br />";
 		}
 

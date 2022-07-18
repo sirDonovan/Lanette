@@ -40,6 +40,8 @@ const HTML_CHAT_COMMAND = '/raw ';
 const UHTML_CHAT_COMMAND = '/uhtml ';
 const UHTML_CHANGE_CHAT_COMMAND = '/uhtmlchange ';
 const ANNOUNCE_CHAT_COMMAND = '/announce ';
+const REQUEST_PM_LOG_COMMAND = '/text **PM log requested**: Do you allow staff to see PM logs between ';
+const ALLOWED_PM_LOG = '/text PM log approved: Staff may check PM logs between ';
 const HANGMAN_START_COMMAND = "/log A game of hangman was started by ";
 const HANGMAN_END_COMMAND = "/log (The game of hangman was ended by ";
 const TOURNAMENT_AUTOSTART_COMMAND = "/log (The tournament was set to autostart when the player cap is reached by ";
@@ -55,6 +57,7 @@ const NOTIFY_USER_MESSAGE = "Sent a notification to ";
 const NOTIFY_OFF_USER_MESSAGE = "Closed the notification previously sent to ";
 const HIGHLIGHT_HTML_PAGE_MESSAGE = "Sent a highlight to ";
 const PRIVATE_HTML_MESSAGE = "Sent private HTML to ";
+const CHAT_ERROR_MESSAGE = "/error ";
 const USER_NOT_FOUND_MESSAGE = "/error User ";
 const UNREGISTERED_USER_MESSAGE = "/error That user is unregistered and cannot be PMed.";
 const USER_BLOCKING_PMS_MESSAGE = "/error This user is blocking private messages right now.";
@@ -73,6 +76,17 @@ const DATA_COMMANDS: string[] = [
 	'is', 'is2', 'is3', 'is4', 'is5', 'is6', 'is7', 'is8', 'itemsearch',
 	'as', 'as3', 'as4', 'as5', 'as6', 'as7', 'as8', 'abilitysearch',
 ];
+
+const DEFAULT_TRAINER_SPRITES: Dict<string> = {
+	"1": "lucas",
+	"2": "dawn",
+	"101": "ethan",
+	"102": "lyra",
+	"169": "hilbert",
+	"170": "hilda",
+	"265": "rosa",
+	"266": "nate",
+};
 
 const NEWLINE = /\n/g;
 const CODE_LINEBREAK = /<wbr \/>/g;
@@ -174,32 +188,40 @@ const DEFAULT_SERVER_GROUPS: ServerGroupData[] = [
 /* eslint-disable max-len */
 // Substitution dictionary adapted from https://github.com/ThreeLetters/NoSwearingPlease/blob/master/index.js, licensed under MIT.
 const EVASION_DETECTION_SUBSTITUTIONS: Dict<string[]> = {
-	a: ["a", "4", "@", "á", "â", "ã", "à", "ᗩ", "A", "ⓐ", "Ⓐ", "α", "͏", "₳", "ä", "Ä", "Ꮧ", "λ", "Δ", "Ḁ", "Ꭺ", "ǟ", "̾", "ａ", "Ａ", "ᴀ", "ɐ", "🅐", "𝐚", "𝐀", "𝘢", "𝘈", "𝙖", "𝘼", "𝒶", "𝓪", "𝓐", "𝕒", "𝔸", "𝔞", "𝔄", "𝖆", "𝕬", "🄰", "🅰", "𝒜", "𝚊", "𝙰", "ꍏ", "а"],
+	a: ["a", "4", "@", "á", "â", "ã", "à", "ᗩ", "A", "ⓐ", "Ⓐ", "α", "͏", "₳", "ä", "Ä", "Ꮧ", "λ", "Δ", "Ḁ", "Ꭺ", "ǟ", "̾", "ａ", "Ａ", "ᴀ", "ɐ", "🅐", "𝐚", "𝐀", "𝘢", "𝘈", "𝙖", "𝘼", "𝒶", "𝓪", "𝓐", "𝕒", "𝔸", "𝔞", "𝔄", "𝖆", "𝕬", "🄰", "🅰", "𝒜", "𝚊", "𝙰", "ꍏ", "а", "𝓪"],
 	b: ["b", "8", "ᗷ", "B", "ⓑ", "Ⓑ", "в", "฿", "ḅ", "Ḅ", "Ᏸ", "ϐ", "Ɓ", "ḃ", "Ḃ", "ɮ", "ｂ", "Ｂ", "ʙ", "🅑", "𝐛", "𝐁", "𝘣", "𝘉", "𝙗", "𝘽", "𝒷", "𝓫", "𝓑", "𝕓", "𝔹", "𝔟", "𝔅", "𝖇", "𝕭", "🄱", "🅱", "𝐵", "Ⴆ", "𝚋", "𝙱", "♭", "b"],
 	c: ["c", "ç", "ᑕ", "C", "ⓒ", "Ⓒ", "¢", "͏", "₵", "ċ", "Ċ", "ፈ", "ς", "ḉ", "Ḉ", "Ꮯ", "ƈ", "̾", "ｃ", "Ｃ", "ᴄ", "ɔ", "🅒", "𝐜", "𝐂", "𝘤", "𝘊", "𝙘", "𝘾", "𝒸", "𝓬", "𝓒", "𝕔", "ℂ", "𝔠", "ℭ", "𝖈", "𝕮", "🄲", "🅲", "𝒞", "𝚌", "𝙲", "☾", "с"],
 	d: ["d", "ᗪ", "D", "ⓓ", "Ⓓ", "∂", "Đ", "ď", "Ď", "Ꮄ", "Ḋ", "Ꭰ", "ɖ", "ｄ", "Ｄ", "ᴅ", "🅓", "𝐝", "𝐃", "𝘥", "𝘋", "𝙙", "𝘿", "𝒹", "𝓭", "𝓓", "𝕕", "​", "𝔡", "𝖉", "𝕯", "🄳", "🅳", "𝒟", "ԃ", "𝚍", "𝙳", "◗", "ⅾ"],
-	e: ["e", "3", "é", "ê", "E", "ⓔ", "Ⓔ", "є", "͏", "Ɇ", "ệ", "Ệ", "Ꮛ", "ε", "Σ", "ḕ", "Ḕ", "Ꭼ", "ɛ", "̾", "ｅ", "Ｅ", "ᴇ", "ǝ", "🅔", "𝐞", "𝐄", "𝘦", "𝘌", "𝙚", "𝙀", "ℯ", "𝓮", "𝓔", "𝕖", "𝔻", "𝔢", "𝔇", "𝖊", "𝕰", "🄴", "🅴", "𝑒", "𝐸", "ҽ", "𝚎", "𝙴", "€", "е", "ё"],
+	e: ["e", "3", "é", "ê", "E", "ⓔ", "Ⓔ", "є", "͏", "Ɇ", "ệ", "Ệ", "Ꮛ", "ε", "Σ", "ḕ", "Ḕ", "Ꭼ", "ɛ", "̾", "ｅ", "Ｅ", "ᴇ", "ǝ", "🅔", "𝐞", "𝐄", "𝘦", "𝘌", "𝙚", "𝙀", "ℯ", "𝓮", "𝓔", "𝕖", "𝔻", "𝔢", "𝔇", "𝖊", "𝕰", "🄴", "🅴", "𝑒", "𝐸", "ҽ", "𝚎", "𝙴", "€", "е", "ё", "𝓮"],
 	f: ["f", "ᖴ", "F", "ⓕ", "Ⓕ", "₣", "ḟ", "Ḟ", "Ꭶ", "ғ", "ʄ", "ｆ", "Ｆ", "ɟ", "🅕", "𝐟", "𝐅", "𝘧", "𝘍", "𝙛", "𝙁", "𝒻", "𝓯", "𝓕", "𝕗", "𝔼", "𝔣", "𝔈", "𝖋", "𝕱", "🄵", "🅵", "𝐹", "ϝ", "𝚏", "𝙵", "Ϝ", "f"],
-	g: ["g", "q", "6", "9", "G", "ⓖ", "Ⓖ", "͏", "₲", "ġ", "Ġ", "Ꮆ", "ϑ", "Ḡ", "ɢ", "̾", "ｇ", "Ｇ", "ƃ", "🅖", "𝐠", "𝐆", "𝘨", "𝘎", "𝙜", "𝙂", "ℊ", "𝓰", "𝓖", "𝕘", "𝔽", "𝔤", "𝔉", "𝖌", "𝕲", "🄶", "🅶", "𝑔", "𝒢", "ɠ", "𝚐", "𝙶", "❡", "ց", "𝙶"],
-	h: ["h", "ᕼ", "H", "ⓗ", "Ⓗ", "н", "Ⱨ", "ḧ", "Ḧ", "Ꮒ", "ɦ", "ｈ", "Ｈ", "ʜ", "ɥ", "🅗", "𝐡", "𝐇", "𝘩", "𝘏", "𝙝", "𝙃", "𝒽", "𝓱", "𝓗", "𝕙", "𝔾", "𝔥", "𝔊", "𝖍", "𝕳", "🄷", "🅷", "𝐻", "ԋ", "𝚑", "𝙷", "♄", "h"],
-	i: ["i", "!", "l", "1", "í", "I", "ⓘ", "Ⓘ", "ι", "͏", "ł", "ï", "Ï", "Ꭵ", "ḭ", "Ḭ", "ɨ", "̾", "ｉ", "Ｉ", "ɪ", "ı", "🅘", "𝐢", "𝐈", "𝘪", "𝘐", "𝙞", "𝙄", "𝒾", "𝓲", "𝓘", "𝕚", "ℍ", "𝔦", "ℌ", "𝖎", "𝕴", "🄸", "🅸", "𝐼", "𝚒", "𝙸", "♗", "і", "¡", "|"],
+	g: ["g", "q", "6", "9", "G", "ⓖ", "Ⓖ", "͏", "₲", "ġ", "Ġ", "Ꮆ", "ϑ", "Ḡ", "ɢ", "̾", "ｇ", "Ｇ", "ƃ", "🅖", "𝐠", "𝐆", "𝘨", "𝘎", "𝙜", "𝙂", "ℊ", "𝓰", "𝓖", "𝕘", "𝔽", "𝔤", "𝔉", "𝖌", "𝕲", "🄶", "🅶", "𝑔", "𝒢", "ɠ", "𝚐", "𝙶", "❡", "ց", "𝙶", "𝓰"],
+	h: [
+		"h", "ᕼ", "H", "ⓗ", "Ⓗ", "н", "Ⱨ", "ḧ", "Ḧ", "Ꮒ", "ɦ", "ｈ", "Ｈ", "ʜ", "ɥ", "🅗", "𝐡", "𝐇", "𝘩", "𝘏", "𝙝", "𝙃", "𝒽", "𝓱", "𝓗", "𝕙", "𝔾", "𝔥", "𝔊", "𝖍", "𝕳", "🄷", "🅷", "𝐻", "ԋ", "𝚑", "𝙷", "♄", "h",
+	],
+	i: ["i", "!", "l", "1", "í", "I", "ⓘ", "Ⓘ", "ι", "͏", "ł", "ï", "Ï", "Ꭵ", "ḭ", "Ḭ", "ɨ", "̾", "ｉ", "Ｉ", "ɪ", "ı", "🅘", "𝐢", "𝐈", "𝘪", "𝘐", "𝙞", "𝙄", "𝒾", "𝓲", "𝓘", "𝕚", "ℍ", "𝔦", "ℌ", "𝖎", "𝕴", "🄸", "🅸", "𝐼", "𝚒", "𝙸", "♗", "і", "¡", "|", "𝓲"],
 	j: ["j", "ᒍ", "J", "ⓙ", "Ⓙ", "נ", "Ꮰ", "ϳ", "ʝ", "ｊ", "Ｊ", "ᴊ", "ɾ", "🅙", "𝐣", "𝐉", "𝘫", "𝘑", "𝙟", "𝙅", "𝒿", "𝓳", "𝓙", "𝕛", "​", "𝔧", "𝖏", "𝕵", "🄹", "🅹", "𝒥", "𝚓", "𝙹", "♪", "ј"],
-	k: ["k", "K", "ⓚ", "Ⓚ", "к", "͏", "₭", "ḳ", "Ḳ", "Ꮶ", "κ", "Ƙ", "ӄ", "̾", "ｋ", "Ｋ", "ᴋ", "ʞ", "🅚", "𝐤", "𝐊", "𝘬", "𝘒", "𝙠", "𝙆", "𝓀", "𝓴", "𝓚", "𝕜", "𝕀", "𝔨", "ℑ", "𝖐", "𝕶", "🄺", "🅺", "𝒦", "ƙ", "𝚔", "𝙺", "ϰ", "k"],
+	k: ["k", "K", "ⓚ", "Ⓚ", "к", "͏", "₭", "ḳ", "Ḳ", "Ꮶ", "κ", "Ƙ", "ӄ", "̾", "ｋ", "Ｋ", "ᴋ", "ʞ", "🅚", "𝐤", "𝐊", "𝘬", "𝘒", "𝙠", "𝙆", "𝓀", "𝓴", "𝓚", "𝕜", "𝕀", "𝔨", "ℑ", "𝖐", "𝕶", "🄺", "🅺", "𝒦", "ƙ", "𝚔", "𝙺", "ϰ", "k", "𝓴"],
 	l: ["l", "i", "1", "/", "|", "ᒪ", "L", "ⓛ", "Ⓛ", "ℓ", "Ⱡ", "ŀ", "Ŀ", "Ꮭ", "Ḷ", "Ꮮ", "ʟ", "ｌ", "Ｌ", "🅛", "𝐥", "𝐋", "𝘭", "𝘓", "𝙡", "𝙇", "𝓁", "𝓵", "𝓛", "𝕝", "𝕁", "𝔩", "​", "𝖑", "𝕷", "🄻", "🅻", "𝐿", "ʅ", "𝚕", "𝙻", "↳", "ⅼ"],
-	m: ["m", "ᗰ", "M", "ⓜ", "Ⓜ", "м", "͏", "₥", "ṃ", "Ṃ", "Ꮇ", "ϻ", "Μ", "ṁ", "Ṁ", "ʍ", "̾", "ｍ", "Ｍ", "ᴍ", "ɯ", "🅜", "𝐦", "𝐌", "𝘮", "𝘔", "𝙢", "𝙈", "𝓂", "𝓶", "𝓜", "𝕞", "𝕂", "𝔪", "𝔍", "𝖒", "𝕸", "🄼", "🅼", "𝑀", "ɱ", "𝚖", "𝙼", "♔", "ⅿ"],
-	n: ["n", "ñ", "ᑎ", "N", "ⓝ", "Ⓝ", "и", "₦", "ń", "Ń", "Ꮑ", "π", "∏", "Ṇ", "ռ", "ｎ", "Ｎ", "ɴ", "🅝", "𝐧", "𝐍", "𝘯", "𝘕", "𝙣", "𝙉", "𝓃", "𝓷", "𝓝", "𝕟", "𝕃", "𝔫", "𝔎", "𝖓", "𝕹", "🄽", "🅽", "𝒩", "ɳ", "𝚗", "𝙽", "♫", "ո", "η", "𝙽"],
+	m: [
+		"m", "ᗰ", "M", "ⓜ", "Ⓜ", "м", "͏", "₥", "ṃ", "Ṃ", "Ꮇ", "ϻ", "Μ", "ṁ", "Ṁ", "ʍ", "̾", "ｍ", "Ｍ", "ᴍ", "ɯ", "🅜", "𝐦", "𝐌", "𝘮", "𝘔", "𝙢", "𝙈", "𝓂", "𝓶", "𝓜", "𝕞", "𝕂", "𝔪", "𝔍", "𝖒", "𝕸", "🄼", "🅼", "𝑀", "ɱ", "𝚖", "𝙼", "♔", "ⅿ",
+	],
+	n: ["n", "ñ", "ᑎ", "N", "ⓝ", "Ⓝ", "и", "₦", "ń", "Ń", "Ꮑ", "π", "∏", "Ṇ", "ռ", "ｎ", "Ｎ", "ɴ", "🅝", "𝐧", "𝐍", "𝘯", "𝘕", "𝙣", "𝙉", "𝓃", "𝓷", "𝓝", "𝕟", "𝕃", "𝔫", "𝔎", "𝖓", "𝕹", "🄽", "🅽", "𝒩", "ɳ", "𝚗", "𝙽", "♫", "ո", "η", "𝙽", "ƞ", "𝓷"],
 	o: ["o", "0", "ó", "ô", "õ", "ú", "O", "ⓞ", "Ⓞ", "σ", "͏", "Ø", "ö", "Ö", "Ꭷ", "Θ", "ṏ", "Ṏ", "Ꮎ", "օ", "̾", "ｏ", "Ｏ", "ᴏ", "🅞", "𝐨", "𝐎", "𝘰", "𝘖", "𝙤", "𝙊", "ℴ", "𝓸", "𝓞", "𝕠", "𝕄", "𝔬", "𝔏", "𝖔", "𝕺", "🄾", "🅾", "𝑜", "𝒪", "𝚘", "𝙾", "⊙", "ο"],
 	p: ["p", "ᑭ", "P", "ⓟ", "Ⓟ", "ρ", "₱", "ṗ", "Ṗ", "Ꭾ", "Ƥ", "Ꮲ", "ք", "ｐ", "Ｐ", "ᴘ", "🅟", "𝐩", "𝐏", "𝘱", "𝘗", "𝙥", "𝙋", "𝓅", "𝓹", "𝓟", "𝕡", "ℕ", "𝔭", "𝔐", "𝖕", "𝕻", "🄿", "🅿", "𝒫", "𝚙", "𝙿", "р"],
-	q: ["q", "ᑫ", "Q", "ⓠ", "Ⓠ", "͏", "Ꭴ", "φ", "Ⴓ", "զ", "̾", "ｑ", "Ｑ", "ϙ", "ǫ", "🅠", "𝐪", "𝐐", "𝘲", "𝘘", "𝙦", "𝙌", "𝓆", "𝓺", "𝓠", "𝕢", "​", "𝔮", "𝔑", "𝖖", "𝕼", "🅀", "🆀", "𝒬", "𝚚", "𝚀", "☭", "ԛ"],
-	r: ["r", "ᖇ", "R", "ⓡ", "Ⓡ", "я", "Ɽ", "ŕ", "Ŕ", "Ꮢ", "г", "Γ", "ṙ", "Ṙ", "ʀ", "ｒ", "Ｒ", "ɹ", "🅡", "𝐫", "𝐑", "𝘳", "𝘙", "𝙧", "𝙍", "𝓇", "𝓻", "𝓡", "𝕣", "𝕆", "𝔯", "𝔒", "𝖗", "𝕽", "🅁", "🆁", "𝑅", "ɾ", "𝚛", "𝚁", "☈", "r", "𝚁"],
-	s: ["s", "5", "ᔕ", "S", "ⓢ", "Ⓢ", "ѕ", "͏", "₴", "ṩ", "Ṩ", "Ꮥ", "Ѕ", "Ṡ", "ֆ", "̾", "ｓ", "Ｓ", "ꜱ", "🅢", "𝐬", "𝐒", "𝘴", "𝘚", "𝙨", "𝙎", "𝓈", "𝓼", "𝓢", "𝕤", "ℙ", "𝔰", "𝔓", "𝖘", "𝕾", "🅂", "🆂", "𝒮", "ʂ", "𝚜", "𝚂", "ѕ"],
-	t: ["t", "+", "T", "ⓣ", "Ⓣ", "т", "₮", "ẗ", "Ṯ", "Ꮦ", "τ", "Ƭ", "Ꮖ", "ȶ", "ｔ", "Ｔ", "ᴛ", "ʇ", "🅣", "𝐭", "𝐓", "𝘵", "𝘛", "𝙩", "𝙏", "𝓉", "𝓽", "𝓣", "𝕥", "​", "𝔱", "𝔔", "𝖙", "𝕿", "🅃", "🆃", "𝒯", "ƚ", "𝚝", "𝚃", "☂", "t"],
+	q: [
+		"q", "ᑫ", "Q", "ⓠ", "Ⓠ", "͏", "Ꭴ", "φ", "Ⴓ", "զ", "̾", "ｑ", "Ｑ", "ϙ", "ǫ", "🅠", "𝐪", "𝐐", "𝘲", "𝘘", "𝙦", "𝙌", "𝓆", "𝓺", "𝓠", "𝕢", "​", "𝔮", "𝔑", "𝖖", "𝕼", "🅀", "🆀", "𝒬", "𝚚", "𝚀", "☭", "ԛ",
+	],
+	r: ["r", "ᖇ", "R", "ⓡ", "Ⓡ", "я", "Ɽ", "ŕ", "Ŕ", "Ꮢ", "г", "Γ", "ṙ", "Ṙ", "ʀ", "ｒ", "Ｒ", "ɹ", "🅡", "𝐫", "𝐑", "𝘳", "𝘙", "𝙧", "𝙍", "𝓇", "𝓻", "𝓡", "𝕣", "𝕆", "𝔯", "𝔒", "𝖗", "𝕽", "🅁", "🆁", "𝑅", "ɾ", "𝚛", "𝚁", "☈", "r", "𝚁", "𝓻"],
+	s: ["s", "5", "ᔕ", "S", "ⓢ", "Ⓢ", "ѕ", "͏", "₴", "ṩ", "Ṩ", "Ꮥ", "Ѕ", "Ṡ", "ֆ", "̾", "ｓ", "Ｓ", "ꜱ", "🅢", "𝐬", "𝐒", "𝘴", "𝘚", "𝙨", "𝙎", "𝓈", "𝓼", "𝓢", "𝕤", "ℙ", "𝔰", "𝔓", "𝖘", "𝕾", "🅂", "🆂", "𝒮", "ʂ", "𝚜", "𝚂", "ѕ", "𝓼"],
+	t: ["t", "+", "T", "ⓣ", "Ⓣ", "т", "₮", "ẗ", "Ṯ", "Ꮦ", "τ", "Ƭ", "Ꮖ", "ȶ", "ｔ", "Ｔ", "ᴛ", "ʇ", "🅣", "𝐭", "𝐓", "𝘵", "𝘛", "𝙩", "𝙏", "𝓉", "𝓽", "𝓣", "𝕥", "​", "𝔱", "𝔔", "𝖙", "𝕿", "🅃", "🆃", "𝒯", "ƚ", "𝚝", "𝚃", "☂", "t", "𝓽"],
 	u: ["u", "ú", "ü", "ᑌ", "U", "ⓤ", "Ⓤ", "υ", "͏", "Ʉ", "Ü", "Ꮼ", "Ʊ", "ṳ", "Ṳ", "ʊ", "̾", "ｕ", "Ｕ", "ᴜ", "🅤", "𝐮", "𝐔", "𝘶", "𝘜", "𝙪", "𝙐", "𝓊", "𝓾", "𝓤", "𝕦", "ℚ", "𝔲", "ℜ", "𝖚", "𝖀", "🅄", "🆄", "𝒰", "𝚞", "𝚄", "☋", "ս"],
 	v: ["v", "ᐯ", "V", "ⓥ", "Ⓥ", "ν", "ṿ", "Ṿ", "Ꮙ", "Ʋ", "Ṽ", "ʋ", "ｖ", "Ｖ", "ᴠ", "ʌ", "🅥", "𝐯", "𝐕", "𝘷", "𝘝", "𝙫", "𝙑", "𝓋", "𝓿", "𝓥", "𝕧", "​", "𝔳", "𝖛", "𝖁", "🅅", "🆅", "𝒱", "𝚟", "𝚅", "✓", "ⅴ"],
 	w: ["w", "ᗯ", "W", "ⓦ", "Ⓦ", "ω", "͏", "₩", "ẅ", "Ẅ", "Ꮗ", "ш", "Ш", "ẇ", "Ẇ", "Ꮃ", "ա", "̾", "ｗ", "Ｗ", "ᴡ", "ʍ", "🅦", "𝐰", "𝐖", "𝘸", "𝘞", "𝙬", "𝙒", "𝓌", "𝔀", "𝓦", "𝕨", "ℝ", "𝔴", "𝔖", "𝖜", "𝖂", "🅆", "🆆", "𝒲", "ɯ", "𝚠", "𝚆", "ԝ"],
 	x: ["x", "᙭", "X", "ⓧ", "Ⓧ", "χ", "Ӿ", "ẍ", "Ẍ", "ጀ", "ϰ", "Ж", "х", "Ӽ", "ｘ", "Ｘ", "🅧", "𝐱", "𝐗", "𝘹", "𝘟", "𝙭", "𝙓", "𝓍", "𝔁", "𝓧", "𝕩", "​", "𝔵", "𝔗", "𝖝", "𝖃", "🅇", "🆇", "𝒳", "𝚡", "𝚇", "⌘", "х"],
-	y: ["y", "Y", "ⓨ", "Ⓨ", "у", "͏", "Ɏ", "ÿ", "Ÿ", "Ꭹ", "ψ", "Ψ", "ẏ", "Ẏ", "Ꮍ", "ч", "ʏ", "̾", "ｙ", "Ｙ", "ʎ", "🅨", "𝐲", "𝐘", "𝘺", "𝘠", "𝙮", "𝙔", "𝓎", "𝔂", "𝓨", "𝕪", "𝕊", "𝔶", "𝔘", "𝖞", "𝖄", "🅈", "🆈", "𝒴", "ყ", "𝚢", "𝚈", "☿", "у"],
-	z: ["z", "ᘔ", "Z", "ⓩ", "Ⓩ", "Ⱬ", "ẓ", "Ẓ", "ፚ", "Ꮓ", "ʐ", "ｚ", "Ｚ", "ᴢ", "🅩", "𝐳", "𝐙", "𝘻", "𝘡", "𝙯", "𝙕", "𝓏", "𝔃", "𝓩", "𝕫", "𝕋", "𝔷", "𝔙", "𝖟", "𝖅", "🅉", "🆉", "𝒵", "ȥ", "𝚣", "𝚉", "☡", "z"],
+	y: [
+		"y", "Y", "ⓨ", "Ⓨ", "у", "͏", "Ɏ", "ÿ", "Ÿ", "Ꭹ", "ψ", "Ψ", "ẏ", "Ẏ", "Ꮍ", "ч", "ʏ", "̾", "ｙ", "Ｙ", "ʎ", "🅨", "𝐲", "𝐘", "𝘺", "𝘠", "𝙮", "𝙔", "𝓎", "𝔂", "𝓨", "𝕪", "𝕊", "𝔶", "𝔘", "𝖞", "𝖄", "🅈", "🆈", "𝒴", "ყ", "𝚢", "𝚈", "☿", "у",
+	],
+	z: ["z", "ᘔ", "Z", "ⓩ", "Ⓩ", "Ⱬ", "ẓ", "Ẓ", "ፚ", "Ꮓ", "ʐ", "ｚ", "Ｚ", "ᴢ", "🅩", "𝐳", "𝐙", "𝘻", "𝘡", "𝙯", "𝙕", "𝓏", "𝔃", "𝓩", "𝕫", "𝕋", "𝔷", "𝔙", "𝖟", "𝖅", "🅉", "🆉", "𝒵", "ȥ", "𝚣", "𝚉", "☡", "z", "𝔃"],
 };
 /* eslint-enable */
 const EVASION_DETECTION_SUB_STRINGS: Dict<string> = {};
@@ -226,6 +248,8 @@ let closeListener: ((event: ws.CloseEvent) => void) | null;
 let pongListener: (() => void) | null;
 
 export class Client {
+	defaultMessageRoom: string = 'lobby';
+
 	private battleFilterRegularExpressions: RegExp[] | null = null;
 	private botGreetingCooldowns: Dict<number> = {};
 	private challstr: string = '';
@@ -236,6 +260,7 @@ export class Client {
 	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
 	private connectionTimeout: NodeJS.Timer | undefined = undefined;
 	private evasionFilterRegularExpressions: RegExp[] | null = null;
+	/**Maps group name to symbol */
 	private groupSymbols: KeyedDict<GroupName, string> = DEFAULT_GROUP_SYMBOLS;
 	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
@@ -264,6 +289,7 @@ export class Client {
 	private sendTimeoutDuration: number = 0;
 	private server: string = Config.server || Tools.mainServer;
 	private serverGroupsResponse: ServerGroupData[] = DEFAULT_SERVER_GROUPS;
+	/**Maps symbol to group info */
 	private serverGroups: Dict<IServerGroup> = {};
 	private serverId: string = 'showdown';
 	private serverPingTimeout: NodeJS.Timer | null = null;
@@ -291,7 +317,7 @@ export class Client {
 		this.parseServerGroups();
 		this.updateConfigSettings();
 
-		const messageParsersDir = path.join(Tools.builtFolder, 'message-parsers');
+		const messageParsersDir = path.join(Tools.buildFolder, 'message-parsers');
 		const privateMessageParsersDir = path.join(messageParsersDir, 'private');
 
 		this.loadMessageParsersDirectory(messageParsersDir);
@@ -301,10 +327,12 @@ export class Client {
 		this.messageParsersExist = this.messageParsers.length > 0;
 	}
 
+	/**Maps group name to symbol */
 	getGroupSymbols(): DeepImmutable<KeyedDict<GroupName, string>> {
 		return this.groupSymbols;
 	}
 
+	/**Maps symbol to group info */
 	getServerGroups(): DeepImmutable<Dict<IServerGroup>> {
 		return this.serverGroups;
 	}
@@ -351,7 +379,7 @@ export class Client {
 
 	getListenerHtml(html: string, noAttribution?: boolean): string {
 		html = '<div class="infobox">' + html;
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 		html += '</div>';
@@ -360,7 +388,7 @@ export class Client {
 	}
 
 	getListenerUhtml(html: string, noAttribution?: boolean): string {
-		if (!noAttribution && Users.self.group !== this.groupSymbols.bot) {
+		if (!noAttribution && Users.self.globalRank !== this.groupSymbols.bot) {
 			html += this.getUserAttributionHtml(Users.self.name);
 		}
 
@@ -370,18 +398,23 @@ export class Client {
 	getCodeListenerHtml(code: string): string {
 		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
 		return '<div class="infobox"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3">' +
-			code.replace(NEWLINE, "<br />") + '</details></div>';
+			'<summary></summary>' + Tools.escapeHTML(code.replace(NEWLINE, "<br />")) + '</details></div>';
+	}
+
+	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="' + command + '">' + label + '</button>';
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.name + ', ' + '/msgroom ' +
-			room.title + ', ' + message + '">' + label + '</button>';
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.id + ', ' + '/msgroom ' +
+			room.id + ', ' + message + '">' + label + '</button>';
 	}
 
 	getPmUserButton(user: User, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + user.name + ', ' + message + '">' +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + user.id + ', ' + message + '">' +
 			label + '</button>';
 	}
 
@@ -395,7 +428,7 @@ export class Client {
 			return this.getPmSelfButton(message, label, disabled, buttonStyle);
 		}
 
-		return this.getPmUserButton(Users.self, "/msgroom " + room.id + ", " + BOT_MESSAGE_COMMAND + Users.self.name + ", " + message,
+		return this.getPmUserButton(Users.self, "/msgroom " + room.id + ", " + BOT_MESSAGE_COMMAND + Users.self.id + ", " + message,
 			label, disabled, buttonStyle);
 	}
 
@@ -408,7 +441,7 @@ export class Client {
 			error.startsWith('A Pok&eacute;mon cannot ') || error.startsWith('A search cannot ') ||
 			error.startsWith('No more than ') || error.startsWith('No value given to compare with ') ||
 			error.endsWith(' is not a recognized egg group.') || error.endsWith(' is not a recognized stat.') ||
-			error.endsWith(' cannot have alternative parameters') || error.endsWith(' did not contain a valid stat') ||
+			error.endsWith(' cannot have alternative parameters.') || error.endsWith(' did not contain a valid stat') ||
 			error.endsWith(" cannot be broadcast.") || error.endsWith(" is a status move and can't be used with 'resists'.") ||
 			error.endsWith(" is a status move and can't be used with 'weak'.") ||
 			error.endsWith(" is not a recognized type or move.") || error.startsWith("You cannot ") ||
@@ -419,6 +452,12 @@ export class Client {
 			error.startsWith("The generation must be between ") || error.endsWith("Try a more specific search.") ||
 			error.startsWith("Only specify ") || error.startsWith("No items ") || error.startsWith("No berries ") ||
 			error.startsWith('The search included ');
+	}
+
+	isHangmanCommandError(error: string): boolean {
+		return error.startsWith("Phrase must be less than ") || error.startsWith("Each word in the phrase must be less than ") ||
+			error.startsWith("Hint too long") || error.startsWith("Enter a valid word") ||
+			error.startsWith("You are not allowed to use filtered words") || error.startsWith("Hangman is disabled for this room");
 	}
 
 	/**Returns the description of the filter triggered by the message, if any */
@@ -524,11 +563,12 @@ export class Client {
 		}
 
 		let room: Room | undefined;
-		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room') {
+		if (outgoingMessage.roomid && outgoingMessage.type !== 'join-room' && outgoingMessage.type !== 'create-groupchat') {
 			room = Rooms.get(outgoingMessage.roomid);
 			if (!room) return;
 
-			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'banword-list') {
+			if (room.type === 'chat' && !room.serverBannedWords && outgoingMessage.type !== 'leave-room' &&
+				outgoingMessage.type !== 'banword-list') {
 				room.serverBannedWords = [];
 
 				this.send({
@@ -744,11 +784,11 @@ export class Client {
 		if (previous.serverId) this.serverId = previous.serverId;
 		if (previous.serverTimeOffset) this.serverTimeOffset = previous.serverTimeOffset;
 
-		const keys = Object.getOwnPropertyNames(previous);
-		for (const key of keys) {
-			// @ts-expect-error
-			previous[key] = undefined;
+		for (const messageParser of previous.messageParsers) {
+			Tools.unrefProperties(messageParser);
 		}
+
+		Tools.unrefProperties(previous);
 	}
 	/* eslint-enable */
 
@@ -802,7 +842,7 @@ export class Client {
 
 		this.pingServer();
 
-		void Dex.fetchClientData();
+		Dex.fetchClientData();
 	}
 
 	private connect(): void {
@@ -876,6 +916,7 @@ export class Client {
 		});
 	}
 
+	/**Removes all webSocket listeners and clears sendTimeout */
 	private terminateWebSocket(): void {
 		this.clearConnectionTimeouts();
 		this.removeClientListeners();
@@ -894,8 +935,8 @@ export class Client {
 		Tools.logMessage("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();
-		if (Config.rooms && !Config.rooms.includes('lobby')) {
-			const index = this.roomsToRejoin.indexOf('lobby');
+		if (Config.rooms && !Config.rooms.includes(this.defaultMessageRoom)) {
+			const index = this.roomsToRejoin.indexOf(this.defaultMessageRoom);
 			if (index !== -1) this.roomsToRejoin.splice(index, 1);
 		}
 
@@ -939,6 +980,7 @@ export class Client {
 			this.outgoingMessageQueue = [];
 		}
 
+		this.lastOutgoingMessage = null;
 		this.loggedIn = false;
 		this.connectionAttempts = 0;
 		this.connect();
@@ -958,36 +1000,40 @@ export class Client {
 			roomid = lines[0].substr(1).trim();
 			lines.shift();
 		} else {
-			roomid = 'lobby';
+			roomid = this.defaultMessageRoom;
 		}
 
 		const room = Rooms.add(roomid);
-		if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
-			this.lastOutgoingMessage.roomid === room.id) {
+
+		if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id && (this.lastOutgoingMessage.type === 'join-room' ||
+			this.lastOutgoingMessage.type === 'create-groupchat')) {
 			this.clearLastOutgoingMessage(now);
 		}
 
 		for (let i = 0; i < lines.length; i++) {
-			if (!lines[i]) continue;
+			const line = lines[i].trim();
+			if (!line) continue;
 
 			try {
-				this.parseMessage(room, lines[i].trim(), now);
+				this.parseMessage(room, line, now);
 
-				if (lines[i].startsWith('|init|')) {
+				if (line.startsWith('|init|')) {
 					const page = room.type === 'html';
 					const chat = !page && room.type === 'chat';
 					for (let j = i + 1; j < lines.length; j++) {
+						let nextLine = lines[j].trim();
 						if (page) {
-							if (lines[j].startsWith('|pagehtml|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|pagehtml|')) {
+								this.parseMessage(room, nextLine, now);
 								break;
 							}
 						} else if (chat) {
-							if (lines[j].startsWith('|users|')) {
-								this.parseMessage(room, lines[j].trim(), now);
+							if (nextLine.startsWith('|users|')) {
+								this.parseMessage(room, nextLine.trim(), now);
 								for (let k = j + 1; k < lines.length; k++) {
-									if (lines[k].startsWith('|:|')) {
-										this.parseMessage(room, lines[k].trim(), now);
+									nextLine = lines[k].trim();
+									if (nextLine.startsWith('|:|')) {
+										this.parseMessage(room, nextLine, now);
 										break;
 									}
 								}
@@ -1000,7 +1046,7 @@ export class Client {
 				}
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException);
+				Tools.logError(e as NodeJS.ErrnoException, "Client.parseMessage() in " + room.id + ": " + line);
 			}
 		}
 	}
@@ -1121,7 +1167,7 @@ export class Client {
 				}
 
 				if (rank) {
-					Users.self.group = rank;
+					Users.self.setGlobalRank(rank);
 				} else {
 					this.getUserDetails(Users.self);
 				}
@@ -1215,9 +1261,16 @@ export class Client {
 					}
 
 					if (user) {
+						let avatar = "" + response.avatar;
+						if (avatar in DEFAULT_TRAINER_SPRITES) {
+							avatar = DEFAULT_TRAINER_SPRITES[avatar];
+						}
+						user.avatar = avatar;
+						user.customAvatar = !Dex.getTrainerSpriteId(avatar);
+
 						user.autoconfirmed = response.autoconfirmed;
-						user.group = response.group;
 						user.status = response.status;
+						user.setGlobalRank(response.group);
 
 						if (user.userDetailsListener) {
 							user.userDetailsListener(user);
@@ -1259,8 +1312,17 @@ export class Client {
 					delete this.reconnectRoomMessages[room.id];
 				}
 
-				Tournaments.setScheduledTournament(room);
+				Tournaments.setNextTournament(room);
+				Games.setNextScheduledGame(room);
 			}
+
+			if (room.id in Rooms.createListeners) {
+				for (const listener of Rooms.createListeners[room.id]) {
+					listener(room);
+				}
+				delete Rooms.createListeners[room.id];
+			}
+
 			break;
 		}
 
@@ -1283,11 +1345,16 @@ export class Client {
 
 			if (messageArguments.action === 'rename') {
 				const oldId = room.id;
-				Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
+				room = Rooms.renameRoom(room, messageArguments.newId, messageArguments.newTitle);
 				Storage.renameRoom(room, oldId);
 
 				if (room.type === 'chat') this.getRoomInfo(room);
 			} else {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'join-room' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					this.clearLastOutgoingMessage(now);
+				}
+
 				Rooms.remove(room);
 			}
 
@@ -1366,13 +1433,17 @@ export class Client {
 				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
 			}
 
-			if (Config.allowMail) Storage.retrieveOfflineMessages(user);
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
-			if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
-				now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
-				if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+			if (!room.battle) {
+				if (Config.allowMail) Storage.retrieveOfflineMessages(user);
+
+				if ((!room.game || room.game.isMiniGame) && !room.userHostedGame && (!(user.id in this.botGreetingCooldowns) ||
+					now - this.botGreetingCooldowns[user.id] >= BOT_GREETING_COOLDOWN)) {
+					if (Storage.checkBotGreeting(room, user, now)) this.botGreetingCooldowns[user.id] = now;
+				}
 			}
+
 			break;
 		}
 
@@ -1399,6 +1470,7 @@ export class Client {
 			if (room.publicRoom) Storage.updateLastSeen(user, now);
 
 			room.onUserLeave(user);
+			if (!user.rooms.size) Users.remove(user);
 			break;
 		}
 
@@ -1413,7 +1485,7 @@ export class Client {
 
 			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
-			room.onUserJoin(user, messageArguments.rank, true);
+			room.onUserRename(user, messageArguments.rank);
 			user.updateStatus(status);
 
 			if (!user.away && Config.allowMail) {
@@ -1468,7 +1540,7 @@ export class Client {
 					const htmlId = Tools.toId(html);
 					if (this.lastOutgoingMessage && ((this.lastOutgoingMessage.type === 'chat-html' &&
 						Tools.toId(this.lastOutgoingMessage.html) === htmlId) || (this.lastOutgoingMessage.type === 'code' &&
-						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(Tools.unescapeHTML(html.replace(CODE_LINEBREAK, "")))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1502,11 +1574,9 @@ export class Client {
 
 						if (!uhtmlChange) room.addUhtmlChatLog(uhtmlName, html);
 
-						if (uhtmlId in room.uhtmlMessageListeners) {
-							if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-								room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-								delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-							}
+						if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+							room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+							room.removeUhtmlMessageListener(uhtmlId, htmlId);
 						}
 					} else {
 						const messageId = Tools.toId(messageArguments.message);
@@ -1557,7 +1627,7 @@ export class Client {
 					} else if (this.lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
-							if (Tools.toId(demoted) === this.lastOutgoingMessage.userid) this.clearLastOutgoingMessage(now);
+							if (Tools.toId(demoted) === this.lastOutgoingMessage.deauthedUserid) this.clearLastOutgoingMessage(now);
 						}
 					} else if (this.lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
@@ -1685,6 +1755,9 @@ export class Client {
 					}
 
 					return;
+				} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
+					Tools.logMessage("Error message in PM to " + messageArguments.recipientUsername + ": " +
+						messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 				}
 
 				if (!recipientId) return;
@@ -1718,13 +1791,10 @@ export class Client {
 
 					if (!isUhtmlChange) user.addUhtmlChatLog(uhtmlName, html);
 
-					if (recipient.uhtmlMessageListeners) {
-						if (uhtmlId in recipient.uhtmlMessageListeners) {
-							if (htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
-								recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
-								delete recipient.uhtmlMessageListeners[uhtmlId][htmlId];
-							}
-						}
+					if (recipient.uhtmlMessageListeners && uhtmlId in recipient.uhtmlMessageListeners &&
+						htmlId in recipient.uhtmlMessageListeners[uhtmlId]) {
+						recipient.uhtmlMessageListeners[uhtmlId][htmlId](now);
+						recipient.removeUhtmlMessageListener(uhtmlId, htmlId);
 					}
 				} else if (isHtml) {
 					const html = Tools.unescapeHTML(messageArguments.message.substr(HTML_CHAT_COMMAND.length));
@@ -1732,7 +1802,7 @@ export class Client {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipient.id &&
 						((this.lastOutgoingMessage.type === 'pm-html' && Tools.toId(this.lastOutgoingMessage.html) === htmlId) ||
 						(this.lastOutgoingMessage.type === 'code' &&
-						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(html.replace(CODE_LINEBREAK, ""))))) {
+						Tools.toId(this.lastOutgoingMessage.html) === Tools.toId(Tools.unescapeHTML(html.replace(CODE_LINEBREAK, "")))))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1746,9 +1816,15 @@ export class Client {
 					}
 				} else {
 					const messageId = Tools.toId(messageArguments.message);
-					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'pm' &&
-						this.lastOutgoingMessage.userid === recipient.id &&
-						Tools.toId(this.lastOutgoingMessage.text) === messageId) {
+					if (messageArguments.message === CODE_COMMAND) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'code' &&
+							this.lastOutgoingMessage.userid === recipient.id) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else if (this.lastOutgoingMessage && this.lastOutgoingMessage.userid === recipient.id &&
+						((this.lastOutgoingMessage.type === 'pm' && Tools.toId(this.lastOutgoingMessage.text) === messageId) ||
+						((this.lastOutgoingMessage.type === 'code' && messageArguments.message.startsWith("```") &&
+						Tools.toId(this.lastOutgoingMessage.html) === messageId)))) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1762,7 +1838,7 @@ export class Client {
 					}
 				}
 			} else {
-				user.setIsLocked(messageArguments.rank);
+				user.setGlobalRank(messageArguments.rank);
 
 				if (isUhtml || isUhtmlChange) {
 					if (!isUhtmlChange) user.addUhtmlChatLog("", "html");
@@ -1774,13 +1850,41 @@ export class Client {
 
 					user.addChatLog(commandMessage);
 
-					const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
-						commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
-					if (battleUrl) {
-						commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
-					}
+					if (commandMessage.startsWith(REQUEST_PM_LOG_COMMAND)) {
+						if (user.hasGlobalRank('driver')) {
+							const names = commandMessage.substr(REQUEST_PM_LOG_COMMAND.length).trim().split(" and ");
+							let otherUser = "";
+							for (const name of names) {
+								const id = Tools.toId(name);
+								if (id !== Users.self.id) {
+									otherUser = id;
+									break;
+								}
+							}
 
-					CommandParser.parse(user, user, commandMessage, now);
+							if (otherUser) {
+								this.send({
+									message: '|/allowpmlog ' + user.id + ', ' + otherUser,
+									type: 'allowpmlog',
+									userid: user.id,
+									measure: true,
+								});
+							}
+						}
+					} else if (commandMessage.startsWith(ALLOWED_PM_LOG)) {
+						if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'allowpmlog' &&
+							this.lastOutgoingMessage.userid === user.id) {
+							this.clearLastOutgoingMessage(now);
+						}
+					} else {
+						const battleUrl = this.extractBattleId(commandMessage.startsWith(INVITE_COMMAND) ?
+							commandMessage.substr(INVITE_COMMAND.length) : commandMessage);
+						if (battleUrl) {
+							commandMessage = Config.commandCharacter + 'check ' + battleUrl.fullId;
+						}
+
+						CommandParser.parse(user, user, commandMessage, now);
+					}
 				}
 			}
 			break;
@@ -1917,7 +2021,10 @@ export class Client {
 					Tools.toId(this.lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
+				Tools.logMessage("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 			}
+
 			break;
 		}
 
@@ -2009,11 +2116,26 @@ export class Client {
 					this.lastOutgoingMessage.type === 'highlight-htmlpage' || this.lastOutgoingMessage.type === 'closehtmlpage')) {
 					this.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('A group chat named ')) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'create-groupchat') {
+					this.clearLastOutgoingMessage(now);
+				}
 			} else if (this.isDataCommandError(messageArguments.error)) {
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'chat' && this.lastOutgoingMessage.roomid === room.id &&
 					this.isDataRollCommand(this.lastOutgoingMessage.text!)) {
 					this.clearLastOutgoingMessage(now);
 					room.say(Tools.escapeHTML(messageArguments.error));
+				}
+			} else if (this.isHangmanCommandError(messageArguments.error)) {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'hangman-start' &&
+					this.lastOutgoingMessage.roomid === room.id) {
+					const user = Users.get(this.lastOutgoingMessage.userid!);
+					this.clearLastOutgoingMessage(now);
+					if (user) user.say("Hangman error: " + Tools.escapeHTML(messageArguments.error));
+				}
+			} else {
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id) {
+					Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
 				}
 			}
 
@@ -2050,8 +2172,8 @@ export class Client {
 					"Message: " + JSON.stringify(this.lastOutgoingMessage) : ""));
 				this.startSendTimeout(this.chatQueueSendThrottle);
 			} else if (messageArguments.html.startsWith('<div class="broadcast-red"><strong>Moderated chat was set to ')) {
-				room.modchat = messageArguments.html.split('<div class="broadcast-red">' +
-					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0];
+				room.setModchat(messageArguments.html.split('<div class="broadcast-red">' +
+					'<strong>Moderated chat was set to ')[1].split('!</strong>')[0]);
 				if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'modchat' &&
 					this.lastOutgoingMessage.modchatLevel === room.modchat) {
 					this.clearLastOutgoingMessage(now);
@@ -2060,7 +2182,7 @@ export class Client {
 				messageArguments.html.startsWith('<div class="broadcast-red"><strong>This room is now invite only!</strong>')) {
 				room.inviteOnlyBattle = true;
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
-				room.modchat = 'off';
+				room.setModchat('off');
 			} else if (messageArguments.html.startsWith('<div class="infobox infobox-limited">This tournament includes:<br />')) {
 				if (room.tournament) {
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'tournament-rules' &&
@@ -2209,11 +2331,9 @@ export class Client {
 				this.clearLastOutgoingMessage(now);
 			}
 
-			if (uhtmlId in room.uhtmlMessageListeners) {
-				if (htmlId in room.uhtmlMessageListeners[uhtmlId]) {
-					room.uhtmlMessageListeners[uhtmlId][htmlId](now);
-					delete room.uhtmlMessageListeners[uhtmlId][htmlId];
-				}
+			if (uhtmlId in room.uhtmlMessageListeners && htmlId in room.uhtmlMessageListeners[uhtmlId]) {
+				room.uhtmlMessageListeners[uhtmlId][htmlId](now);
+				room.removeUhtmlMessageListener(uhtmlId, htmlId);
 			}
 
 			if (messageType !== 'uhtmlchange') room.addUhtmlChatLog(messageArguments.name, messageArguments.html);
@@ -2254,24 +2374,36 @@ export class Client {
 		 * Tournament messages
 		 */
 		case 'tournament': {
-			if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
+			if (!room.tournament && !(room.id in Tournaments.createListeners) &&
+				(!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
 
 			const type = messageParts[0] as keyof ITournamentMessageTypes;
 			messageParts.shift();
+
 			switch (type) {
+			case 'create': {
+				const messageArguments: ITournamentMessageTypes['create'] = {
+					formatid: messageParts[0],
+				};
+
+				const format = Dex.getFormat(messageArguments.formatid);
+				if (room.tournament && (!format || room.tournament.format.id !== format.id)) room.tournament.forceEnd();
+
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-create') {
+					if (format && format.id === this.lastOutgoingMessage.format!) {
+						this.clearLastOutgoingMessage(now);
+					}
+				}
+				break;
+			}
+
 			case 'update': {
 				const messageArguments: ITournamentMessageTypes['update'] = {
 					json: JSON.parse(messageParts.join("|")) as ITournamentUpdateJson,
 				};
 
-				if (!room.tournament) {
-					const tournament = Tournaments.createTournament(room, messageArguments.json);
-					if (tournament && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
-						this.lastOutgoingMessage.type === 'tournament-create' &&
-						tournament.format.id === this.lastOutgoingMessage.format!) {
-						this.clearLastOutgoingMessage(now);
-					}
-				}
+				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
 
 				if (room.tournament) {
 					room.tournament.update(messageArguments.json);
@@ -2334,6 +2466,18 @@ export class Client {
 					this.lastOutgoingMessage.type === 'tournament-autodq') {
 					this.clearLastOutgoingMessage(now);
 				}
+
+				if (!room.tournament) return;
+
+				const messageArguments: ITournamentMessageTypes['autodq'] = {
+					status: messageParts[0],
+					time: parseInt(messageParts[1]),
+				};
+
+				if (Tools.toId(messageArguments.status) === "on" && !isNaN(messageArguments.time)) {
+					room.tournament.setAutoDqMinutes(messageArguments.time / 60 / 1000);
+				}
+
 				break;
 			}
 
@@ -2373,7 +2517,7 @@ export class Client {
 				const messageArguments: ITournamentMessageTypes['join'] = {
 					username: messageParts[0],
 				};
-				room.tournament.createPlayer(messageArguments.username);
+				room.tournament.addPlayer(messageArguments.username);
 				break;
 			}
 
@@ -2385,7 +2529,7 @@ export class Client {
 
 				if (type === 'disqualify' && this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
 					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
-					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.userid) {
+					Tools.toId(messageArguments.username) === this.lastOutgoingMessage.disqualifiedUserid) {
 					this.clearLastOutgoingMessage(now);
 				}
 
@@ -2393,7 +2537,7 @@ export class Client {
 
 				if (!room.tournament) return;
 
-				room.tournament.destroyPlayer(messageArguments.username);
+				room.tournament.removePlayer(messageArguments.username);
 				break;
 			}
 
@@ -2428,6 +2572,21 @@ export class Client {
 
 				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score,
 					messageArguments.roomid);
+				break;
+			}
+
+			case 'error': {
+				const messageArguments: ITournamentMessageTypes['error'] = {
+					errorType: messageParts[0],
+					errorMessage: messageParts[1],
+				};
+
+				if (this.lastOutgoingMessage && this.lastOutgoingMessage.roomid === room.id &&
+					this.lastOutgoingMessage.type === 'tournament-disqualify' &&
+					Tools.toId(messageArguments.errorType) === "alreadydisqualified" &&
+					Tools.toId(messageArguments.errorMessage) === this.lastOutgoingMessage.disqualifiedUserid) {
+					this.clearLastOutgoingMessage(now);
+				}
 				break;
 			}
 			}
@@ -2465,7 +2624,8 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleTeamSize && !room.game.onBattleTeamSize(room, messageArguments.slot, messageArguments.size)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2474,7 +2634,8 @@ export class Client {
 		case 'teampreview': {
 			if (room.game) {
 				if (room.game.onBattleTeamPreview && !room.game.onBattleTeamPreview(room)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2483,7 +2644,8 @@ export class Client {
 		case 'start': {
 			if (room.game) {
 				if (room.game.onBattleStart && !room.game.onBattleStart(room)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2499,7 +2661,8 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattlePokemon && !room.game.onBattlePokemon(room, messageArguments.slot, messageArguments.details,
 					messageArguments.item)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2515,7 +2678,8 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleMove && !room.game.onBattleMove(room, messageArguments.pokemon, messageArguments.move,
 					messageArguments.target)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2532,7 +2696,8 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleFaint && !room.game.onBattleFaint(room, messageArguments.pokemon)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2549,7 +2714,8 @@ export class Client {
 			if (room.game) {
 				if (room.game.onBattleSwitch && !room.game.onBattleSwitch(room, messageArguments.pokemon, messageArguments.details,
 					messageArguments.hpStatus)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 			break;
@@ -2562,7 +2728,8 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleMessage && !room.game.onBattleMessage(room, messageArguments.message)) {
-					room.leave();
+					// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+					if (room.game) room.game.leaveBattleRoom(room);
 				}
 			}
 
@@ -2576,7 +2743,8 @@ export class Client {
 
 			if (room.game) {
 				if (room.game.onBattleWin) room.game.onBattleWin(room, messageArguments.username);
-				room.leave();
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (room.game) room.game.leaveBattleRoom(room);
 			}
 
 			break;
@@ -2585,14 +2753,19 @@ export class Client {
 		case 'tie': {
 			if (room.game) {
 				if (room.game.onBattleTie) room.game.onBattleTie(room);
-				room.leave();
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (room.game) room.game.leaveBattleRoom(room);
 			}
 
 			break;
 		}
 
 		case 'expire': {
-			if (room.game && room.game.onBattleExpire) room.game.onBattleExpire(room);
+			if (room.game && room.game.onBattleExpire) {
+				room.game.onBattleExpire(room);
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (room.game) room.game.leaveBattleRoom(room);
+			}
 			break;
 		}
 		}
@@ -2938,7 +3111,7 @@ export class Client {
 							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
 
 							Storage.getGlobalDatabase().loginSessionCookie = {cookie: value, userid: Users.self.id};
-							Storage.exportGlobalDatabase();
+							Storage.tryExportGlobalDatabase();
 						}
 					}
 				}
@@ -3021,7 +3194,7 @@ export class Client {
 }
 
 export const instantiate = (): void => {
-	const oldClient = global.Client as Client | undefined;
+	let oldClient = global.Client as Client | undefined;
 	if (oldClient) {
 		// @ts-expect-error
 		oldClient.beforeReload();
@@ -3032,5 +3205,6 @@ export const instantiate = (): void => {
 	if (oldClient) {
 		// @ts-expect-error
 		global.Client.onReload(oldClient);
+		oldClient = undefined;
 	}
 };

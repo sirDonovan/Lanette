@@ -18,6 +18,18 @@ function objectKeysToRoomId<T>(object: Dict<T>): Dict<T> {
 	return object;
 }
 
+function objectKeysToId<T>(object: Dict<T>): Dict<T> {
+	for (const i in object) {
+		const id = Tools.toId(i);
+		if (id !== i) {
+			object[id] = object[i];
+			delete object[i];
+		}
+	}
+
+	return object;
+}
+
 function stringObjectToRoomIds(object: Dict<string>): Dict<string> {
 	for (const i in object) {
 		object[i] = Tools.toRoomId(object[i]);
@@ -58,10 +70,14 @@ export function load(config: typeof Config): typeof Config {
 
 	if (config.rankedGames) config.rankedGames = arrayToRoomIds(config.rankedGames);
 	if (config.allowScriptedGames) config.allowScriptedGames = arrayToRoomIds(config.allowScriptedGames);
+	if (config.scriptedGameDebugLogs) config.scriptedGameDebugLogs = arrayToRoomIds(config.scriptedGameDebugLogs);
 	if (config.allowUserHostedGames) config.allowUserHostedGames = arrayToRoomIds(config.allowUserHostedGames);
 	if (config.allowChallengeGames) config.allowChallengeGames = arrayToRoomIds(config.allowChallengeGames);
 	if (config.allowSearchChallenges) config.allowSearchChallenges = arrayToRoomIds(config.allowSearchChallenges);
 	if (config.allowGameAchievements) config.allowGameAchievements = arrayToRoomIds(config.allowGameAchievements);
+	if (config.tournamentGamesSubRoom) {
+		config.tournamentGamesSubRoom = objectKeysToRoomId(stringObjectToRoomIds(config.tournamentGamesSubRoom));
+	}
 	if (config.showGameTrainerCards) config.showGameTrainerCards = arrayToRoomIds(config.showGameTrainerCards);
 	if (config.gameTrainerCardRequirements) objectKeysToRoomId(config.gameTrainerCardRequirements);
 	if (config.showGameHostBoxes) config.showGameHostBoxes = arrayToRoomIds(config.showGameHostBoxes);
@@ -94,8 +110,8 @@ export function load(config: typeof Config): typeof Config {
 	if (config.unrankedTournamentFormats) {
 		config.unrankedTournamentFormats = objectKeysToRoomId(stringArrayObjectToIds(config.unrankedTournamentFormats));
 	}
-	if (config.scheduledTournamentsMaxPlayerCap) {
-		config.scheduledTournamentsMaxPlayerCap = arrayToRoomIds(config.scheduledTournamentsMaxPlayerCap);
+	if (config.randomTournamentCustomRules) {
+		config.randomTournamentCustomRules = objectKeysToRoomId(stringArrayObjectToIds(config.randomTournamentCustomRules));
 	}
 	if (config.displayTournamentFormatInfo) config.displayTournamentFormatInfo = arrayToRoomIds(config.displayTournamentFormatInfo);
 	if (config.displayUnrankedTournamentResults) {
@@ -122,6 +138,12 @@ export function load(config: typeof Config): typeof Config {
 	if (config.randomTournamentTimers) objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.tournamentRules) objectKeysToRoomId(config.tournamentRules);
 	if (config.allowUserHostedTournaments) config.allowUserHostedTournaments = arrayToRoomIds(config.allowUserHostedTournaments);
+	if (config.showTournamentTrainerCards) config.showTournamentTrainerCards = arrayToRoomIds(config.showTournamentTrainerCards);
+	if (config.sharedTournamentTrainerCards) {
+		config.sharedTournamentTrainerCards = objectKeysToRoomId(stringObjectToRoomIds(config.sharedTournamentTrainerCards));
+	}
+	if (config.tournamentTrainerCardBadges) config.tournamentTrainerCardBadges = objectKeysToId(config.tournamentTrainerCardBadges);
+	if (config.tournamentTrainerCardRibbons) config.tournamentTrainerCardRibbons = objectKeysToId(config.tournamentTrainerCardRibbons);
 	if (config.userHostedTournamentRanks) objectKeysToRoomId(config.userHostedTournamentRanks);
 	if (config.gameCatalogGists) objectKeysToRoomId(config.gameCatalogGists);
 

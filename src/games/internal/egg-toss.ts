@@ -14,12 +14,15 @@ class EggToss extends ScriptedGame {
 	currentHolder: Player | null = null;
 	explodeTimeout: NodeJS.Timer | null = null;
 	internalGame: boolean = true;
+	managedPlayers = true;
 	lastHolder: Player | null = null;
 
 	// hack for selectUser()
 	declare readonly room: Room;
 
 	cleanupTimers(): void {
+		super.cleanupTimers();
+
 		if (this.explodeTimeout) {
 			clearTimeout(this.explodeTimeout);
 			// @ts-expect-error
