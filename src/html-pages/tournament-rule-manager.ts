@@ -801,14 +801,14 @@ class TournamentRuleManager extends HtmlPageBase {
 				html += Dex.getCustomRulesHtml(this.format);
 				html += "<br /><br />";
 
+				html += "<b>Challenge</b>: <code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code>";
 				if (this.isRoomStaff) {
-					html += "<b>Schedule</b>: <code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code> | " +
-						"<b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code> | " +
-						this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
-							"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
-					html += "<br /><br />";
+					html += " | <b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code> | " +
+						this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand, "Set as " + Config.commandCharacter +
+						"nexttour", {disabled: !this.format});
 				}
 
+				html += "<br /><br />";
 				html += "<b>Remove custom rules</b>:";
 				html += "<br />";
 				for (const rule of this.customRules) {
