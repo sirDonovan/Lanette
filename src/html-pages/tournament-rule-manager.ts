@@ -12,8 +12,8 @@ import { HtmlPageBase } from "./html-page-base";
 const baseCommand = 'tournamentrulemanager';
 const baseCommandAlias = 'trm';
 const chooseFormatView = 'chooseformatview';
-const chooseUsableView = 'chooseusableview';
-const chooseBannedView = 'choosebannedview';
+const chooseAddableView = 'chooseaddableview';
+const chooseRemovableView = 'chooseremovableview';
 const chooseValueRulesView = 'choosevaluerulesview';
 const chooseAbilitiesView = 'chooseabilitiesview';
 const chooseItemsView = 'chooseitemsview';
@@ -28,6 +28,8 @@ const addCustomRuleCommand = 'addcustomrule';
 const removeCustomRuleCommand = 'removecustomrule';
 const banPageCommand = 'selectbanpage';
 const unbanPageCommand = 'selectunbanpage';
+const addRulePageCommand = 'selectaddrulepage';
+const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
 const loadNextTournamentCommand = 'loadnexttournament';
@@ -43,7 +45,7 @@ export const pages: Dict<TournamentRuleManager> = {};
 class TournamentRuleManager extends HtmlPageBase {
 	pageId = pageId;
 
-	currentView: 'format' | 'usable' | 'banned' | 'value-rules' = 'format';
+	currentView: 'format' | 'addable' | 'removable' | 'value-rules' = 'format';
 	currentBansUnbansView: 'abilities' | 'items' | 'moves' | 'pokemon' | 'rulesets' | 'tiers' = 'pokemon';
 	/**Includes both non-value and any input value rules */
 	customRules: readonly string[] = [];
@@ -72,6 +74,8 @@ class TournamentRuleManager extends HtmlPageBase {
 	customRulesInput: CustomRuleTextInput;
 	banPagination: Pagination;
 	unbanPagination: Pagination;
+	addRulePagination: Pagination;
+	removeRulePagination: Pagination;
 	forceMonotypePicker: TypePicker;
 
 	constructor(room: Room, user: User) {
@@ -103,7 +107,7 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.banPagination = new Pagination(this.room, this.commandPrefix, banPageCommand, {
 			elements: [],
 			elementsPerRow: 5,
-			rowsPerPage: 20,
+			rowsPerPage: 8,
 			pagesLabel: "Usable",
 			onSelectPage: () => this.send(),
 			reRender: () => this.send(),
@@ -112,8 +116,26 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.unbanPagination = new Pagination(this.room, this.commandPrefix, unbanPageCommand, {
 			elements: [],
 			elementsPerRow: 5,
-			rowsPerPage: 20,
+			rowsPerPage: 8,
 			pagesLabel: "Banned",
+			onSelectPage: () => this.send(),
+			reRender: () => this.send(),
+		});
+
+		this.addRulePagination = new Pagination(this.room, this.commandPrefix, addRulePageCommand, {
+			elements: [],
+			elementsPerRow: 1,
+			rowsPerPage: 7,
+			pagesLabel: "Addable",
+			onSelectPage: () => this.send(),
+			reRender: () => this.send(),
+		});
+
+		this.removeRulePagination = new Pagination(this.room, this.commandPrefix, removeRulePageCommand, {
+			elements: [],
+			elementsPerRow: 1,
+			rowsPerPage: 7,
+			pagesLabel: "Removable",
 			onSelectPage: () => this.send(),
 			reRender: () => this.send(),
 		});
@@ -125,7 +147,8 @@ class TournamentRuleManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.components = [this.formatInput, this.customRulesInput, this.banPagination, this.unbanPagination, this.forceMonotypePicker];
+		this.components = [this.formatInput, this.customRulesInput, this.banPagination, this.unbanPagination, this.addRulePagination,
+			this.removeRulePagination, this.forceMonotypePicker];
 
 		for (const rule of Dex.getRulesList()) {
 			if (!rule.hasValue || rule.id === forceMonotype) continue;
@@ -162,19 +185,19 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.send();
 	}
 
-	chooseUsableView(): void {
-		if (this.currentView === 'usable') return;
+	chooseAddableView(): void {
+		if (this.currentView === 'addable') return;
 
-		this.currentView = 'usable';
+		this.currentView = 'addable';
 
 		this.toggleActiveComponent();
 		this.send();
 	}
 
-	chooseBannedView(): void {
-		if (this.currentView === 'banned') return;
+	chooseRemovableView(): void {
+		if (this.currentView === 'removable') return;
 
-		this.currentView = 'banned';
+		this.currentView = 'removable';
 
 		this.toggleActiveComponent();
 		this.send();
@@ -245,8 +268,14 @@ class TournamentRuleManager extends HtmlPageBase {
 
 	toggleActiveComponent(): void {
 		this.formatInput.active = this.currentView === 'format';
-		this.banPagination.active = this.currentView === 'usable';
-		this.unbanPagination.active = this.currentView === 'banned';
+
+		const rulesets = this.currentBansUnbansView !== 'rulesets';
+		const addable = this.currentView === 'addable';
+		const removable = this.currentView === 'removable';
+		this.banPagination.active = !rulesets && addable;
+		this.unbanPagination.active = !rulesets && removable;
+		this.addRulePagination.active = rulesets && addable;
+		this.removeRulePagination.active = rulesets && removable;
 
 		const valueRules = this.currentView === 'value-rules';
 		this.forceMonotypePicker.active = valueRules;
@@ -298,11 +327,33 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.send();
 	}
 
-	renderAddCustomRuleButton(rule: string, displayName: string): string {
-		return "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + addCustomRuleCommand + ", " + rule, displayName);
+	renderAddCustomRuleButton(rule: string, displayName: string, description?: string): string {
+		let html = "&nbsp;";
+		if (description) {
+			html += this.getQuietPmButton(this.commandPrefix + ", " + addCustomRuleCommand + ", " + rule, displayName) + " - " +
+				description;
+		} else {
+			html += this.getQuietPmButton(this.commandPrefix + ", " + addCustomRuleCommand + ", " + rule, displayName);
+		}
+
+		return html;
 	}
 
 	setBanUnbanPaginationElements(): void {
+		if (this.currentBansUnbansView === 'rulesets') {
+			this.addRulePagination.updateElements(this.rulesetsToAdd.slice().sort().map(x => {
+				const rule = Dex.getExistingFormat(x);
+				return {html: this.renderAddCustomRuleButton(x, x, rule.desc)};
+			}));
+
+			this.removeRulePagination.updateElements(this.rulesetsToRemove.slice().sort().map(x => {
+				const rule = Dex.getExistingFormat(x);
+				return {html: this.renderAddCustomRuleButton('!' + x, x, rule.desc)};
+			}));
+
+			return;
+		}
+
 		let banElements: IPageElement[] = [];
 		let unbanElements: IPageElement[] = [];
 		if (this.currentBansUnbansView === 'abilities') {
@@ -332,13 +383,6 @@ class TournamentRuleManager extends HtmlPageBase {
 			});
 			unbanElements = this.pokemonToUnban.slice().sort().map(x => {
 				return {html: this.renderAddCustomRuleButton('+pokemon:' + x, x)};
-			});
-		} else if (this.currentBansUnbansView === 'rulesets') {
-			banElements = this.rulesetsToAdd.slice().sort().map(x => {
-				return {html: this.renderAddCustomRuleButton(x, x)};
-			});
-			unbanElements = this.rulesetsToRemove.slice().sort().map(x => {
-				return {html: this.renderAddCustomRuleButton('!' + x, x)};
 			});
 		} else if (this.currentBansUnbansView === 'tiers') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			banElements = this.tiersToBan.slice().sort().map(x => {
@@ -758,12 +802,10 @@ class TournamentRuleManager extends HtmlPageBase {
 				html += "<br /><br />";
 
 				if (this.isRoomStaff) {
-					html += "<code>/tour rules " + this.customRules.join(", ") + "</code>";
-					html += "<br /><br />";
-					html += "<code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code>";
-					html += "<br /><br />";
-					html += this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
-						"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
+					html += "<b>Schedule</b>: <code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code> | " +
+						"<b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code> | " +
+						this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
+							"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
 					html += "<br /><br />";
 				}
 
@@ -789,21 +831,21 @@ class TournamentRuleManager extends HtmlPageBase {
 
 			html += "<br /><br />";
 			html += this.customRulesInput.render();
-			html += "<br /><br />";
+			html += "<br />";
 		}
 
 		const formatView = this.currentView === 'format';
-		const usableView = this.currentView === 'usable';
-		const bannedView = this.currentView === 'banned';
+		const addableView = this.currentView === 'addable';
+		const removableView = this.currentView === 'removable';
 		const valueRulesView = this.currentView === 'value-rules';
 
 		html += "<b>Options</b>:";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatView, "Format",
 			{selectedAndDisabled: formatView});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseUsableView, "Usable",
-			{selectedAndDisabled: usableView, disabled: !this.format});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBannedView, "Banned",
-			{selectedAndDisabled: bannedView, disabled: !this.format});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseAddableView, "Addable",
+			{selectedAndDisabled: addableView, disabled: !this.format});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRemovableView, "Removable",
+			{selectedAndDisabled: removableView, disabled: !this.format});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseValueRulesView, "Value Rules",
 			{selectedAndDisabled: valueRulesView, disabled: !this.format});
 
@@ -820,7 +862,7 @@ class TournamentRuleManager extends HtmlPageBase {
 			html += "Enter the name of a format to begin customizing rules:";
 			html += "<br /><br />";
 			html += this.formatInput.render();
-		} else if (usableView || bannedView) {
+		} else if (addableView || removableView) {
 			const abilities = this.currentBansUnbansView === 'abilities';
 			const items = this.currentBansUnbansView === 'items';
 			const moves = this.currentBansUnbansView === 'moves';
@@ -845,9 +887,9 @@ class TournamentRuleManager extends HtmlPageBase {
 			html += "<br /><br />";
 
 			if (rules) {
-				html += "Click a rule below to " + (usableView ? "add it to" : "remove it from") + " your custom rules!";
+				html += "Click a rule below to " + (addableView ? "add it to" : "remove it from") + " your custom rules!";
 			} else {
-				html += "Click a " + (usableView ? "usable" : "banned") + " ";
+				html += "Click a " + (addableView ? "usable" : "banned") + " ";
 				if (abilities) {
 					html += "ability";
 				} else if (items) {
@@ -860,14 +902,22 @@ class TournamentRuleManager extends HtmlPageBase {
 					html += "tier";
 				}
 
-				html += " below to " + (usableView ? "ban" : "unban") + " it in your custom rules!";
+				html += " below to " + (addableView ? "ban" : "unban") + " it in your custom rules!";
 			}
 
 			html += "<br /><br />";
-			if (usableView) {
-				html += this.banPagination.render();
+			if (addableView) {
+				if (rules) {
+					html += this.addRulePagination.render();
+				} else {
+					html += this.banPagination.render();
+				}
 			} else {
-				html += this.unbanPagination.render();
+				if (rules) {
+					html += this.removeRulePagination.render();
+				} else {
+					html += this.unbanPagination.render();
+				}
 			}
 		} else if (valueRulesView) {
 			html += "<b>Force Monotype</b>:";
@@ -909,10 +959,10 @@ export const commands: BaseCommandDefinitions = {
 				if (user.id in pages) pages[user.id].close();
 			} else if (cmd === chooseFormatView) {
 				pages[user.id].chooseFormatView();
-			} else if (cmd === chooseUsableView) {
-				pages[user.id].chooseUsableView();
-			} else if (cmd === chooseBannedView) {
-				pages[user.id].chooseBannedView();
+			} else if (cmd === chooseAddableView) {
+				pages[user.id].chooseAddableView();
+			} else if (cmd === chooseRemovableView) {
+				pages[user.id].chooseRemovableView();
 			} else if (cmd === chooseValueRulesView) {
 				pages[user.id].chooseValueRulesView();
 			} else if (cmd === chooseAbilitiesView) {
