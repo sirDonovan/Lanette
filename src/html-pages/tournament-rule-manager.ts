@@ -70,6 +70,8 @@ class TournamentRuleManager extends HtmlPageBase {
 	tiersToBan: string[] = [];
 	tiersToUnban: string[] = [];
 
+	canCreateTournament: boolean;
+
 	formatInput: FormatTextInput;
 	customRulesInput: CustomRuleTextInput;
 	banPagination: Pagination;
@@ -80,6 +82,8 @@ class TournamentRuleManager extends HtmlPageBase {
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
+
+		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
 
 		this.formatInput = new FormatTextInput(room, this.commandPrefix, formatsInputCommand, {
 			label: "",
@@ -808,7 +812,7 @@ class TournamentRuleManager extends HtmlPageBase {
 				html += "<br /><br />";
 
 				html += "<b>Challenge</b>: <code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code>";
-				if (this.isRoomStaff) {
+				if (this.canCreateTournament) {
 					html += " | <b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code> | " +
 						this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand, "Set as " + Config.commandCharacter +
 						"nexttour", {disabled: !this.format});
