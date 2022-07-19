@@ -269,7 +269,7 @@ class TournamentRuleManager extends HtmlPageBase {
 	toggleActiveComponent(): void {
 		this.formatInput.active = this.currentView === 'format';
 
-		const rulesets = this.currentBansUnbansView !== 'rulesets';
+		const rulesets = this.currentBansUnbansView === 'rulesets';
 		const addable = this.currentView === 'addable';
 		const removable = this.currentView === 'removable';
 		this.banPagination.active = !rulesets && addable;
