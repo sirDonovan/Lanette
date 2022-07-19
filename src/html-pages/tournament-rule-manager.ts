@@ -217,6 +217,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'rulesets';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
@@ -226,6 +227,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'tiers';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
@@ -235,6 +237,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'abilities';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
@@ -244,6 +247,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'items';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
@@ -253,6 +257,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'moves';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
@@ -262,6 +267,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.currentBansUnbansView = 'pokemon';
 
+		this.toggleActiveComponent();
 		this.setBanUnbanPaginationElements();
 		this.send();
 	}
