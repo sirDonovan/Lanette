@@ -5,6 +5,7 @@ import type { User } from "../users";
 import { CustomRuleTextInput } from "./components/custom-rule-text-input";
 import { FormatTextInput } from "./components/format-text-input";
 import { type IPageElement, Pagination } from "./components/pagination";
+import { type ITextInputValidation, TextInput } from "./components/text-input";
 import { TypePicker } from "./components/type-picker";
 import { HtmlPageBase } from "./html-page-base";
 
@@ -13,7 +14,7 @@ const baseCommandAlias = 'trm';
 const chooseFormatView = 'chooseformatview';
 const chooseUsableView = 'chooseusableview';
 const chooseBannedView = 'choosebannedview';
-const chooseForceMonotypeView = 'chooseforcemonotypeview';
+const chooseValueRulesView = 'choosevaluerulesview';
 const chooseAbilitiesView = 'chooseabilitiesview';
 const chooseItemsView = 'chooseitemsview';
 const chooseMovesView = 'choosemovesview';
@@ -22,6 +23,7 @@ const chooseRulesetsView = 'chooserulesetsview';
 const chooseTiersView = 'choosetiersview';
 const formatsInputCommand = 'selectformats';
 const customRulesInputCommand = 'selectcustomrules';
+const valueRulesInputCommand = 'selectvaluerules';
 const addCustomRuleCommand = 'addcustomrule';
 const removeCustomRuleCommand = 'removecustomrule';
 const banPageCommand = 'selectbanpage';
@@ -31,6 +33,8 @@ const setNextTournamentCommand = 'setnexttournament';
 const loadNextTournamentCommand = 'loadnexttournament';
 const closeCommand = 'close';
 
+const forceMonotype = 'forcemonotype';
+
 const pageId = 'tournament-rule-manager';
 
 export const id = pageId;
@@ -39,12 +43,17 @@ export const pages: Dict<TournamentRuleManager> = {};
 class TournamentRuleManager extends HtmlPageBase {
 	pageId = pageId;
 
-	currentView: 'format' | 'usable' | 'banned' | 'force-monotype' = 'format';
+	currentView: 'format' | 'usable' | 'banned' | 'value-rules' = 'format';
 	currentBansUnbansView: 'abilities' | 'items' | 'moves' | 'pokemon' | 'rulesets' | 'tiers' = 'pokemon';
-	customRules: string[] = [];
+	/**Includes both non-value and any input value rules */
+	customRules: readonly string[] = [];
+	/**Only includes non-value rules */
+	nonValueCustomRules: readonly string[] = [];
 	redundantCustomRules: string[] = [];
 	format: IFormat | null = null;
 	forceMonotype: string | null = null;
+	valueRulesTextInputs: Dict<TextInput> = {};
+	valueRulesOutputs: Dict<string> = {};
 
 	abilitiesToBan: string[] = [];
 	abilitiesToUnban: string[] = [];
@@ -110,12 +119,38 @@ class TournamentRuleManager extends HtmlPageBase {
 		});
 
 		this.forceMonotypePicker = new TypePicker(this.room, this.commandPrefix, setForceMonotypeCommand, {
+			hideLabel: true,
 			onClear: () => this.clearForceMonotype(),
 			onPick: (index, type) => this.pickForceMonotype(type),
 			reRender: () => this.send(),
 		});
 
 		this.components = [this.formatInput, this.customRulesInput, this.banPagination, this.unbanPagination, this.forceMonotypePicker];
+
+		for (const rule of Dex.getRulesList()) {
+			if (!rule.hasValue || rule.id === forceMonotype) continue;
+
+			this.valueRulesTextInputs[rule.id] = new TextInput(room, this.commandPrefix, valueRulesInputCommand + rule.id, {
+				label: "<b>" + rule.name + "</b>",
+				validateSubmission: (input): ITextInputValidation => {
+					try {
+						input = rule.id + "=" + input.trim();
+						const validatedRule = Dex.validateRule(input);
+						if (typeof validatedRule !== 'string') throw new Error("Complex rules are not currently supported");
+
+						return {currentOutput: validatedRule};
+					} catch (e) {
+						return {errors: [input + ": " + (e as Error).message]};
+					}
+				},
+				onClear: () => this.clearValueRule(rule.id),
+				onErrors: () => this.send(),
+				onSubmit: (output) => this.setValueRule(rule.id, output),
+				reRender: () => this.send(),
+			});
+
+			this.components.push(this.valueRulesTextInputs[rule.id]);
+		}
 	}
 
 	chooseFormatView(): void {
@@ -145,10 +180,10 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.send();
 	}
 
-	chooseForceMonotypeView(): void {
-		if (this.currentView === 'force-monotype') return;
+	chooseValueRulesView(): void {
+		if (this.currentView === 'value-rules') return;
 
-		this.currentView = 'force-monotype';
+		this.currentView = 'value-rules';
 
 		this.toggleActiveComponent();
 		this.send();
@@ -212,42 +247,53 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.formatInput.active = this.currentView === 'format';
 		this.banPagination.active = this.currentView === 'usable';
 		this.unbanPagination.active = this.currentView === 'banned';
-		this.forceMonotypePicker.active = this.currentView === 'force-monotype';
+
+		const valueRules = this.currentView === 'value-rules';
+		this.forceMonotypePicker.active = valueRules;
+		for (const i in this.valueRulesTextInputs) {
+			this.valueRulesTextInputs[i].active = valueRules;
+		}
 	}
 
-	clearForceMonotype(dontRender?: boolean): void {
+	clearForceMonotype(): void {
 		if (this.forceMonotype) {
-			const newCustomRules = this.customRules.slice();
-			const index = newCustomRules.indexOf(this.forceMonotype);
-			if (index !== -1) {
-				newCustomRules.splice(index, 1);
-				this.updateCustomRules(newCustomRules);
-			}
-
 			this.forceMonotype = null;
+			this.updateCustomRules();
 		}
-
-		if (!dontRender) {
-			if (this.format) this.format.usablePokemon = undefined;
-			this.updateAvailablePokemon();
-			this.setBanUnbanPaginationElements();
-
-			this.send();
-		}
-	}
-
-	pickForceMonotype(type: string): void {
-		if (this.forceMonotype) this.clearForceMonotype(true);
-
-		this.forceMonotype = "forcemonotype=" + type;
-
-		const newCustomRules = this.customRules.slice();
-		newCustomRules.push(this.forceMonotype);
-		this.updateCustomRules(newCustomRules);
 
 		if (this.format) this.format.usablePokemon = undefined;
 		this.updateAvailablePokemon();
 		this.setBanUnbanPaginationElements();
+
+		this.send();
+	}
+
+	pickForceMonotype(type: string): void {
+		this.forceMonotype = forceMonotype + "=" + type;
+		this.updateCustomRules();
+
+		if (this.format) this.format.usablePokemon = undefined;
+		this.updateAvailablePokemon();
+		this.setBanUnbanPaginationElements();
+
+		this.send();
+	}
+
+	clearValueRule(ruleId: string): void {
+		if (!this.valueRulesOutputs[ruleId]) return;
+
+		delete this.valueRulesOutputs[ruleId];
+		this.updateCustomRules();
+
+		this.send();
+	}
+
+	setValueRule(ruleId: string, output: string): void {
+		output = output.trim();
+		if (this.valueRulesOutputs[ruleId] === output) return;
+
+		this.valueRulesOutputs[ruleId] = output;
+		this.updateCustomRules();
 
 		this.send();
 	}
@@ -311,8 +357,8 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.format = Dex.getExistingFormat(format);
 		this.redundantCustomRules = [];
 
-		if (this.customRules.length) {
-			this.updateCustomRules(this.removeRedundantRules(this.customRules));
+		if (this.nonValueCustomRules.length) {
+			this.updateCustomRules(this.removeRedundantRules(this.nonValueCustomRules));
 		} else {
 			this.updateCustomRules(this.format.customRules || []);
 		}
@@ -335,7 +381,7 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.send();
 	}
 
-	removeRedundantRules(customRules: string[]): string[] {
+	removeRedundantRules(customRules: readonly string[]): string[] {
 		if (!this.format) return [];
 
 		// check rulesets and tiers first for already included bans/unbans
@@ -375,13 +421,21 @@ class TournamentRuleManager extends HtmlPageBase {
 		return filteredCustomRules;
 	}
 
-	updateCustomRules(customRules: string[]): void {
+	updateCustomRules(nonValueCustomRules?: readonly string[]): void {
 		if (!this.format) return;
 
-		this.customRules = customRules;
+		if (nonValueCustomRules) this.nonValueCustomRules = nonValueCustomRules;
 
+		const customRules: string[] = this.nonValueCustomRules.slice();
+
+		if (this.forceMonotype) customRules.push(this.forceMonotype);
+		for (const i in this.valueRulesOutputs) {
+			if (this.valueRulesOutputs[i]) customRules.push(this.valueRulesOutputs[i]);
+		}
+
+		this.customRules = customRules;
 		if (customRules.length) {
-			this.format.customRules = this.customRules;
+			this.format.customRules = customRules.slice();
 		} else {
 			this.format.customRules = null;
 		}
@@ -408,7 +462,7 @@ class TournamentRuleManager extends HtmlPageBase {
 			pokemonTagsById[Tools.toId(tag)] = tag;
 		}
 
-		const newCustomRules = this.customRules.slice();
+		const newCustomRules = this.nonValueCustomRules.slice();
 		const rules = output.trim().split(',');
 		for (const rule of rules) {
 			let name = rule;
@@ -450,9 +504,24 @@ class TournamentRuleManager extends HtmlPageBase {
 				name = pokemonTagsById[tag];
 				changedTiers = true;
 			} else {
-				if (name.startsWith('forcemonotype=')) {
-					this.forceMonotype = name;
-					changedPokemon = true;
+				const parts = name.split("=");
+				if (parts.length === 2) {
+					const ruleId = Tools.toId(parts[0]);
+					if (ruleId === forceMonotype) {
+						const pokemonType = Dex.getType(parts[1]);
+						if (pokemonType) {
+							this.forceMonotype = ruleId + "=" + pokemonType.name;
+							changedPokemon = true;
+						}
+					} else if (ruleId in this.valueRulesTextInputs) {
+						const validatedRule = Dex.validateRule(name);
+						if (typeof validatedRule === 'string') {
+							this.valueRulesOutputs[ruleId] = validatedRule;
+							changedPokemon = true;
+						}
+					}
+
+					continue;
 				} else {
 					const format = Dex.getFormat(name);
 					if (!format || format.effectType === 'Format') continue;
@@ -468,7 +537,7 @@ class TournamentRuleManager extends HtmlPageBase {
 			}
 		}
 
-		if (newCustomRules.length === this.customRules.length) {
+		if (!changedAbilities && !changedItems && !changedMoves && !changedPokemon && !changedTiers && !changedRules) {
 			this.send();
 			return;
 		}
@@ -496,39 +565,50 @@ class TournamentRuleManager extends HtmlPageBase {
 		if (!this.format) return;
 
 		rule = rule.trim();
-		const index = this.customRules.indexOf(rule);
-		if (index === -1) return;
-
-		const newCustomRules = this.customRules.slice();
-		newCustomRules.splice(index, 1);
-
-		this.updateCustomRules(newCustomRules);
-
-		const pokemonTags = Dex.getPokemonTagsList();
-
-		const name = rule.slice(1);
-		if (rule.startsWith('forcemonotype=')) {
-			this.forceMonotype = null;
+		const parts = rule.split("=");
+		if (parts.length === 2) {
+			const ruleId = Tools.toId(parts[0]);
+			if (ruleId === forceMonotype) {
+				this.forceMonotype = null;
+			} else if (ruleId in this.valueRulesOutputs) {
+				delete this.valueRulesOutputs[ruleId];
+			} else {
+				return;
+			}
 
 			this.format.usablePokemon = undefined;
+			this.updateCustomRules();
 			this.updateAvailablePokemon();
-		} else if (Dex.getPokemon(name)) {
-			this.format.usablePokemon = undefined;
-			this.updateAvailablePokemon();
-		} else if (Dex.getMove(name)) {
-			this.format.usableMoves = undefined;
-			this.updateAvailableMoves();
-		} else if (Dex.getItem(name)) {
-			this.format.usableItems = undefined;
-			this.updateAvailableItems();
-		} else if (Dex.getAbility(name)) {
-			this.format.usableAbilities = undefined;
-			this.updateAvailableAbilities();
-		} else if (pokemonTags.includes(name)) {
-			this.format.usablePokemonTags = undefined;
-			this.updateTiersList();
-		} else if (Dex.getFormat(rule) || Dex.getFormat(name)) {
-			this.updateRulesList();
+		} else {
+			const index = this.nonValueCustomRules.indexOf(rule);
+			if (index === -1) return;
+
+			const newCustomRules = this.nonValueCustomRules.slice();
+			newCustomRules.splice(index, 1);
+
+			this.updateCustomRules(newCustomRules);
+
+			const pokemonTags = Dex.getPokemonTagsList();
+
+			const name = rule.slice(1);
+			if (Dex.getPokemon(name)) {
+				this.format.usablePokemon = undefined;
+				this.updateAvailablePokemon();
+			} else if (Dex.getMove(name)) {
+				this.format.usableMoves = undefined;
+				this.updateAvailableMoves();
+			} else if (Dex.getItem(name)) {
+				this.format.usableItems = undefined;
+				this.updateAvailableItems();
+			} else if (Dex.getAbility(name)) {
+				this.format.usableAbilities = undefined;
+				this.updateAvailableAbilities();
+			} else if (pokemonTags.includes(name)) {
+				this.format.usablePokemonTags = undefined;
+				this.updateTiersList();
+			} else if (Dex.getFormat(rule) || Dex.getFormat(name)) {
+				this.updateRulesList();
+			}
 		}
 
 		this.setBanUnbanPaginationElements();
@@ -656,7 +736,7 @@ class TournamentRuleManager extends HtmlPageBase {
 		if (database.queuedTournament) {
 			const format = Dex.getFormat(database.queuedTournament.formatid);
 			if (format) {
-				this.customRules = [];
+				this.nonValueCustomRules = [];
 				this.setFormat(database.queuedTournament.formatid);
 			}
 		}
@@ -715,7 +795,7 @@ class TournamentRuleManager extends HtmlPageBase {
 		const formatView = this.currentView === 'format';
 		const usableView = this.currentView === 'usable';
 		const bannedView = this.currentView === 'banned';
-		const forceMonotypeView = this.currentView === 'force-monotype';
+		const valueRulesView = this.currentView === 'value-rules';
 
 		html += "<b>Options</b>:";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseFormatView, "Format",
@@ -724,8 +804,8 @@ class TournamentRuleManager extends HtmlPageBase {
 			{selectedAndDisabled: usableView, disabled: !this.format});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBannedView, "Banned",
 			{selectedAndDisabled: bannedView, disabled: !this.format});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseForceMonotypeView, "Force Monotype",
-			{selectedAndDisabled: forceMonotypeView, disabled: !this.format});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseValueRulesView, "Value Rules",
+			{selectedAndDisabled: valueRulesView, disabled: !this.format});
 
 		html += "<br /><br />";
 
@@ -789,10 +869,16 @@ class TournamentRuleManager extends HtmlPageBase {
 			} else {
 				html += this.unbanPagination.render();
 			}
-		} else if (forceMonotypeView) {
-			html += "Choose a forced type for every Pokemon";
-			html += "<br /><br />";
+		} else if (valueRulesView) {
+			html += "<b>Force Monotype</b>:";
+			html += "<br />";
 			html += this.forceMonotypePicker.render();
+			html += "<br /><br />";
+
+			for (const i in this.valueRulesTextInputs) {
+				html += this.valueRulesTextInputs[i].render();
+				html += "<br />";
+			}
 		}
 
 		html += "</div>";
@@ -827,8 +913,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseUsableView();
 			} else if (cmd === chooseBannedView) {
 				pages[user.id].chooseBannedView();
-			} else if (cmd === chooseForceMonotypeView) {
-				pages[user.id].chooseForceMonotypeView();
+			} else if (cmd === chooseValueRulesView) {
+				pages[user.id].chooseValueRulesView();
 			} else if (cmd === chooseAbilitiesView) {
 				pages[user.id].chooseAbilitiesView();
 			} else if (cmd === chooseItemsView) {
