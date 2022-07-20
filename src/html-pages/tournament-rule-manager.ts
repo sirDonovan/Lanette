@@ -33,6 +33,7 @@ const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
 const loadNextTournamentCommand = 'loadnexttournament';
+const loadPastTournamentCommand = 'loadpasttournament';
 const closeCommand = 'close';
 
 const forceMonotype = 'forcemonotype';
@@ -796,6 +797,17 @@ class TournamentRuleManager extends HtmlPageBase {
 		}
 	}
 
+	loadPastTournamentCommand(formatid: string): void {
+		const format = Dex.getFormat(formatid);
+		if (format) {
+			this.forceMonotype = null;
+			this.valueRulesOutputs = {};
+			this.nonValueCustomRules = [];
+
+			this.setFormat(formatid);
+		}
+	}
+
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Tournament Rule Manager</b>";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
@@ -862,16 +874,30 @@ class TournamentRuleManager extends HtmlPageBase {
 		html += "<br /><br />";
 
 		if (formatView) {
-			const database = Storage.getDatabase(this.room);
-			if (database.queuedTournament && !database.queuedTournament.official && Dex.getFormat(database.queuedTournament.formatid)) {
-				html += this.getQuietPmButton(this.commandPrefix + ", " + loadNextTournamentCommand,
-					"Load from " + Config.commandCharacter + "nexttour");
-				html += "<br /><br />";
-			}
-
 			html += "Enter the name of a format to begin customizing rules:";
 			html += "<br /><br />";
 			html += this.formatInput.render();
+
+			const database = Storage.getDatabase(this.room);
+			if (database.queuedTournament && !database.queuedTournament.official && Dex.getFormat(database.queuedTournament.formatid)) {
+				html += "<br /><br />";
+				html += this.getQuietPmButton(this.commandPrefix + ", " + loadNextTournamentCommand,
+					"Load from " + Config.commandCharacter + "nexttour");
+			}
+
+			if (database.pastTournaments && database.pastTournaments.length) {
+				html += "<br /><br />";
+				html += "<b>Load a past tournament</b>:";
+				html += "<br /><br />";
+				for (const pastTournament of database.pastTournaments) {
+					const format = Dex.getFormat(pastTournament.inputTarget);
+					if (format) {
+						html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + loadPastTournamentCommand + ", " +
+							pastTournament.inputTarget, Dex.getCustomFormatName(format),
+							{selectedAndDisabled: this.format && this.format.inputTarget === pastTournament.inputTarget ? true : false});
+					}
+				}
+			}
 		} else if (addableView || removableView) {
 			const abilities = this.currentBansUnbansView === 'abilities';
 			const items = this.currentBansUnbansView === 'items';
@@ -995,6 +1021,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].setNextTournamentCommand();
 			} else if (cmd === loadNextTournamentCommand) {
 				pages[user.id].loadNextTournamentCommand();
+			} else if (cmd === loadPastTournamentCommand) {
+				pages[user.id].loadPastTournamentCommand(targets.join(","));
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
