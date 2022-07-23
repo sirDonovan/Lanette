@@ -47,7 +47,7 @@ const basePokemonTag = "basepokemon:";
 const tierTag = "pokemontag:";
 const forceMonotype = 'forcemonotype';
 
-const pageId = 'tournament-rule-manager';
+const pageId = 'custom-format-manager';
 
 export const id = pageId;
 export const pages: Dict<CustomFormatManager> = {};
