@@ -366,7 +366,7 @@ export class Tournaments {
 						database.eventInformation[id].formatIds!.length) {
 						const formatIds = Tools.shuffle(database.eventInformation[id].formatIds!);
 						for (const formatId of formatIds) {
-							const potentialFormat = this.getFormat(formatName, room);
+							const potentialFormat = this.getFormat(formatId, room);
 							if (!potentialFormat || !potentialFormat.tournamentPlayable) continue;
 
 							if ((room.tournament && room.tournament.format.id === potentialFormat.id) ||
@@ -377,6 +377,7 @@ export class Tournaments {
 							formatName = formatId;
 							id = Tools.toId(formatName);
 							format = potentialFormat;
+							if (format.customFormatName) tournamentName = format.customFormatName;
 							break;
 						}
 					}
