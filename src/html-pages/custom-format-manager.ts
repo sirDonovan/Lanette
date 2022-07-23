@@ -121,6 +121,12 @@ class CustomFormatManager extends HtmlPageBase {
 
 		this.customFormatNameInput = new TextInput(room, this.commandPrefix, customFormatNameInputCommand, {
 			label: "Custom format name",
+			validateSubmission: (input): ITextInputValidation => {
+				if (Dex.getFormat(input)) {
+					return {errors: ["'" + input + "' is already the name or alias of an existing format. Please choose something else!"]};
+				}
+				return {currentOutput: input};
+			},
 			onClear: () => this.clearCustomFormatName(),
 			onErrors: () => this.send(),
 			onSubmit: (output) => this.setCustomFormatName(output),
