@@ -65,7 +65,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
-			const format = Dex.getFormat(target);
+			const format = Tournaments.getFormat(target, room);
 			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
 			let playerCap: number = Tournaments.maxPlayerCap;
 			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
@@ -269,7 +269,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const database = Storage.getDatabase(room);
 			if (database.queuedTournament && !cmd.startsWith('force')) {
-				const format = Dex.getFormat(database.queuedTournament.formatid, true);
+				const format = Tournaments.getFormat(database.queuedTournament.formatid, room);
 				if (format && format.effectType === 'Format') {
 					return this.say(format.name + " is already queued for " + room.title + ".");
 				} else {
@@ -383,7 +383,7 @@ export const commands: BaseCommandDefinitions = {
 			const database = Storage.getDatabase(tournamentRoom);
 			const errorText = "There is no tournament scheduled for " + (this.pm ? tournamentRoom.title : "this room") + ".";
 			if (!database.queuedTournament) return this.say(errorText);
-			const format = Dex.getFormat(database.queuedTournament.formatid, true);
+			const format = Tournaments.getFormat(database.queuedTournament.formatid, tournamentRoom);
 			if (!format || format.effectType !== 'Format') {
 				this.say(errorText);
 				delete database.queuedTournament;
@@ -458,7 +458,7 @@ export const commands: BaseCommandDefinitions = {
 			const displayTimes = option === 'time' || option === 'times';
 			const now = Date.now();
 			for (const pastTournament of database.pastTournaments) {
-				const format = Dex.getFormat(pastTournament.inputTarget);
+				const format = Tournaments.getFormat(pastTournament.inputTarget, tournamentRoom);
 				let tournament = format ? Dex.getCustomFormatName(format) : pastTournament.name;
 
 				if (displayTimes) {
@@ -503,7 +503,8 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("The last tournament in " + tournamentRoom.title + " ended **" + Tools.toDurationString(Date.now() -
 					database.lastTournamentTime) + "** ago.");
 			}
-			const format = Dex.getFormat(targets[0]);
+
+			const format = Tournaments.getFormat(targets[0], tournamentRoom);
 			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', target]);
 			if (!database.lastTournamentFormatTimes || !(format.id in database.lastTournamentFormatTimes)) {
 				return this.say(format.name + " has not been played in " + tournamentRoom.title + ".");

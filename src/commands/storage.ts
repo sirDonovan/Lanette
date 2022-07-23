@@ -216,7 +216,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
-			const format = Dex.getFormat(targets[1]);
+			const format = Tournaments.getFormat(targets[1], room);
 			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
@@ -275,7 +275,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
-			const format = Dex.getFormat(targets[1]);
+			const format = Tournaments.getFormat(targets[1], room);
 			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
@@ -474,7 +474,7 @@ export const commands: BaseCommandDefinitions = {
 							source = gameFormat;
 						}
 					} else {
-						const format = Dex.getFormat(option);
+						const format = Tournaments.getFormat(option, leaderboardRoom);
 						if (format && format.effectType === 'Format') {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = format;
@@ -573,7 +573,7 @@ export const commands: BaseCommandDefinitions = {
 							targetUser = id;
 						}
 					} else {
-						const format = Dex.getFormat(option);
+						const format = Tournaments.getFormat(option, targetRoom);
 						if (format && format.effectType === 'Format') {
 							if (source) return this.say("You can only specify 1 point source.");
 							source = format;
@@ -1038,12 +1038,16 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.hasRank(room, 'star')) return;
 				eventRoom = room;
 			}
+
 			const database = Storage.getDatabase(eventRoom);
 			if (!database.eventInformation) return this.sayError(['noRoomEventInformation', eventRoom.title]);
+
 			const event = Tools.toId(targets[0]);
 			if (!event || !(event in database.eventInformation)) return this.say("You must specify a valid event.");
+
 			const eventInformation = database.eventInformation[event];
 			if (!eventInformation.formatIds) return this.say(database.eventInformation[event].name + " does not have any formats stored.");
+
 			const multipleFormats = eventInformation.formatIds.length > 1;
 			if (targets.length > 1) {
 				if (!Tools.isUsernameLength(targets[1])) return this.say("You must specify a user.");
@@ -1054,21 +1058,24 @@ export const commands: BaseCommandDefinitions = {
 				if (!(targetUser in database.tournamentLeaderboard.entries)) {
 					return this.say(this.sanitizeResponse(targets[1].trim() + " does not have any event points."));
 				}
+
 				let eventPoints = 0;
 				for (const source in database.tournamentLeaderboard.entries[targetUser].sources) {
 					if (eventInformation.formatIds.includes(source)) {
 						eventPoints += database.tournamentLeaderboard.entries[targetUser].sources[source];
 					}
 				}
+
 				this.say(database.tournamentLeaderboard.entries[targetUser].name + " has " + eventPoints + " points in" +
 					(!multipleFormats ? " the" : "") + " " + database.eventInformation[event].name + " format" +
 					(multipleFormats ? "s" : "") + ".");
 			} else {
 				const formatNames: string[] = [];
 				for (const formatId of eventInformation.formatIds) {
-					const format = Dex.getFormat(formatId);
+					const format = Tournaments.getFormat(formatId, eventRoom);
 					formatNames.push(format ? format.name : formatId);
 				}
+
 				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " +
 					(multipleFormats ? "are " : "is ") + Tools.joinList(formatNames) + ".");
 			}
@@ -1084,16 +1091,19 @@ export const commands: BaseCommandDefinitions = {
 			if (!Config.rankedTournaments || !Config.rankedTournaments.includes(room.id)) {
 				return this.sayError(['disabledTournamentFeatures', room.title]);
 			}
+
 			const targets = target.split(',');
 			const event = Tools.toId(targets[0]);
 			if (!event) return this.say("You must specify an event.");
 			if (targets.length === 1) return this.say("You must specify at least 1 format.");
+
 			const formatIds: string[] = [];
 			for (let i = 1; i < targets.length; i++) {
-				const format = Dex.getFormat(targets[i]);
+				const format = Tournaments.getFormat(targets[i], room);
 				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[i]]);
 				formatIds.push(format.id);
 			}
+
 			let name = targets[0].trim();
 			const database = Storage.getDatabase(room);
 			if (!database.eventInformation) database.eventInformation = {};
@@ -1103,6 +1113,7 @@ export const commands: BaseCommandDefinitions = {
 				name = database.eventInformation[event].name;
 			}
 			database.eventInformation[event].formatIds = formatIds;
+
 			const multipleFormats = formatIds.length > 1;
 			this.say("The event format" + (multipleFormats ? "s" : "") + " for " + name + " " + (multipleFormats ? "have" : "has") +
 				" been stored.");

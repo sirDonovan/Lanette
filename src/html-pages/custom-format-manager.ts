@@ -9,8 +9,8 @@ import { type ITextInputValidation, TextInput } from "./components/text-input";
 import { TypePicker } from "./components/type-picker";
 import { HtmlPageBase } from "./html-page-base";
 
-const baseCommand = 'tournamentrulemanager';
-const baseCommandAlias = 'trm';
+const baseCommand = 'customformatmanager';
+const baseCommandAlias = 'cfm';
 const chooseFormatView = 'chooseformatview';
 const chooseAddableView = 'chooseaddableview';
 const chooseRemovableView = 'chooseremovableview';
@@ -22,6 +22,7 @@ const choosePokemonView = 'choosepokemonview';
 const chooseRulesetsView = 'chooserulesetsview';
 const chooseTiersView = 'choosetiersview';
 const formatsInputCommand = 'selectformats';
+const customFormatNameInputCommand = 'selectcustomformatname';
 const customRulesInputCommand = 'selectcustomrules';
 const valueRulesInputCommand = 'selectvaluerules';
 const addCustomRuleCommand = 'addcustomrule';
@@ -32,8 +33,10 @@ const addRulePageCommand = 'selectaddrulepage';
 const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
+const saveCustomFormatCommand = 'saveroomcustomformat';
 const loadNextTournamentCommand = 'loadnexttournament';
 const loadPastTournamentCommand = 'loadpasttournament';
+const loadCustomFormatCommand = 'loadcustomformat';
 const closeCommand = 'close';
 
 const abilityTag = "ability:";
@@ -47,13 +50,14 @@ const forceMonotype = 'forcemonotype';
 const pageId = 'tournament-rule-manager';
 
 export const id = pageId;
-export const pages: Dict<TournamentRuleManager> = {};
+export const pages: Dict<CustomFormatManager> = {};
 
-class TournamentRuleManager extends HtmlPageBase {
+class CustomFormatManager extends HtmlPageBase {
 	pageId = pageId;
 
 	currentView: 'format' | 'addable' | 'removable' | 'value-rules' = 'format';
 	currentBansUnbansView: 'abilities' | 'items' | 'moves' | 'pokemon' | 'rulesets' | 'tiers' = 'pokemon';
+	customFormatName: string = "";
 	/**Includes both non-value and any input value rules */
 	customRules: readonly string[] = [];
 	/**Only includes non-value rules */
@@ -81,6 +85,8 @@ class TournamentRuleManager extends HtmlPageBase {
 	canCreateTournament: boolean;
 
 	formatInput: FormatTextInput;
+	customFormatNameInput: TextInput;
+	customFormatsPagination: Pagination;
 	customRulesInput: CustomRuleTextInput;
 	banPagination: Pagination;
 	unbanPagination: Pagination;
@@ -101,6 +107,23 @@ class TournamentRuleManager extends HtmlPageBase {
 			onClear: () => this.send(),
 			onErrors: () => this.send(),
 			onSubmit: (output) => this.setFormat(output),
+			reRender: () => this.send(),
+		});
+
+		this.customFormatsPagination = new Pagination(this.room, this.commandPrefix, banPageCommand, {
+			elements: this.getCustomFormatPageElements(),
+			elementsPerRow: 5,
+			rowsPerPage: 8,
+			pagesLabel: "Saved formats",
+			onSelectPage: () => this.send(),
+			reRender: () => this.send(),
+		});
+
+		this.customFormatNameInput = new TextInput(room, this.commandPrefix, customFormatNameInputCommand, {
+			label: "Custom format name",
+			onClear: () => this.clearCustomFormatName(),
+			onErrors: () => this.send(),
+			onSubmit: (output) => this.setCustomFormatName(output),
 			reRender: () => this.send(),
 		});
 
@@ -159,8 +182,8 @@ class TournamentRuleManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.components = [this.formatInput, this.customRulesInput, this.banPagination, this.unbanPagination, this.addRulePagination,
-			this.removeRulePagination, this.forceMonotypePicker];
+		this.components = [this.formatInput, this.customFormatNameInput, this.customRulesInput, this.customFormatsPagination,
+			this.banPagination, this.unbanPagination, this.addRulePagination, this.removeRulePagination, this.forceMonotypePicker];
 
 		for (const rule of Dex.getRulesList()) {
 			if (!rule.hasValue || rule.id === forceMonotype) continue;
@@ -285,7 +308,9 @@ class TournamentRuleManager extends HtmlPageBase {
 	}
 
 	toggleActiveComponent(): void {
-		this.formatInput.active = this.currentView === 'format';
+		const format = this.currentView === 'format';
+		this.formatInput.active = format;
+		this.customFormatsPagination.active = format;
 
 		const rulesets = this.currentBansUnbansView === 'rulesets';
 		const addable = this.currentView === 'addable';
@@ -300,6 +325,22 @@ class TournamentRuleManager extends HtmlPageBase {
 		for (const i in this.valueRulesTextInputs) {
 			this.valueRulesTextInputs[i].active = valueRules;
 		}
+	}
+
+	clearCustomFormatName(): void {
+		if (!this.customFormatName) return;
+
+		this.customFormatName = "";
+
+		this.send();
+	}
+
+	setCustomFormatName(name: string): void {
+		if (this.customFormatName === name) return;
+
+		this.customFormatName = name;
+
+		this.send();
 	}
 
 	clearForceMonotype(): void {
@@ -415,8 +456,11 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.unbanPagination.updateElements(unbanElements);
 	}
 
-	setFormat(format: string): void {
-		this.format = Dex.getExistingFormat(format);
+	setFormat(formatId: string): void {
+		const format = Tournaments.getFormat(formatId, this.room);
+		if (!format) return;
+
+		this.format = format;
 		this.redundantCustomRules = [];
 		this.nonValueCustomRuleTags = {};
 
@@ -830,59 +874,123 @@ class TournamentRuleManager extends HtmlPageBase {
 		}
 	}
 
+	getCustomFormatId(nextTournamentCommand?: boolean): string {
+		if (!this.format) return "";
+		let formatId = this.format.id;
+		if (this.customRules.length) {
+			formatId += (nextTournamentCommand ? ", " : "@@@") + this.customRules.join(nextTournamentCommand ? ", " : ",");
+		}
+
+		return formatId;
+	}
+
 	setNextTournamentCommand(): void {
-		if (!this.format || !this.isRoomStaff) return;
+		if (!this.format || !this.canCreateTournament) return;
+
+		const formatId = this.getCustomFormatId(true);
+		if (!formatId) return;
 
 		const user = Users.get(this.userName);
 		if (user) {
-			CommandParser.parse(this.room, user,
-				Config.commandCharacter + "forcenexttour " + this.format.name + ", " + this.customRules.join(", "), Date.now());
+			CommandParser.parse(this.room, user, Config.commandCharacter + "forcenexttour " + formatId, Date.now());
+		}
+	}
+
+	getCustomFormatPageElements(): IPageElement[] {
+		const elements: IPageElement[] = [];
+		const database = Storage.getDatabase(this.room);
+		if (database.customFormats) {
+			for (const i in database.customFormats) {
+				const format = Tournaments.getFormat(database.customFormats[i].name, this.room);
+				if (!format) continue;
+
+				elements.push({html: this.getQuietPmButton(this.commandPrefix + ", " + loadCustomFormatCommand + ", " + i,
+					database.customFormats[i].name)});
+			}
+		}
+
+		return elements;
+	}
+
+	loadCustomFormatCommand(customId: string): void {
+		customId = customId.trim();
+		const database = Storage.getDatabase(this.room);
+		if (!database.customFormats || !(customId in database.customFormats)) return;
+
+		const format = Tournaments.getFormat(database.customFormats[customId].name, this.room);
+		if (!format) return;
+
+		this.customFormatName = database.customFormats[customId].name;
+		this.customFormatNameInput.parentSetInput(this.customFormatName);
+		this.formatInput.parentSetInput(format.id);
+
+		this.setFormat(database.customFormats[customId].name);
+	}
+
+	saveCustomFormat(): void {
+		if (!this.customFormatName || !this.format || !this.canCreateTournament) return;
+
+		const formatId = this.getCustomFormatId();
+		if (!formatId) return;
+
+		const database = Storage.getDatabase(this.room);
+		if (!database.customFormats) database.customFormats = {};
+
+		const nameId = Tools.toId(this.customFormatName);
+		database.customFormats[nameId] = {
+			formatId,
+			name: this.customFormatName,
+		};
+
+		this.customFormatsPagination.updateElements(this.getCustomFormatPageElements());
+		this.setFormat(this.customFormatName);
+
+		this.room.modnote(this.userName + " saved the custom format " + this.customFormatName + " to the database");
+
+		void Storage.exportDatabase(this.room.id);
+	}
+
+	loadFormat(formatId: string): void {
+		const format = Tournaments.getFormat(formatId, this.room);
+		if (format) {
+			this.forceMonotype = null;
+			this.valueRulesOutputs = {};
+			this.nonValueCustomRules = [];
+			this.formatInput.parentSetInput(format.id);
+
+			this.customFormatName = format.customFormatName || "";
+			this.customFormatNameInput.parentSetInput(this.customFormatName);
+
+			this.setFormat(formatId);
 		}
 	}
 
 	loadNextTournamentCommand(): void {
 		const database = Storage.getDatabase(this.room);
 		if (database.queuedTournament) {
-			const format = Dex.getFormat(database.queuedTournament.formatid);
-			if (format) {
-				this.nonValueCustomRules = [];
-				this.setFormat(database.queuedTournament.formatid);
-			}
+			this.loadFormat(database.queuedTournament.formatid);
 		}
 	}
 
 	loadPastTournamentCommand(formatid: string): void {
-		const format = Dex.getFormat(formatid);
-		if (format) {
-			this.forceMonotype = null;
-			this.valueRulesOutputs = {};
-			this.nonValueCustomRules = [];
-
-			this.setFormat(formatid);
-		}
+		this.loadFormat(formatid);
 	}
 
 	render(): string {
-		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Tournament Rule Manager</b>";
+		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Custom Format Manager</b>";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 		html += "</center><br />";
 
 		if (this.format) {
-			html += "<b>Format name</b>:&nbsp;" + Dex.getCustomFormatName(this.format, true);
+			html += "<b>Format name</b>:&nbsp;" + Dex.getCustomFormatName(this.format) +
+				(this.format.tournamentName ? " (Base format: " + this.format.name + ")" : "");
 			html += "<br /><br />";
 
-			if (this.customRules.length) {
+			const hasCustomRules = this.customRules.length > 0;
+			if (hasCustomRules) {
 				html += "<b>Current rules</b>:";
 				html += "<br />";
 				html += Dex.getCustomRulesHtml(this.format);
-				html += "<br /><br />";
-
-				html += "<b>Challenge</b>: <code>" + this.format.id + "@@@" + this.customRules.join(", ") + "</code>";
-				if (this.canCreateTournament) {
-					html += " | <b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code> | " +
-						this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand, "Set as " + Config.commandCharacter +
-						"nexttour", {disabled: !this.format});
-				}
 
 				html += "<br /><br />";
 				html += "<b>Remove custom rules</b>:";
@@ -893,6 +1001,21 @@ class TournamentRuleManager extends HtmlPageBase {
 				}
 			} else if (!this.redundantCustomRules.length) {
 				html += "You have not specified any custom rules! Use the bans view, unbans view, or enter rules manually below.";
+			}
+
+			html += "<br /><br />";
+			html += "<b>Challenge</b>: <code>" + this.format.id + (hasCustomRules ? "@@@" + this.customRules.join(", ") : "") + "</code>";
+			if (this.canCreateTournament) {
+				if (hasCustomRules) {
+					html += " | <b>Tournament</b>: <code>/tour rules " + this.customRules.join(", ") + "</code>";
+				}
+
+				html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
+					"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
+				html += "<br /><br />";
+				html += this.customFormatNameInput.render();
+				html += this.getQuietPmButton(this.commandPrefix + ", " + saveCustomFormatCommand, "Save to database",
+					{disabled: !Tools.toId(this.customFormatName)});
 			}
 
 			if (this.redundantCustomRules.length) {
@@ -951,6 +1074,13 @@ class TournamentRuleManager extends HtmlPageBase {
 							{selectedAndDisabled: this.format && this.format.inputTarget === pastTournament.inputTarget ? true : false});
 					}
 				}
+			}
+
+			if (database.customFormats) {
+				html += "<br /><br />";
+				html += "<b>Load from the database</b>:";
+				html += "<br /><br />";
+				html += this.customFormatsPagination.render();
 			}
 		} else if (addableView || removableView) {
 			const abilities = this.currentBansUnbansView === 'abilities';
@@ -1039,11 +1169,11 @@ export const commands: BaseCommandDefinitions = {
 			targets.shift();
 
 			if (!cmd) {
-				new TournamentRuleManager(targetRoom, user).open();
+				new CustomFormatManager(targetRoom, user).open();
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new TournamentRuleManager(targetRoom, user);
+			if (!(user.id in pages) && cmd !== closeCommand) new CustomFormatManager(targetRoom, user);
 
 			if (cmd === closeCommand) {
 				if (user.id in pages) pages[user.id].close();
@@ -1077,11 +1207,15 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].loadNextTournamentCommand();
 			} else if (cmd === loadPastTournamentCommand) {
 				pages[user.id].loadPastTournamentCommand(targets.join(","));
+			} else if (cmd === loadCustomFormatCommand) {
+				pages[user.id].loadCustomFormatCommand(targets[0]);
+			} else if (cmd === saveCustomFormatCommand) {
+				pages[user.id].saveCustomFormat();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
 			}
 		},
-		aliases: [baseCommandAlias],
+		aliases: [baseCommandAlias, 'tournamentrulemanager', 'trm'],
 	},
 };

@@ -79,7 +79,10 @@ export class Tournaments {
 						}
 
 						try {
-							const validatedFormatId = Dex.validateFormat(Dex.joinNameAndCustomRules(Dex.getExistingFormat(formatId),
+							const format = this.getFormat(formatId, undefined, room);
+							if (!format) throw new Error("No format returned for '" + formatId + "'");
+
+							const validatedFormatId = Dex.validateFormat(Dex.joinNameAndCustomRules(format,
 								Dex.resolveCustomRuleAliases(customRules)));
 
 							const validatedFormat = Dex.getExistingFormat(validatedFormatId, true);
@@ -161,6 +164,24 @@ export class Tournaments {
 		}
 	}
 
+	getFormat(formatId: string, room?: Room, roomid?: string): IFormat | undefined {
+		if (room) roomid = room.id;
+
+		let format = Dex.getFormat(formatId);
+		if (format || !roomid) return format;
+
+		const id = Tools.toId(formatId);
+		const database = Storage.getDatabaseById(roomid);
+		if (!database.customFormats || !(id in database.customFormats)) return;
+
+		format = Dex.getFormat(database.customFormats[id].formatId);
+		if (!format) return;
+
+		format.tournamentName = database.customFormats[id].name;
+		format.customFormatName = database.customFormats[id].name;
+		return format;
+	}
+
 	canCreateTournament(room: Room, user: User): boolean {
 		const database = Storage.getDatabase(room);
 		if (database.tournamentManagers && database.tournamentManagers.includes(user.id)) return true;
@@ -208,7 +229,7 @@ export class Tournaments {
 
 				const database = Storage.getDatabase(room);
 				if (database.queuedTournament) {
-					const queuedFormat = Dex.getFormat(database.queuedTournament.formatid, true);
+					const queuedFormat = this.getFormat(database.queuedTournament.formatid, room);
 					if (!queuedFormat || queuedFormat.effectType !== 'Format' || tournament.format.id === queuedFormat.id) {
 						delete database.queuedTournament;
 						updatedDatabase = true;
@@ -311,7 +332,7 @@ export class Tournaments {
 				targets.shift();
 			}
 		} else if (id === 'samesix') {
-			format = Dex.getFormat(targets[0]);
+			format = this.getFormat(targets[0], room);
 			if (!format || !format.tournamentPlayable) {
 				return "You must specify a valid format for the Same Six tournament.";
 			}
@@ -594,7 +615,7 @@ export class Tournaments {
 		const database = Storage.getDatabase(room);
 		if (database.queuedTournament && (!(room.id in this.nextOfficialTournaments) ||
 			database.queuedTournament.time < this.nextOfficialTournaments[room.id].time)) {
-			const format = Dex.getFormat(database.queuedTournament.formatid);
+			const format = this.getFormat(database.queuedTournament.formatid, room);
 			if (format && format.effectType === 'Format') {
 				const now = Date.now();
 				if (database.queuedTournament.time <= now) database.queuedTournament.time = now + this.delayedOfficialTournamentTime;
@@ -655,7 +676,7 @@ export class Tournaments {
 		const pastTournamentIds: string[] = [];
 		if (database.pastTournaments) {
 			for (const pastTournament of database.pastTournaments) {
-				const format = Dex.getFormat(pastTournament.inputTarget);
+				const format = this.getFormat(pastTournament.inputTarget, room);
 				pastTournamentIds.push(format ? format.id : Tools.toId(pastTournament.name));
 			}
 		}
@@ -682,7 +703,7 @@ export class Tournaments {
 		if (Config.randomTournamentCustomRules && room.id in Config.randomTournamentCustomRules) {
 			const rules = Tools.shuffle(Config.randomTournamentCustomRules[room.id]);
 			for (const rule of rules) {
-				const customRuleFormat = Dex.getFormat(format.id + "@@@" + rule);
+				const customRuleFormat = this.getFormat(format.id + "@@@" + rule, room);
 				if (customRuleFormat && customRuleFormat.customRules) {
 					format = customRuleFormat;
 					break;
@@ -722,7 +743,7 @@ export class Tournaments {
 			let queuedTournament = false;
 
 			if (database.queuedTournament) {
-				const format = Dex.getFormat(database.queuedTournament.formatid, true);
+				const format = this.getFormat(database.queuedTournament.formatid, room);
 				if (format && format.effectType === 'Format') {
 					queuedTournament = true;
 					// the time may be set on room init since room tournament state is unknown
@@ -894,11 +915,11 @@ export class Tournaments {
 			pastTournaments = database.pastTournaments;
 		}
 
-		const format = Dex.getFormat(input);
+		const format = this.getFormat(input, room);
 		const formatId = format ? format.id : Tools.toId(input);
 
 		for (const pastTournament of pastTournaments) {
-			const pastFormat = Dex.getFormat(pastTournament.inputTarget);
+			const pastFormat = this.getFormat(pastTournament.inputTarget, room);
 			if (pastFormat && pastFormat.quickFormat) continue;
 			const id = pastFormat ? pastFormat.id : Tools.toId(pastTournament.name);
 			if (formatId === id) return true;
@@ -1129,7 +1150,7 @@ export class Tournaments {
 				const room = Rooms.get(i);
 				if (room) {
 					const data = previous.tournamentTimerData[i];
-					const format = Dex.getFormat(data.formatid);
+					const format = this.getFormat(data.formatid, room);
 					if (format && format.effectType === 'Format') {
 						this.setTournamentTimer(room, data.startTime, format, data.cap, data.official, data.tournamentName);
 					}

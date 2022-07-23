@@ -2010,6 +2010,8 @@ export class Dex {
 	getCustomFormatName(format: IFormat, fullName?: boolean): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 
+		if (format.customFormatName) return format.customFormatName;
+
 		const key = this.getCustomFormatNameKey(format);
 		if (!fullName) {
 			if (key in this.formatNamesByCustomRules) return this.formatNamesByCustomRules[key];
