@@ -351,14 +351,36 @@ export class Tournaments {
 				targets.shift();
 			}
 		} else {
-			format = Dex.getFormat(formatName);
-			if (!format && targets.length) {
-				tournamentName = formatName;
-				formatName = targets[0];
-				id = Tools.toId(formatName);
-				targets.shift();
+			format = this.getFormat(formatName, room);
+			if (!format) {
+				if (targets.length) {
+					tournamentName = formatName;
+					formatName = targets[0];
+					id = Tools.toId(formatName);
+					targets.shift();
 
-				format = Dex.getFormat(formatName);
+					format = this.getFormat(formatName, room);
+				} else if (room) {
+					const database = Storage.getDatabase(room);
+					if (database.eventInformation && id in database.eventInformation && database.eventInformation[id].formatIds &&
+						database.eventInformation[id].formatIds!.length) {
+						const formatIds = Tools.shuffle(database.eventInformation[id].formatIds!);
+						for (const formatId of formatIds) {
+							const potentialFormat = this.getFormat(formatName, room);
+							if (!potentialFormat || !potentialFormat.tournamentPlayable) continue;
+
+							if ((room.tournament && room.tournament.format.id === potentialFormat.id) ||
+								this.isInPastTournaments(room, potentialFormat.inputTarget)) {
+								continue;
+							}
+
+							formatName = formatId;
+							id = Tools.toId(formatName);
+							format = potentialFormat;
+							break;
+						}
+					}
+				}
 			}
 		}
 
