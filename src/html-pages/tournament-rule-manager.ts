@@ -36,6 +36,12 @@ const loadNextTournamentCommand = 'loadnexttournament';
 const loadPastTournamentCommand = 'loadpasttournament';
 const closeCommand = 'close';
 
+const abilityTag = "ability:";
+const itemTag = "item:";
+const moveTag = "move:";
+const pokemonTag = "pokemon:";
+const basePokemonTag = "basepokemon:";
+const tierTag = "pokemontag:";
 const forceMonotype = 'forcemonotype';
 
 const pageId = 'tournament-rule-manager';
@@ -52,6 +58,7 @@ class TournamentRuleManager extends HtmlPageBase {
 	customRules: readonly string[] = [];
 	/**Only includes non-value rules */
 	nonValueCustomRules: readonly string[] = [];
+	nonValueCustomRuleTags: Dict<string> = {};
 	redundantCustomRules: string[] = [];
 	format: IFormat | null = null;
 	forceMonotype: string | null = null;
@@ -411,12 +418,19 @@ class TournamentRuleManager extends HtmlPageBase {
 	setFormat(format: string): void {
 		this.format = Dex.getExistingFormat(format);
 		this.redundantCustomRules = [];
+		this.nonValueCustomRuleTags = {};
 
-		if (this.nonValueCustomRules.length) {
-			this.updateCustomRules(this.removeRedundantRules(this.nonValueCustomRules));
-		} else {
-			this.updateCustomRules(this.format.customRules || []);
+		const nonValueCustomRules = this.nonValueCustomRules.slice();
+		this.nonValueCustomRules = [];
+
+		if (this.format.customRules) {
+			// make sure present rules are in the same format as any added rules
+			const formatRules = this.format.customRules.slice();
+			this.format.customRules = null;
+			this.addUnvalidatedCustomRules(formatRules);
 		}
+
+		if (nonValueCustomRules.length) this.addUnvalidatedCustomRules(nonValueCustomRules);
 
 		this.format.usableAbilities = undefined;
 		this.format.usableItems = undefined;
@@ -436,10 +450,11 @@ class TournamentRuleManager extends HtmlPageBase {
 		this.send();
 	}
 
-	removeRedundantRules(customRules: readonly string[]): string[] {
+	removeRedundantRules(customRules: readonly string[], customRuleTags: Dict<string>): readonly string[] {
 		if (!this.format) return [];
 
 		// check rulesets and tiers first for already included bans/unbans
+		this.format.customRules = null;
 		this.format.ruleTable = undefined;
 		let ruleTable = Dex.getRuleTable(this.format);
 		const pokemonTags = Dex.getPokemonTagsList();
@@ -450,52 +465,58 @@ class TournamentRuleManager extends HtmlPageBase {
 			const type = rule.charAt(0);
 			if (type === '-' || type === '+' || type === '*') {
 				if (pokemonTags.includes(rule.slice(1))) {
+					if (customRuleTags[rule] && ruleTable.has(customRuleTags[rule])) {
+						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+						continue;
+					}
+
 					filteredCustomRules.push(rule);
 				} else {
 					nonRulesetRules.push(rule);
 				}
 			} else {
-				if (!ruleTable.has(rule)) filteredCustomRules.push(rule);
+				const ruleId = Tools.toId(rule);
+				if (ruleId && ruleTable.has(ruleId)) {
+					if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+					continue;
+				}
+
+				filteredCustomRules.push(rule);
 			}
 		}
 
-		this.format.customRules = filteredCustomRules;
+		this.format.customRules = filteredCustomRules.slice();
 		this.format.ruleTable = undefined;
 		ruleTable = Dex.getRuleTable(this.format);
 
 		for (const rule of nonRulesetRules) {
-			const pokemon = Dex.getPokemon(rule);
-			if (ruleTable.has(rule) || ruleTable.getReason(rule) ||
-				(pokemon && ruleTable.check("pokemontag:" + Tools.toId(pokemon.tier)))) {
+			const ban = rule.charAt(0) === '-';
+			const pokemon = ban ? Dex.getPokemon(rule) : undefined;
+			if ((customRuleTags[rule] && ruleTable.has(customRuleTags[rule])) ||
+				(pokemon && ruleTable.has("-pokemontag:" + Tools.toId(pokemon.tier)))) {
 				if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
 			} else {
 				filteredCustomRules.push(rule);
 			}
 		}
 
+		this.format.customRules = null;
+		this.format.ruleTable = undefined;
 		return filteredCustomRules;
 	}
 
-	updateCustomRules(nonValueCustomRules?: readonly string[]): void {
-		if (!this.format) return;
-
-		if (nonValueCustomRules) this.nonValueCustomRules = nonValueCustomRules;
-
-		const customRules: string[] = this.nonValueCustomRules.slice();
-
-		if (this.forceMonotype) customRules.push(this.forceMonotype);
-		for (const i in this.valueRulesOutputs) {
-			if (this.valueRulesOutputs[i]) customRules.push(this.valueRulesOutputs[i]);
+	addUnvalidatedCustomRules(rules: readonly string[]): void {
+		const validatedCustomRules: string[] = [];
+		for (const rule of rules) {
+			try {
+				const validated = Dex.validateRule(rule);
+				if (typeof validated === 'string') validatedCustomRules.push(validated);
+			} catch (e) {} // eslint-disable-line no-empty
 		}
 
-		this.customRules = customRules;
-		if (customRules.length) {
-			this.format.customRules = customRules.slice();
-		} else {
-			this.format.customRules = null;
+		if (validatedCustomRules.length) {
+			this.addCustomRules(validatedCustomRules.join(','));
 		}
-
-		this.format.separatedCustomRules = undefined;
 	}
 
 	addCustomRules(output: string): void {
@@ -518,45 +539,52 @@ class TournamentRuleManager extends HtmlPageBase {
 		}
 
 		const newCustomRules = this.nonValueCustomRules.slice();
-		const rules = output.trim().split(',');
+		const newCustomRuleTags = Object.assign({}, this.nonValueCustomRuleTags);
+		const rules = output.split(',');
 		for (const rule of rules) {
-			let name = rule;
-			let type = rule.charAt(0);
+			let name = rule.trim();
+			let type = name.charAt(0);
 			if (type === '+' || type === '-' || type === '*' || type === '!') {
-				name = rule.slice(1);
+				name = name.slice(1);
 			} else {
 				type = "";
 			}
 
-			if (name.startsWith('ability:')) {
+			let tag = "";
+			if (name.startsWith(abilityTag)) {
 				const ability = Dex.getAbility(name.split(":")[1]);
 				if (!ability) continue;
 
 				name = ability.name;
+				tag = abilityTag + ability.id;
 				changedAbilities = true;
-			} else if (name.startsWith('item:')) {
+			} else if (name.startsWith(itemTag)) {
 				const item = Dex.getItem(name.split(":")[1]);
 				if (!item) continue;
 
 				name = item.name;
+				tag = itemTag + item.id;
 				changedItems = true;
-			} else if (name.startsWith('move:')) {
+			} else if (name.startsWith(moveTag)) {
 				const move = Dex.getMove(name.split(":")[1]);
 				if (!move) continue;
 
 				name = move.name;
+				tag = moveTag + move.id;
 				changedMoves = true;
-			} else if (name.startsWith('pokemon:') || name.startsWith('basepokemon:')) {
+			} else if (name.startsWith(pokemonTag) || name.startsWith(basePokemonTag)) {
 				const pokemon = Dex.getPokemon(name.split(":")[1]);
 				if (!pokemon) continue;
 
 				name = pokemon.name;
+				tag = (name.startsWith(pokemonTag) ? pokemonTag : basePokemonTag) + pokemon.id;
 				changedPokemon = true;
-			} else if (name.startsWith('pokemontag:')) {
-				const tag = Tools.toId(name.split(":")[1]);
-				if (!(tag in pokemonTagsById)) continue;
+			} else if (name.startsWith(tierTag)) {
+				const tagId = Tools.toId(name.split(":")[1]);
+				if (!(tagId in pokemonTagsById)) continue;
 
-				name = pokemonTagsById[tag];
+				name = pokemonTagsById[tagId];
+				tag = tierTag + tagId;
 				changedTiers = true;
 			} else {
 				const parts = name.split("=");
@@ -589,6 +617,7 @@ class TournamentRuleManager extends HtmlPageBase {
 			const formattedRule = type + name;
 			if (!newCustomRules.includes(formattedRule)) {
 				newCustomRules.push(formattedRule);
+				if (tag) newCustomRuleTags[formattedRule] = type + tag;
 			}
 		}
 
@@ -597,7 +626,7 @@ class TournamentRuleManager extends HtmlPageBase {
 			return;
 		}
 
-		this.updateCustomRules(this.removeRedundantRules(newCustomRules));
+		this.updateCustomRules(this.removeRedundantRules(newCustomRules, newCustomRuleTags), newCustomRuleTags);
 
 		if (changedAbilities) this.format.usableAbilities = undefined;
 		if (changedItems) this.format.usableItems = undefined;
@@ -640,6 +669,7 @@ class TournamentRuleManager extends HtmlPageBase {
 
 			const newCustomRules = this.nonValueCustomRules.slice();
 			newCustomRules.splice(index, 1);
+			delete this.nonValueCustomRuleTags[rule];
 
 			this.updateCustomRules(newCustomRules);
 
@@ -668,6 +698,30 @@ class TournamentRuleManager extends HtmlPageBase {
 
 		this.setBanUnbanPaginationElements();
 		this.send();
+	}
+
+	updateCustomRules(nonValueCustomRules?: readonly string[], nonValueCustomRuleTags?: Dict<string>): void {
+		if (!this.format) return;
+
+		if (nonValueCustomRules) this.nonValueCustomRules = nonValueCustomRules;
+		if (nonValueCustomRuleTags) this.nonValueCustomRuleTags = nonValueCustomRuleTags;
+
+		const customRules: string[] = this.nonValueCustomRules.slice();
+
+		if (this.forceMonotype) customRules.push(this.forceMonotype);
+		for (const i in this.valueRulesOutputs) {
+			if (this.valueRulesOutputs[i]) customRules.push(this.valueRulesOutputs[i]);
+		}
+
+		this.customRules = customRules;
+		if (customRules.length) {
+			this.format.customRules = customRules.slice();
+		} else {
+			this.format.customRules = null;
+		}
+
+		this.format.ruleTable = undefined;
+		this.format.separatedCustomRules = undefined;
 	}
 
 	updateAvailableAbilities(): void {
