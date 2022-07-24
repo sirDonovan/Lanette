@@ -728,6 +728,7 @@ class CustomFormatManager extends HtmlPageBase {
 			return;
 		}
 
+		this.redundantCustomRules = [];
 		this.updateCustomRules(this.removeRedundantRules(newCustomRules, newCustomRuleTags), newCustomRuleTags);
 
 		if (changedAbilities) this.format.usableAbilities = undefined;
