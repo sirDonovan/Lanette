@@ -34,6 +34,7 @@ const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
 const saveCustomFormatCommand = 'saveroomcustomformat';
+const deleteCustomFormatCommand = 'deleteroomcustomformat';
 const loadNextTournamentCommand = 'loadnexttournament';
 const loadPastTournamentCommand = 'loadpasttournament';
 const loadCustomFormatCommand = 'loadcustomformat';
@@ -960,7 +961,7 @@ class CustomFormatManager extends HtmlPageBase {
 				const format = Tournaments.getFormat(database.customFormats[i].name, this.room);
 				if (!format) continue;
 
-				elements.push({html: this.getQuietPmButton(this.commandPrefix + ", " + loadCustomFormatCommand + ", " + i,
+				elements.push({html: "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + loadCustomFormatCommand + ", " + i,
 					database.customFormats[i].name)});
 			}
 		}
@@ -980,7 +981,7 @@ class CustomFormatManager extends HtmlPageBase {
 		this.customFormatNameInput.parentSetInput(this.customFormatName);
 		this.formatInput.parentSetInput(format.id);
 
-		this.setFormat(database.customFormats[customId].name);
+		this.loadFormat(database.customFormats[customId].name);
 	}
 
 	saveCustomFormat(): void {
@@ -1006,12 +1007,30 @@ class CustomFormatManager extends HtmlPageBase {
 		void Storage.exportDatabase(this.room.id);
 	}
 
+	deleteCustomFormat(): void {
+		if (!this.customFormatName || !this.canCreateTournament) return;
+
+		const database = Storage.getDatabase(this.room);
+		if (!database.customFormats) return;
+
+		const nameId = Tools.toId(this.customFormatName);
+		if (!(nameId in database.customFormats)) return;
+
+		delete database.customFormats[nameId];
+		this.customFormatsPagination.updateElements(this.getCustomFormatPageElements());
+		this.send();
+		this.room.modnote(this.userName + " deleted the custom format " + this.customFormatName + " from the database");
+
+		void Storage.exportDatabase(this.room.id);
+	}
+
 	loadFormat(formatId: string): void {
 		const format = Tournaments.getFormat(formatId, this.room);
 		if (format) {
 			this.forceMonotype = null;
 			this.valueRulesOutputs = {};
 			this.nonValueCustomRules = [];
+			this.customRules = [];
 			this.formatInput.parentSetInput(format.id);
 
 			this.customFormatName = format.customFormatName || "";
@@ -1033,6 +1052,8 @@ class CustomFormatManager extends HtmlPageBase {
 	}
 
 	render(): string {
+		const database = Storage.getDatabase(this.room);
+
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Custom Format Manager</b>";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 		html += "</center><br />";
@@ -1070,8 +1091,14 @@ class CustomFormatManager extends HtmlPageBase {
 					"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
 				html += "<br /><br />";
 				html += this.customFormatNameInput.render();
+
+				const customFormatId = Tools.toId(this.customFormatName);
 				html += this.getQuietPmButton(this.commandPrefix + ", " + saveCustomFormatCommand, "Save to database",
-					{disabled: !Tools.toId(this.customFormatName)});
+					{disabled: !customFormatId || (database.customFormats && customFormatId in database.customFormats &&
+						database.customFormats[customFormatId].formatId === this.getCustomFormatId())});
+				if (database.customFormats && customFormatId in database.customFormats) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteCustomFormatCommand, "Remove from database");
+				}
 			}
 
 			if (this.redundantCustomRules.length) {
@@ -1111,7 +1138,6 @@ class CustomFormatManager extends HtmlPageBase {
 			html += "<br /><br />";
 			html += this.formatInput.render();
 
-			const database = Storage.getDatabase(this.room);
 			if (database.queuedTournament && !database.queuedTournament.official && Dex.getFormat(database.queuedTournament.formatid)) {
 				html += "<br /><br />";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + loadNextTournamentCommand,
@@ -1267,6 +1293,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].loadCustomFormatCommand(targets[0]);
 			} else if (cmd === saveCustomFormatCommand) {
 				pages[user.id].saveCustomFormat();
+			} else if (cmd === deleteCustomFormatCommand) {
+				pages[user.id].deleteCustomFormat();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);
