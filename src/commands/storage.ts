@@ -1073,7 +1073,11 @@ export const commands: BaseCommandDefinitions = {
 				const formatNames: string[] = [];
 				for (const formatId of eventInformation.formatIds) {
 					const format = Tournaments.getFormat(formatId, eventRoom);
-					formatNames.push(format ? format.name : formatId);
+					if (format) {
+						formatNames.push(format.customFormatName || format.name);
+					} else {
+						formatNames.push(formatId);
+					}
 				}
 
 				this.say("The format" + (multipleFormats ? "s" : "") + " for " + database.eventInformation[event].name + " " +
@@ -1099,9 +1103,10 @@ export const commands: BaseCommandDefinitions = {
 
 			const formatIds: string[] = [];
 			for (let i = 1; i < targets.length; i++) {
-				const format = Tournaments.getFormat(targets[i], room);
-				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[i]]);
-				formatIds.push(format.id);
+				const id = Tools.toId(targets[i]);
+				const format = Tournaments.getFormat(id, room);
+				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', id]);
+				formatIds.push(id);
 			}
 
 			let name = targets[0].trim();
