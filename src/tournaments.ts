@@ -170,9 +170,19 @@ export class Tournaments {
 		let format = Dex.getFormat(formatId);
 		if (format || !roomid) return format;
 
-		const id = Tools.toId(formatId);
 		const database = Storage.getDatabaseById(roomid);
-		if (!database.customFormats || !(id in database.customFormats)) return;
+		if (!database.customFormats) return;
+
+		let id = Tools.toId(formatId);
+		if (!(id in database.customFormats)) {
+			const currentGen = Dex.getGen();
+			for (let i = currentGen; i >= 1; i--) {
+				id = 'gen' + i + id;
+				if (id in database.customFormats) break;
+			}
+
+			if (!(id in database.customFormats)) return;
+		}
 
 		format = Dex.getFormat(database.customFormats[id].formatId);
 		if (!format) return;
