@@ -22,7 +22,7 @@ export class FormatTextInput extends TextInput {
 		const parts = input.split(',');
 		const formats: string[] = [];
 		for (const part of parts) {
-			const format = Dex.getFormat(part);
+			const format = Tournaments.getFormat(part, this.room);
 			if (!format || format.effectType !== 'Format') {
 				this.errors.push("'" + part + "' is not a valid format.");
 			} else {

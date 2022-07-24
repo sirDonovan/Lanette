@@ -182,6 +182,11 @@ interface IQueuedTournament {
 	tournamentName?: string;
 }
 
+export interface IRoomCustomFormat {
+	formatId: string;
+	name: string;
+}
+
 interface ITournamentGameBan {
 	name: string;
 	expirationTime: number;
@@ -202,6 +207,7 @@ export interface IPreviousCycle {
 
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
+	customFormats?: Dict<IRoomCustomFormat>;
 	cycleStartDate?: string;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;

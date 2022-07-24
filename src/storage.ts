@@ -80,8 +80,12 @@ export class Storage {
 	}
 
 	getDatabase(room: Room): IDatabase {
-		if (!(room.id in this.databases)) this.databases[room.id] = {};
-		return this.databases[room.id];
+		return this.getDatabaseById(room.id);
+	}
+
+	getDatabaseById(roomid: string): IDatabase {
+		if (!(roomid in this.databases)) this.databases[roomid] = {};
+		return this.databases[roomid];
 	}
 
 	getArchiveDatabase(room: Room): IArchiveDatabase {
