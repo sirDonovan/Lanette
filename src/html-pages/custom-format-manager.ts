@@ -488,6 +488,8 @@ class CustomFormatManager extends HtmlPageBase {
 		this.format.usableMoves = undefined;
 		this.format.usablePokemon = undefined;
 		this.format.usablePokemonTags = undefined;
+		this.format.ruleTable = undefined;
+		this.format.separatedCustomRules = undefined;
 
 		this.updateAvailableAbilities();
 		this.updateAvailableItems();
@@ -830,7 +832,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.abilitiesToBan = [];
 		this.abilitiesToUnban = [];
 
-		this.format.ruleTable = undefined;
 		const usableAbilities = Dex.getUsableAbilities(this.format);
 		for (const ability of Dex.getAbilitiesList()) {
 			if (usableAbilities.includes(ability.name)) {
@@ -847,7 +848,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.itemsToBan = [];
 		this.itemsToUnban = [];
 
-		this.format.ruleTable = undefined;
 		const usableItems = Dex.getUsableItems(this.format);
 		for (const item of Dex.getItemsList()) {
 			if (usableItems.includes(item.name)) {
@@ -864,7 +864,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.movesToBan = [];
 		this.movesToUnban = [];
 
-		this.format.ruleTable = undefined;
 		const usableMoves = Dex.getUsableMoves(this.format);
 		for (const move of Dex.getMovesList()) {
 			if (usableMoves.includes(move.name)) {
@@ -881,7 +880,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.pokemonToBan = [];
 		this.pokemonToUnban = [];
 
-		this.format.ruleTable = undefined;
 		const usablePokemon = Dex.getUsablePokemon(this.format);
 		for (const pokemon of Dex.getPokemonList()) {
 			if (usablePokemon.includes(pokemon.name)) {
@@ -900,7 +898,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.rulesetsToAdd = [];
 		this.rulesetsToRemove = [];
 
-		this.format.ruleTable = undefined;
 		const ruleTable = Dex.getRuleTable(this.format);
 		for (const rule of Dex.getRulesList()) {
 			if (rule.hasValue) continue;
@@ -919,7 +916,6 @@ class CustomFormatManager extends HtmlPageBase {
 		this.tiersToBan = [];
 		this.tiersToUnban = [];
 
-		this.format.ruleTable = undefined;
 		const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
 		const pokemonTagsList = Dex.getPokemonTagsList().slice().sort();
 		for (const tag of pokemonTagsList) {
