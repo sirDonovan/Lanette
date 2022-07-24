@@ -600,71 +600,120 @@ class CustomFormatManager extends HtmlPageBase {
 				type = "";
 			}
 
-			let tag = "";
-			if (name.startsWith(abilityTag)) {
-				const ability = Dex.getAbility(name.split(":")[1]);
-				if (!ability) continue;
-
-				name = ability.name;
-				tag = abilityTag + ability.id;
-				changedAbilities = true;
-			} else if (name.startsWith(itemTag)) {
-				const item = Dex.getItem(name.split(":")[1]);
-				if (!item) continue;
-
-				name = item.name;
-				tag = itemTag + item.id;
-				changedItems = true;
-			} else if (name.startsWith(moveTag)) {
-				const move = Dex.getMove(name.split(":")[1]);
-				if (!move) continue;
-
-				name = move.name;
-				tag = moveTag + move.id;
-				changedMoves = true;
-			} else if (name.startsWith(pokemonTag) || name.startsWith(basePokemonTag)) {
-				const pokemon = Dex.getPokemon(name.split(":")[1]);
-				if (!pokemon) continue;
-
-				name = pokemon.name;
-				tag = (name.startsWith(pokemonTag) ? pokemonTag : basePokemonTag) + pokemon.id;
-				changedPokemon = true;
-			} else if (name.startsWith(tierTag)) {
-				const tagId = Tools.toId(name.split(":")[1]);
-				if (!(tagId in pokemonTagsById)) continue;
-
-				name = pokemonTagsById[tagId];
-				tag = tierTag + tagId;
-				changedTiers = true;
-			} else {
-				const parts = name.split("=");
-				if (parts.length === 2) {
-					const ruleId = Tools.toId(parts[0]);
-					if (ruleId === forceMonotype) {
-						const pokemonType = Dex.getType(parts[1]);
-						if (pokemonType) {
-							this.forceMonotype = ruleId + "=" + pokemonType.name;
-							changedPokemon = true;
-						}
-					} else if (ruleId in this.valueRulesTextInputs) {
-						const validatedRule = Dex.validateRule(name);
-						if (typeof validatedRule === 'string') {
-							this.valueRulesOutputs[ruleId] = validatedRule;
-							changedPokemon = true;
-						}
-					}
-
-					continue;
-				} else {
-					const format = Dex.getFormat(name);
-					if (!format || format.effectType === 'Format') continue;
-					name = format.name;
-				}
-
-				changedRules = true;
+			let limit = "";
+			const limitIndex = name.indexOf(" > ");
+			if (limitIndex !== -1) {
+				limit = name.slice(limitIndex);
+				name = name.slice(0, limitIndex);
 			}
 
-			const formattedRule = type + name;
+			let complexBanSymbol = "";
+			let parts: string[];
+			if (name.includes("++")) {
+				complexBanSymbol = "++";
+				parts = name.split("++").map(x => x.trim());
+			} else if (name.includes("+")) {
+				complexBanSymbol = "+";
+				parts = name.split("+").map(x => x.trim());
+			} else {
+				parts = [name];
+			}
+
+			let formattedName = "";
+			let tag = "";
+			for (const part of parts) {
+				if (part.startsWith(abilityTag)) {
+					const ability = Dex.getAbility(part.split(":")[1]);
+					if (!ability) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = abilityTag + ability.id;
+					}
+
+					formattedName += ability.name;
+					changedAbilities = true;
+				} else if (part.startsWith(itemTag)) {
+					const item = Dex.getItem(part.split(":")[1]);
+					if (!item) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = itemTag + item.id;
+					}
+
+					formattedName += item.name;
+					changedItems = true;
+				} else if (part.startsWith(moveTag)) {
+					const move = Dex.getMove(part.split(":")[1]);
+					if (!move) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = moveTag + move.id;
+					}
+
+					formattedName += move.name;
+					changedMoves = true;
+				} else if (part.startsWith(pokemonTag) || part.startsWith(basePokemonTag)) {
+					const pokemon = Dex.getPokemon(part.split(":")[1]);
+					if (!pokemon) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = (part.startsWith(pokemonTag) ? pokemonTag : basePokemonTag) + pokemon.id;
+					}
+
+					formattedName += pokemon.name;
+					changedPokemon = true;
+				} else if (part.startsWith(tierTag)) {
+					const tagId = Tools.toId(part.split(":")[1]);
+					if (!(tagId in pokemonTagsById)) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = tierTag + tagId;
+					}
+
+					formattedName += pokemonTagsById[tagId];
+					changedTiers = true;
+				} else {
+					const valueParts = part.split("=");
+					if (valueParts.length === 2) {
+						const ruleId = Tools.toId(valueParts[0]);
+						if (ruleId === forceMonotype) {
+							const pokemonType = Dex.getType(valueParts[1]);
+							if (pokemonType) {
+								this.forceMonotype = ruleId + "=" + pokemonType.name;
+								changedPokemon = true;
+							}
+						} else if (ruleId in this.valueRulesTextInputs) {
+							const validatedRule = Dex.validateRule(part);
+							if (typeof validatedRule === 'string') {
+								this.valueRulesOutputs[ruleId] = validatedRule;
+								changedPokemon = true;
+							}
+						}
+
+						continue;
+					} else {
+						const format = Dex.getFormat(part);
+						if (!format || format.effectType === 'Format') continue;
+
+						if (complexBanSymbol && formattedName) formattedName += " " + complexBanSymbol + " ";
+						formattedName += format.name;
+					}
+
+					changedRules = true;
+				}
+			}
+
+			const formattedRule = type + formattedName + limit;
 			if (!newCustomRules.includes(formattedRule)) {
 				newCustomRules.push(formattedRule);
 				if (tag) newCustomRuleTags[formattedRule] = type + tag;
@@ -871,7 +920,8 @@ class CustomFormatManager extends HtmlPageBase {
 
 		this.format.ruleTable = undefined;
 		const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
-		for (const tag of Dex.getPokemonTagsList()) {
+		const pokemonTagsList = Dex.getPokemonTagsList().slice().sort();
+		for (const tag of pokemonTagsList) {
 			if (usablePokemonTags.includes(tag)) {
 				this.tiersToBan.push(tag);
 			} else {

@@ -1947,11 +1947,12 @@ export class Dex {
 					addedrules.push(ruleName);
 				}
 			} else {
+				const complexSymbol = rule[0] === 'complexBan' ? ' + ' : ' ++ ';
 				const complexBans = rule[4].map(x => this.getValidatedRuleName(x));
-				if (rule[0] === 'complexTeamBan') {
-					addedbans.push(complexBans.join(' ++ '));
+				if (rule[3] === Infinity) {
+					removedbans.push(complexBans.join(complexSymbol));
 				} else {
-					addedbans.push(complexBans.join(' + '));
+					addedbans.push(complexBans.join(complexSymbol) + (rule[3] ? " > " + rule[3] : ""));
 				}
 			}
 		}

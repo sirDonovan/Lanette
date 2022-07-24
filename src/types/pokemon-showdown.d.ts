@@ -8,7 +8,7 @@ import type { IFormatDataLinks, ISeparatedCustomRules } from "./dex";
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
 export type ComplexTeamBan = ComplexBan;
-export type ValidatedRule = string | [string, string, string, number, string[]];
+export type ValidatedRule = string | [type: 'complexTeamBan' | 'complexBan', rule: string, source: string, limit: number, bans: string[]];
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatIDExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
@@ -973,7 +973,7 @@ export interface IPokemonShowdownDex {
 		all: () => readonly IPSFormat[];
 		getRuleTable: (format: IFormat) => RuleTable;
 		validate: (name: string) => string;
-		validateRule: (rule: string) => [string, string, string, number, string[]] | string;
+		validateRule: (rule: string) => ValidatedRule;
 	}
 	items: {
 		get: (name: string | IPSItem) => IPSItem;
