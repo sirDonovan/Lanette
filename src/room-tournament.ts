@@ -158,9 +158,10 @@ export class Tournament extends Activity {
 	}
 
 	setRunAutoDqTimeout(): void {
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
+
 		if (this.runAutoDqTime <= 0) return;
 
-		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.runAutoDqTimeout = null;
 

@@ -1602,6 +1602,11 @@ export class Client {
 			if (room.publicRoom) Storage.updateLastSeen(user, messageArguments.timestamp);
 
 			if (messageArguments.message.startsWith('/log ')) {
+				if (room.tournament && messageArguments.message.startsWith(TOURNAMENT_AUTODQ_COMMAND)) {
+					const minutes = messageArguments.message.substr(TOURNAMENT_AUTODQ_COMMAND.length).split(" by ")[0].trim();
+					room.tournament.setAutoDqMinutes(minutes === 'off' ? 0 : parseInt(minutes));
+				}
+
 				if (messageArguments.message.startsWith(HANGMAN_START_COMMAND)) {
 					room.serverHangman = true;
 
