@@ -515,6 +515,8 @@ class CustomFormatManager extends HtmlPageBase {
 		const filteredCustomRules: string[] = [];
 		const nonRulesetRules: string[] = [];
 		for (const rule of customRules) {
+			if (filteredCustomRules.includes(rule) || nonRulesetRules.includes(rule)) continue;
+
 			const type = rule.charAt(0);
 			if (type === '-' || type === '+' || type === '*') {
 				if (pokemonTags.includes(rule.slice(1))) {
@@ -528,10 +530,17 @@ class CustomFormatManager extends HtmlPageBase {
 					nonRulesetRules.push(rule);
 				}
 			} else {
-				const ruleId = Tools.toId(rule);
-				if (ruleId && ruleTable.has(ruleId)) {
-					if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
-					continue;
+				if (type === '!') {
+					if (this.format.ruleset.includes(rule)) {
+						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+						continue;
+					}
+				} else {
+					const ruleId = Tools.toId(rule);
+					if (ruleId && ruleTable.has(ruleId)) {
+						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+						continue;
+					}
 				}
 
 				filteredCustomRules.push(rule);
