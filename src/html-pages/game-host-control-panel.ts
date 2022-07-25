@@ -359,7 +359,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 	setBackgroundColor(color: IColorPick, dontRender: boolean | undefined): void {
 		const database = this.getDatabase();
-		database.gameHostDisplays![this.userId].background = color.hexCode;
+		database.gameHostDisplays![this.userId].background = Tools.colorPickToStorage(color);
 
 		if (this.currentView === 'randomhostdisplay') {
 			this.manualHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
@@ -478,7 +478,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
 			database.gameHostDisplays![this.userId].backgroundBorder = {};
 		}
-		database.gameHostDisplays![this.userId].backgroundBorder!.color = color.hexCode;
+		database.gameHostDisplays![this.userId].backgroundBorder!.color = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}

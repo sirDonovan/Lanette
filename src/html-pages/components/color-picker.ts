@@ -4,6 +4,7 @@ import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
 import type { Room } from "../../rooms";
+import { HexCodeInput } from "./hex-code-input";
 
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation' | 'maxvariation';
 export type Lightness = 'shade' | 'lowlightness' | 'standardlightness' | 'highlightness' | 'tint';
@@ -12,10 +13,14 @@ export interface IColorPick {
 	hexCode: HexCode;
 	hueVariation: HueVariation;
 	lightness: Lightness;
+	gradient?: string;
+	secondaryHexCode?: HexCode;
 }
 
 interface IColorPickerProps extends IPickerProps<IColorPick> {
 	random?: boolean;
+	currentPrimaryColor?: HexCode;
+	currentSecondaryColor?: HexCode;
 	onPickHueVariation: (pickerIndex: number, pick: HueVariation, dontRender: boolean | undefined) => void;
 	onPickLightness: (pickerIndex: number, pick: Lightness, dontRender: boolean | undefined) => void;
 }
@@ -23,6 +28,7 @@ interface IColorPickerProps extends IPickerProps<IColorPick> {
 const colorsPerRow = 15;
 const rowsPerPage = 5;
 const pagesLabel = "Colors";
+const customHexCodeKey = 'customHexCode';
 
 const lowVariationIncrement = 30;
 const standardVariationIncrement = 15;
@@ -43,6 +49,9 @@ const highLightness = 'highlightness';
 const tint = 'tint';
 
 const huesListCommand = 'hueslist';
+const customPrimaryCommand = 'customprimarycode';
+const customSecondaryCommand = 'customsecondarycode';
+const submitCustomHexCodeCommand = 'submitcustomhexcode';
 
 export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	static shades: HexCode[] = [];
@@ -62,6 +71,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	static ColorPickerLoaded: boolean = false;
 
 	componentId: string = 'color-picker';
+	customPrimaryColor: HexCode | undefined;
+	customSecondaryColor: HexCode | undefined;
 
 	lightness: Lightness;
 	hueVariation: HueVariation;
@@ -80,6 +91,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	highLightnessHighVariationPagination: Pagination;
 	highLightnessMaxVariationPagination: Pagination;
 	tintPagination: Pagination;
+	customPrimaryColorInput: HexCodeInput;
+	customSecondaryColorInput: HexCodeInput;
 
 	paginations: Pagination[] = [];
 
@@ -87,6 +100,9 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		super(room, parentCommandPrefix, componentCommand, props);
 
 		ColorPicker.loadData();
+
+		if (this.props.currentPrimaryColor) this.customPrimaryColor = this.props.currentPrimaryColor;
+		if (this.props.currentSecondaryColor) this.customSecondaryColor = this.props.currentSecondaryColor;
 
 		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
 			const hexCode = this.currentPicks[0] as HexCode;
@@ -222,6 +238,25 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.highLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.highLightnessMaxVariation);
 		this.tintPagination = this.createColorPagination(ColorPicker.tints);
 
+		this.customPrimaryColorInput = new HexCodeInput(room, this.commandPrefix, customPrimaryCommand, {
+			currentInput: this.customPrimaryColor,
+			label: "Custom primary color",
+			hideClearButton: true,
+			onClear: () => this.props.reRender(),
+			onErrors: () => this.props.reRender(),
+			onSubmit: (output) => this.submitCustomPrimaryColor(output as HexCode),
+			reRender: () => this.props.reRender(),
+		});
+
+		this.customSecondaryColorInput = new HexCodeInput(room, this.commandPrefix, customSecondaryCommand, {
+			currentInput: this.customSecondaryColor,
+			label: "Custom secondary color",
+			onClear: () => this.clearCustomSecondaryColor(),
+			onErrors: () => this.props.reRender(),
+			onSubmit: (output) => this.submitCustomSecondaryColor(output as HexCode),
+			reRender: () => this.props.reRender(),
+		});
+
 		this.toggleActivePagination();
 
 		this.components = [this.shadePagination, this.lowLightnessLowVariationPagination, this.lowLightnessStandardVariationPagination,
@@ -230,6 +265,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			this.standardLightnessHighVariationPagination, this.standardLightnessMaxVariationPagination,
 			this.highLightnessLowVariationPagination, this.highLightnessStandardVariationPagination,
 			this.highLightnessHighVariationPagination, this.highLightnessMaxVariationPagination, this.tintPagination,
+			this.customPrimaryColorInput, this.customSecondaryColorInput,
 		];
 
 		this.paginations = this.components.slice() as Pagination[];
@@ -481,6 +517,46 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.toggleActivePagination(true);
 	}
 
+	updateCustomColors(): void {
+		if (!this.customPrimaryColor) return;
+
+		if (!(customHexCodeKey in this.choices)) {
+			this.choices[customHexCodeKey] = {
+				hexCode: this.customPrimaryColor,
+				hueVariation: 'standardvariation',
+				lightness: 'standardlightness',
+			};
+			this.choiceElements[customHexCodeKey] = {html: ""};
+		}
+
+		this.choices[customHexCodeKey].hexCode = this.customPrimaryColor;
+		this.choices[customHexCodeKey].secondaryHexCode = this.customSecondaryColor;
+		this.choices[customHexCodeKey].gradient = Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor);
+
+		if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
+	}
+
+	submitCustomPrimaryColor(output: HexCode): void {
+		this.customPrimaryColor = output;
+		this.updateCustomColors();
+
+		this.props.reRender();
+	}
+
+	clearCustomSecondaryColor(): void {
+		this.customSecondaryColor = undefined;
+		this.updateCustomColors();
+
+		this.props.reRender();
+	}
+
+	submitCustomSecondaryColor(output: HexCode): void {
+		this.customSecondaryColor = output;
+		this.updateCustomColors();
+
+		this.props.reRender();
+	}
+
 	tryCommand(originalTargets: readonly string[]): string | undefined {
 		const targets = originalTargets.slice();
 		const cmd = Tools.toId(targets[0]);
@@ -502,6 +578,10 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			} else {
 				return "'" + lightness + "' is not a valid lightness.";
 			}
+		} else if (cmd === submitCustomHexCodeCommand) {
+			if (!(customHexCodeKey in this.choices)) return;
+
+			this.pick(customHexCodeKey);
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -594,6 +674,19 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				}
 			} else {
 				html += this.tintPagination.render();
+			}
+
+			html += "<br /><br />";
+			html += this.customPrimaryColorInput.render();
+			if (this.customPrimaryColor) {
+				html += "<br />";
+				html += this.customSecondaryColorInput.render();
+				html += "<br />";
+				html += "<center><div style='color:#000000;background: " +
+					Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";" + "height: 48px;width: 300px'>" +
+					"<br /><b>Text preview</b></div></center>";
+				html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
+					(this.customSecondaryColor ? "s" : ""));
 			}
 		}
 

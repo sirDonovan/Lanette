@@ -18,7 +18,7 @@ import type {
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { ICustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
-import type { HexCode } from './types/tools';
+import type { HexCode, IHexCodeData } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -1712,8 +1712,14 @@ export class Games {
 			}
 		}
 		html += "<hr /><span style='display: block;height:115px";
-		if (trainerCard.background && trainerCard.background in Tools.hexCodes) {
-			html += ";background: " + Tools.hexCodes[trainerCard.background]!.gradient;
+		if (trainerCard.background) {
+			if (typeof trainerCard.background === 'string') {
+				if (trainerCard.background in Tools.hexCodes) {
+					html += ";background: " + Tools.hexCodes[trainerCard.background]!.gradient;
+				}
+			} else {
+				html += ";background: " + trainerCard.background.gradient;
+			}
 		}
 		html += "'>";
 
@@ -1795,7 +1801,7 @@ export class Games {
 			const signups = optionalType === 'signups';
 			const game = optionalType === 'game';
 
-			let background: HexCode | undefined;
+			let background: HexCode | IHexCodeData | undefined;
 			if (signups && customBox.signupsBackground) {
 				background = customBox.signupsBackground;
 			} else if (game && customBox.gameBackground) {
@@ -1839,7 +1845,7 @@ export class Games {
 			const signups = optionalType === 'signups';
 			const game = optionalType === 'game';
 
-			let buttons: HexCode | undefined;
+			let buttons: HexCode | IHexCodeData | undefined;
 			if (!disabled) {
 				if (signups && customBox.signupsButtons) {
 					buttons = customBox.signupsButtons;

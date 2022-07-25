@@ -10,6 +10,7 @@ import type { ITrainerPick } from "./components/trainer-picker";
 import { HtmlPageBase } from "./html-page-base";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { PokemonTextInput } from "./components/pokemon-text-input";
+import type { HexCode } from "../types/tools";
 
 const baseCommand = 'gametrainercard';
 const previewCommand = 'preview';
@@ -45,7 +46,11 @@ class GameTrainerCard extends HtmlPageBase {
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
-			currentPick: trainerCard ? trainerCard.background : undefined,
+			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
+			currentPrimaryColor: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
+				trainerCard.background.color as HexCode : undefined,
+			currentSecondaryColor: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
+				trainerCard.background.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -142,7 +147,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.gameTrainerCards![this.userId].background = color.hexCode;
+		database.gameTrainerCards![this.userId].background = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
