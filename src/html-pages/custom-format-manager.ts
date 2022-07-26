@@ -842,13 +842,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.abilitiesToBan = [];
 		this.abilitiesToUnban = [];
 
-		const usableAbilities = Dex.getUsableAbilities(this.format);
-		for (const ability of Dex.getAbilitiesList()) {
-			if (usableAbilities.includes(ability.name)) {
-				this.abilitiesToBan.push(ability.name);
-			} else {
-				this.abilitiesToUnban.push(ability.name);
+		try {
+			const usableAbilities = Dex.getUsableAbilities(this.format);
+			for (const ability of Dex.getAbilitiesList()) {
+				if (usableAbilities.includes(ability.name)) {
+					this.abilitiesToBan.push(ability.name);
+				} else {
+					this.abilitiesToUnban.push(ability.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable abilities in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -858,13 +863,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.itemsToBan = [];
 		this.itemsToUnban = [];
 
-		const usableItems = Dex.getUsableItems(this.format);
-		for (const item of Dex.getItemsList()) {
-			if (usableItems.includes(item.name)) {
-				this.itemsToBan.push(item.name);
-			} else {
-				this.itemsToUnban.push(item.name);
+		try {
+			const usableItems = Dex.getUsableItems(this.format);
+			for (const item of Dex.getItemsList()) {
+				if (usableItems.includes(item.name)) {
+					this.itemsToBan.push(item.name);
+				} else {
+					this.itemsToUnban.push(item.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable items in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -874,13 +884,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.movesToBan = [];
 		this.movesToUnban = [];
 
-		const usableMoves = Dex.getUsableMoves(this.format);
-		for (const move of Dex.getMovesList()) {
-			if (usableMoves.includes(move.name)) {
-				this.movesToBan.push(move.name);
-			} else {
-				this.movesToUnban.push(move.name);
+		try {
+			const usableMoves = Dex.getUsableMoves(this.format);
+			for (const move of Dex.getMovesList()) {
+				if (usableMoves.includes(move.name)) {
+					this.movesToBan.push(move.name);
+				} else {
+					this.movesToUnban.push(move.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable moves in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -890,15 +905,20 @@ class CustomFormatManager extends HtmlPageBase {
 		this.pokemonToBan = [];
 		this.pokemonToUnban = [];
 
-		const usablePokemon = Dex.getUsablePokemon(this.format);
-		for (const pokemon of Dex.getPokemonList()) {
-			if (usablePokemon.includes(pokemon.name)) {
-				this.pokemonToBan.push(pokemon.name);
-				if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToBan.push(pokemon.name + '-Base');
-			} else {
-				this.pokemonToUnban.push(pokemon.name);
-				if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToUnban.push(pokemon.name + '-Base');
+		try {
+			const usablePokemon = Dex.getUsablePokemon(this.format);
+			for (const pokemon of Dex.getPokemonList()) {
+				if (usablePokemon.includes(pokemon.name)) {
+					this.pokemonToBan.push(pokemon.name);
+					if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToBan.push(pokemon.name + '-Base');
+				} else {
+					this.pokemonToUnban.push(pokemon.name);
+					if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToUnban.push(pokemon.name + '-Base');
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable Pokemon in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -908,15 +928,20 @@ class CustomFormatManager extends HtmlPageBase {
 		this.rulesetsToAdd = [];
 		this.rulesetsToRemove = [];
 
-		const ruleTable = Dex.getRuleTable(this.format);
-		for (const rule of Dex.getRulesList()) {
-			if (rule.hasValue) continue;
+		try {
+			const ruleTable = Dex.getRuleTable(this.format);
+			for (const rule of Dex.getRulesList()) {
+				if (rule.hasValue) continue;
 
-			if (ruleTable.has(rule.id)) {
-				this.rulesetsToRemove.push(rule.name);
-			} else {
-				this.rulesetsToAdd.push(rule.name);
+				if (ruleTable.has(rule.id)) {
+					this.rulesetsToRemove.push(rule.name);
+				} else {
+					this.rulesetsToAdd.push(rule.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting rule table in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -926,14 +951,19 @@ class CustomFormatManager extends HtmlPageBase {
 		this.tiersToBan = [];
 		this.tiersToUnban = [];
 
-		const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
-		const pokemonTagsList = Dex.getPokemonTagsList().slice().sort();
-		for (const tag of pokemonTagsList) {
-			if (usablePokemonTags.includes(tag)) {
-				this.tiersToBan.push(tag);
-			} else {
-				this.tiersToUnban.push(tag);
+		try {
+			const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
+			const pokemonTagsList = Dex.getPokemonTagsList().slice().sort();
+			for (const tag of pokemonTagsList) {
+				if (usablePokemonTags.includes(tag)) {
+					this.tiersToBan.push(tag);
+				} else {
+					this.tiersToUnban.push(tag);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
