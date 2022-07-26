@@ -389,6 +389,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	getChoiceButtonHtml(choice: IColorPick): string {
+		if (this.currentPicks[0] === customHexCodeKey) return "";
+
 		const currentColor = this.currentPicks[0] === choice.hexCode;
 
 		let colorDiv = "<div style='background: " + Tools.hexCodes[choice.hexCode]!.gradient + ";height: 15px;width: 15px";
