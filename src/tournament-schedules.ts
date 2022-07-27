@@ -115,7 +115,7 @@ export const tournamentSchedules: Dict<Dict<IRoomTournamentSchedule>> = {
 						'24': 'OMOTM2',
 						'25': 'OU, -allpokemon, +entei, +turtonator, +shiftry, +ninjask, +shuckle, +meowstic, pickedteamsize=3',
 						'26': 'AG, -allitems, +choiceband, +choicespecs, +choicescarf, noswitching',
-						'27': 'gen8sharedpower, [Gen 8] Godly Gift, +Calyrex-Ice, +Darmanitan-Galar, +Dialga, +Dracovish, +Genesect, +Giratina, +Giratina-Origin, +Groudon, +Hawlucha, +Ho-Oh, +Kyogre, +Kyurem, +Kyurem-Black, +Kyurem-White, +Lugia, +Lunala, +Magearna, +Marshadow, +Mewtwo, +Naganadel, +Necrozma-Dawn-Wings, +Necrozma-Dusk-Mane, +Palkia, +Pheromosa, +Power Construct, +Rayquaza, +Reshiram, +Solgaleo, +Urshifu-Base, +Urshifu-Rapid-Strike, +Yveltal, +Zamazenta-Crowned, +Zekrom, +Swift Swim, -Heatran, -Kartana, -Acupressure, -Leppa Berry, -Flare Boost, -Fluffy, -Hustle, -Ice Scales, -Prankster, -Serene Grace, -Skill Link, -Stamina, -Sturdy, -Teravolt, -Turboblaze',
+						'27': 'gen8sharedpower,[Gen 8] Godly Gift, +Calyrex-Ice, +Darmanitan-Galar, +Dialga, +Dracovish, +Genesect, +Giratina, +Giratina-Origin, +Groudon, +Hawlucha, +Ho-Oh, +Kyogre, +Kyurem, +Kyurem-Black, +Kyurem-White, +Lugia, +Lunala, +Magearna, +Marshadow, +Mewtwo, +Naganadel, +Necrozma-Dawn-Wings, +Necrozma-Dusk-Mane, +Palkia, +Pheromosa, +Power Construct, +Rayquaza, +Reshiram, +Solgaleo, +Urshifu-Base, +Urshifu-Rapid-Strike, +Yveltal, +Zamazenta-Crowned, +Zekrom, +Swift Swim, -Kartana, -Acupressure, -Leppa Berry, -Flare Boost, -Fluffy, -Gorilla Tactics, -Hustle, -Ice Scales, -Prankster, -Serene Grace, -Skill Link, -Stamina, -Sturdy, -Teravolt, -Turboblaze',
 						'28': 'stabmons, sametypeclause',
 						'29': 'ROAS3',
 						'30': 'gen7ou, kalos pokedex',
