@@ -389,7 +389,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	getChoiceButtonHtml(choice: IColorPick): string {
-		if (this.currentPicks[0] === customHexCodeKey) return "";
+		if (!(choice.hexCode in Tools.hexCodes)) return "";
 
 		const currentColor = this.currentPicks[0] === choice.hexCode;
 
@@ -534,8 +534,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.choices[customHexCodeKey].hexCode = this.customPrimaryColor;
 		this.choices[customHexCodeKey].secondaryHexCode = this.customSecondaryColor;
 		this.choices[customHexCodeKey].gradient = Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor);
-
-		if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
 	}
 
 	submitCustomPrimaryColor(output: HexCode): void {
@@ -583,6 +581,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		} else if (cmd === submitCustomHexCodeCommand) {
 			if (!(customHexCodeKey in this.choices)) return;
 
+			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
 			this.pick(customHexCodeKey);
 		} else {
 			return super.tryCommand(originalTargets);
