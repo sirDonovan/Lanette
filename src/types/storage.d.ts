@@ -2,6 +2,7 @@ import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base"
 import type { ITrainerPick } from "../html-pages/components/trainer-picker";
 import type { ModelGeneration, TrainerSpriteId } from "./dex";
 import type { BorderType, HexCode, IHexCodeData, TimeZone } from "./tools";
+import type { ITournamentScheduleWhole } from "./tournaments";
 
 interface IEventInformation {
 	name: string;
@@ -227,6 +228,7 @@ export interface IDatabase {
 	lastUserHostedGameTime?: number;
 	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
+	officialTournamentSchedule?: ITournamentScheduleWhole;
 	pastGames?: IPastGame[];
 	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];

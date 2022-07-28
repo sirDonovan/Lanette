@@ -58,6 +58,10 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		this.currentInput = input;
 	}
 
+	parentSetErrors(errors: readonly string[]): void {
+		this.errors = errors.slice();
+	}
+
 	clear(): void {
 		if (this.currentInput === undefined) return;
 

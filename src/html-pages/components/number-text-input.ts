@@ -25,7 +25,7 @@ export class NumberTextInput extends TextInput {
 				this.errors.push("You must specify a number that is greater than or equal to " + this.props.min + ".");
 			}
 
-			if (this.props.max && inputAmount < this.props.max) {
+			if (this.props.max && inputAmount > this.props.max) {
 				this.errors.push("You must specify a number that is less than or equal to " + this.props.max + ".");
 			}
 		}

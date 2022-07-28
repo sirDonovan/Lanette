@@ -18,14 +18,21 @@ export interface IOfficialTournament extends IScheduledTournament {
 	official: true;
 }
 
-export interface IMonthlyTournamentSchedule {
-	formats: Dict<string>;
+export interface ITournamentScheduleDay {
+	format: string;
 	times: [number, number][];
-	year: number;
 }
 
-export interface IRoomTournamentSchedule {
-	months: Dict<IMonthlyTournamentSchedule>;
+export interface ITournamentScheduleMonth {
+	days: Dict<ITournamentScheduleDay>;
+}
+
+export interface ITournamentScheduleYear {
+	months: Dict<ITournamentScheduleMonth>;
+}
+
+export interface ITournamentScheduleWhole {
+	years: Dict<ITournamentScheduleYear>;
 }
 
 export interface IClientTournamentNode {
