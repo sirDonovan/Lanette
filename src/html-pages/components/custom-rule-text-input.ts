@@ -42,8 +42,13 @@ export class CustomRuleTextInput extends TextInput {
 					validRules.push(validated);
 				}
 			} catch (e) {
-				this.errors.push(part + " error: " + (e as Error).message);
-				invalidRules.push(part);
+				const format = Dex.getFormat(part);
+				if (format) {
+					validRules.push(format.name);
+				} else {
+					this.errors.push(part + " error: " + (e as Error).message);
+					invalidRules.push(part);
+				}
 			}
 		}
 

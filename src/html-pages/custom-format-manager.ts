@@ -715,7 +715,7 @@ class CustomFormatManager extends HtmlPageBase {
 						continue;
 					} else {
 						const format = Dex.getFormat(part);
-						if (!format || format.effectType === 'Format') continue;
+						if (!format) continue;
 
 						if (complexBanSymbol && formattedName) formattedName += " " + complexBanSymbol + " ";
 						formattedName += format.name;
