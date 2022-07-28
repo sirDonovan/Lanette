@@ -45,12 +45,15 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	selectedTournamentIndex: number = 0;
 	lastDayOfSelectedMonth: number;
 
+	canCreateTournament: boolean;
 	newMonthInput: NumberTextInput;
 	dayFormatInput: FormatTextInput;
 	tournamentTimeInput: TextInput;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
+
+		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
 
 		const date = new Date();
 		this.currentYear = date.getFullYear();
@@ -161,6 +164,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	addDayTournamentCommand(): void {
+		if (!this.canCreateTournament) return;
+
 		const database = this.getDatabase();
 		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
 		if (this.selectedMonth in schedule.months &&
@@ -176,6 +181,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	removeDayTournamentCommand(): void {
+		if (!this.canCreateTournament) return;
+
 		const database = this.getDatabase();
 		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
 		if (this.selectedMonth in schedule.months &&
@@ -194,6 +201,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	setDayFormat(output: string): void {
+		if (!this.canCreateTournament) return;
+
 		const database = this.getDatabase();
 		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
 		if (this.selectedMonth in schedule.months) {
@@ -208,6 +217,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	setTournamentTime(output: string): void {
+		if (!this.canCreateTournament) return;
+
 		const parts = output.trim().split(":");
 		const hour = parseInt(parts[0]);
 		const minute = parts[1] ? parseInt(parts[1]) : -1;
@@ -273,6 +284,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	addMonth(month: string): void {
+		if (!this.canCreateTournament) return;
+
 		const database = this.getDatabase();
 		if (month in database.officialTournamentSchedule!.years[this.selectedYear].months) {
 			this.newMonthInput.parentSetErrors(["A schedule already exists for " + month + "/" + this.selectedYear]);
@@ -299,6 +312,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 	}
 
 	setOfficialTournament(): void {
+		if (!this.canCreateTournament) return;
+
 		Tournaments.loadRoomSchedule(this.room.id);
 		Tournaments.setOfficialTournament(this.room);
 	}
@@ -350,7 +365,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			html += "<br /><br />";
 		}
 
-		html += this.newMonthInput.render();
+		if (this.canCreateTournament) html += this.newMonthInput.render();
 
 		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
 		if (this.selectedMonth in schedule.months) {
@@ -367,7 +382,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			}
 
 			html += "<br /><br />";
-			html += this.dayFormatInput.render();
+			if (this.canCreateTournament) html += this.dayFormatInput.render();
+
 			if (this.selectedDay in schedule.months[this.selectedMonth].days) {
 				const format = Tournaments.getFormat(schedule.months[this.selectedMonth].days[this.selectedDay].format, this.room);
 				if (format) {
@@ -391,14 +407,16 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 						"" + (i + 1), {selectedAndDisabled: this.selectedTournamentIndex === i});
 				}
 
-				const lastScheduledTime = times[times.length - 1];
-				html += "<br />";
-				html += this.getQuietPmButton(this.commandPrefix + ", " + addDayTournamentCommand,
-						"Add a tournament", {disabled: times.length === maxTournamentsPerDay ||
-						(lastScheduledTime[0] === 23 && lastScheduledTime[1] === 59)});
-				if (times.length > 1) {
-					html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + removeDayTournamentCommand,
-						"Remove tournament #" + (this.selectedTournamentIndex + 1));
+				if (this.canCreateTournament) {
+					const lastScheduledTime = times[times.length - 1];
+					html += "<br />";
+					html += this.getQuietPmButton(this.commandPrefix + ", " + addDayTournamentCommand,
+							"Add a tournament", {disabled: times.length === maxTournamentsPerDay ||
+							(lastScheduledTime[0] === 23 && lastScheduledTime[1] === 59)});
+					if (times.length > 1) {
+						html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + removeDayTournamentCommand,
+							"Remove tournament #" + (this.selectedTournamentIndex + 1));
+					}
 				}
 
 				html += "<br /><br />";
@@ -408,9 +426,11 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 				html += "Tournament #" + (this.selectedTournamentIndex + 1) + " starts at " + times[this.selectedTournamentIndex][0] + ":" +
 					(times[this.selectedTournamentIndex][1] < 10 ? "0" : "") + times[this.selectedTournamentIndex][1] +
 					" (" + Users.self.name + "'s current time is " + date.getHours() + ":" + (minutes < 10 ? "0" : "") + minutes + ")";
-				html += "<br /><br />";
 
-				html += this.tournamentTimeInput.render();
+				if (this.canCreateTournament) {
+					html += "<br /><br />";
+					html += this.tournamentTimeInput.render();
+				}
 			}
 		}
 
@@ -426,8 +446,6 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(",");
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-
-			if (!Tournaments.canCreateTournament(targetRoom, user) && !user.isDeveloper()) return;
 
 			targets.shift();
 
