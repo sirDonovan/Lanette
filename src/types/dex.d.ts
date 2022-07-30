@@ -8,8 +8,8 @@ export interface IAlternateIconNumbers {
 export type RegionName = 'kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola' | 'galar' | 'hisui';
 export type BadgeData = KeyedDict<RegionName, string[]>;
 export type CategoryData = Dict<string>;
-export type CharacterType = 'player' | 'rival' | 'gymleader' | 'trialcaptain' | 'elitefour' | 'champion' | 'frontierbrain' | 'professor' | 'warden' | 'antagonist' |
-	'other';
+export type CharacterType = 'player' | 'rival' | 'gymleader' | 'elitefour' | 'champion' | 'frontierbrain' | 'professor' |
+ 'antagonist' |	'other';
 export type CharacterData = KeyedDict<RegionName, KeyedDict<CharacterType, string[]>>;
 export type LocationType = 'town' | 'city' | 'cave' | 'forest' | 'mountain' | 'other';
 export type LocationData = KeyedDict<RegionName, KeyedDict<LocationType, string[]>>;
