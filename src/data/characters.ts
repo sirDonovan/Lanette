@@ -18,10 +18,6 @@ export const characters: CharacterData = {
 			"Blaine",
 			"Giovanni",
 		],
-		trialcaptain: [
-		],
-		warden: [
-		],
 		elitefour: [
 			"Lorelei",
 			"Bruno",
@@ -58,10 +54,6 @@ export const characters: CharacterData = {
 			"Jasmine",
 			"Pryce",
 			"Clair",
-		],
-		trialcaptain: [
-		],
-		warden: [
 		],
 		elitefour: [
 			"Will",
@@ -107,10 +99,6 @@ export const characters: CharacterData = {
 			"Liza",
 			"Wallace",
 			"Juan",
-		],
-		trialcaptain: [
-		],
-		warden: [
 		],
 		elitefour: [
 			"Sidney",
@@ -176,10 +164,6 @@ export const characters: CharacterData = {
 			"Flint",
 			"Lucian",
 		],
-		trialcaptain: [
-		],
-		warden: [
-		],
 		champion: [
 			"Cynthia",
 		],
@@ -237,11 +221,6 @@ export const characters: CharacterData = {
 			"Marlon",
 			"Roxie",
 		],
-		
-		trialcaptain: [
-		],
-		warden: [
-		],
 		elitefour: [
 			"Shauntal",
 			"Grimsley",
@@ -287,11 +266,6 @@ export const characters: CharacterData = {
 			"Olympia",
 			"Wulfric",
 		],
-		
-		trialcaptain: [
-		],
-		warden: [
-		],
 		elitefour: [
 			"Malva",
 			"Siebold",
@@ -333,8 +307,6 @@ export const characters: CharacterData = {
 			"Gladion",
 		],
 		gymleader: [
-		],
-		trialcaptain: [
 			"Ilima",
 			"Lana",
 			"Kiawe",
@@ -342,8 +314,6 @@ export const characters: CharacterData = {
 			"Sophocles",
 			"Acerola",
 			"Mina",
-		],
-		warden: [
 		],
 		elitefour: [
 			"Hala",
@@ -394,11 +364,6 @@ export const characters: CharacterData = {
 			"Avery",
 			"Klara",
 		],
-		
-		trialcaptain: [
-		],
-		warden: [
-		],
 		elitefour: [],
 		champion: [
 			"Leon",
@@ -431,21 +396,6 @@ export const characters: CharacterData = {
 		],
 		gymleader: [
 		],
-		
-		trialcaptain: [
-		],
-		warden: [
-			"Arezu",
-			"Calaba",
-			"Gaeric",
-			"Ingo",
-			"Iscan",
-			"Lian",
-			"Mai",
-			"Melli",
-			"Palina",
-			"Sabi",
-		],
 		elitefour: [
 		],
 		champion: [
@@ -455,10 +405,10 @@ export const characters: CharacterData = {
 			"Professor Laventon",
 		],
 		antagonist: [
-			        "Charm",
-			        "Clover",
-			        "Coin",
-			        "Volo",
+			"Charm",
+			"Clover",
+			"Coin",
+			"Volo",
 		],
 		other: [
 			"Adaman",
@@ -476,6 +426,16 @@ export const characters: CharacterData = {
 			"Sanqua",
 			"Tao Hua",
 			"Zisu",
+			"Arezu",
+			"Calaba",
+			"Gaeric",
+			"Ingo",
+			"Iscan",
+			"Lian",
+			"Mai",
+			"Melli",
+			"Palina",
+			"Sabi",
 		],
 	},
 };

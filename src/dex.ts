@@ -217,8 +217,6 @@ const characterTypeNames: CharacterTypeNames = {
 	frontierbrain: "Frontier Brain",
 	professor: "Professor",
 	antagonist: "Antagonist",
-	trialcaptain: "Trial Captain",
-	warden: "Warden",
 	other: "Misc.",
 };
 
