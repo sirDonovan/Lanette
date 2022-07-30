@@ -15,6 +15,7 @@ import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { NamePicker } from "./components/name-picker";
 import { TrainerCardRibbonPicker } from "./components/trainer-card-ribbon-picker";
+import type { HexCode } from "../types/tools";
 
 const baseCommand = 'tournamenttrainercard';
 const baseCommandAlias = 'ttc';
@@ -283,7 +284,11 @@ class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.headerColorPicker = new ColorPicker(this.room, this.commandPrefix, setHeaderColorCommand, {
-			currentPick: trainerCard ? trainerCard.header : undefined,
+			currentPick: trainerCard && typeof trainerCard.header === 'string' ? trainerCard.header : undefined,
+			currentPrimaryColor: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ?
+				trainerCard.header.color as HexCode : undefined,
+			currentSecondaryColor: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ?
+				trainerCard.header.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickHeaderHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickHeaderLightness(dontRender),
 			onClear: (index, dontRender) => this.clearHeaderColor(dontRender),
@@ -293,7 +298,11 @@ class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.tableColorPicker = new ColorPicker(this.room, this.commandPrefix, setTableColorCommand, {
-			currentPick: trainerCard ? trainerCard.table : undefined,
+			currentPick: trainerCard && typeof trainerCard.table === 'string' ? trainerCard.table : undefined,
+			currentPrimaryColor: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ?
+				trainerCard.table.color as HexCode : undefined,
+			currentSecondaryColor: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ?
+				trainerCard.table.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickTableHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickTableLightness(dontRender),
 			onClear: (index, dontRender) => this.clearTableColor(dontRender),
@@ -303,7 +312,11 @@ class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.footerColorPicker = new ColorPicker(this.room, this.commandPrefix, setFooterColorCommand, {
-			currentPick: trainerCard ? trainerCard.footer : undefined,
+			currentPick: trainerCard && typeof trainerCard.footer === 'string' ? trainerCard.footer : undefined,
+			currentPrimaryColor: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ?
+				trainerCard.footer.color as HexCode : undefined,
+			currentSecondaryColor: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ?
+				trainerCard.footer.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickFooterHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickFooterLightness(dontRender),
 			onClear: (index, dontRender) => this.clearFooterColor(dontRender),
@@ -480,7 +493,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	setHeaderColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId!].header = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].header = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -502,7 +515,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	setTableColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId!].table = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].table = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -524,7 +537,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 	setFooterColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId!].footer = color.hexCode;
+		database.tournamentTrainerCards![this.targetUserId!].footer = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}

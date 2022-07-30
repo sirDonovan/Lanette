@@ -2,7 +2,7 @@ import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { TrainerSpriteId } from "../types/dex";
 import type { IDatabase, ICustomBorder, IGameHostBox } from "../types/storage";
-import type { BorderType, HexCode } from "../types/tools";
+import type { BorderType, HexCode, IHexCodeData } from "../types/tools";
 import type { User } from "../users";
 import { BorderStyle } from "./components/border-style";
 import type { IColorPick } from "./components/color-picker";
@@ -68,10 +68,10 @@ class GameHostBox extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		const database = Storage.getDatabase(this.room);
-		let currentBackgroundColor: HexCode | undefined;
-		let currentButtonColor: HexCode | undefined;
-		let currentSignupsBackgroundColor: HexCode | undefined;
-		let currentSignupsButtonColor: HexCode | undefined;
+		let currentBackgroundColor: HexCode | IHexCodeData | undefined;
+		let currentButtonColor: HexCode | IHexCodeData | undefined;
+		let currentSignupsBackgroundColor: HexCode | IHexCodeData | undefined;
+		let currentSignupsButtonColor: HexCode | IHexCodeData | undefined;
 		let currentTrainer: TrainerSpriteId | undefined;
 		let currentPokemon: PokemonChoices | undefined;
 		let currentBackgroundBorder: ICustomBorder | undefined;
@@ -94,7 +94,11 @@ class GameHostBox extends HtmlPageBase {
 		}
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
-			currentPick: currentBackgroundColor,
+			currentPick: typeof currentBackgroundColor === 'string' ? currentBackgroundColor : undefined,
+			currentPrimaryColor: currentBackgroundColor && typeof currentBackgroundColor !== 'string' ?
+				currentBackgroundColor.color as HexCode : undefined,
+			currentSecondaryColor: currentBackgroundColor && typeof currentBackgroundColor !== 'string' ?
+				currentBackgroundColor.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -103,7 +107,11 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(room, this.commandPrefix, setButtonColorCommand, {
-			currentPick: currentButtonColor,
+			currentPick: typeof currentButtonColor === 'string' ? currentButtonColor : undefined,
+			currentPrimaryColor: currentButtonColor && typeof currentButtonColor !== 'string' ?
+				currentButtonColor.color as HexCode : undefined,
+			currentSecondaryColor: currentButtonColor && typeof currentButtonColor !== 'string' ?
+				currentButtonColor.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
@@ -112,7 +120,11 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsBackgroundColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsBackgroundColorCommand, {
-			currentPick: currentSignupsBackgroundColor,
+			currentPick: typeof currentSignupsBackgroundColor === 'string' ? currentSignupsBackgroundColor : undefined,
+			currentPrimaryColor: currentSignupsBackgroundColor && typeof currentSignupsBackgroundColor !== 'string' ?
+				currentSignupsBackgroundColor.color as HexCode : undefined,
+			currentSecondaryColor: currentSignupsBackgroundColor && typeof currentSignupsBackgroundColor !== 'string' ?
+				currentSignupsBackgroundColor.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsBackgroundColor(dontRender),
@@ -121,7 +133,11 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonColorPicker = new ColorPicker(room, this.commandPrefix, setSignupsButtonColorCommand, {
-			currentPick: currentSignupsButtonColor,
+			currentPick: typeof currentSignupsButtonColor === 'string' ? currentSignupsButtonColor : undefined,
+			currentPrimaryColor: currentSignupsButtonColor && typeof currentSignupsButtonColor !== 'string' ?
+				currentSignupsButtonColor.color as HexCode : undefined,
+			currentSecondaryColor: currentSignupsButtonColor && typeof currentSignupsButtonColor !== 'string' ?
+				currentSignupsButtonColor.secondaryColor as HexCode : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsButtonsColor(dontRender),
@@ -428,7 +444,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.gameHostBoxes![this.userId].background = color.hexCode;
+		database.gameHostBoxes![this.userId].background = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -442,7 +458,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setSignupsBackgroundColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.gameHostBoxes![this.userId].signupsBackground = color.hexCode;
+		database.gameHostBoxes![this.userId].signupsBackground = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -464,7 +480,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setButtonsColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.gameHostBoxes![this.userId].buttons = color.hexCode;
+		database.gameHostBoxes![this.userId].buttons = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -478,7 +494,7 @@ class GameHostBox extends HtmlPageBase {
 
 	setSignupsButtonsColor(color: IColorPick, dontRender?: boolean): void {
 		const database = this.getDatabase();
-		database.gameHostBoxes![this.userId].signupsButtons = color.hexCode;
+		database.gameHostBoxes![this.userId].signupsButtons = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}

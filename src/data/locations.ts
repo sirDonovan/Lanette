@@ -400,4 +400,12 @@ export const locations: LocationData = {
 			"Wild Area",
 		],
 	},
+	hisui: {
+		city: [],
+		town: [],
+		cave: [],
+		forest: [],
+		mountain: [],
+		other: [],
+	},
 };

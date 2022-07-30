@@ -10,12 +10,12 @@ import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
 import type { Room } from "../../rooms";
-import type { BorderType, HexCode } from "../../types/tools";
+import type { BorderType, HexCode, IHexCodeData } from "../../types/tools";
 import type { GifIcon, ICustomBorder, IGameHostDisplay } from "../../types/storage";
 import { BorderStyle } from "./border-style";
 
 export interface IHostDisplayProps extends IComponentProps {
-	currentBackground?: HexCode;
+	currentBackground?: HexCode | IHexCodeData;
 	currentBackgroundBorder?: ICustomBorder;
 	maxGifs: number;
 	maxIcons: number;
@@ -83,7 +83,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		super(room, parentCommandPrefix, componentCommand, props);
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
-			currentPick: props.currentBackground,
+			currentPick: typeof props.currentBackground === 'string' ? props.currentBackground : undefined,
+			currentPrimaryColor: props.currentBackground && typeof props.currentBackground !== 'string' ?
+				props.currentBackground.color as HexCode : undefined,
+			currentSecondaryColor: props.currentBackground && typeof props.currentBackground !== 'string' ?
+				props.currentBackground.secondaryColor as HexCode : undefined,
 			random: props.random,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),

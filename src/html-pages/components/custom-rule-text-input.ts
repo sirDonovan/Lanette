@@ -2,10 +2,16 @@ import type { Room } from "../../rooms";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
+export interface ICustomRuleTextInputProps extends ITextInputProps {
+	noComplexBans?: boolean;
+}
+
 export class CustomRuleTextInput extends TextInput {
 	componentId: string = 'custom-rule-text-input';
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps) {
+	declare props: ICustomRuleTextInputProps;
+
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ICustomRuleTextInputProps) {
 		super(room, parentCommandPrefix, componentCommand, props);
 	}
 
@@ -17,12 +23,32 @@ export class CustomRuleTextInput extends TextInput {
 		for (const part of parts) {
 			try {
 				const validated = Dex.validateRule(part);
-				if (typeof validated !== 'string') throw new Error("Complex bans are not currently supported.");
+				if (typeof validated !== 'string') {
+					if (this.props.noComplexBans) throw new Error("Complex bans are not supported.");
+					let limit = "";
+					let type: string;
+					if (validated[3] === Infinity) {
+						type = "+";
+					} else {
+						type = "-";
+						if (validated[3]) {
+							limit = " > " + validated[3];
+						}
+					}
 
-				validRules.push(validated);
+					const complexSymbol = validated[0] === 'complexBan' ? ' + ' : ' ++ ';
+					validRules.push(type + validated[4].join(complexSymbol) + limit);
+				} else {
+					validRules.push(validated);
+				}
 			} catch (e) {
-				this.errors.push(part + " error: " + (e as Error).message);
-				invalidRules.push(part);
+				const format = Dex.getFormat(part);
+				if (format) {
+					validRules.push(format.name);
+				} else {
+					this.errors.push(part + " error: " + (e as Error).message);
+					invalidRules.push(part);
+				}
 			}
 		}
 

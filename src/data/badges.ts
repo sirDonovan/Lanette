@@ -76,4 +76,5 @@ export const badges: BadgeData = {
 		"Dark",
 		"Dragon",
 	],
+	hisui: [],
 };

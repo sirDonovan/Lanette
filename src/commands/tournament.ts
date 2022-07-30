@@ -236,10 +236,15 @@ export const commands: BaseCommandDefinitions = {
 				}
 				tournamentRoom = room;
 			}
-			const month = parseInt(targets[0]);
-			if (isNaN(month)) return this.say("You must specify the month (1-12).");
-			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom, month);
-			if (!schedule) return this.say("No tournament schedule found for " + tournamentRoom.title + ".");
+
+			const month = Tools.toId(targets[0]);
+			if (isNaN(parseInt(month))) return this.say("You must specify the month between 1 and 12.");
+
+			const year = parseInt(targets[1]);
+			if (isNaN(year)) return this.say("You must specify the year.");
+
+			const schedule = Tournaments.getTournamentScheduleHtml(tournamentRoom, year, month, true);
+			if (!schedule) return this.say("No tournament schedule found for " + month + "/" + year + " in " + tournamentRoom.title + ".");
 			this.sayCode(schedule);
 		},
 		aliases: ['gettourschedule'],

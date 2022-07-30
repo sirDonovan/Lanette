@@ -239,7 +239,7 @@ const locationTypeNames: LocationTypeNames = {
 };
 
 type Regions = readonly RegionName[];
-const regions: Regions = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar'];
+const regions: Regions = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'hisui'];
 
 type RegionNames = Readonly<KeyedDict<RegionName, string>>;
 const regionNames: RegionNames = {
@@ -251,6 +251,7 @@ const regionNames: RegionNames = {
 	kalos: "Kalos",
 	alola: "Alola",
 	galar: "Galar",
+	hisui: "Hisui",
 };
 
 export class Dex {
@@ -1947,11 +1948,12 @@ export class Dex {
 					addedrules.push(ruleName);
 				}
 			} else {
+				const complexSymbol = rule[0] === 'complexBan' ? ' + ' : ' ++ ';
 				const complexBans = rule[4].map(x => this.getValidatedRuleName(x));
-				if (rule[0] === 'complexTeamBan') {
-					addedbans.push(complexBans.join(' ++ '));
+				if (rule[3] === Infinity) {
+					removedbans.push(complexBans.join(complexSymbol));
 				} else {
-					addedbans.push(complexBans.join(' + '));
+					addedbans.push(complexBans.join(complexSymbol) + (rule[3] ? " > " + rule[3] : ""));
 				}
 			}
 		}

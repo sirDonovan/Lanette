@@ -34,6 +34,7 @@ const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
 const saveCustomFormatCommand = 'saveroomcustomformat';
+const deleteCustomFormatCommand = 'deleteroomcustomformat';
 const loadNextTournamentCommand = 'loadnexttournament';
 const loadPastTournamentCommand = 'loadpasttournament';
 const loadCustomFormatCommand = 'loadcustomformat';
@@ -487,6 +488,8 @@ class CustomFormatManager extends HtmlPageBase {
 		this.format.usableMoves = undefined;
 		this.format.usablePokemon = undefined;
 		this.format.usablePokemonTags = undefined;
+		this.format.ruleTable = undefined;
+		this.format.separatedCustomRules = undefined;
 
 		this.updateAvailableAbilities();
 		this.updateAvailableItems();
@@ -512,6 +515,8 @@ class CustomFormatManager extends HtmlPageBase {
 		const filteredCustomRules: string[] = [];
 		const nonRulesetRules: string[] = [];
 		for (const rule of customRules) {
+			if (filteredCustomRules.includes(rule) || nonRulesetRules.includes(rule)) continue;
+
 			const type = rule.charAt(0);
 			if (type === '-' || type === '+' || type === '*') {
 				if (pokemonTags.includes(rule.slice(1))) {
@@ -525,10 +530,17 @@ class CustomFormatManager extends HtmlPageBase {
 					nonRulesetRules.push(rule);
 				}
 			} else {
-				const ruleId = Tools.toId(rule);
-				if (ruleId && ruleTable.has(ruleId)) {
-					if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
-					continue;
+				if (type === '!') {
+					if (this.format.ruleset.includes(rule)) {
+						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+						continue;
+					}
+				} else {
+					const ruleId = Tools.toId(rule);
+					if (ruleId && ruleTable.has(ruleId)) {
+						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
+						continue;
+					}
 				}
 
 				filteredCustomRules.push(rule);
@@ -600,71 +612,120 @@ class CustomFormatManager extends HtmlPageBase {
 				type = "";
 			}
 
-			let tag = "";
-			if (name.startsWith(abilityTag)) {
-				const ability = Dex.getAbility(name.split(":")[1]);
-				if (!ability) continue;
-
-				name = ability.name;
-				tag = abilityTag + ability.id;
-				changedAbilities = true;
-			} else if (name.startsWith(itemTag)) {
-				const item = Dex.getItem(name.split(":")[1]);
-				if (!item) continue;
-
-				name = item.name;
-				tag = itemTag + item.id;
-				changedItems = true;
-			} else if (name.startsWith(moveTag)) {
-				const move = Dex.getMove(name.split(":")[1]);
-				if (!move) continue;
-
-				name = move.name;
-				tag = moveTag + move.id;
-				changedMoves = true;
-			} else if (name.startsWith(pokemonTag) || name.startsWith(basePokemonTag)) {
-				const pokemon = Dex.getPokemon(name.split(":")[1]);
-				if (!pokemon) continue;
-
-				name = pokemon.name;
-				tag = (name.startsWith(pokemonTag) ? pokemonTag : basePokemonTag) + pokemon.id;
-				changedPokemon = true;
-			} else if (name.startsWith(tierTag)) {
-				const tagId = Tools.toId(name.split(":")[1]);
-				if (!(tagId in pokemonTagsById)) continue;
-
-				name = pokemonTagsById[tagId];
-				tag = tierTag + tagId;
-				changedTiers = true;
-			} else {
-				const parts = name.split("=");
-				if (parts.length === 2) {
-					const ruleId = Tools.toId(parts[0]);
-					if (ruleId === forceMonotype) {
-						const pokemonType = Dex.getType(parts[1]);
-						if (pokemonType) {
-							this.forceMonotype = ruleId + "=" + pokemonType.name;
-							changedPokemon = true;
-						}
-					} else if (ruleId in this.valueRulesTextInputs) {
-						const validatedRule = Dex.validateRule(name);
-						if (typeof validatedRule === 'string') {
-							this.valueRulesOutputs[ruleId] = validatedRule;
-							changedPokemon = true;
-						}
-					}
-
-					continue;
-				} else {
-					const format = Dex.getFormat(name);
-					if (!format || format.effectType === 'Format') continue;
-					name = format.name;
-				}
-
-				changedRules = true;
+			let limit = "";
+			const limitIndex = name.indexOf(" > ");
+			if (limitIndex !== -1) {
+				limit = name.slice(limitIndex);
+				name = name.slice(0, limitIndex);
 			}
 
-			const formattedRule = type + name;
+			let complexBanSymbol = "";
+			let parts: string[];
+			if (name.includes("++")) {
+				complexBanSymbol = "++";
+				parts = name.split("++").map(x => x.trim());
+			} else if (name.includes("+")) {
+				complexBanSymbol = "+";
+				parts = name.split("+").map(x => x.trim());
+			} else {
+				parts = [name];
+			}
+
+			let formattedName = "";
+			let tag = "";
+			for (const part of parts) {
+				if (part.startsWith(abilityTag)) {
+					const ability = Dex.getAbility(part.split(":")[1]);
+					if (!ability) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = abilityTag + ability.id;
+					}
+
+					formattedName += ability.name;
+					changedAbilities = true;
+				} else if (part.startsWith(itemTag)) {
+					const item = Dex.getItem(part.split(":")[1]);
+					if (!item) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = itemTag + item.id;
+					}
+
+					formattedName += item.name;
+					changedItems = true;
+				} else if (part.startsWith(moveTag)) {
+					const move = Dex.getMove(part.split(":")[1]);
+					if (!move) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = moveTag + move.id;
+					}
+
+					formattedName += move.name;
+					changedMoves = true;
+				} else if (part.startsWith(pokemonTag) || part.startsWith(basePokemonTag)) {
+					const pokemon = Dex.getPokemon(part.split(":")[1]);
+					if (!pokemon) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = (part.startsWith(pokemonTag) ? pokemonTag : basePokemonTag) + pokemon.id;
+					}
+
+					formattedName += pokemon.name;
+					changedPokemon = true;
+				} else if (part.startsWith(tierTag)) {
+					const tagId = Tools.toId(part.split(":")[1]);
+					if (!(tagId in pokemonTagsById)) continue;
+
+					if (complexBanSymbol) {
+						if (formattedName) formattedName += " " + complexBanSymbol + " ";
+					} else {
+						tag = tierTag + tagId;
+					}
+
+					formattedName += pokemonTagsById[tagId];
+					changedTiers = true;
+				} else {
+					const valueParts = part.split("=");
+					if (valueParts.length === 2) {
+						const ruleId = Tools.toId(valueParts[0]);
+						if (ruleId === forceMonotype) {
+							const pokemonType = Dex.getType(valueParts[1]);
+							if (pokemonType) {
+								this.forceMonotype = ruleId + "=" + pokemonType.name;
+								changedPokemon = true;
+							}
+						} else if (ruleId in this.valueRulesTextInputs) {
+							const validatedRule = Dex.validateRule(part);
+							if (typeof validatedRule === 'string') {
+								this.valueRulesOutputs[ruleId] = validatedRule;
+								changedPokemon = true;
+							}
+						}
+
+						continue;
+					} else {
+						const format = Dex.getFormat(part);
+						if (!format) continue;
+
+						if (complexBanSymbol && formattedName) formattedName += " " + complexBanSymbol + " ";
+						formattedName += format.name;
+					}
+
+					changedRules = true;
+				}
+			}
+
+			const formattedRule = type + formattedName + limit;
 			if (!newCustomRules.includes(formattedRule)) {
 				newCustomRules.push(formattedRule);
 				if (tag) newCustomRuleTags[formattedRule] = type + tag;
@@ -676,6 +737,7 @@ class CustomFormatManager extends HtmlPageBase {
 			return;
 		}
 
+		this.redundantCustomRules = [];
 		this.updateCustomRules(this.removeRedundantRules(newCustomRules, newCustomRuleTags), newCustomRuleTags);
 
 		if (changedAbilities) this.format.usableAbilities = undefined;
@@ -780,14 +842,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.abilitiesToBan = [];
 		this.abilitiesToUnban = [];
 
-		this.format.ruleTable = undefined;
-		const usableAbilities = Dex.getUsableAbilities(this.format);
-		for (const ability of Dex.getAbilitiesList()) {
-			if (usableAbilities.includes(ability.name)) {
-				this.abilitiesToBan.push(ability.name);
-			} else {
-				this.abilitiesToUnban.push(ability.name);
+		try {
+			const usableAbilities = Dex.getUsableAbilities(this.format);
+			for (const ability of Dex.getAbilitiesList()) {
+				if (usableAbilities.includes(ability.name)) {
+					this.abilitiesToBan.push(ability.name);
+				} else {
+					this.abilitiesToUnban.push(ability.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable abilities in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -797,14 +863,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.itemsToBan = [];
 		this.itemsToUnban = [];
 
-		this.format.ruleTable = undefined;
-		const usableItems = Dex.getUsableItems(this.format);
-		for (const item of Dex.getItemsList()) {
-			if (usableItems.includes(item.name)) {
-				this.itemsToBan.push(item.name);
-			} else {
-				this.itemsToUnban.push(item.name);
+		try {
+			const usableItems = Dex.getUsableItems(this.format);
+			for (const item of Dex.getItemsList()) {
+				if (usableItems.includes(item.name)) {
+					this.itemsToBan.push(item.name);
+				} else {
+					this.itemsToUnban.push(item.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable items in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -814,14 +884,18 @@ class CustomFormatManager extends HtmlPageBase {
 		this.movesToBan = [];
 		this.movesToUnban = [];
 
-		this.format.ruleTable = undefined;
-		const usableMoves = Dex.getUsableMoves(this.format);
-		for (const move of Dex.getMovesList()) {
-			if (usableMoves.includes(move.name)) {
-				this.movesToBan.push(move.name);
-			} else {
-				this.movesToUnban.push(move.name);
+		try {
+			const usableMoves = Dex.getUsableMoves(this.format);
+			for (const move of Dex.getMovesList()) {
+				if (usableMoves.includes(move.name)) {
+					this.movesToBan.push(move.name);
+				} else {
+					this.movesToUnban.push(move.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable moves in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -831,16 +905,20 @@ class CustomFormatManager extends HtmlPageBase {
 		this.pokemonToBan = [];
 		this.pokemonToUnban = [];
 
-		this.format.ruleTable = undefined;
-		const usablePokemon = Dex.getUsablePokemon(this.format);
-		for (const pokemon of Dex.getPokemonList()) {
-			if (usablePokemon.includes(pokemon.name)) {
-				this.pokemonToBan.push(pokemon.name);
-				if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToBan.push(pokemon.name + '-Base');
-			} else {
-				this.pokemonToUnban.push(pokemon.name);
-				if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToUnban.push(pokemon.name + '-Base');
+		try {
+			const usablePokemon = Dex.getUsablePokemon(this.format);
+			for (const pokemon of Dex.getPokemonList()) {
+				if (usablePokemon.includes(pokemon.name)) {
+					this.pokemonToBan.push(pokemon.name);
+					if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToBan.push(pokemon.name + '-Base');
+				} else {
+					this.pokemonToUnban.push(pokemon.name);
+					if (pokemon.otherFormes || pokemon.cosmeticFormes) this.pokemonToUnban.push(pokemon.name + '-Base');
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable Pokemon in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -850,16 +928,20 @@ class CustomFormatManager extends HtmlPageBase {
 		this.rulesetsToAdd = [];
 		this.rulesetsToRemove = [];
 
-		this.format.ruleTable = undefined;
-		const ruleTable = Dex.getRuleTable(this.format);
-		for (const rule of Dex.getRulesList()) {
-			if (rule.hasValue) continue;
+		try {
+			const ruleTable = Dex.getRuleTable(this.format);
+			for (const rule of Dex.getRulesList()) {
+				if (rule.hasValue) continue;
 
-			if (ruleTable.has(rule.id)) {
-				this.rulesetsToRemove.push(rule.name);
-			} else {
-				this.rulesetsToAdd.push(rule.name);
+				if (ruleTable.has(rule.id)) {
+					this.rulesetsToRemove.push(rule.name);
+				} else {
+					this.rulesetsToAdd.push(rule.name);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting rule table in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -869,14 +951,19 @@ class CustomFormatManager extends HtmlPageBase {
 		this.tiersToBan = [];
 		this.tiersToUnban = [];
 
-		this.format.ruleTable = undefined;
-		const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
-		for (const tag of Dex.getPokemonTagsList()) {
-			if (usablePokemonTags.includes(tag)) {
-				this.tiersToBan.push(tag);
-			} else {
-				this.tiersToUnban.push(tag);
+		try {
+			const usablePokemonTags = Dex.getUsablePokemonTags(this.format);
+			const pokemonTagsList = Dex.getPokemonTagsList().slice().sort();
+			for (const tag of pokemonTagsList) {
+				if (usablePokemonTags.includes(tag)) {
+					this.tiersToBan.push(tag);
+				} else {
+					this.tiersToUnban.push(tag);
+				}
 			}
+		} catch (e) {
+			Tools.logError(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
+				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
 
@@ -910,7 +997,7 @@ class CustomFormatManager extends HtmlPageBase {
 				const format = Tournaments.getFormat(database.customFormats[i].name, this.room);
 				if (!format) continue;
 
-				elements.push({html: this.getQuietPmButton(this.commandPrefix + ", " + loadCustomFormatCommand + ", " + i,
+				elements.push({html: "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + loadCustomFormatCommand + ", " + i,
 					database.customFormats[i].name)});
 			}
 		}
@@ -930,7 +1017,7 @@ class CustomFormatManager extends HtmlPageBase {
 		this.customFormatNameInput.parentSetInput(this.customFormatName);
 		this.formatInput.parentSetInput(format.id);
 
-		this.setFormat(database.customFormats[customId].name);
+		this.loadFormat(database.customFormats[customId].name);
 	}
 
 	saveCustomFormat(): void {
@@ -956,12 +1043,30 @@ class CustomFormatManager extends HtmlPageBase {
 		void Storage.exportDatabase(this.room.id);
 	}
 
+	deleteCustomFormat(): void {
+		if (!this.customFormatName || !this.canCreateTournament) return;
+
+		const database = Storage.getDatabase(this.room);
+		if (!database.customFormats) return;
+
+		const nameId = Tools.toId(this.customFormatName);
+		if (!(nameId in database.customFormats)) return;
+
+		delete database.customFormats[nameId];
+		this.customFormatsPagination.updateElements(this.getCustomFormatPageElements());
+		this.send();
+		this.room.modnote(this.userName + " deleted the custom format " + this.customFormatName + " from the database");
+
+		void Storage.exportDatabase(this.room.id);
+	}
+
 	loadFormat(formatId: string): void {
 		const format = Tournaments.getFormat(formatId, this.room);
 		if (format) {
 			this.forceMonotype = null;
 			this.valueRulesOutputs = {};
 			this.nonValueCustomRules = [];
+			this.customRules = [];
 			this.formatInput.parentSetInput(format.id);
 
 			this.customFormatName = format.customFormatName || "";
@@ -983,6 +1088,8 @@ class CustomFormatManager extends HtmlPageBase {
 	}
 
 	render(): string {
+		const database = Storage.getDatabase(this.room);
+
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Custom Format Manager</b>";
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
 		html += "</center><br />";
@@ -1020,8 +1127,14 @@ class CustomFormatManager extends HtmlPageBase {
 					"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
 				html += "<br /><br />";
 				html += this.customFormatNameInput.render();
+
+				const customFormatId = Tools.toId(this.customFormatName);
 				html += this.getQuietPmButton(this.commandPrefix + ", " + saveCustomFormatCommand, "Save to database",
-					{disabled: !Tools.toId(this.customFormatName)});
+					{disabled: !customFormatId || (database.customFormats && customFormatId in database.customFormats &&
+						database.customFormats[customFormatId].formatId === this.getCustomFormatId())});
+				if (database.customFormats && customFormatId in database.customFormats) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteCustomFormatCommand, "Remove from database");
+				}
 			}
 
 			if (this.redundantCustomRules.length) {
@@ -1061,7 +1174,6 @@ class CustomFormatManager extends HtmlPageBase {
 			html += "<br /><br />";
 			html += this.formatInput.render();
 
-			const database = Storage.getDatabase(this.room);
 			if (database.queuedTournament && !database.queuedTournament.official && Dex.getFormat(database.queuedTournament.formatid)) {
 				html += "<br /><br />";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + loadNextTournamentCommand,
@@ -1217,6 +1329,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].loadCustomFormatCommand(targets[0]);
 			} else if (cmd === saveCustomFormatCommand) {
 				pages[user.id].saveCustomFormat();
+			} else if (cmd === deleteCustomFormatCommand) {
+				pages[user.id].deleteCustomFormat();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);
 				if (error) this.say(error);

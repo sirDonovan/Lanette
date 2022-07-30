@@ -23,6 +23,7 @@ export class Tournament extends Activity {
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
 	readonly currentBattles: ICurrentTournamentBattle[] = [];
+	finalBattle: boolean = false;
 	generator: number = 1;
 	readonly info: ITournamentUpdateJson & ITournamentEndJson = {
 		bracketData: {type: ''},
@@ -158,14 +159,17 @@ export class Tournament extends Activity {
 	}
 
 	setRunAutoDqTimeout(): void {
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
+
 		if (this.runAutoDqTime <= 0) return;
 
-		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		this.runAutoDqTimeout = setTimeout(() => {
 			this.runAutoDqTimeout = null;
 
-			this.room.runTournamentAutoDq();
-			if (this.getRemainingPlayerCount() > 2) this.setRunAutoDqTimeout();
+			if (!this.finalBattle) {
+				this.room.runTournamentAutoDq();
+				this.setRunAutoDqTimeout();
+			}
 		}, this.runAutoDqTime);
 	}
 
@@ -512,8 +516,12 @@ export class Tournament extends Activity {
 		}
 		this.battleRooms.push(publicId);
 
-		if (this.generator === 1 && this.totalPlayers >= 4 && this.getRemainingPlayerCount() === 2) {
-			this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
+		if (this.generator === 1 && this.getRemainingPlayerCount() === 2) {
+			this.finalBattle = true;
+
+			if (this.totalPlayers >= 4) {
+				this.room.announce("Final battle of the " + this.name + " " + this.activityType + ": <<" + roomid + ">>!");
+			}
 		}
 
 		if (this.joinBattles || this.battleRoomGame) {
