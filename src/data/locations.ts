@@ -407,7 +407,7 @@ export const locations: LocationData = {
 		forest: [],
 		mountain: [],
 		other: [],
-	}
+	},
 		/*hubareas: [
 			'Obsidian Fieldlands',
 			'Crimson Mirelands',
