@@ -243,6 +243,11 @@ export let sharedTournamentTrainerCards: Dict<string> = {};
 export let tournamentTrainerCardBadges: Dict<{name: string; source: string; width: number; height: number}> = {};
 
 /**
+ * For each ribbon in the object, the link to the ribbon image
+ */
+ export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
+
+/**
  * A list of rooms (roomids) where hosted tournaments go through the approval process
  */
 export let allowUserHostedTournaments: string[] = [];
@@ -444,10 +449,12 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
 /**
  * For each room in the object, the information for its game catalog gist
  */
-export let gameCatalogGists: Dict<{description: string; files: string[]; id: string}> = {};
+export let gameCatalogGists: Dict<{description: string; files: {scripted?: string, userHosted?: string}; id: string}> = {};
+
+export let onScriptedGameCreate: ((room: Room, format: IGameFormat, official?: boolean) => void) | undefined = undefined;
 
 export let onScriptedGameWin: ((room: Room, format: IGameFormat, players: Dict<Player>, winners: Map<Player, number>,
-	points: Map<Player, number> | undefined) => void) | undefined = undefined;
+	points: Map<Player, number> | undefined, official: boolean) => void) | undefined = undefined;
 
 export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, players: Dict<Player>, winners: Map<Player, number>,
 	points: Map<Player, number> | undefined) => void) | undefined = undefined;

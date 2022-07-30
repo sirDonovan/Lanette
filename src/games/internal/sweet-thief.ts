@@ -8,6 +8,7 @@ export class SweetThief extends ScriptedGame {
 	currentHolder: Player | null = null;
 	takeBackTimeout: NodeJS.Timer | null = null;
 	internalGame: boolean = true;
+	managedPlayers = true;
 
 	// hack for selectUser()
 	declare readonly room: Room;

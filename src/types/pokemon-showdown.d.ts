@@ -8,7 +8,7 @@ import type { IFormatDataLinks, ISeparatedCustomRules } from "./dex";
 /** rule, source, limit, bans */
 export type ComplexBan = [string, string, number, string[]];
 export type ComplexTeamBan = ComplexBan;
-export type ValidatedRule = string | [string, string, string, number, string[]];
+export type ValidatedRule = string | [type: 'complexTeamBan' | 'complexBan', rule: string, source: string, limit: number, bans: string[]];
 
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatIDExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
@@ -848,11 +848,14 @@ export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLink
 	quickFormat: boolean;
 	tournamentPlayable: boolean;
 	unranked: boolean;
+	customFormatName?: string;
+	hasValue?: boolean;
 	tournamentName?: string;
 	usableAbilities?: string[];
 	usableItems?: string[];
 	usableMoves?: string[];
 	usablePokemon?: string[];
+	usablePokemonTags?: string[];
 	separatedCustomRules?: ISeparatedCustomRules;
 }
 
@@ -932,6 +935,21 @@ export interface IPokemonShowdownDexModule {
 	Dex: IPokemonShowdownDex;
 }
 
+export interface IPokemonShowdownTagsModule {
+	Tags: Dict<ITagData>;
+}
+
+export interface ITagData {
+	name: string;
+	desc?: string;
+	speciesFilter?: (species: IPSPokemon) => boolean;
+	moveFilter?: (move: IPSMove) => boolean;
+	genericFilter?: (thing: IPSPokemon | IPSMove | IPSItem | IPSAbility) => boolean;
+	speciesNumCol?: (species: IPSPokemon) => number;
+	moveNumCol?: (move: IPSMove) => number;
+	genericNumCol?: (thing: IPSPokemon | IPSMove | IPSItem | IPSAbility) => number;
+}
+
 export interface IPokemonShowdownDex {
 	data: {
 		Abilities: Dict<unknown>;
@@ -941,6 +959,7 @@ export interface IPokemonShowdownDex {
 		Moves: Dict<unknown>;
 		Natures: Dict<unknown>;
 		Pokedex: Dict<unknown>;
+		Rulesets: Dict<unknown>;
 		TypeChart: Dict<unknown>;
 	}
 	gen: number;
@@ -954,7 +973,7 @@ export interface IPokemonShowdownDex {
 		all: () => readonly IPSFormat[];
 		getRuleTable: (format: IFormat) => RuleTable;
 		validate: (name: string) => string;
-		validateRule: (rule: string) => [string, string, string, number, string[]] | string;
+		validateRule: (rule: string) => ValidatedRule;
 	}
 	items: {
 		get: (name: string | IPSItem) => IPSItem;

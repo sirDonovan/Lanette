@@ -824,7 +824,7 @@ export const game: IGameTemplateFile<CardMatching> = Object.assign(Tools.deepClo
 			enabled: true,
 		},
 	},
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<CardMatching>, commands),
 	modes: undefined,
 	modeProperties: undefined,
 	tests: Object.assign({}, cardGame.tests, tests),

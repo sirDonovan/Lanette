@@ -17,6 +17,7 @@ export abstract class HtmlPageBase {
 	components: ComponentBase[] = [];
 	lastRender: string = '';
 	readonly: boolean = false;
+	usedCommandAfterLastRender: boolean = false;
 
 	baseCommand: string;
 	commandPrefix: string;
@@ -99,9 +100,10 @@ export abstract class HtmlPageBase {
 		if (!user) return;
 
 		const render = this.render(onOpen);
-		if (render === this.lastRender) return;
+		if (render === this.lastRender && !this.usedCommandAfterLastRender) return;
 
 		this.lastRender = render;
+		this.usedCommandAfterLastRender = false;
 		this.room.sendHtmlPage(user, this.pageId, render);
 
 		if (this.onSend) this.onSend(onOpen);
@@ -110,6 +112,7 @@ export abstract class HtmlPageBase {
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
 		for (const component of this.components) {
 			if (component.active && component.componentCommand === componentCommand) {
+				this.usedCommandAfterLastRender = true;
 				return component.tryCommand(targets);
 			}
 		}

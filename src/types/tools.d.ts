@@ -20,6 +20,7 @@ export interface IHexCodeData {
 	category?: 'tint' | 'light' | 'dark' | 'shade' | 'brown' | 'white' | 'gray' | 'black' | 'light-brown' | 'light-gray' |
 		'dark-brown' | 'dark-gray';
 	textColor?: '#000000' | '#ffffff';
+	secondaryColor?: string;
 }
 
 export interface IParsedSmogonLink {

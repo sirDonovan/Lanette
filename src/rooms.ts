@@ -264,7 +264,7 @@ export class Room {
 		if (!this.users.has(user)) {
 			this.onUserJoin(user, rank);
 		} else {
-			if (user.setRoomRank(this, rank)) {
+			if (user.setRoomRank(this, rank) && this.type === 'chat') {
 				Client.getRoomInfo(this);
 			}
 		}

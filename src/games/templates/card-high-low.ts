@@ -307,7 +307,7 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 };
 
 export const game: IGameTemplateFile<CardHighLow> = Object.assign(Tools.deepClone(cardGame), {
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<CardHighLow>, commands),
 	modeProperties: undefined,
 	tests: undefined,
 	variants: undefined,
