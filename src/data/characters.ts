@@ -134,6 +134,10 @@ export const characters: CharacterData = {
 			"Rydel",
 			"Lanette",
 			"Scott",
+			"Aarune",
+			"Chaz",
+			"Lisia",
+			"Zinnia",
 		],
 	},
 	sinnoh: {
@@ -377,6 +381,61 @@ export const characters: CharacterData = {
 		other: [
 			"Peony",
 			"Sonia",
+			"Mustard",
+			"Honey",
+			"Peonia",
+			"Hyde",
+		],
+	},
+	hisui: {
+		player: [
+			"Akari",
+			"Rei",
+		],
+		rival: [
+		],
+		gymleader: [
+		],
+		elitefour: [
+		],
+		champion: [
+		],
+		frontierbrain: [],
+		professor: [
+			"Professor Laventon",
+		],
+		antagonist: [
+			"Charm",
+			"Clover",
+			"Coin",
+			"Volo",
+		],
+		other: [
+			"Adaman",
+			"Anthe",
+			"Beni",
+			"Choy",
+			"Cogita",
+			"Colza",
+			"Captain Cyllene",
+			"Ginter",
+			"Irida",
+			"Commander Kamado",
+			"Pesselle",
+			"Rye",
+			"Sanqua",
+			"Tao Hua",
+			"Zisu",
+			"Arezu",
+			"Calaba",
+			"Gaeric",
+			"Ingo",
+			"Iscan",
+			"Lian",
+			"Mai",
+			"Melli",
+			"Palina",
+			"Sabi",
 		],
 	},
 };
