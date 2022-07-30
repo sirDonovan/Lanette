@@ -2,6 +2,7 @@ import fs = require('fs');
 import path = require('path');
 import type { SearchChallenge } from './games/templates/search-challenge';
 
+import { gameSchedules } from './game-schedules';
 import type { PRNGSeed } from './lib/prng';
 import { ScriptedGame } from './room-game-scripted';
 import type { UserHostedGame } from './room-game-user-hosted';
@@ -12,11 +13,12 @@ import type {
 	AutoCreateTimerType, DefaultGameOption, GameCategory, GameChallenge, GameChallengeSettings, GameCommandDefinitions,
 	GameCommandReturnType, GameMode, GameNumberOptions, IGameAchievement, IGameFile, IGameFormat, IGameFormatComputed, IGameMode,
 	IGameModeFile, IGameOptions, IGameNumberOptionValues, IGamesWorkers, IGameTemplateFile, IGameVariant, InternalGame, IUserHostedComputed,
-	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable
+	IUserHostedFormat, IUserHostedFormatComputed, LoadedGameCommands, LoadedGameFile, UserHostedCustomizable, IOfficialGame,
+	IScheduledGameTimerData
 } from './types/games';
 import type { IAbility, IAbilityCopy, IItem, IItemCopy, IMove, IMoveCopy, IPokemon, IPokemonCopy } from './types/pokemon-showdown';
 import type { ICustomBorder, IGameCustomBox, IGameHostBox, IGameHostDisplay, IPastGame } from './types/storage';
-import type { HexCode } from './types/tools';
+import type { HexCode, IHexCodeData } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
@@ -29,6 +31,13 @@ type MinigameCommandNames = Dict<{aliases: string[]; format: string}>;
 type Modes = Dict<IGameMode>;
 type UserHostedFormats = Dict<IUserHostedComputed>;
 type GameCategoryNames = Readonly<KeyedDict<GameCategory, string>>;
+
+interface ICreateGameOptions {
+	minigame?: boolean;
+	official?: boolean;
+	pmRoom?: Room;
+	initialSeed?: PRNGSeed;
+}
 
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
@@ -102,6 +111,8 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 const gameChallenges: GameChallenge[] = ['botchallenge', 'onevsone'];
 
 export class Games {
+	readonly delayedOfficialGameTime: number = 15 * 1000;
+
 	private readonly achievements: Achievements = {};
 	private readonly aliases: Dict<string> = {};
 	private autoCreateTimers: Dict<NodeJS.Timer> = {};
@@ -136,6 +147,12 @@ export class Games {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
 	};
+
+	private nextOfficialGames: Dict<IOfficialGame> = {};
+	private officialGames: Dict<Dict<IOfficialGame[]>> = {};
+	private readonly schedules: typeof gameSchedules = gameSchedules;
+	private scheduledGameTimerData: Dict<IScheduledGameTimerData> = {};
+	private scheduledGameTimers: Dict<NodeJS.Timer> = {};
 
 	private readonly commands: LoadedGameCommands;
 	private readonly sharedCommands: LoadedGameCommands;
@@ -251,6 +268,176 @@ export class Games {
 	copyTemplateProperties<T extends ScriptedGame, U extends ScriptedGame>(template: IGameTemplateFile<T>, game: IGameFile<U>):
 		IGameFile<U> {
 		return Object.assign(Tools.deepClone(template), game);
+	}
+
+	loadSchedules(): void {
+		for (const server in this.schedules) {
+			const rooms = Object.keys(this.schedules[server]);
+			for (const room of rooms) {
+				const id = Tools.toRoomId(room);
+				if (id !== room) {
+					this.schedules[server][id] = this.schedules[server][room];
+					delete this.schedules[server][room];
+				}
+			}
+		}
+
+		for (const server in this.schedules) {
+			this.officialGames[server] = {};
+
+			for (const room in this.schedules[server]) {
+				this.officialGames[server][room] = [];
+
+				for (const month in this.schedules[server][room].months) {
+					for (const day in this.schedules[server][room].months[month].formats) {
+						for (const format of this.schedules[server][room].months[month].formats[day]) {
+							try {
+								if (format) this.getExistingFormat(format);
+							} catch (e) {
+								throw new Error(month + "/" + day + " in " + room + ": " + (e as Error).message);
+							}
+						}
+					}
+				}
+
+				const months = Object.keys(this.schedules[server][room].months).map(x => parseInt(x));
+				let month = months[0];
+				months.shift();
+
+				let formats = this.schedules[server][room].months[month].formats;
+				let times = this.schedules[server][room].months[month].times;
+				let formatIndex = times[0][0] > times[1][0] ? 2 : 1;
+				const date = new Date();
+				let day = 1;
+				date.setMonth(month - 1, day);
+				date.setDate(day);
+				date.setFullYear(this.schedules[server][room].months[month].year);
+				let lastDayOfMonth = Tools.getLastDayOfMonth(date);
+
+				const rolloverDay = (): void => {
+					formatIndex++;
+					if (!(formatIndex in formats)) {
+						if (months.length) {
+							formats = this.schedules[server][room].months[months[0]].formats;
+							formatIndex = 1;
+						} else {
+							formatIndex--;
+						}
+					}
+
+					day++;
+					if (day > lastDayOfMonth) {
+						day = 1;
+						const previousMonth = month;
+						month = months[0];
+						months.shift();
+						if (month) {
+							date.setMonth(month - 1, day);
+							date.setFullYear(this.schedules[server][room].months[month].year);
+
+							times = this.schedules[server][room].months[month].times;
+							lastDayOfMonth = Tools.getLastDayOfMonth(date);
+						} else {
+							// previousMonth + 1 - 1
+							date.setMonth(previousMonth, day);
+						}
+					}
+					date.setDate(day);
+				};
+
+				// month is eventually undefined due to rolloverDay()
+				while (month) {
+					let rolledOverDay = false;
+					for (let i = 0; i < times.length; i++) {
+						if (i > 0 && times[i][0] < times[i - 1][0]) {
+							rolloverDay();
+							rolledOverDay = true;
+						}
+
+						date.setHours(times[i][0], times[i][1], 0, 0);
+
+						let format = "";
+						for (let j = i; j >= 0; j--) {
+							format = formats[formatIndex][j];
+							if (format) break;
+						}
+
+						if (format) this.officialGames[server][room].push({format, time: date.getTime(), official: true});
+					}
+
+					if (!rolledOverDay) rolloverDay();
+				}
+
+				this.officialGames[server][room].sort((a, b) => a.time - b.time);
+			}
+		}
+	}
+
+	setNextScheduledGame(room: Room): void {
+		this.setOfficialGame(room);
+
+		const database = Storage.getDatabase(room);
+		if (database.queuedScriptedGame && (!(room.id in this.nextOfficialGames) ||
+			database.queuedScriptedGame.time < this.nextOfficialGames[room.id].time)) {
+			const format = this.getFormat(database.queuedScriptedGame.formatid);
+			if (!Array.isArray(format)) {
+				const now = Date.now();
+				if (database.queuedScriptedGame.time <= now) database.queuedScriptedGame.time = now + this.delayedOfficialGameTime;
+
+				this.setCreateGameTimer(room, database.queuedScriptedGame.time, format, false);
+			}
+		}
+	}
+
+	setOfficialGame(room: Room): void {
+		const serverId = Client.getServerId();
+		if (!(serverId in this.officialGames) || !(room.id in this.officialGames[serverId])) return;
+
+		delete this.nextOfficialGames[room.id];
+
+		const now = Date.now();
+		let nextOfficialIndex = -1;
+
+		for (let i = 0; i < this.officialGames[serverId][room.id].length; i++) {
+			if (this.officialGames[serverId][room.id][i].time >= now) {
+				nextOfficialIndex = i;
+				break;
+			}
+		}
+
+		if (nextOfficialIndex === -1) return;
+
+		if (nextOfficialIndex > 0) {
+			this.officialGames[serverId][room.id] = this.officialGames[serverId][room.id].slice(nextOfficialIndex);
+		}
+
+		this.nextOfficialGames[room.id] = this.officialGames[serverId][room.id][0];
+		this.setOfficialGameTimer(room);
+	}
+
+	setOfficialGameTimer(room: Room): void {
+		if (room.id in this.nextOfficialGames) {
+			this.setCreateGameTimer(room, this.nextOfficialGames[room.id].time,
+				this.getExistingFormat(this.nextOfficialGames[room.id].format), true);
+		}
+	}
+
+	setCreateGameTimer(room: Room, startTime: number, format: IGameFormat, official?: boolean): void {
+		if (room.id in this.scheduledGameTimers) clearTimeout(this.scheduledGameTimers[room.id]);
+
+		let timer = startTime - Date.now();
+		if (timer <= 0) timer = this.delayedOfficialGameTime;
+
+		this.scheduledGameTimerData[room.id] = {formatid: format.inputTarget, startTime, official};
+		this.scheduledGameTimers[room.id] = setTimeout(() => {
+			if (room.game) return;
+			const game = global.Games.createGame(room, format, {official});
+			if (game) {
+				game.signups();
+			}
+
+			delete this.scheduledGameTimers[room.id];
+		}, timer);
 	}
 
 	loadFormats(): void {
@@ -636,7 +823,7 @@ export class Games {
 					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
-					const game = global.Games.createGame(room, format, pmRoom, true);
+					const game = global.Games.createGame(room, format, {pmRoom, minigame: true});
 					if (game) game.signups();
 				},
 			};
@@ -1131,9 +1318,10 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, pmRoom?: Room, isMinigame?: boolean,
-		initialSeed?: PRNGSeed): ScriptedGame | undefined {
-		if (!isMinigame) this.clearAutoCreateTimer(room as Room);
+	createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): ScriptedGame | undefined {
+		const minigame = options && options.minigame;
+		const official = options && options.official;
+		if (!minigame) this.clearAutoCreateTimer(room as Room);
 
 		if (format.class.loadData && !format.class.loadedData) {
 			if (format.nonTrivialLoadData) {
@@ -1143,10 +1331,12 @@ export class Games {
 			format.class.loadedData = true;
 		}
 
-		const game = new format.class(room, pmRoom, initialSeed);
-		if (isMinigame) game.isMiniGame = true;
+		const game = new format.class(room, options ? options.pmRoom : undefined, options ? options.initialSeed : undefined);
+		if (minigame) game.isMiniGame = true;
+		if (official) game.official = true;
+
 		if (game.initialize(format)) {
-			if (isMinigame) {
+			if (minigame) {
 				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
 				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
 					'freejoin' in format.resolvedInputProperties.customizableNumberOptions) {
@@ -1155,6 +1345,8 @@ export class Games {
 			}
 
 			room.game = game;
+
+			if (Config.onScriptedGameCreate && !game.isPmActivity(room)) Config.onScriptedGameCreate(room, format, official);
 			return room.game;
 		} else {
 			if (!game.ended) game.deallocate(true);
@@ -1162,7 +1354,11 @@ export class Games {
 	}
 
 	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame | undefined {
-		const childGame = this.createGame(parentGame.room, format, parentGame.pmRoom, false, parentGame.prng.seed.slice() as PRNGSeed);
+		const childGame = this.createGame(parentGame.room, format, {
+			pmRoom: parentGame.pmRoom,
+			initialSeed: parentGame.prng.seed.slice() as PRNGSeed,
+		});
+
 		if (childGame) {
 			childGame.canLateJoin = false;
 			childGame.parentGame = parentGame;
@@ -1516,8 +1712,14 @@ export class Games {
 			}
 		}
 		html += "<hr /><span style='display: block;height:115px";
-		if (trainerCard.background && trainerCard.background in Tools.hexCodes) {
-			html += ";background: " + Tools.hexCodes[trainerCard.background]!.gradient;
+		if (trainerCard.background) {
+			if (typeof trainerCard.background === 'string') {
+				if (trainerCard.background in Tools.hexCodes) {
+					html += ";background: " + Tools.hexCodes[trainerCard.background]!.gradient;
+				}
+			} else {
+				html += ";background: " + trainerCard.background.gradient;
+			}
 		}
 		html += "'>";
 
@@ -1599,7 +1801,7 @@ export class Games {
 			const signups = optionalType === 'signups';
 			const game = optionalType === 'game';
 
-			let background: HexCode | undefined;
+			let background: HexCode | IHexCodeData | undefined;
 			if (signups && customBox.signupsBackground) {
 				background = customBox.signupsBackground;
 			} else if (game && customBox.gameBackground) {
@@ -1643,7 +1845,7 @@ export class Games {
 			const signups = optionalType === 'signups';
 			const game = optionalType === 'game';
 
-			let buttons: HexCode | undefined;
+			let buttons: HexCode | IHexCodeData | undefined;
 			if (!disabled) {
 				if (signups && customBox.signupsButtons) {
 					buttons = customBox.signupsButtons;
@@ -1872,19 +2074,10 @@ export class Games {
 
 		if (!allowsScriptedGames && !allowsUserHostedGames) return;
 
-		const header = room.title + " Game Catalog";
-		let document: string[] = ["# " + header];
-
-		let subHeader = "This document contains information on all ";
-		if (allowsScriptedGames && allowsUserHostedGames) {
-			subHeader += "scripted and user-hosted";
-		} else if (allowsScriptedGames) {
-			subHeader += "scripted";
-		} else if (allowsUserHostedGames) {
-			subHeader += "user-hosted";
-		}
-		subHeader += " games that can be played in the " + room.title + " room.";
-		document.push(subHeader);
+		let scriptedGamesDocument: string[] = ["# " + room.title + " Scripted Games",
+			"This document contains information on all scripted games that can be played in the " + room.title + " room."];
+		let userHostedGamesDocument: string[] = ["# " + room.title + " User-Hosted Games",
+			"This document contains information on all user-hosted games that can be played in the " + room.title + " room."];
 
 		if (allowsUserHostedGames) {
 			const userHostCommands: string[] = ["## User-host commands",
@@ -1977,7 +2170,7 @@ export class Games {
 					"5 trainer sprites",
 			];
 
-			document = document.concat(userHostCommands);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostCommands);
 		}
 
 		let allowChallengeGames = false;
@@ -2006,8 +2199,8 @@ export class Games {
 			];
 
 			const botChallengeGames: string[] = ["## Bot challenges", "Commands:",
-				"* <code>" + commandCharacter + "botch [game] or " + commandCharacter + "botch [options], [game]</code> - challenge " +
-					Users.self.name + " to a game of [game] (see list below)",
+				"* <code>" + commandCharacter + "botch [game]</code> or <code>" + commandCharacter + "botch [options], [game]</code> " +
+					"- challenge " + Users.self.name + " to a game of [game] (see list below)",
 				"* <code>" + commandCharacter + "ccdown [room], bot</code> - check your bot challenge cooldown time for " +
 					"[room] in PMs",
 				"\n\nCompatible games:",
@@ -2031,8 +2224,8 @@ export class Games {
 				}
 			}
 
-			document = document.concat(oneVsOneGames);
-			document = document.concat(botChallengeGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(oneVsOneGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(botChallengeGames);
 		}
 
 		const defaultCategory = "Uncategorized";
@@ -2141,7 +2334,7 @@ export class Games {
 				scriptedGames = scriptedGames.concat(modes[key]);
 				scriptedGames.push("\n");
 			}
-			document = document.concat(scriptedGames);
+			scriptedGamesDocument = scriptedGamesDocument.concat(scriptedGames);
 		}
 
 		if (allowsGameAchievements) {
@@ -2177,7 +2370,7 @@ export class Games {
 				achievements.push("---");
 			}
 
-			document = document.concat(achievements);
+			scriptedGamesDocument = scriptedGamesDocument.concat(achievements);
 		}
 
 		if (allowsUserHostedGames) {
@@ -2199,21 +2392,45 @@ export class Games {
 				userHostedGames.push("---");
 			}
 
-			document = document.concat(userHostedGames);
+			userHostedGamesDocument = userHostedGamesDocument.concat(userHostedGames);
 		}
 
-		const content = document.join("\n").trim();
-		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === content) return;
-		this.lastCatalogUpdates[room.id] = content;
+		const scriptedGamesContent = scriptedGamesDocument.join("\n").trim();
+		const userHostedGamesContent = userHostedGamesDocument.join("\n").trim();
 
-		const filename = Config.gameCatalogGists[room.id].files[0];
+		const lastUpdateCache = scriptedGamesContent + userHostedGamesContent;
+		if (room.id in this.lastCatalogUpdates && this.lastCatalogUpdates[room.id] === lastUpdateCache) return;
+		this.lastCatalogUpdates[room.id] = lastUpdateCache;
+
+		const files: Dict<{filename: string; content: string}> = {};
+		if (allowsScriptedGames && Config.gameCatalogGists[room.id].files.scripted) {
+			files[Config.gameCatalogGists[room.id].files.scripted!] = {
+				filename: Config.gameCatalogGists[room.id].files.scripted!,
+				content: scriptedGamesContent,
+			};
+		}
+
+		if (allowsUserHostedGames && Config.gameCatalogGists[room.id].files.userHosted) {
+			files[Config.gameCatalogGists[room.id].files.userHosted!] = {
+				filename: Config.gameCatalogGists[room.id].files.userHosted!,
+				content: userHostedGamesContent,
+			};
+		}
 
 		Tools.editGist(Config.githubApiCredentials.gist.username, Config.githubApiCredentials.gist.token,
-			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, {[filename]: {content, filename}});
+			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, files);
 	}
 
 	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Games): void {
+		if (previous.scheduledGameTimers) {
+			for (const i in previous.scheduledGameTimers) {
+				clearTimeout(previous.scheduledGameTimers[i]);
+				// @ts-expect-error
+				previous.scheduledGameTimers[i] = undefined;
+			}
+		}
+
 		if (previous.autoCreateTimers) {
 			for (const i in previous.autoCreateTimers) {
 				clearTimeout(previous.autoCreateTimers[i]);
@@ -2278,6 +2495,30 @@ export class Games {
 		Tools.unrefProperties(previous);
 
 		this.loadFormats();
+		this.loadSchedules();
+
+		const serverId = Client.getServerId();
+		const now = Date.now();
+		Users.self.rooms.forEach((rank, room) => {
+			if (serverId in this.schedules && room.id in this.schedules[serverId] && (!(room.id in this.nextOfficialGames) ||
+			now < this.nextOfficialGames[room.id].time)) {
+				this.setOfficialGame(room);
+			}
+		});
+
+		if (previous.scheduledGameTimerData) {
+			for (const i in previous.scheduledGameTimerData) {
+				const room = Rooms.get(i);
+				if (room) {
+					const data = previous.scheduledGameTimerData[i];
+					const format = this.getFormat(data.formatid);
+					if (!Array.isArray(format)) {
+						this.setCreateGameTimer(room, data.startTime, format, data.official);
+					}
+				}
+			}
+		}
+
 		if (Config.gameCatalogGists) {
 			for (const i in Config.gameCatalogGists) {
 				const room = Rooms.get(i);

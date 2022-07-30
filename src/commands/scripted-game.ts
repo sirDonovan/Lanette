@@ -181,7 +181,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(eggTossFormat);
 			}
 
-			const game = Games.createGame(room, eggTossFormat, room, true);
+			const game = Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
 			if (game) {
 				game.signups();
 				const canEgg = this.run('toss') as boolean;
@@ -242,7 +242,7 @@ export const commands: BaseCommandDefinitions = {
 
 			sweetThiefFormat.minigameCreator = user.id;
 
-			const game = Games.createGame(room, sweetThiefFormat, room, true) as SweetThief;
+			const game = Games.createGame(room, sweetThiefFormat, {pmRoom: room, minigame: true}) as SweetThief;
 			game.signups();
 			game.currentHolder = game.createPlayer(targetUser)!;
 
@@ -700,7 +700,7 @@ export const commands: BaseCommandDefinitions = {
 				format = inputFormat;
 			}
 
-			const game = Games.createGame(room, format, room);
+			const game = Games.createGame(room, format, {pmRoom: room});
 			if (game) game.signups();
 		},
 		chatOnly: true,

@@ -2,12 +2,13 @@ import fs = require('fs/promises');
 import https = require('https');
 import path = require('path');
 import url = require('url');
+import type { IColorPick } from './html-pages/components/color-picker';
 
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
 import type {
-	BorderType, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
+	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
 } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
@@ -23,6 +24,7 @@ const SPACE_REGEX = /\s/g;
 const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
+const HEX_CODE_REGEX = /^[abcdef0123456789]+$/g;
 
 const AMPERSAND_REGEX = /&/g;
 const LESS_THAN_REGEX = /</g;
@@ -148,7 +150,7 @@ export class Tools {
 		if (!htmlContent) return false;
 
 		const additionalInfo = "\nRoom: " + room.title + "\nHTML: " + htmlContent;
-		if (HERE_REGEX.test(htmlContent) || CLICK_HERE_REGEX.test(htmlContent)) {
+		if (htmlContent.match(HERE_REGEX) || htmlContent.match(CLICK_HERE_REGEX)) {
 			throw new Error('Cannot use "click here"' + additionalInfo);
 		}
 
@@ -185,7 +187,7 @@ export class Tools {
 					continue;
 				}
 
-				if (ILLEGAL_TAGS.includes(tagName) || !TAG_NAME_REGEX.test(tagName)) {
+				if (ILLEGAL_TAGS.includes(tagName) || !tagName.match(TAG_NAME_REGEX)) {
 					throw new Error("Illegal tag <" + tagName + "> can't be used here." + additionalInfo);
 				}
 
@@ -197,7 +199,7 @@ export class Tools {
 					if (room.groupchat) {
 						throw new Error("This tag is not allowed: <" + tagContent + ">. Images are not allowed outside of chatrooms.");
 					}
-					if (!IMAGE_WIDTH_REGEX.test(tagContent) || !IMAGE_HEIGHT_REGEX.test(tagContent)) {
+					if (!tagContent.match(IMAGE_WIDTH_REGEX) || !tagContent.match(IMAGE_HEIGHT_REGEX)) {
 						// Width and height are required because most browsers insert the
 						// <img> element before width and height are known, and when the
 						// image is loaded, this changes the height of the chat area, which
@@ -222,14 +224,14 @@ export class Tools {
 						const buttonValueExec = BUTTON_VALUE_REGEX.exec(tagContent);
 						const buttonName = buttonNameExec ? buttonNameExec[1] : "";
 						const buttonValue = buttonValueExec ? buttonValueExec[1] : "";
-						if (buttonName === 'send' && buttonValue && MSG_COMMAND_REGEX.test(buttonValue)) {
+						if (buttonName === 'send' && buttonValue && buttonValue.match(MSG_COMMAND_REGEX)) {
 							const [pmTarget] = buttonValue.replace(MSG_COMMAND_REGEX, '').split(',');
 							const targetUser = Users.get(pmTarget);
 							if ((!targetUser || !targetUser.isBot(room)) && this.toId(pmTarget) !== Users.self.id) {
 								throw new Error("Your scripted button can't send PMs to " + pmTarget + ", because that user is not a " +
 									"Room Bot." + additionalInfo);
 							}
-						} else if (buttonName === 'send' && buttonValue && BOT_MSG_COMMAND_REGEX.test(buttonValue)) {
+						} else if (buttonName === 'send' && buttonValue && buttonValue.match(BOT_MSG_COMMAND_REGEX)) {
 							// no need to validate the bot being an actual bot; `/botmsg` will do it for us and is not abusable
 						} else if (buttonName) {
 							throw new Error("This button is not allowed: <" + tagContent + ">" + additionalInfo);
@@ -293,6 +295,28 @@ export class Tools {
 		return hexCodes[typeHexCodes[type]];
 	}
 
+	validateHexCode(code: string): HexCode | undefined {
+		if (code.charAt(0) === '#') code = code.slice(1);
+		if (code.length !== 6) return;
+
+		code = code.toLowerCase();
+		if (!code.match(HEX_CODE_REGEX)) return;
+
+		return '#' + code as HexCode;
+	}
+
+	colorPickToStorage(colorPick: IColorPick): IHexCodeData | HexCode {
+		return colorPick.gradient ? {
+			color: colorPick.hexCode,
+			gradient: colorPick.gradient,
+			secondaryColor: colorPick.secondaryHexCode,
+		} : colorPick.hexCode;
+	}
+
+	getHexCodeGradient(topHex: HexCode, bottomHex?: HexCode): string {
+		return "linear-gradient(" + topHex + "," + (bottomHex || topHex) + ")";
+	}
+
 	getBorderTypes(): BorderType[] {
 		return ['solid', 'dotted', 'dashed', 'double', 'inset', 'outset'];
 	}
@@ -303,8 +327,8 @@ export class Tools {
 			'text-align: center"><b>' + label + '</b></div>';
 	}
 
-	getHexSpan(backgroundColor: string | undefined, borderColor?: string, borderRadiusValue?: number, borderSize?: number,
-		borderType?: BorderType): string {
+	getHexSpan(backgroundColor: string | IHexCodeData | undefined, borderColor?: string | IHexCodeData, borderRadiusValue?: number,
+		borderSize?: number, borderType?: BorderType): string {
 		let border: string | undefined;
 		let borderStyle: string | undefined;
 		let borderRadius: string | undefined;
@@ -312,10 +336,16 @@ export class Tools {
 		if (borderColor || borderSize) {
 			if (!borderSize) borderSize = 1;
 			border = "border: " + borderSize + "px solid ";
-			if (borderColor && borderColor in this.hexCodes) {
-				border += this.hexCodes[borderColor]!.color;
-			} else {
-				border += "#000000";
+			if (borderColor) {
+				if (typeof borderColor === 'string') {
+					if (borderColor in this.hexCodes) {
+						border += this.hexCodes[borderColor]!.color;
+					} else {
+						border += "#000000";
+					}
+				} else {
+					border += borderColor.color;
+				}
 			}
 			border += ";";
 		}
@@ -344,41 +374,63 @@ export class Tools {
 		return "";
 	}
 
-	getHexBackground(backgroundColor: string | undefined): string {
+	getHexBackground(backgroundColor: string | IHexCodeData | undefined): string {
 		let background = "";
 		let textColor = "";
 
-		if (backgroundColor && backgroundColor in this.hexCodes) {
-			if (this.hexCodes[backgroundColor]!.textColor) {
-				textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
+		if (backgroundColor) {
+			if (typeof backgroundColor === 'string') {
+				if (backgroundColor in this.hexCodes) {
+					if (this.hexCodes[backgroundColor]!.textColor) {
+						textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
+					} else {
+						textColor = 'color: #000000;';
+					}
+					background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+				}
 			} else {
 				textColor = 'color: #000000;';
+				background = "background: " + backgroundColor.gradient + ";";
 			}
-			background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
 		}
 
 		return background + textColor;
 	}
 
-	getCustomButtonStyle(backgroundColor: string | undefined, borderColor?: string, borderRadius?: number, borderSize?: number,
-		borderType?: BorderType): string {
+	getCustomButtonStyle(backgroundColor: HexCode | IHexCodeData | undefined, borderColor?: HexCode | IHexCodeData, borderRadius?: number,
+		borderSize?: number, borderType?: BorderType): string {
 		let buttonStyle = '';
-		if (backgroundColor && backgroundColor in this.hexCodes) {
-			if (this.hexCodes[backgroundColor]!.textColor) {
-				buttonStyle += "color: " + this.hexCodes[backgroundColor]!.textColor + ";";
+		if (backgroundColor) {
+			if (typeof backgroundColor === 'string') {
+				if (backgroundColor in this.hexCodes) {
+					if (this.hexCodes[backgroundColor]!.textColor) {
+						buttonStyle += "color: " + this.hexCodes[backgroundColor]!.textColor + ";";
+					} else {
+						buttonStyle += "color: #000000;";
+					}
+					buttonStyle += "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
+					buttonStyle += "text-shadow: none;";
+				}
 			} else {
 				buttonStyle += "color: #000000;";
+				buttonStyle += "background: " + backgroundColor.gradient + ";";
+				buttonStyle += "text-shadow: none;";
 			}
-
-			buttonStyle += "background: " + this.hexCodes[backgroundColor]!.color + ';';
-			buttonStyle += "text-shadow: none;";
 		}
 
 		if (borderColor || borderSize) {
 			if (!borderSize) borderSize = 1;
 			buttonStyle += "border: " + borderSize + "px solid ";
-			if (borderColor && borderColor in this.hexCodes) {
-				buttonStyle += this.hexCodes[borderColor]!.color;
+			if (borderColor) {
+				if (typeof borderColor === 'string') {
+					if (borderColor in this.hexCodes) {
+						buttonStyle += this.hexCodes[borderColor]!.color;
+					} else {
+						buttonStyle += "#000000";
+					}
+				} else {
+					buttonStyle += borderColor.color;
+				}
 			} else {
 				buttonStyle += "#000000";
 			}
@@ -1187,8 +1239,6 @@ export class Tools {
 			method: "PATCH",
 			headers: {
 				'Accept': 'application/vnd.github.v3+json',
-				'Content-Type': 'application/json; charset=utf-8',
-				'Content-Length': patchData.length,
 				'User-Agent': username,
 				'Authorization': 'token ' + token,
 			},

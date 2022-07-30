@@ -12,6 +12,7 @@ export class OneVsOne extends ScriptedGame {
 	defender: Player | null = null;
 	defenderPromotedName: string = '';
 	internalGame: boolean = true;
+	managedPlayers = true;
 	noForceEndMessage: boolean = true;
 	originalModchat: string = '';
 	winner: Player | undefined;

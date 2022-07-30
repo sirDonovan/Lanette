@@ -6,6 +6,7 @@ export interface IFormatTextInputProps extends ITextInputProps {
 	maxFormats?: number;
 	minFormats?: number;
 	nameWithoutGen?: boolean;
+	customRules?: boolean;
 }
 
 export class FormatTextInput extends TextInput {
@@ -19,14 +20,15 @@ export class FormatTextInput extends TextInput {
 
 	onSubmit(input: string): void {
 		input = input.trim();
-		const parts = input.split(',');
+		const parts = this.props.customRules && this.props.maxFormats === 1 ? [input] : input.split(',');
+
 		const formats: string[] = [];
 		for (const part of parts) {
-			const format = Dex.getFormat(part);
+			const format = Tournaments.getFormat(part, this.room);
 			if (!format || format.effectType !== 'Format') {
 				this.errors.push("'" + part + "' is not a valid format.");
 			} else {
-				formats.push(this.props.nameWithoutGen ? format.nameWithoutGen : format.name);
+				formats.push(this.props.customRules ? format.inputTarget : this.props.nameWithoutGen ? format.nameWithoutGen : format.name);
 			}
 		}
 

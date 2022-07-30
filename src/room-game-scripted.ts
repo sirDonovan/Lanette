@@ -29,6 +29,7 @@ export class ScriptedGame extends Game {
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
 	debugLogs: string[] = [];
+	debugLogWriteCount: number = 0;
 	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
 	inactiveRounds: number = 0;
@@ -36,6 +37,7 @@ export class ScriptedGame extends Game {
 	internalGame: boolean = false;
 	lateJoinQueue: Player[] = [];
 	readonly loserPointsToBits: number = 10;
+	managedPlayers: boolean = false;
 	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined = undefined;
@@ -241,6 +243,18 @@ export class ScriptedGame extends Game {
 
 	debugLog(log: string): void {
 		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
+	}
+
+	writeDebugLog(): void {
+		if (this.debugLogs.length) {
+			const filePath = path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" +
+				Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "") + ".txt");
+
+			void Tools.safeWriteFile(filePath, this.debugLogs.join("\n\n"))
+				.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
+		}
+
+		this.debugLogWriteCount++;
 	}
 
 	setUhtmlBaseName(): void {
@@ -682,6 +696,8 @@ export class ScriptedGame extends Game {
 			this.setCooldownAndAutoCreate('userhosted', now - this.startTime);
 		}
 
+		Games.setNextScheduledGame(this.room);
+
 		this.deallocate(false);
 	}
 
@@ -802,11 +818,7 @@ export class ScriptedGame extends Game {
 		this.destroyTeams();
 		this.destroyPlayers();
 
-		if (this.debugLogs.length) {
-			void Tools.safeWriteFile(path.join(Tools.rootFolder, 'game-debug-logs',
-				Tools.getDateFilename() + "-" + this.room.id + "-" + Tools.toId(this.uhtmlBaseName) + ".txt"), this.debugLogs.join("\n\n"))
-					.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
-		}
+		this.writeDebugLog();
 
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
@@ -837,6 +849,8 @@ export class ScriptedGame extends Game {
 	}
 
 	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+		if (this.managedPlayers) return;
+
 		if (this.usesTournamentJoin && !tournamentJoin) return;
 
 		if (this.options.freejoin || this.isMiniGame) {

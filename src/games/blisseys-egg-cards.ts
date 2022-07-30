@@ -795,7 +795,7 @@ const tests: GameFileTests<BlisseysEggCards> = {
 export const game: IGameFile<BlisseysEggCards> = Games.copyTemplateProperties(cardGame, {
 	aliases: ["blisseys", "eggcards", "bec"],
 	commandDescriptions: [Config.commandCharacter + "play [Pokemon]", Config.commandCharacter + "draw"],
-	commands: Object.assign(Tools.deepClone(cardGame.commands), commands),
+	commands: Object.assign((Tools.deepClone(cardGame.commands) as unknown) as GameCommandDefinitions<BlisseysEggCards>, commands),
 	class: BlisseysEggCards,
 	description: "Each round, players can play 1-2 cards that share an egg group with the top card or draw a card.",
 	name: "Blissey's Egg Cards",

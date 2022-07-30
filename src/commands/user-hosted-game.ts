@@ -1669,7 +1669,7 @@ export const commands: BaseCommandDefinitions = {
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 
-			const game = Games.createGame(room, format, pmRoom);
+			const game = Games.createGame(room, format, {pmRoom});
 			if (game) {
 				const randomAnswer = game.getRandomAnswer!();
 				this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +

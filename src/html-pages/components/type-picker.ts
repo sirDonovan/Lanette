@@ -2,13 +2,19 @@ import type { Room } from "../../rooms";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
+export interface ITypePickerProps extends IPickerProps<string> {
+	hideLabel?: boolean;
+}
+
 export class TypePicker extends PickerBase {
 	static types: string[] = [];
 	static TypePickerLoaded: boolean = false;
 
 	componentId: string = 'type-picker';
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
+	declare props: ITypePickerProps;
+
+	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITypePickerProps) {
 		super(room, parentCommandPrefix, componentCommand, props);
 
 		TypePicker.loadData();
@@ -38,8 +44,11 @@ export class TypePicker extends PickerBase {
 	}
 
 	render(): string {
-		let html = "Type:";
-		html += "<br /><br />";
+		let html = "";
+		if (!this.props.hideLabel) {
+			html += "Type:";
+			html += "<br /><br />";
+		}
 
 		html += this.noPickElement.html;
 		for (const type in this.choiceElements) {

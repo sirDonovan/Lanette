@@ -80,8 +80,12 @@ export class Storage {
 	}
 
 	getDatabase(room: Room): IDatabase {
-		if (!(room.id in this.databases)) this.databases[room.id] = {};
-		return this.databases[room.id];
+		return this.getDatabaseById(room.id);
+	}
+
+	getDatabaseById(roomid: string): IDatabase {
+		if (!(roomid in this.databases)) this.databases[roomid] = {};
+		return this.databases[roomid];
 	}
 
 	getArchiveDatabase(room: Room): IArchiveDatabase {
@@ -477,6 +481,7 @@ export class Storage {
 		if (!leaderboard) throw new Error("Storage.afterAddPoints() called with no leaderboard");
 
 		this.updateLeaderboardPointsCaches(room.id, leaderboard);
+		this.updateLeaderboardPointsBreakdownCaches(room.id, leaderboard);
 		this.updateLeaderboardCachesForSource(room.id, leaderboard, source);
 	}
 

@@ -53,7 +53,7 @@ const pageId = 'game-host-control-panel';
 export const id = pageId;
 export const pages: Dict<GameHostControlPanel> = {};
 
-class GameHostControlPanel extends HtmlPageBase {
+export class GameHostControlPanel extends HtmlPageBase {
 	static compatibleHintGames: string[] = [];
 	static GameHostControlPanelLoaded: boolean = false;
 
@@ -359,7 +359,7 @@ class GameHostControlPanel extends HtmlPageBase {
 
 	setBackgroundColor(color: IColorPick, dontRender: boolean | undefined): void {
 		const database = this.getDatabase();
-		database.gameHostDisplays![this.userId].background = color.hexCode;
+		database.gameHostDisplays![this.userId].background = Tools.colorPickToStorage(color);
 
 		if (this.currentView === 'randomhostdisplay') {
 			this.manualHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
@@ -478,7 +478,7 @@ class GameHostControlPanel extends HtmlPageBase {
 		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
 			database.gameHostDisplays![this.userId].backgroundBorder = {};
 		}
-		database.gameHostDisplays![this.userId].backgroundBorder!.color = color.hexCode;
+		database.gameHostDisplays![this.userId].backgroundBorder!.color = Tools.colorPickToStorage(color);
 
 		if (!dontRender) this.send();
 	}
@@ -562,7 +562,7 @@ class GameHostControlPanel extends HtmlPageBase {
 
 		if (user.game) user.game.deallocate(true);
 
-		const game = Games.createGame(user, format, this.room, true);
+		const game = Games.createGame(user, format, {pmRoom: this.room, minigame: true});
 		if (game) {
 			this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
 			this.generatedAnswer = game.getRandomAnswer!();
