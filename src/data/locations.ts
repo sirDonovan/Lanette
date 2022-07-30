@@ -408,40 +408,4 @@ export const locations: LocationData = {
 		mountain: [],
 		other: [],
 	},
-		/*hubareas: [
-			'Obsidian Fieldlands',
-			'Crimson Mirelands',
-			'Cobalt Coastlands',
-			'Coronet Highlands',
-			'Alabaster Icelands',
-		],
-		obsidianfieldlands: [
-			city: [],
-			town: [],
-			mountain: [
-				'Aspiration Hill',
-			],
-			forest: [
-				'Grandtree Arena',
-			],
-			cave: [
-				'Oreburrow Tunnel',
-			],
-			other: [
-				'Fieldlands Camp',
-				'Floaro Gardens',
-				'Horseshoe Plains',
-				'Grueling Grove',
-				'Worn Bridge',
-				'Deertrack Heights',
-				'Windswept Run',
-				'Nature\'s Pantry',
-				'Tidewater Dam',
-				'The Heartwood',
-				'Obsidian Falls',
-				'Ramanas Island',
-				'Sandgem Flats',
-				'Lake Verity',
-			],
-		],*/
 };
