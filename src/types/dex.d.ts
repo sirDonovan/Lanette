@@ -5,10 +5,10 @@ export interface IAlternateIconNumbers {
 	right: Dict<number | undefined>;
 }
 
-export type RegionName = 'kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola' | 'galar';
+export type RegionName = 'kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola' | 'galar' | 'hisui';
 export type BadgeData = KeyedDict<RegionName, string[]>;
 export type CategoryData = Dict<string>;
-export type CharacterType = 'player' | 'rival' | 'gymleader' | 'elitefour' | 'champion' | 'frontierbrain' | 'professor' | 'antagonist' |
+export type CharacterType = 'player' | 'rival' | 'gymleader' | 'trialcaptain' | 'elitefour' | 'champion' | 'frontierbrain' | 'professor' | 'warden' | 'antagonist' |
 	'other';
 export type CharacterData = KeyedDict<RegionName, KeyedDict<CharacterType, string[]>>;
 export type LocationType = 'town' | 'city' | 'cave' | 'forest' | 'mountain' | 'other';

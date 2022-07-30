@@ -18,6 +18,10 @@ export const characters: CharacterData = {
 			"Blaine",
 			"Giovanni",
 		],
+		trialcaptain: [
+		],
+		warden: [
+		],
 		elitefour: [
 			"Lorelei",
 			"Bruno",
@@ -54,6 +58,10 @@ export const characters: CharacterData = {
 			"Jasmine",
 			"Pryce",
 			"Clair",
+		],
+		trialcaptain: [
+		],
+		warden: [
 		],
 		elitefour: [
 			"Will",
@@ -100,6 +108,10 @@ export const characters: CharacterData = {
 			"Wallace",
 			"Juan",
 		],
+		trialcaptain: [
+		],
+		warden: [
+		],
 		elitefour: [
 			"Sidney",
 			"Phoebe",
@@ -134,6 +146,10 @@ export const characters: CharacterData = {
 			"Rydel",
 			"Lanette",
 			"Scott",
+			"Aarune",
+			"Chaz",
+			"Lisia",
+			"Zinnia",
 		],
 	},
 	sinnoh: {
@@ -159,6 +175,10 @@ export const characters: CharacterData = {
 			"Bertha",
 			"Flint",
 			"Lucian",
+		],
+		trialcaptain: [
+		],
+		warden: [
 		],
 		champion: [
 			"Cynthia",
@@ -217,6 +237,11 @@ export const characters: CharacterData = {
 			"Marlon",
 			"Roxie",
 		],
+		
+		trialcaptain: [
+		],
+		warden: [
+		],
 		elitefour: [
 			"Shauntal",
 			"Grimsley",
@@ -262,6 +287,11 @@ export const characters: CharacterData = {
 			"Olympia",
 			"Wulfric",
 		],
+		
+		trialcaptain: [
+		],
+		warden: [
+		],
 		elitefour: [
 			"Malva",
 			"Siebold",
@@ -303,6 +333,8 @@ export const characters: CharacterData = {
 			"Gladion",
 		],
 		gymleader: [
+		],
+		trialcaptain: [
 			"Ilima",
 			"Lana",
 			"Kiawe",
@@ -310,6 +342,8 @@ export const characters: CharacterData = {
 			"Sophocles",
 			"Acerola",
 			"Mina",
+		],
+		warden: [
 		],
 		elitefour: [
 			"Hala",
@@ -360,6 +394,11 @@ export const characters: CharacterData = {
 			"Avery",
 			"Klara",
 		],
+		
+		trialcaptain: [
+		],
+		warden: [
+		],
 		elitefour: [],
 		champion: [
 			"Leon",
@@ -377,6 +416,66 @@ export const characters: CharacterData = {
 		other: [
 			"Peony",
 			"Sonia",
+			"Mustard",
+			"Honey",
+			"Peonia",
+			"Hyde",
+		],
+	},
+	hisui: {
+		player: [
+			"Akari",
+			"Rei",
+		],
+		rival: [
+		],
+		gymleader: [
+		],
+		
+		trialcaptain: [
+		],
+		warden: [
+			"Arezu",
+			"Calaba",
+			"Gaeric",
+			"Ingo",
+			"Iscan",
+			"Lian",
+			"Mai",
+			"Melli",
+			"Palina",
+			"Sabi",
+		],
+		elitefour: [
+		],
+		champion: [
+		],
+		frontierbrain: [],
+		professor: [
+			"Professor Laventon",
+		],
+		antagonist: [
+			        "Charm",
+			        "Clover",
+			        "Coin",
+			        "Volo",
+		],
+		other: [
+			"Adaman",
+			"Anthe",
+			"Beni",
+			"Choy",
+			"Cogita",
+			"Colza",
+			"Captain Cyllene",
+			"Ginter",
+			"Irida",
+			"Commander Kamado",
+			"Pesselle",
+			"Rye",
+			"Sanqua",
+			"Tao Hua",
+			"Zisu",
 		],
 	},
 };
