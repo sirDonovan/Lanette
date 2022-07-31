@@ -16,7 +16,6 @@ class DittosWhoAmI extends ScriptedGame {
 	dittoRound: number = 0;
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
-	roundPlayerOrder: Player[] = [];
 	points = new Map<Player, number>();
 	playerPokemon = new Map<Player, IPokemon>();
 	playerWeaknesses = new Map<Player, string[]>();
@@ -72,15 +71,15 @@ class DittosWhoAmI extends ScriptedGame {
 			this.playerWeaknesses.set(player, weaknesses);
 		}
 
-		const text = "Each round, try to guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
-			"know what Pokemon you have, you may guess it with ``" + Config.commandCharacter + "g [Pokemon]``!";
+		const text = "Each round, you must guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
+			"know what Pokemon you are, you may guess that instead with ``" + Config.commandCharacter + "g [Pokemon]``!";
 		this.on(text, () => {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
 	}
 
-	tierSwap(input: string): string{
+	checkTierAlias(input: string): string{
 		if (input === "anythinggoes") return "ag";
 		if (input === "ubers") return "uber";
 		if (input === "overused") return "ou";
@@ -90,6 +89,8 @@ class DittosWhoAmI extends ScriptedGame {
 		if (input === "rarelusedbanlist") return "rubl";
 		if (input === "neverused") return "nu";
 		if (input === "neverusedbanlist") return "nubl";
+		if (input === "pubanlist") return "publ";
+		if (input === "zeroused") return "zu";
 		if (input === "littlecup") return "lc";
 
 		return input;
@@ -161,7 +162,7 @@ class DittosWhoAmI extends ScriptedGame {
 			return this.checkAnswerNegation(correctGuess, negation);
 		}
 
-		const tier = this.tierSwap(id);
+		const tier = this.checkTierAlias(id);
 		const eggGroupAlias = id.endsWith('group') ? id.substr(0, id.length - 5) : id + 'group';
 		if (this.colors.includes(id)) {
 			correctGuess = Tools.toId(playerPokemon.color) === id;
@@ -197,7 +198,7 @@ class DittosWhoAmI extends ScriptedGame {
 			correctGuess = playerPokemon.forme.includes("Gmax");
 		} else if (id.startsWith('gen') && id.length <= 5) {
 			const gen = parseInt(id.slice(3));
-			if (isNaN(gen)) {
+			if (isNaN(gen) || gen < 1 || gen > Dex.getGen()) {
 				return "You must specify a valid gen.";
 			}
 
@@ -210,17 +211,17 @@ class DittosWhoAmI extends ScriptedGame {
 
 		let checkWeaknesses = false;
 		let weaknessType: ITypeData | undefined;
-		if (id.startsWith('weak')) {
-			checkWeaknesses = true;
-			weaknessType = Dex.getType(id.slice(4));
-		} else if (id.startsWith('weakto')) {
+		if (id.startsWith('weakto')) {
 			checkWeaknesses = true;
 			weaknessType = Dex.getType(id.slice(6));
+		} else if (id.startsWith('weak')) {
+			checkWeaknesses = true;
+			weaknessType = Dex.getType(id.slice(4));
 		}
 
 		if (checkWeaknesses) {
 			if (!weaknessType) {
-				return "You must specify a valid type.";
+				return "You must specify a valid type to check weakness against.";
 			}
 
 			const weaknesses = this.playerWeaknesses.get(player)!;
@@ -239,7 +240,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 		if (checkResistances) {
 			if (!resistanceType) {
-				return "You must specify a valid type.";
+				return "You must specify a valid type to check resistance against.";
 			}
 
 			const resistances = this.playerResistances.get(player)!;
@@ -331,13 +332,14 @@ class DittosWhoAmI extends ScriptedGame {
 			return this.checkAnswerNegation(correctStat, negation);
 		}
 
-		return "";
+		return "You must ask a question about moves, abilities, types, egg groups, color, formes, evolution stage, gen, " +
+			"weaknesses, resistances, or stats";
 	}
 
 	onNextRound(): void {
 		if (this.currentPlayer) {
 			if (this.addPlayerInactiveRound(this.currentPlayer)) {
-				this.say(this.currentPlayer.name + " did not guess a parameter or the Pokemon and has been eliminated from the game!");
+				this.say(this.currentPlayer.name + " did not guess a parameter or their Pokemon and has been eliminated from the game!");
 				this.eliminatePlayer(this.currentPlayer);
 			}
 
@@ -355,7 +357,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 			this.dittoRound++;
 			if (this.dittoRound > this.maxDittoRounds) {
-				this.say("We have reached the end of the game!");
+				this.say("Time is up!");
 				this.end();
 				return;
 			}
@@ -366,8 +368,8 @@ class DittosWhoAmI extends ScriptedGame {
 				return;
 			}
 
-			this.roundPlayerOrder = this.shufflePlayers();
-			this.playerOrder = this.roundPlayerOrder.slice();
+			this.playerOrder = this.shufflePlayers();
+
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.getRemainingPlayers(this.playerOrder),
 				"Round " + this.dittoRound);
@@ -377,7 +379,7 @@ class DittosWhoAmI extends ScriptedGame {
 			this.sayUhtml(uhtmlName, html);
 
 			if (this.dittoRound === this.maxDittoRounds) {
-				this.say("**The last round has started**! You must use ``" + Config.commandCharacter + "guess [Pokemon]`` now to " +
+				this.say("**This is the final round**! You must use ``" + Config.commandCharacter + "g [Pokemon]`` now to " +
 					"have a chance at winning.");
 			}
 
@@ -405,8 +407,6 @@ class DittosWhoAmI extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		if (this.timeout) clearTimeout(this.timeout);
-
 		for (const id in this.players) {
 			if (this.players[id].eliminated) continue;
 			const player = this.players[id];
@@ -429,7 +429,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 			const player = this.players[user.id];
 			const questions = target.split("|");
 			if (questions.length > MAX_ROUND_PARAMETERS) {
-				this.say("You can only includes up to " + MAX_ROUND_PARAMETERS + " parameters per round.");
+				this.say("You can only include up to " + MAX_ROUND_PARAMETERS + " parameters per round.");
 				return false;
 			}
 
@@ -440,7 +440,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 
 				const result = this.checkGuess(trimmed, player);
 				if (typeof result === 'string') {
-					this.say((result || "'" + trimmed + "' is not a valid question.") + " Please try again!");
+					this.say(result);
 					return false;
 				}
 
@@ -471,9 +471,9 @@ export const game: IGameFile<DittosWhoAmI> = {
 	category: 'puzzle',
 	class: DittosWhoAmI,
 	commands,
-	commandDescriptions: [Config.commandCharacter + 'g [Pokemon]', Config.commandCharacter + 'g [parameter]'],
+	commandDescriptions: [Config.commandCharacter + 'g [parameter]', Config.commandCharacter + 'g [Pokemon]'],
 	description: "At the start of the game, all players are assigned a different Pokemon." +
-	" Each round, players must ask 'yes' or 'no' questions in chat to guess what Pokemon they were assigned!",
+	" Each round, players must ask 'yes' or 'no' questions to guess which Pokemon they were assigned!",
 	name: "Ditto's Who Am I",
 	mascot: "Ditto",
 	nonTrivialLoadData: true,
