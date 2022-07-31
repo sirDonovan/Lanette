@@ -295,6 +295,7 @@ export class Dex {
 	private readonly pseudoLCPokemonCache: Dict<boolean> = Object.create(null);
 	private readonly resistancesCache: Dict<string[]> = Object.create(null);
 	private readonly typeCache: Dict<ITypeData> = Object.create(null);
+	private typesList: readonly ITypeData[] | null = null;
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
 	/* eslint-enable */
 
@@ -922,6 +923,18 @@ export class Dex {
 		const type = this.getType(name);
 		if (!type) throw new Error("No type returned for '" + name + "'");
 		return type;
+	}
+
+	getTypesList(): readonly ITypeData[] {
+		if (this.typesList) return this.typesList;
+
+		const types: ITypeData[] = [];
+		for (const i of this.getData().typeKeys) {
+			types.push(this.getExistingType(i));
+		}
+
+		this.typesList = types;
+		return types;
 	}
 
 	getNature(name: string): INature | undefined {

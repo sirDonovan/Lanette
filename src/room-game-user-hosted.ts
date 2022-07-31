@@ -570,13 +570,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Ditto's Who Am I",
-			mascot: 'Ditto',
-			aliases: ['dittos', 'who am i'],
-			description: "The host will assign each player a Pokemon without telling them. Each round, players must ask 'yes' or 'no' " +
-				"questions in order to guess what Pokemon they were assigned!",
-		},
-		{
 			name: "Dugtrio's Dex Entries",
 			mascot: "Dugtrio",
 			aliases: ['DDE'],
