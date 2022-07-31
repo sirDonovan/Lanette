@@ -251,7 +251,7 @@ class DittosWhoAmI extends ScriptedGame {
 		let lessThanIndex: number | undefined;
 		let greaterThanIndex: number | undefined;
 		let equalIndex: number | undefined;
-		for (let i = 2; i < guess.length; i++) {
+		for (let i = 1; i < guess.length; i++) {
 			let validIndex = false;
 			let orEqualTo = false;
 
