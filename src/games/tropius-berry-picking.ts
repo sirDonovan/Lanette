@@ -224,7 +224,6 @@ class TropiusBerryPicking extends ScriptedGame {
 				effectType = 'boostback';
 			}
 		}
-
 		let smeargleText = 'A wild Smeargle used **' + move.name + '**!';
 		if (effectType === 'status') {
 			smeargleText += ' You were **' + effectDescriptions[effect] + '**!';
