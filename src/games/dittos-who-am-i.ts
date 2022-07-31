@@ -472,9 +472,8 @@ export const game: IGameFile<DittosWhoAmI> = {
 	class: DittosWhoAmI,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'g [parameter]', Config.commandCharacter + 'g [Pokemon]'],
-	description: "At the start of the game, all players are assigned a different Pokemon." +
-	" Each round, players must ask 'yes' or 'no' questions to guess which Pokemon they were assigned!",
+	description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask 'yes' or 'no' " +
+		"questions to guess which Pokemon they were assigned!",
 	name: "Ditto's Who Am I",
 	mascot: "Ditto",
-	nonTrivialLoadData: true,
 };
