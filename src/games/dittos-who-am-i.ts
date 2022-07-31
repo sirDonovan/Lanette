@@ -248,7 +248,7 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		let statName = "";
-		let statValue = 0;
+		let statValue = -1;
 		let lessThanIndex: number | undefined;
 		let greaterThanIndex: number | undefined;
 		let equalIndex: number | undefined;
@@ -299,7 +299,7 @@ class DittosWhoAmI extends ScriptedGame {
 				return "You must specify a valid stat name.";
 			}
 
-			if (isNaN(statValue) || statValue < 1) {
+			if (isNaN(statValue) || statValue < 0) {
 				return "You must specify a valid stat value.";
 			}
 
