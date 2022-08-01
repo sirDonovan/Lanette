@@ -196,8 +196,8 @@ class DittosWhoAmI extends ScriptedGame {
 			correctGuess = playerPokemon.forme.includes("Totem");
 		} else if (id === "gmax" || id === "gigantamax") {
 			correctGuess = playerPokemon.forme.includes("Gmax");
-		} else if (id.startsWith('gen') && id.length <= 5) {
-			const gen = parseInt(id.slice(3));
+		} else if ((id.startsWith('gen') && id.length <= 5) || (id.startsWith('g') && id.length <= 3)) {
+			const gen = id.startsWith('gen') ? parseInt(id.slice(3)) : parseInt(id.slice(1));
 			if (isNaN(gen) || gen < 1 || gen > Dex.getGen()) {
 				return "You must specify a valid gen.";
 			}
