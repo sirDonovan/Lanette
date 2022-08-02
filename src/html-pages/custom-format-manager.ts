@@ -726,7 +726,7 @@ class CustomFormatManager extends HtmlPageBase {
 			}
 
 			const formattedRule = type + formattedName + limit;
-			if (!newCustomRules.includes(formattedRule)) {
+			if (formattedRule && !newCustomRules.includes(formattedRule)) {
 				newCustomRules.push(formattedRule);
 				if (tag) newCustomRuleTags[formattedRule] = type + tag;
 			}
