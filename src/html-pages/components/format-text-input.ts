@@ -28,7 +28,12 @@ export class FormatTextInput extends TextInput {
 			if (!format || format.effectType !== 'Format') {
 				this.errors.push("'" + part + "' is not a valid format.");
 			} else {
-				formats.push(this.props.customRules ? format.inputTarget : this.props.nameWithoutGen ? format.nameWithoutGen : format.name);
+				if (format.customFormatName) {
+					formats.push(format.customFormatName);
+				} else {
+					formats.push(this.props.customRules ? format.inputTarget : this.props.nameWithoutGen ? format.nameWithoutGen :
+						format.name);
+				}
 			}
 		}
 

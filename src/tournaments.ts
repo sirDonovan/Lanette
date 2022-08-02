@@ -100,6 +100,8 @@ export class Tournaments {
 						const format = this.getFormat(formatId, undefined, room);
 						if (!format) throw new Error("No format returned for '" + formatId + "'");
 
+						if (format.customRules) customRules = customRules.concat(format.customRules);
+
 						const validatedFormatId = Dex.validateFormat(Dex.joinNameAndCustomRules(format,
 							Dex.resolveCustomRuleAliases(customRules)));
 
@@ -107,8 +109,6 @@ export class Tournaments {
 						if (customRules.length && (!validatedFormat.customRules || !validatedFormat.customRules.length)) {
 							throw new Error("Custom rules not added");
 						}
-
-						schedule.months[month].days[day].format = validatedFormatId;
 					} catch (e) {
 						console.log("Invalid format scheduled for " + month + "/" + day + " in " + room + ": " + (e as Error).message);
 						schedule.months[month].days[day].format = Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT).id;
@@ -212,7 +212,6 @@ export class Tournaments {
 		format = Dex.getFormat(database.customFormats[id].formatId);
 		if (!format) return;
 
-		format.tournamentName = database.customFormats[id].name;
 		format.customFormatName = database.customFormats[id].name;
 		return format;
 	}
@@ -710,8 +709,10 @@ export class Tournaments {
 	}
 
 	setOfficialTournamentTimer(room: Room): void {
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time,
-			Dex.getExistingFormat(this.nextOfficialTournaments[room.id].format, true), this.maxPlayerCap, true);
+		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
+			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
+
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
@@ -725,9 +726,9 @@ export class Tournaments {
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number, quickFormat?: boolean): void {
-		let officialFormat: IFormat | null = null;
+		let officialFormat: IFormat | undefined;
 		if (room.id in this.nextOfficialTournaments) {
-			officialFormat = Dex.getExistingFormat(this.nextOfficialTournaments[room.id].format, true);
+			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id].format, room);
 		}
 		const database = Storage.getDatabase(room);
 		const pastTournamentIds: string[] = [];

@@ -199,9 +199,12 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const officialTournament = nextOfficialTournaments[tournamentRoom.id];
-			const format = Dex.getExistingFormat(officialTournament.format, true);
+			const format = Tournaments.getFormat(officialTournament.format, tournamentRoom);
+			if (!format) return this.say("The scheduled official tournament is no longer playable.");
+
 			const now = Date.now();
-			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " official tournament</b>: " + format.name + "<br />";
+			let html = "<b>Next" + (this.pm ? " " + tournamentRoom.title : "") + " official tournament</b>: " +
+				Dex.getCustomFormatName(format) + (format.customFormatName ? " (Base format: " + format.name + ")" : "") + "<br />";
 			if (now > officialTournament.time) {
 				html += "<b>Delayed</b><br />";
 			} else {
@@ -296,7 +299,8 @@ export const commands: BaseCommandDefinitions = {
 			if (id === 'scheduled' || id === 'official') {
 				if (!(room.id in nextOfficialTournaments)) return this.say("There is no official tournament schedule for this room.");
 				official = true;
-				format = Dex.getExistingFormat(nextOfficialTournaments[room.id].format, true);
+				format = Tournaments.getFormat(nextOfficialTournaments[room.id].format, room);
+				if (!format) return this.say("The scheduled official tournament is no longer playable.");
 			} else {
 				if (room.id in nextOfficialTournaments && Date.now() > nextOfficialTournaments[room.id].time) {
 					return this.say("The official tournament is delayed so you must wait until after it starts.");
@@ -341,7 +345,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			database.queuedTournament = {
-				formatid: Dex.joinNameAndCustomRules(format, format.customRules),
+				formatid: format.customFormatName ? format.customFormatName : Dex.joinNameAndCustomRules(format, format.customRules),
 				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
 				official,
 				time,
@@ -400,7 +404,7 @@ export const commands: BaseCommandDefinitions = {
 			if (database.queuedTournament.tournamentName) {
 				tournamentName = database.queuedTournament.tournamentName + " (" + format.name + ")";
 			} else {
-				tournamentName = Dex.getCustomFormatName(format);
+				tournamentName = Dex.getCustomFormatName(format) + (format.customFormatName ? " (Base format: " + format.name + ")" : "");
 			}
 
 			const defaultPlayerCap = Tournaments.getDefaultPlayerCap(tournamentRoom);
