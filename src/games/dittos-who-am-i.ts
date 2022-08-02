@@ -5,8 +5,8 @@ import type { IPokemon, ITypeData } from "../types/pokemon-showdown";
 
 const MAX_ROUND_PARAMETERS = 5;
 
-const allStats = ["hp", "hitpoints", "atk", "attack", "def", "defense", "spa", "spatk", "specialattack", "spc", "special", "spd",
-	"spdef", "specialdefense", "spe", "speed", "bst", "basestattotal", "ht", "height", "weight", "wt"];
+const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "spa", "spatk", "specialattack", "spc", "special", "spd",
+	"spdef", "specialdefense", "spe", "speed", "bst", "basestattotal", "ht", "height", "weight", "wt", "gen", "g"];
 
 class DittosWhoAmI extends ScriptedGame {
 	tiers: string[] = [];
@@ -196,7 +196,8 @@ class DittosWhoAmI extends ScriptedGame {
 			correctGuess = playerPokemon.forme.includes("Totem");
 		} else if (id === "gmax" || id === "gigantamax") {
 			correctGuess = playerPokemon.forme.includes("Gmax");
-		} else if ((id.startsWith('gen') && id.length <= 5) || (id.startsWith('g') && id.length <= 3)) {
+		} else if (((id.startsWith('gen') && id.length <= 5) || (id.startsWith('g') && id.length <= 3)) && !guess.includes('>') &&
+			!guess.includes('<')) {
 			const gen = id.startsWith('gen') ? parseInt(id.slice(3)) : parseInt(id.slice(1));
 			if (isNaN(gen) || gen < 1 || gen > Dex.getGen()) {
 				return "You must specify a valid gen.";
@@ -295,7 +296,7 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		if (statName) {
-			if (!allStats.includes(statName)) {
+			if (!USABLE_STATS.includes(statName)) {
 				return "You must specify a valid stat name.";
 			}
 
@@ -322,6 +323,8 @@ class DittosWhoAmI extends ScriptedGame {
 				pokemonStat = playerPokemon.heightm;
 			} else if (statName === "wt" || statName === "weight") {
 				pokemonStat = playerPokemon.weightkg;
+			} else if (statName === "gen" || statName === "g") {
+				pokemonStat = playerPokemon.gen;
 			}
 
 			let correctStat = false;
