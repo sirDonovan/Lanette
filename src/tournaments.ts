@@ -202,8 +202,11 @@ export class Tournaments {
 		if (!(id in database.customFormats)) {
 			const currentGen = Dex.getGen();
 			for (let i = currentGen; i >= 1; i--) {
-				id = 'gen' + i + id;
-				if (id in database.customFormats) break;
+				const genId = 'gen' + i + id;
+				if (genId in database.customFormats) {
+					id = genId;
+					break;
+				}
 			}
 
 			if (!(id in database.customFormats)) return;
