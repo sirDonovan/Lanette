@@ -5,7 +5,7 @@ export interface IAlternateIconNumbers {
 	right: Dict<number | undefined>;
 }
 
-export type RegionName = 'kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola' | 'galar';
+export type RegionName = 'kanto' | 'johto' | 'hoenn' | 'sinnoh' | 'unova' | 'kalos' | 'alola' | 'galar' | 'hisui';
 export type BadgeData = KeyedDict<RegionName, string[]>;
 export type CategoryData = Dict<string>;
 export type CharacterType = 'player' | 'rival' | 'gymleader' | 'elitefour' | 'champion' | 'frontierbrain' | 'professor' | 'antagonist' |
@@ -91,6 +91,7 @@ export interface IDataTable {
 	readonly moveKeys: DataKeys;
 	readonly natureKeys: DataKeys;
 	readonly pokemonKeys: DataKeys;
+	readonly rulesetKeys: DataKeys;
 	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;
 	readonly typeKeys: DataKeys;

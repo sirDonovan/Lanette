@@ -1,7 +1,8 @@
 import type { IPokemonPick } from "../html-pages/components/pokemon-picker-base";
 import type { ITrainerPick } from "../html-pages/components/trainer-picker";
 import type { ModelGeneration, TrainerSpriteId } from "./dex";
-import type { BorderType, HexCode, TimeZone } from "./tools";
+import type { BorderType, HexCode, IHexCodeData, TimeZone } from "./tools";
+import type { ITournamentScheduleWhole } from "./tournaments";
 
 interface IEventInformation {
 	name: string;
@@ -46,40 +47,40 @@ export interface ITournamentTrainerCard {
 	bio?: string;
 	customAvatar?: boolean;
 	favoriteFormat?: string;
-	footer?: HexCode;
-	header?: HexCode;
+	footer?: HexCode | IHexCodeData;
+	header?: HexCode | IHexCodeData;
 	pokemon?: string[];
 	ribbons?: string[];
-	table?: HexCode;
+	table?: HexCode | IHexCodeData;
 }
 
 export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
-	background?: HexCode;
+	background?: HexCode | IHexCodeData;
 	customAvatar?: boolean;
 	pokemonGifs?: boolean;
 }
 
 export interface ICustomBorder {
-	color?: HexCode;
+	color?: HexCode | IHexCodeData;
 	radius?: number;
 	size?: number;
 	type?: BorderType;
 }
 
 export interface IGameCustomBox {
-	background?: HexCode;
+	background?: HexCode | IHexCodeData;
 	backgroundBorder?: ICustomBorder;
-	buttons?: HexCode;
+	buttons?: HexCode | IHexCodeData;
 	buttonsBorder?: ICustomBorder;
-	signupsBackground?: HexCode;
+	signupsBackground?: HexCode | IHexCodeData;
 	signupsBackgroundBorder?: ICustomBorder;
-	signupsButtons?: HexCode;
+	signupsButtons?: HexCode | IHexCodeData;
 	signupsButtonsBorder?: ICustomBorder;
-	gameBackground?: HexCode;
+	gameBackground?: HexCode | IHexCodeData;
 	gameBackgroundBorder?: ICustomBorder;
-	gameButtons?: HexCode;
+	gameButtons?: HexCode | IHexCodeData;
 	gameButtonsBorder?: ICustomBorder;
 }
 
@@ -182,6 +183,11 @@ interface IQueuedTournament {
 	tournamentName?: string;
 }
 
+export interface IRoomCustomFormat {
+	formatId: string;
+	name: string;
+}
+
 interface ITournamentGameBan {
 	name: string;
 	expirationTime: number;
@@ -202,6 +208,7 @@ export interface IPreviousCycle {
 
 export interface IDatabase {
 	botGreetings?: Dict<IBotGreeting>;
+	customFormats?: Dict<IRoomCustomFormat>;
 	cycleStartDate?: string;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
@@ -221,6 +228,7 @@ export interface IDatabase {
 	lastUserHostedGameTime?: number;
 	leaderboardManagers?: string[];
 	miniGameCounts?: Dict<number>;
+	officialTournamentSchedule?: ITournamentScheduleWhole;
 	pastGames?: IPastGame[];
 	pastTournamentGames?: IPastGame[];
 	pastTournaments?: IPastTournament[];

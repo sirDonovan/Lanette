@@ -633,6 +633,8 @@ export class ScriptedGame extends Game {
 		if (this.ended) throw new Error("Game already ended");
 		this.ended = true;
 
+		if (this.timeout) clearTimeout(this.timeout);
+
 		if (this.isPmActivity(this.room)) {
 			this.deallocate(false);
 			return;

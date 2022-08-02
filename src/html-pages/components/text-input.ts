@@ -7,6 +7,11 @@ export interface ITextAreaConfiguration {
 	rows?: number;
 }
 
+export interface ITextInputValidation<OutputType = string> {
+	currentOutput?: OutputType;
+	errors?: string[];
+}
+
 export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	clearText?: string;
 	currentInput?: string;
@@ -17,9 +22,11 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	submitText?: string;
 	textArea?: boolean;
 	textAreaConfiguration?: ITextAreaConfiguration;
+	hideClearButton?: boolean;
 	onClear: () => void;
 	onErrors: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
+	validateSubmission?: (input: string, output?: OutputType) => ITextInputValidation;
 }
 
 const tagName = 'textInput';
@@ -51,6 +58,10 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		this.currentInput = input;
 	}
 
+	parentSetErrors(errors: readonly string[]): void {
+		this.errors = errors.slice();
+	}
+
 	clear(): void {
 		if (this.currentInput === undefined) return;
 
@@ -65,6 +76,13 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		this.errors = [];
 
 		this.onSubmit(input);
+
+		if (this.props.validateSubmission) {
+			const validation = this.props.validateSubmission(this.currentInput, this.currentOutput);
+			// @ts-expect-error
+			if (validation.currentOutput) this.currentOutput = validation.currentOutput;
+			if (validation.errors) this.errors = this.errors.concat(validation.errors);
+		}
 
 		if (this.errors.length) {
 			this.props.onErrors(this.errors);
@@ -126,8 +144,12 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 		html += "<button class='button" + (this.props.readonly ? " disabled" : "") + "' type='submit'" +
 			(this.props.readonly ? " disabled" : "") + ">" + this.submitText + "</button>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
-			{disabled: !this.currentInput});
+
+		if (!this.props.hideClearButton) {
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
+				{disabled: !this.currentInput});
+		}
+
 		html += "</form>";
 
 		return html;
