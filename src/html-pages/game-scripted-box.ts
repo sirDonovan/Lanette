@@ -101,7 +101,7 @@ class GameScriptedBox extends HtmlPageBase {
 		let previewFormat = "";
 		if (database.gameScriptedBoxes![this.userId].previewFormat) {
 			const format = Games.getFormat(database.gameScriptedBoxes![this.userId].previewFormat!);
-			if (!Array.isArray(format)) previewFormat = format.id;
+			if (!Array.isArray(format) && format.id in database.gameFormatScriptedBoxes![this.userId]) previewFormat = format.id;
 		}
 
 		this.activeGameFormat = previewFormat;
@@ -557,6 +557,10 @@ class GameScriptedBox extends HtmlPageBase {
 	deleteFormat(): void {
 		const database = this.getDatabase();
 		delete database.gameFormatScriptedBoxes![this.userId][this.gameFormat];
+
+		if (this.gameFormat === database.gameScriptedBoxes![this.userId].previewFormat) {
+			delete database.gameScriptedBoxes![this.userId].previewFormat;
+		}
 
 		this.resetComponents();
 		this.send();
