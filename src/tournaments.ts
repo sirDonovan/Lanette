@@ -712,6 +712,8 @@ export class Tournaments {
 	}
 
 	setOfficialTournamentTimer(room: Room): void {
+		if (!(room.id in this.nextOfficialTournaments)) return;
+
 		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
 			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
 
