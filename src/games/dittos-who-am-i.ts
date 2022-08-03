@@ -472,6 +472,11 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 export const game: IGameFile<DittosWhoAmI> = {
 	aliases: ["dittos", "who am i"],
 	category: 'puzzle',
+	challengeSettings: {
+		onevsone: {
+			enabled: true,
+		},
+	},
 	class: DittosWhoAmI,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'g [parameter]', Config.commandCharacter + 'g [Pokemon]'],
