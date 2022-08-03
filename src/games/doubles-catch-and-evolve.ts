@@ -10,6 +10,7 @@ const description = "Every player is given 2 randomly generated Pokemon to use a
 class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 1 * 60 * 1000;
+	activityWarnTimeout: number = 5 * 60 * 1000;
 	additionsPerRound = 2;
 	evolutionsPerRound = 2;
 	startingTeamsLength = 2;
