@@ -1,6 +1,6 @@
 import type { Room } from "../../rooms";
 import type { ICustomBorder } from "../../types/storage";
-import type { BorderType, HexCode } from "../../types/tools";
+import type { BorderType } from "../../types/tools";
 import { ColorPicker } from "./color-picker";
 import type { IColorPick } from "./color-picker";
 import { ComponentBase } from "./component-base";
@@ -44,10 +44,8 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 
 		this.colorPicker = new ColorPicker(room, this.commandPrefix, setColorCommand, {
 			currentPick: props.currentBorder && typeof props.currentBorder.color === 'string' ? props.currentBorder.color : undefined,
-			currentPrimaryColor: props.currentBorder && props.currentBorder.color && typeof props.currentBorder.color !== 'string' ?
-				props.currentBorder.color.color as HexCode : undefined,
-			currentSecondaryColor: props.currentBorder && props.currentBorder.color && typeof props.currentBorder.color !== 'string' ?
-				props.currentBorder.color.secondaryColor as HexCode : undefined,
+			currentPickObject: props.currentBorder && props.currentBorder.color && typeof props.currentBorder.color !== 'string' ?
+				props.currentBorder.color : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickColorHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickColorLightness(dontRender),
 			onClear: (index, dontRender) => this.clearColor(dontRender),

@@ -1,4 +1,4 @@
-import type { HexCode } from "../../types/tools";
+import type { HexCode, IHexCodeData, TextColorHex } from "../../types/tools";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
@@ -15,12 +15,12 @@ export interface IColorPick {
 	lightness: Lightness;
 	gradient?: string;
 	secondaryHexCode?: HexCode;
+	textColor?: TextColorHex;
 }
 
 interface IColorPickerProps extends IPickerProps<IColorPick> {
 	random?: boolean;
-	currentPrimaryColor?: HexCode;
-	currentSecondaryColor?: HexCode;
+	currentPickObject?: IHexCodeData;
 	onPickHueVariation: (pickerIndex: number, pick: HueVariation, dontRender: boolean | undefined) => void;
 	onPickLightness: (pickerIndex: number, pick: Lightness, dontRender: boolean | undefined) => void;
 }
@@ -52,6 +52,8 @@ const huesListCommand = 'hueslist';
 const customPrimaryCommand = 'customprimarycode';
 const customSecondaryCommand = 'customsecondarycode';
 const submitCustomHexCodeCommand = 'submitcustomhexcode';
+const chooseBlackTextColorCommand = 'chooseblacktextcolor';
+const chooseWhiteTextColorCommand = 'choosewhitetextcolor';
 
 export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	static shades: HexCode[] = [];
@@ -73,6 +75,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	componentId: string = 'color-picker';
 	customPrimaryColor: HexCode | undefined;
 	customSecondaryColor: HexCode | undefined;
+	customTextColor: TextColorHex = '#000000';
 
 	lightness: Lightness;
 	hueVariation: HueVariation;
@@ -101,8 +104,19 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		ColorPicker.loadData();
 
-		if (this.props.currentPrimaryColor) this.customPrimaryColor = this.props.currentPrimaryColor;
-		if (this.props.currentSecondaryColor) this.customSecondaryColor = this.props.currentSecondaryColor;
+		if (this.props.currentPickObject) {
+			if (this.props.currentPickObject.color) {
+				this.customPrimaryColor = this.props.currentPickObject.color as HexCode;
+			}
+
+			if (this.props.currentPickObject.secondaryColor) {
+				this.customSecondaryColor = this.props.currentPickObject.secondaryColor as HexCode;
+			}
+
+			if (this.props.currentPickObject.textColor) {
+				this.customTextColor = this.props.currentPickObject.textColor;
+			}
+		}
 
 		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
 			const hexCode = this.currentPicks[0] as HexCode;
@@ -583,6 +597,18 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
 			this.pick(customHexCodeKey);
+		} else if (cmd === chooseBlackTextColorCommand) {
+			if (!(customHexCodeKey in this.choices) || this.customTextColor === '#000000') return;
+			this.customTextColor = '#000000';
+			this.choices[customHexCodeKey].textColor = this.customTextColor;
+
+			this.props.reRender();
+		} else if (cmd === chooseWhiteTextColorCommand) {
+			if (!(customHexCodeKey in this.choices) || this.customTextColor === '#ffffff') return;
+			this.customTextColor = '#ffffff';
+			this.choices[customHexCodeKey].textColor = this.customTextColor;
+
+			this.props.reRender();
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -683,9 +709,14 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				html += "<br />";
 				html += this.customSecondaryColorInput.render();
 				html += "<br />";
+				html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBlackTextColorCommand, "Black text color",
+					{selectedAndDisabled: this.customTextColor === '#000000'});
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseWhiteTextColorCommand, "White text color",
+					{selectedAndDisabled: this.customTextColor === '#ffffff'});
+				html += "<br /><br />";
 				html += "<center><div style='color:#000000;background: " +
-					Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";" + "height: 48px;width: 300px'>" +
-					"<br /><b>Text preview</b></div></center>";
+					Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";color: " + this.customTextColor + ";" +
+					"height: 48px;width: 300px'><br /><b>Text preview</b></div></center>";
 				html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
 					(this.customSecondaryColor ? "s" : ""));
 			}

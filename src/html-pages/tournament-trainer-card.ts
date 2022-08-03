@@ -15,7 +15,6 @@ import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { NamePicker } from "./components/name-picker";
 import { TrainerCardRibbonPicker } from "./components/trainer-card-ribbon-picker";
-import type { HexCode } from "../types/tools";
 
 const baseCommand = 'tournamenttrainercard';
 const baseCommandAlias = 'ttc';
@@ -285,10 +284,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 		this.headerColorPicker = new ColorPicker(this.room, this.commandPrefix, setHeaderColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.header === 'string' ? trainerCard.header : undefined,
-			currentPrimaryColor: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ?
-				trainerCard.header.color as HexCode : undefined,
-			currentSecondaryColor: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ?
-				trainerCard.header.secondaryColor as HexCode : undefined,
+			currentPickObject: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ? trainerCard.header : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickHeaderHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickHeaderLightness(dontRender),
 			onClear: (index, dontRender) => this.clearHeaderColor(dontRender),
@@ -299,10 +295,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 		this.tableColorPicker = new ColorPicker(this.room, this.commandPrefix, setTableColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.table === 'string' ? trainerCard.table : undefined,
-			currentPrimaryColor: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ?
-				trainerCard.table.color as HexCode : undefined,
-			currentSecondaryColor: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ?
-				trainerCard.table.secondaryColor as HexCode : undefined,
+			currentPickObject: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ? trainerCard.table : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickTableHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickTableLightness(dontRender),
 			onClear: (index, dontRender) => this.clearTableColor(dontRender),
@@ -313,10 +306,7 @@ class TournamentTrainerCard extends HtmlPageBase {
 
 		this.footerColorPicker = new ColorPicker(this.room, this.commandPrefix, setFooterColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.footer === 'string' ? trainerCard.footer : undefined,
-			currentPrimaryColor: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ?
-				trainerCard.footer.color as HexCode : undefined,
-			currentSecondaryColor: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ?
-				trainerCard.footer.secondaryColor as HexCode : undefined,
+			currentPickObject: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ? trainerCard.footer : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickFooterHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickFooterLightness(dontRender),
 			onClear: (index, dontRender) => this.clearFooterColor(dontRender),
