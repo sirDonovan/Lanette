@@ -11,6 +11,10 @@ class SameSolo extends SameBattleEliminationTournament {
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
 	battleFormatId = '1v1';
+
+	getGameCustomRules(): string[] {
+		return ["-Focus Sash"];
+	}
 }
 
 export const game: IGameFile<SameSolo> = Games.copyTemplateProperties(sameBattleEliminationTournamentGame, {
