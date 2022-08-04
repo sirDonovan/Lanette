@@ -844,14 +844,6 @@ export const game: IUserHostedFile = {
 			freejoin: true,
 		},
 		{
-			name: "Silvally's Single Solutions",
-			mascot: "Silvally",
-			aliases: ['Silvallys'],
-			description: "Players guess two moves which are only learned in combination by the given Pokemon! " +
-				"<a href='https://www.tapatalk.com/groups/ps_game_corner/silvally-s-single-solutions-t1157.html'>More info</a>",
-			freejoin: true,
-		},
-		{
 			name: "Similarities",
 			description: "Each round, the host names three objects (Pokemon related or not) and players must guess what the similarity " +
 				"between the three is.",
