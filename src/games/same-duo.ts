@@ -14,6 +14,10 @@ class SameDuo extends SameBattleEliminationTournament {
 	htmlPageGameDescription = description;
 	battleFormatId = '2v2 Doubles';
 	battleFormatType: GameType = 'doubles';
+
+	getGameCustomRules(): string[] {
+		return ["-Focus Sash", "-Ally Switch"];
+	}
 }
 
 export const game: IGameFile<SameDuo> = Games.copyTemplateProperties(sameBattleEliminationTournamentGame, {

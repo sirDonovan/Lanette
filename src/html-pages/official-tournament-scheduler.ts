@@ -389,7 +389,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 				if (format) {
 					html += "<br />";
 					html += "<b>Current format</b>:&nbsp;" + Dex.getCustomFormatName(format) +
-						(format.tournamentName ? " (Base format: " + format.name + ")" : "");
+						(format.customFormatName ? " (Base format: " + format.name + ")" : "");
 
 					if (format.customRules) {
 						html += "<br />";

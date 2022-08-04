@@ -59,6 +59,7 @@ export class Tournaments {
 		const currentYear = date.getFullYear();
 		const currentMonth = date.getMonth() + 1;
 		const currentDate = date.getDate();
+		const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
 		const years = Object.keys(database.officialTournamentSchedule.years).map(x => parseInt(x)).sort((a, b) => a - b);
 		for (const year of years) {
@@ -100,6 +101,8 @@ export class Tournaments {
 						const format = this.getFormat(formatId, undefined, room);
 						if (!format) throw new Error("No format returned for '" + formatId + "'");
 
+						if (format.customRules) customRules = customRules.concat(format.customRules);
+
 						const validatedFormatId = Dex.validateFormat(Dex.joinNameAndCustomRules(format,
 							Dex.resolveCustomRuleAliases(customRules)));
 
@@ -108,10 +111,18 @@ export class Tournaments {
 							throw new Error("Custom rules not added");
 						}
 
-						schedule.months[month].days[day].format = validatedFormatId;
+						if (schedule.months[month].days[day].invalidFormat) schedule.months[month].days[day].invalidFormat = false;
 					} catch (e) {
-						console.log("Invalid format scheduled for " + month + "/" + day + " in " + room + ": " + (e as Error).message);
-						schedule.months[month].days[day].format = Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT).id;
+						const errorMessage = "Invalid format scheduled for " + month + "/" + day + " in " + room + ": " +
+							(e as Error).message;
+						console.log(errorMessage);
+
+						if (month === currentMonth || month === nextMonth) {
+							const possibleRoom = Rooms.get(room);
+							if (possibleRoom) possibleRoom.modnote(errorMessage);
+						}
+
+						schedule.months[month].days[day].invalidFormat = true;
 					}
 				}
 			}
@@ -171,7 +182,8 @@ export class Tournaments {
 
 		// month is eventually undefined due to rolloverDay()
 		while (month) {
-			const format = scheduleDays[scheduleDay].format || DEFAULT_OFFICIAL_TOURNAMENT;
+			const format = !scheduleDays[scheduleDay].format || scheduleDays[scheduleDay].invalidFormat ? DEFAULT_OFFICIAL_TOURNAMENT :
+				scheduleDays[scheduleDay].format;
 			let rolledOverDay = false;
 			for (let i = 0; i < scheduleDays[scheduleDay].times.length; i++) {
 				if (i > 0 && scheduleDays[scheduleDay].times[i][0] < scheduleDays[scheduleDay].times[i - 1][0]) {
@@ -202,8 +214,11 @@ export class Tournaments {
 		if (!(id in database.customFormats)) {
 			const currentGen = Dex.getGen();
 			for (let i = currentGen; i >= 1; i--) {
-				id = 'gen' + i + id;
-				if (id in database.customFormats) break;
+				const genId = 'gen' + i + id;
+				if (genId in database.customFormats) {
+					id = genId;
+					break;
+				}
 			}
 
 			if (!(id in database.customFormats)) return;
@@ -212,7 +227,6 @@ export class Tournaments {
 		format = Dex.getFormat(database.customFormats[id].formatId);
 		if (!format) return;
 
-		format.tournamentName = database.customFormats[id].name;
 		format.customFormatName = database.customFormats[id].name;
 		return format;
 	}
@@ -710,8 +724,12 @@ export class Tournaments {
 	}
 
 	setOfficialTournamentTimer(room: Room): void {
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time,
-			Dex.getExistingFormat(this.nextOfficialTournaments[room.id].format, true), this.maxPlayerCap, true);
+		if (!(room.id in this.nextOfficialTournaments)) return;
+
+		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
+			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
+
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
@@ -725,9 +743,9 @@ export class Tournaments {
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number, quickFormat?: boolean): void {
-		let officialFormat: IFormat | null = null;
+		let officialFormat: IFormat | undefined;
 		if (room.id in this.nextOfficialTournaments) {
-			officialFormat = Dex.getExistingFormat(this.nextOfficialTournaments[room.id].format, true);
+			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id].format, room);
 		}
 		const database = Storage.getDatabase(room);
 		const pastTournamentIds: string[] = [];

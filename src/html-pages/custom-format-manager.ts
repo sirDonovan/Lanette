@@ -595,7 +595,13 @@ class CustomFormatManager extends HtmlPageBase {
 		let changedTiers = false;
 
 		const pokemonTags = Dex.getPokemonTagsList();
-		const pokemonTagsById: Dict<string> = {};
+		const pokemonTagsById: Dict<string> = {
+			'allabilities': 'All Abilities',
+			'allitems': 'All Items',
+			'allmoves': 'All Moves',
+			'allpokemon': 'All Pokemon',
+		};
+
 		for (const tag of pokemonTags) {
 			pokemonTagsById[Tools.toId(tag)] = tag;
 		}
@@ -725,8 +731,10 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 
+			if (!formattedName) continue;
+
 			const formattedRule = type + formattedName + limit;
-			if (!newCustomRules.includes(formattedRule)) {
+			if (formattedRule && !newCustomRules.includes(formattedRule)) {
 				newCustomRules.push(formattedRule);
 				if (tag) newCustomRuleTags[formattedRule] = type + tag;
 			}

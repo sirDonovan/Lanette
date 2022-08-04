@@ -3,7 +3,7 @@ import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { ModelGeneration } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
 import type { IDatabase, IGameScriptedBox } from "../types/storage";
-import type { BorderType, HexCode } from "../types/tools";
+import type { BorderType } from "../types/tools";
 import type { User } from "../users";
 import { BorderStyle } from "./components/border-style";
 import type { IColorPick } from "./components/color-picker";
@@ -101,7 +101,7 @@ class GameScriptedBox extends HtmlPageBase {
 		let previewFormat = "";
 		if (database.gameScriptedBoxes![this.userId].previewFormat) {
 			const format = Games.getFormat(database.gameScriptedBoxes![this.userId].previewFormat!);
-			if (!Array.isArray(format)) previewFormat = format.id;
+			if (!Array.isArray(format) && format.id in database.gameFormatScriptedBoxes![this.userId]) previewFormat = format.id;
 		}
 
 		this.activeGameFormat = previewFormat;
@@ -129,10 +129,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.backgroundColorPicker = new ColorPicker(this.room, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: typeof gameScriptedBox.background === 'string' ? gameScriptedBox.background : undefined,
-			currentPrimaryColor: gameScriptedBox.background && typeof gameScriptedBox.background !== 'string' ?
-				gameScriptedBox.background.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.background && typeof gameScriptedBox.background !== 'string' ?
-				gameScriptedBox.background.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.background && typeof gameScriptedBox.background !== 'string' ?
+				gameScriptedBox.background : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -142,10 +140,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.buttonColorPicker = new ColorPicker(this.room, this.commandPrefix, setButtonColorCommand, {
 			currentPick: typeof gameScriptedBox.buttons === 'string' ? gameScriptedBox.buttons : undefined,
-			currentPrimaryColor: gameScriptedBox.buttons && typeof gameScriptedBox.buttons !== 'string' ?
-				gameScriptedBox.buttons.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.buttons && typeof gameScriptedBox.buttons !== 'string' ?
-				gameScriptedBox.buttons.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.buttons && typeof gameScriptedBox.buttons !== 'string' ?
+				gameScriptedBox.buttons : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
@@ -155,10 +151,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.signupsBackgroundColorPicker = new ColorPicker(this.room, this.commandPrefix, setSignupsBackgroundColorCommand, {
 			currentPick: typeof gameScriptedBox.signupsBackground === 'string' ? gameScriptedBox.signupsBackground : undefined,
-			currentPrimaryColor: gameScriptedBox.signupsBackground && typeof gameScriptedBox.signupsBackground !== 'string' ?
-				gameScriptedBox.signupsBackground.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.signupsBackground && typeof gameScriptedBox.signupsBackground !== 'string' ?
-				gameScriptedBox.signupsBackground.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.signupsBackground && typeof gameScriptedBox.signupsBackground !== 'string' ?
+				gameScriptedBox.signupsBackground : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsBackgroundColor(dontRender),
@@ -168,10 +162,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.signupsButtonColorPicker = new ColorPicker(this.room, this.commandPrefix, setSignupsButtonColorCommand, {
 			currentPick: typeof gameScriptedBox.signupsButtons === 'string' ? gameScriptedBox.signupsButtons : undefined,
-			currentPrimaryColor: gameScriptedBox.signupsButtons && typeof gameScriptedBox.signupsButtons !== 'string' ?
-				gameScriptedBox.signupsButtons.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.signupsButtons && typeof gameScriptedBox.signupsButtons !== 'string' ?
-				gameScriptedBox.signupsButtons.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.signupsButtons && typeof gameScriptedBox.signupsButtons !== 'string' ?
+				gameScriptedBox.signupsButtons : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsButtonsColor(dontRender),
@@ -181,10 +173,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.gameBackgroundColorPicker = new ColorPicker(this.room, this.commandPrefix, setGameBackgroundColorCommand, {
 			currentPick: typeof gameScriptedBox.gameBackground === 'string' ? gameScriptedBox.gameBackground : undefined,
-			currentPrimaryColor: gameScriptedBox.gameBackground && typeof gameScriptedBox.gameBackground !== 'string' ?
-				gameScriptedBox.gameBackground.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.gameBackground && typeof gameScriptedBox.gameBackground !== 'string' ?
-				gameScriptedBox.gameBackground.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.gameBackground && typeof gameScriptedBox.gameBackground !== 'string' ?
+				gameScriptedBox.gameBackground : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearGameBackgroundColor(dontRender),
@@ -194,10 +184,8 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.gameButtonColorPicker = new ColorPicker(this.room, this.commandPrefix, setGameButtonColorCommand, {
 			currentPick: typeof gameScriptedBox.gameButtons === 'string' ? gameScriptedBox.gameButtons : undefined,
-			currentPrimaryColor: gameScriptedBox.gameButtons && typeof gameScriptedBox.gameButtons !== 'string' ?
-				gameScriptedBox.gameButtons.color as HexCode : undefined,
-			currentSecondaryColor: gameScriptedBox.gameButtons && typeof gameScriptedBox.gameButtons !== 'string' ?
-				gameScriptedBox.gameButtons.secondaryColor as HexCode : undefined,
+			currentPickObject: gameScriptedBox.gameButtons && typeof gameScriptedBox.gameButtons !== 'string' ?
+				gameScriptedBox.gameButtons : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearGameButtonsColor(dontRender),
@@ -569,6 +557,10 @@ class GameScriptedBox extends HtmlPageBase {
 	deleteFormat(): void {
 		const database = this.getDatabase();
 		delete database.gameFormatScriptedBoxes![this.userId][this.gameFormat];
+
+		if (this.gameFormat === database.gameScriptedBoxes![this.userId].previewFormat) {
+			delete database.gameScriptedBoxes![this.userId].previewFormat;
+		}
 
 		this.resetComponents();
 		this.send();
