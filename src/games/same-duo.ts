@@ -16,7 +16,7 @@ class SameDuo extends SameBattleEliminationTournament {
 	battleFormatType: GameType = 'doubles';
 
 	getGameCustomRules(): string[] {
-		return ["-Focus Sash"];
+		return ["-Focus Sash", "-Ally Switch"];
 	}
 }
 
