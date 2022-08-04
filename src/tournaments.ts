@@ -59,6 +59,7 @@ export class Tournaments {
 		const currentYear = date.getFullYear();
 		const currentMonth = date.getMonth() + 1;
 		const currentDate = date.getDate();
+		const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
 
 		const years = Object.keys(database.officialTournamentSchedule.years).map(x => parseInt(x)).sort((a, b) => a - b);
 		for (const year of years) {
@@ -109,9 +110,19 @@ export class Tournaments {
 						if (customRules.length && (!validatedFormat.customRules || !validatedFormat.customRules.length)) {
 							throw new Error("Custom rules not added");
 						}
+
+						if (schedule.months[month].days[day].invalidFormat) schedule.months[month].days[day].invalidFormat = false;
 					} catch (e) {
-						console.log("Invalid format scheduled for " + month + "/" + day + " in " + room + ": " + (e as Error).message);
-						schedule.months[month].days[day].format = Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT).id;
+						const errorMessage = "Invalid format scheduled for " + month + "/" + day + " in " + room + ": " +
+							(e as Error).message;
+						console.log(errorMessage);
+
+						if (month === currentMonth || month === nextMonth) {
+							const possibleRoom = Rooms.get(room);
+							if (possibleRoom) possibleRoom.modnote(errorMessage);
+						}
+
+						schedule.months[month].days[day].invalidFormat = true;
 					}
 				}
 			}
@@ -171,7 +182,8 @@ export class Tournaments {
 
 		// month is eventually undefined due to rolloverDay()
 		while (month) {
-			const format = scheduleDays[scheduleDay].format || DEFAULT_OFFICIAL_TOURNAMENT;
+			const format = !scheduleDays[scheduleDay].format || scheduleDays[scheduleDay].invalidFormat ? DEFAULT_OFFICIAL_TOURNAMENT :
+				scheduleDays[scheduleDay].format;
 			let rolledOverDay = false;
 			for (let i = 0; i < scheduleDays[scheduleDay].times.length; i++) {
 				if (i > 0 && scheduleDays[scheduleDay].times[i][0] < scheduleDays[scheduleDay].times[i - 1][0]) {
