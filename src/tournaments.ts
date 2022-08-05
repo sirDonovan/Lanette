@@ -729,7 +729,7 @@ export class Tournaments {
 		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
 			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
 
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true);
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true, format.customFormatName);
 	}
 
 	canSetRandomTournament(room: Room): boolean {
