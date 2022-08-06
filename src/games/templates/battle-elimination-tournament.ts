@@ -5,9 +5,9 @@ import type { IClientTournamentData } from "../../types/tournaments";
 import { game as battleEliminationGame, BattleElimination } from "./battle-elimination";
 
 const GROUPCHAT_SUFFIX = "Games";
-const AUTO_DQ_MINUTES = 3;
 
 export abstract class BattleEliminationTournament extends BattleElimination {
+	autoDqMinutes: number = 3;
 	requiresAutoconfirmed = false;
 	startAutoDqTimer: NodeJS.Timer | undefined;
 	tournamentCreated: boolean = false;
@@ -20,7 +20,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	afterInitialize(): void {
 		super.afterInitialize();
 
-		this.firstRoundTime = (AUTO_DQ_MINUTES * 60 * 1000) + this.firstRoundExtraTime;
+		this.firstRoundTime = (this.autoDqMinutes * 60 * 1000) + this.firstRoundExtraTime;
 
 		if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
 			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
@@ -278,8 +278,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		super.startElimination();
 
 		this.startAutoDqTimer = setTimeout(() => {
-			this.subRoom.setTournamentAutoDq(AUTO_DQ_MINUTES);
-			this.subRoom.tournament!.setAutoDqMinutes(AUTO_DQ_MINUTES);
+			this.subRoom.setTournamentAutoDq(this.autoDqMinutes);
+			this.subRoom.tournament!.setAutoDqMinutes(this.autoDqMinutes);
 		}, this.firstRoundTime);
 
 		const database = Storage.getDatabase(this.room);

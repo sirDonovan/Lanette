@@ -84,10 +84,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: typeof props.currentBackground === 'string' ? props.currentBackground : undefined,
-			currentPrimaryColor: props.currentBackground && typeof props.currentBackground !== 'string' ?
-				props.currentBackground.color as HexCode : undefined,
-			currentSecondaryColor: props.currentBackground && typeof props.currentBackground !== 'string' ?
-				props.currentBackground.secondaryColor as HexCode : undefined,
+			currentPickObject: props.currentBackground && typeof props.currentBackground !== 'string' ? props.currentBackground : undefined,
 			random: props.random,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),

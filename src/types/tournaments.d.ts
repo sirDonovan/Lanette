@@ -21,6 +21,7 @@ export interface IOfficialTournament extends IScheduledTournament {
 export interface ITournamentScheduleDay {
 	format: string;
 	times: [number, number][];
+	invalidFormat?: boolean;
 }
 
 export interface ITournamentScheduleMonth {
