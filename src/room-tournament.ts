@@ -344,7 +344,7 @@ export class Tournament extends Activity {
 
 			if (showTrainerCard) {
 				const buttonRoom = this.room.alias || this.room.id;
-				Tournaments.displayTrainerCard(this.room, winners[0], "<center><div class='infobox-limited'>" + placesHtml + "</center>",
+				Tournaments.displayTrainerCard(this.room, winners[0], "<div class='infobox-limited'><center>" + placesHtml + "</center>",
 					"<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom,
 						this.room.title + " leaderboard") + "&nbsp;" +
 						Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom + "," + this.format.name,
@@ -352,7 +352,7 @@ export class Tournament extends Activity {
 						Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + (this.room.alias || this.room.id),
 							"Next tournament") + "&nbsp;" +
 						Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + (this.room.alias || this.room.id),
-							"Customize your profile") + "</div></center>");
+							"Customize your profile") + "</center></div>");
 			} else {
 				const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 
