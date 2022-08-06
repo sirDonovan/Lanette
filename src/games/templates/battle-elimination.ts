@@ -317,6 +317,19 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (!customRules.includes(rule)) customRules.push(rule);
 		}
 
+		if (this.getGameCustomRules) {
+			const ruleTable = Dex.getRuleTable(this.battleFormat);
+			const gameCustomRules = this.getGameCustomRules();
+			for (const rule of gameCustomRules) {
+				try {
+					const validated = Dex.validateRule(rule);
+					if (typeof validated === 'string' && !ruleTable.has(validated) && !customRules.includes(validated)) {
+						customRules.push(validated);
+					}
+				} catch (e) {} // eslint-disable-line no-empty
+			}
+		}
+
 		return customRules;
 	}
 
@@ -2128,6 +2141,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 	}
 
+	getGameCustomRules?(): string[];
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;
 	meetsEvolutionCriteria?(pokemon: IPokemon): boolean;
 }

@@ -310,6 +310,7 @@ export class Tools {
 			color: colorPick.hexCode,
 			gradient: colorPick.gradient,
 			secondaryColor: colorPick.secondaryHexCode,
+			textColor: colorPick.textColor,
 		} : colorPick.hexCode;
 	}
 
@@ -389,7 +390,7 @@ export class Tools {
 					background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
 				}
 			} else {
-				textColor = 'color: #000000;';
+				textColor = 'color: ' + (backgroundColor.textColor || '#000000') + ';';
 				background = "background: " + backgroundColor.gradient + ";";
 			}
 		}
@@ -412,7 +413,7 @@ export class Tools {
 					buttonStyle += "text-shadow: none;";
 				}
 			} else {
-				buttonStyle += "color: #000000;";
+				buttonStyle += "color: " + (backgroundColor.textColor || "#000000") + ";";
 				buttonStyle += "background: " + backgroundColor.gradient + ";";
 				buttonStyle += "text-shadow: none;";
 			}
