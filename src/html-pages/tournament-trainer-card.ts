@@ -43,9 +43,7 @@ const setPokemonCommand = 'setpokemon';
 const setTargetUserIdCommand = 'settargetuserid';
 const closeCommand = 'close';
 
-const pageId = 'tournament-trainer-card';
-
-export const id = pageId;
+export const pageId = 'tournament-trainer-card';
 export const pages: Dict<TournamentTrainerCard> = {};
 
 interface ITournamentTrainerCardOptions {

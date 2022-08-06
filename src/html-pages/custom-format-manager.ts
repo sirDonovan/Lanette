@@ -48,9 +48,7 @@ const basePokemonTag = "basepokemon:";
 const tierTag = "pokemontag:";
 const forceMonotype = 'forcemonotype';
 
-const pageId = 'custom-format-manager';
-
-export const id = pageId;
+export const pageId = 'custom-format-manager';
 export const pages: Dict<CustomFormatManager> = {};
 
 class CustomFormatManager extends HtmlPageBase {
