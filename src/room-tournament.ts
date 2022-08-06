@@ -344,15 +344,15 @@ export class Tournament extends Activity {
 
 			if (showTrainerCard) {
 				const buttonRoom = this.room.alias || this.room.id;
-				Tournaments.displayTrainerCard(this.room, winners[0], "<div class='infobox-limited'><center>" + placesHtml + "</center>",
-					"<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom,
-						this.room.title + " leaderboard") + "&nbsp;" +
-						Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom + "," + this.format.name,
-							this.format.name + " leaderboard") + "&nbsp;" +
-						Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + (this.room.alias || this.room.id),
-							"Next tournament") + "&nbsp;" +
-						Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + (this.room.alias || this.room.id),
-							"Customize your profile") + "</center></div>");
+				Tournaments.displayTrainerCard(this.room, winners[0], "<div class='infobox-limited'><center>" + placesHtml +
+					"</center><br />", "<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " +
+					buttonRoom, this.room.title + " leaderboard") + "&nbsp;" +
+					Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom + "," + this.format.name,
+						this.format.name + " leaderboard") + "&nbsp;" +
+					Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + (this.room.alias || this.room.id),
+						"Next tournament") + "&nbsp;" +
+					Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + (this.room.alias || this.room.id),
+						"Customize your profile") + "</center></div>");
 			} else {
 				const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 
