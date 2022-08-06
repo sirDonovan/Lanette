@@ -214,13 +214,13 @@ export const commands: BaseCommandDefinitions = {
 							return this.say(host.name + "'s game was changed to " + format.name + ".");
 						}
 					}
-
-					if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
-						database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
-						return this.say("The host queue is full.");
-					}
 				} else {
 					database.userHostedGameQueue = [];
+				}
+
+				if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
+					database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
+					return this.say("The host queue is full.");
 				}
 
 				let prefixText = '';
