@@ -217,7 +217,7 @@ export const commands: BaseCommandDefinitions = {
 					database.userHostedGameQueue = [];
 				}
 
-				if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
+				if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames &&
 					database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
 					return this.say("The host queue is full.");
 				}
