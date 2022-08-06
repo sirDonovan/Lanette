@@ -993,7 +993,8 @@ class CustomFormatManager extends HtmlPageBase {
 	setNextTournamentCommand(): void {
 		if (!this.format || !this.canCreateTournament) return;
 
-		const formatId = this.getCustomFormatId(true);
+		const formatId = this.customFormatName && Tournaments.getFormat(this.customFormatName, this.room) ? this.customFormatName :
+			this.getCustomFormatId(true);
 		if (!formatId) return;
 
 		const user = Users.get(this.userName);
