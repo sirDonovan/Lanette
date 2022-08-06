@@ -1,4 +1,3 @@
-import { timeStamp } from "console";
 import type { Player, PlayerTeam } from "../room-activity";
 import type { ScriptedGame } from "../room-game-scripted";
 import type { UserHostedGame } from "../room-game-user-hosted";
