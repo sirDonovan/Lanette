@@ -15,10 +15,10 @@ class CloakAndDagger extends BattleEliminationTournament {
 	htmlPageGameDescription = description;
 	requiredTier = "OU";
 	usesCloakedPokemon = true;
-	banlist = ['Zoroark'];
+	banlist = ['Zorua', 'Zoroark'];
 
 	getCustomRules(): string[] {
-		return ["-Zoroark"];
+		return ['-Zorua', '-Zoroark', '-Illusion'];
 	}
 
 }
