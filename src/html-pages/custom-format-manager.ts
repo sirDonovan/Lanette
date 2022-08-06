@@ -1115,6 +1115,7 @@ class CustomFormatManager extends HtmlPageBase {
 
 			const hasCustomRules = this.customRules.length > 0;
 			const challengeId = this.format.id + (hasCustomRules ? "@@@" + this.customRules.join(", ") : "");
+			let validatedFormat = false;
 			if (hasCustomRules) {
 				html += "<b>Current rules</b>:";
 				html += "<br />";
@@ -1130,12 +1131,14 @@ class CustomFormatManager extends HtmlPageBase {
 
 				try {
 					Dex.validateFormat(challengeId);
+					validatedFormat = true;
 				} catch (e) {
 					html += "<br /><br />";
 					html += "<div style='color:red'><b>ERROR</b>: " + (e as Error).message + "</div>";
 				}
 			} else if (!this.redundantCustomRules.length) {
 				html += "You have not specified any custom rules! Use the bans view, unbans view, or enter rules manually below.";
+				validatedFormat = true;
 			}
 
 			html += "<br /><br />";
@@ -1146,13 +1149,13 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 
 				html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
-					"Set as " + Config.commandCharacter + "nexttour", {disabled: !this.format});
+					"Set as " + Config.commandCharacter + "nexttour", {disabled: !validatedFormat});
 				html += "<br /><br />";
 				html += this.customFormatNameInput.render();
 
 				const customFormatId = Tools.toId(this.customFormatName);
 				html += this.getQuietPmButton(this.commandPrefix + ", " + saveCustomFormatCommand, "Save to database",
-					{disabled: !customFormatId || (database.customFormats && customFormatId in database.customFormats &&
+					{disabled: !validatedFormat || !customFormatId || (database.customFormats && customFormatId in database.customFormats &&
 						database.customFormats[customFormatId].formatId === this.getCustomFormatId())});
 				if (database.customFormats && customFormatId in database.customFormats) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteCustomFormatCommand, "Remove from database");
