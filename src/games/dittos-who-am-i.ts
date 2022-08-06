@@ -9,6 +9,7 @@ const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "sp
 	"spdef", "specialdefense", "spe", "speed", "bst", "basestattotal", "ht", "height", "weight", "wt", "gen", "g"];
 
 class DittosWhoAmI extends ScriptedGame {
+	canLateJoin: boolean = true;
 	tiers: string[] = [];
 	colors: string[] = [];
 	eggGroups: string[] = [];
@@ -17,6 +18,7 @@ class DittosWhoAmI extends ScriptedGame {
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
+	pokemonList: IPokemon[] = [];
 	playerPokemon = new Map<Player, IPokemon>();
 	playerWeaknesses = new Map<Player, string[]>();
 	playerResistances = new Map<Player, string[]>();
@@ -24,8 +26,20 @@ class DittosWhoAmI extends ScriptedGame {
 	roundTime: number = 30 * 1000;
 	winWarning: boolean = false;
 
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+		if (lateJoin) {
+			if (!this.pokemonList.length) return false;
+
+			this.playerOrder.push(player);
+			this.givePokemon(player, this.pokemonList[0]);
+			this.pokemonList.shift();
+		}
+
+		return true;
+	}
+
 	onStart(): void {
-		const pokemonList = this.shuffle(Games.getPokemonList(x => {
+		this.pokemonList = this.shuffle(Games.getPokemonList(x => {
 			const color = Tools.toId(x.color);
 			if (!this.colors.includes(color)) this.colors.push(color);
 
@@ -42,33 +56,9 @@ class DittosWhoAmI extends ScriptedGame {
 			return true;
 		}));
 
-		const typeKeys = Dex.getData().typeKeys;
-
 		for (const id in this.players) {
-			const player = this.players[id];
-			const pokemon = pokemonList[0];
-			pokemonList.shift();
-
-			this.playerPokemon.set(player, pokemon);
-
-			const resistances: string[] = [];
-			const weaknesses: string[] = [];
-			for (const key of typeKeys) {
-				const type = Dex.getExistingType(key);
-				if (Dex.isImmune(type.name, pokemon.types)) {
-					resistances.push(type.name);
-				} else {
-					const effectiveness = Dex.getEffectiveness(type.name, pokemon.types);
-					if (effectiveness <= -1) {
-						resistances.push(type.name);
-					} else if (effectiveness >= 1) {
-						weaknesses.push(type.name);
-					}
-				}
-			}
-
-			this.playerResistances.set(player, resistances);
-			this.playerWeaknesses.set(player, weaknesses);
+			this.givePokemon(this.players[id], this.pokemonList[0]);
+			this.pokemonList.shift();
 		}
 
 		const text = "Each round, you must guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
@@ -77,6 +67,29 @@ class DittosWhoAmI extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
+	}
+
+	givePokemon(player: Player, pokemon: IPokemon): void {
+		this.playerPokemon.set(player, pokemon);
+
+		const resistances: string[] = [];
+		const weaknesses: string[] = [];
+		for (const key of Dex.getData().typeKeys) {
+			const type = Dex.getExistingType(key);
+			if (Dex.isImmune(type.name, pokemon.types)) {
+				resistances.push(type.name);
+			} else {
+				const effectiveness = Dex.getEffectiveness(type.name, pokemon.types);
+				if (effectiveness <= -1) {
+					resistances.push(type.name);
+				} else if (effectiveness >= 1) {
+					weaknesses.push(type.name);
+				}
+			}
+		}
+
+		this.playerResistances.set(player, resistances);
+		this.playerWeaknesses.set(player, weaknesses);
 	}
 
 	checkTierAlias(input: string): string{
