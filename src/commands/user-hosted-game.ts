@@ -112,7 +112,9 @@ export const commands: BaseCommandDefinitions = {
 
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
-			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
+			if (approvedHost && user !== host && !user.hasRank(room, 'voice')) {
+				return user.say("You are only able to use this command on yourself as approved host.");
+			}
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
 			if (host.isBot(room)) return this.say("You cannot use this command on a user with Bot rank.");
 
@@ -178,11 +180,6 @@ export const commands: BaseCommandDefinitions = {
 					format.name + " user-host cooldown remaining.");
 			}
 
-			if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
-				database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
-				return this.say("The host queue is full.");
-			}
-
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
@@ -216,6 +213,11 @@ export const commands: BaseCommandDefinitions = {
 							game.format = format.inputTarget;
 							return this.say(host.name + "'s game was changed to " + format.name + ".");
 						}
+					}
+
+					if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
+						database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
+						return this.say("The host queue is full.");
 					}
 				} else {
 					database.userHostedGameQueue = [];
@@ -1682,91 +1684,5 @@ export const commands: BaseCommandDefinitions = {
 		aliases: ['rhint', 'randanswer', 'ranswer', 'randomhint', 'randhint'],
 		syntax: ["[game]"],
 		description: ["displays a random hint and answer for the given game"],
-	},
-	showalcremie: {
-		command(target, room, user) {
-			if (!this.isPm(room)) return;
-			const targets = target.split(',');
-			const gameRoom = Rooms.search(targets[0]);
-			if (!gameRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			targets.shift();
-			let cream = null;
-			let sweet = null;
-			if (!targets[0]) {
-				this.say("You must specify a valid cream.");
-				return;
-			}
-			if (!targets[1]) {
-				this.say("You must specify a valid sweet.");
-				return;
-			}
-			if (targets[0].toLowerCase() === "vanillacream" || 
-			targets[0].toLowerCase() === "vanilla" || 
-			targets[0].toLowerCase() === "vc") cream = "";
-			if (targets[0].toLowerCase() === "rubycream" || 
-			targets[0].toLowerCase() === "rc") cream = "rc";
-			if (targets[0].toLowerCase() === "matchacream" || 
-			targets[0].toLowerCase() === "matcha" || 
-			targets[0].toLowerCase() === "mac") cream = "mac";
-			if (targets[0].toLowerCase() === "mintcream" || 
-			targets[0].toLowerCase() === "mint" || 
-			targets[0].toLowerCase() === "mic") cream = "mic";
-			if (targets[0].toLowerCase() === "lemoncream" || 
-			targets[0].toLowerCase() === "lemon" || 
-			targets[0].toLowerCase() === "lc") cream = "lc";
-			if (targets[0].toLowerCase() === "saltedcream" || 
-			targets[0].toLowerCase() === "salted" || 
-			targets[0].toLowerCase() === "sc") cream = "sc";
-			if (targets[0].toLowerCase() === "rubyswirl" || 
-			targets[0].toLowerCase() === "rs") cream = "rs";
-			if (targets[0].toLowerCase() === "caramelswirl" || 
-			targets[0].toLowerCase() === "caramel" || 
-			targets[0].toLowerCase() === "cs") cream = "cs";
-			if (targets[0].toLowerCase() === "rainbowswirl" || 
-			targets[0].toLowerCase() === "rainbow" || 
-			targets[0].toLowerCase() === "ras") cream = "ras";
-			if (targets[0].toLowerCase() === "shiny" || 
-			targets[0].toLowerCase() === "s") cream = "shiny";
-
-			if (targets[1].toLowerCase() === "strawberrysweet" || 
-			targets[1].toLowerCase() === "strawberry") sweet = "";
-			if (targets[1].toLowerCase() === "berrysweet" || 
-			targets[1].toLowerCase() === "berry" || 
-			targets[1].toLowerCase() === "b") sweet = "berry";
-			if (targets[1].toLowerCase() === "lovesweet" || 
-			targets[1].toLowerCase() === "love" || 
-			targets[1].toLowerCase() === "l") sweet = cream === "mic" ? "heart" : "love";
-			if (targets[1].toLowerCase() === "starsweet" || 
-			targets[1].toLowerCase() === "star") sweet = "star";
-			if (targets[1].toLowerCase() === "cloversweet" || 
-			targets[1].toLowerCase() === "clover" || 
-			targets[1].toLowerCase() === "c") sweet = "clover";
-			if (targets[1].toLowerCase() === "flowersweet" || 
-			targets[1].toLowerCase() === "flower" || 
-			targets[1].toLowerCase() === "f") sweet = "flower";
-			if (targets[1].toLowerCase() === "ribbonsweet" || 
-			targets[1].toLowerCase() === "ribbon" || 
-			targets[1].toLowerCase() === "r") sweet = "ribbon";
-			if (cream === null) {
-				this.say("Invalid cream. The cream name you have chosen may be ambiguous.");
-				return;
-			}
-			if (sweet === null) {
-				this.say("Invalid sweet. The sweet name you have chosen may be ambiguous.");
-				return;
-			}
-			let imgUrl = "//www.serebii.net/swordshield/pokemon/869-" + cream + sweet + ".png";
-			if (!cream && !sweet) imgUrl = imgUrl = "//www.serebii.net/swordshield/pokemon/869.png";
-			if (cream === "shiny") {
-				imgUrl = "//www.serebii.net/Shiny/SWSH/869-" + sweet + ".png";
-				if (!sweet) imgUrl = "//www.serebii.net/Shiny/SWSH/869.png";
-			}
-			this.say(imgUrl);
-			let gameHtml = "<center><img src=" + imgUrl + " width=100 height=100></center>"
-			gameRoom.say("/addhtmlbox " + gameHtml);
-		},
-		pmOnly: true,
-		syntax: ["[room], [cream], [sweet]"],
-		description: ["displays an Alcremie sprite from Serebii"],
 	},
 };
