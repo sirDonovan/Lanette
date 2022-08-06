@@ -339,15 +339,25 @@ export class Tournament extends Activity {
 
 			const placesHtml = Tournaments.getPlacesHtml('tournamentLeaderboard', (this.official ? "Official " : "") + this.format.name,
 				winners, runnersUp, semiFinalists, winnerPoints, runnerUpPoints, semiFinalistPoints);
-			const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
-
 			const showTrainerCard = winners.length === 1 && Config.showTournamentTrainerCards &&
 				Config.showTournamentTrainerCards.includes(this.room.id);
-			this.sayHtml("<div class='infobox-limited'" + (showTrainerCard ? " style='max-height:125px'" : "") + ">" + placesHtml +
-				(formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") + "</div>");
 
 			if (showTrainerCard) {
-				Tournaments.displayTrainerCard(this.room, winners[0]);
+				const buttonRoom = this.room.alias || this.room.id;
+				Tournaments.displayTrainerCard(this.room, winners[0], "<center><div class='infobox-limited'>" + placesHtml + "</center>",
+					"<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom,
+						this.room.title + " leaderboard") + "&nbsp;" +
+						Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom + "," + this.format.name,
+							this.format.name + " leaderboard") + "&nbsp;" +
+						Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + (this.room.alias || this.room.id),
+							"Next tournament") + "&nbsp;" +
+						Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + (this.room.alias || this.room.id),
+							"Customize your profile") + "</div></center>");
+			} else {
+				const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
+
+				this.sayHtml("<div class='infobox-limited'>" + placesHtml + (formatLeaderboard ? "<br /><br />" + formatLeaderboard : "") +
+					"</div>");
 			}
 		}
 
