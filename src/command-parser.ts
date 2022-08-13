@@ -176,10 +176,10 @@ export class CommandParser {
 			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
-			if (htmlPage.id in this.htmlPages) throw new Error("Html page id '" + htmlPage.id + "' is used for more than 1 page.");
+			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
 
-			this.htmlPageModules[htmlPage.id] = htmlPage;
-			this.htmlPages[htmlPage.id] = htmlPage.pages;
+			this.htmlPageModules[htmlPage.pageId] = htmlPage;
+			this.htmlPages[htmlPage.pageId] = htmlPage.pages;
 
 			if (htmlPage.commands) {
 				for (const i in htmlPage.commands) {

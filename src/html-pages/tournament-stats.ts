@@ -13,9 +13,7 @@ const closeCommand = 'close';
 const leaderboardCommand = 'tournamentleaderboard';
 const pointsBreakdownCommand = 'tournamentpointsbreakdown';
 
-const pageId = 'tournament-stats';
-
-export const id = pageId;
+export const pageId = 'tournament-stats';
 export const pages: Dict<TournamentStats> = {};
 
 class TournamentStats extends HtmlPageBase {

@@ -520,10 +520,16 @@ export const commands: BaseCommandDefinitions = {
 			let endPosition = startPosition + positions;
 			if (endPosition > cachedEntries.length) endPosition = cachedEntries.length;
 
-			this.sayHtml("<b>" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
-				cachedEntries.length + "</b><hr />" + output.join(", "), leaderboardRoom);
+			const html = "<b>" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
+				cachedEntries.length + "</b><hr />" + output.join(", ");
+
+			if (cmd === 'topprivate') {
+				leaderboardRoom.sayPrivateHtml(user, html);
+			} else {
+				this.sayHtml(html, leaderboardRoom);
+			}
 		},
-		aliases: ['top', 'lb'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
+		aliases: ['top', 'lb', 'topprivate'].concat(tournamentLeaderboardAliases, gameLeaderboardAliases),
 		syntax: ["{format | starting position | annual}"],
 		pmSyntax: ["[room], {format | starting position | annual}"],
 		description: ["displays the room's leaderboard, optionally for the given format, from the given starting position, or " +

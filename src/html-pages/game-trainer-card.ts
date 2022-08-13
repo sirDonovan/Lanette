@@ -21,9 +21,7 @@ const setPokemonCommand = 'setpokemon';
 const setTrainerCommand = 'settrainer';
 const closeCommand = 'close';
 
-const pageId = 'game-trainer-card';
-
-export const id = pageId;
+export const pageId = 'game-trainer-card';
 export const pages: Dict<GameTrainerCard> = {};
 
 class GameTrainerCard extends HtmlPageBase {

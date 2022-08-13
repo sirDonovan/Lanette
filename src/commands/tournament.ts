@@ -349,13 +349,13 @@ export const commands: BaseCommandDefinitions = {
 				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
 				official,
 				time,
-				tournamentName: format.tournamentName,
+				tournamentName: format.tournamentName || format.customFormatName,
 			};
 
 			if (official) {
 				Tournaments.setOfficialTournamentTimer(room);
 			} else if (time) {
-				Tournaments.setTournamentTimer(room, time, format, playerCap, false, format.tournamentName);
+				Tournaments.setTournamentTimer(room, time, format, playerCap, false, database.queuedTournament.tournamentName);
 			}
 			this.run('queuedtournament', '');
 
@@ -367,7 +367,9 @@ export const commands: BaseCommandDefinitions = {
 		description: ["sets the next server tournament to the given format, optionally with the given player cap or custom rules"],
 	},
 	queuedtournament: {
-		command(target, room, user) {
+		command(target, room, user, cmd) {
+			const privateHtml = cmd === 'nexttourprivate';
+
 			let tournamentRoom: Room;
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(target);
@@ -391,20 +393,39 @@ export const commands: BaseCommandDefinitions = {
 
 			const database = Storage.getDatabase(tournamentRoom);
 			const errorText = "There is no tournament scheduled for " + (this.pm ? tournamentRoom.title : "this room") + ".";
-			if (!database.queuedTournament) return this.say(errorText);
+			if (!database.queuedTournament) {
+				if (privateHtml) {
+					tournamentRoom.sayPrivateHtml(user, errorText);
+				} else {
+					this.say(errorText);
+				}
+
+				return;
+			}
+
 			const format = Tournaments.getFormat(database.queuedTournament.formatid, tournamentRoom);
 			if (!format || format.effectType !== 'Format') {
-				this.say(errorText);
+				if (privateHtml) {
+					tournamentRoom.sayPrivateHtml(user, errorText);
+				} else {
+					this.say(errorText);
+				}
+
 				delete database.queuedTournament;
 				Storage.tryExportDatabase(tournamentRoom.id);
 				return;
 			}
 
+			const customFormatName = Dex.getCustomFormatName(format);
 			let tournamentName: string;
 			if (database.queuedTournament.tournamentName) {
-				tournamentName = database.queuedTournament.tournamentName + " (" + format.name + ")";
+				tournamentName = database.queuedTournament.tournamentName;
+
+				if (customFormatName !== database.queuedTournament.tournamentName) {
+					tournamentName += " (" + customFormatName + ")";
+				}
 			} else {
-				tournamentName = Dex.getCustomFormatName(format) + (format.customFormatName ? " (Base format: " + format.name + ")" : "");
+				tournamentName = customFormatName + (format.customFormatName ? " (Base format: " + format.name + ")" : "");
 			}
 
 			const defaultPlayerCap = Tournaments.getDefaultPlayerCap(tournamentRoom);
@@ -433,9 +454,14 @@ export const commands: BaseCommandDefinitions = {
 			if (format.teams) html += "<br /><a href='" + format.teams + "'><b>Sample teams</b></a><br />";
 			if (format.customRules) html += "<br /><b>Custom rules:</b><br />" + Dex.getCustomRulesHtml(format);
 			html += "</div>";
-			this.sayUhtml(room.id + "-queued-tournament-" + format.id, html, tournamentRoom);
+
+			if (privateHtml) {
+				tournamentRoom.sayPrivateUhtml(user, room.id + "-queued-tournament-" + format.id, html);
+			} else {
+				this.sayUhtml(room.id + "-queued-tournament-" + format.id, html, tournamentRoom);
+			}
 		},
-		aliases: ['nexttour', 'queuedtour', 'nexttournament'],
+		aliases: ['nexttour', 'queuedtour', 'nexttournament', 'nexttourprivate'],
 		pmSyntax: ["[room]"],
 		description: ["displays information about the queued server tournament"],
 	},

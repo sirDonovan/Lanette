@@ -107,7 +107,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			return;
 		}
 
-		const actionCards = Object.keys(this.actionCards)
+		const actionCards = Object.keys(this.actionCards as Dict<IActionCardData>)
 			// @ts-expect-error
 			.filter(x => !(this.requiredGen && (this.actionCards[x] as IActionCardData).noOldGen));
 		if (actionCards.length && this.usesActionCards) {

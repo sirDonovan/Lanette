@@ -40,9 +40,7 @@ const setTrainerCommand = 'settrainer';
 const setPokemonModelCommand = 'setpokemonmodel';
 const closeCommand = 'close';
 
-const pageId = 'game-host-box';
-
-export const id = pageId;
+export const pageId = 'game-host-box';
 export const pages: Dict<GameHostBox> = {};
 
 class GameHostBox extends HtmlPageBase {

@@ -54,7 +54,7 @@ export interface ICommandFile {
 }
 
 export interface IHtmlPageFile {
-	id: string;
+	pageId: string;
 	pages: Dict<HtmlPageBase>;
 	commands?: BaseCommandDefinitions;
 }
