@@ -244,7 +244,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	destroyPlayers(): void {
 		super.destroyPlayers();
 
-		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
+		const spaceKeys = Object.keys(this.spaces as Dict<BoardSpace>) as (keyof BoardSpaces)[];
 		for (const key of spaceKeys) {
 			const space = this.spaces[key];
 			if (space instanceof BoardPropertySpace) space.owner = null;
@@ -659,7 +659,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		if (!this.acquireAllMountainsAchievement && !this.acquireAllPropertiesAchievement) return;
 		let acquiredAllMountains = true;
 		let acquiredAllProperties = true;
-		const spaceKeys = Object.keys(this.spaces) as (keyof BoardSpaces)[];
+		const spaceKeys = Object.keys(this.spaces as Dict<BoardSpace>) as (keyof BoardSpaces)[];
 		for (const key of spaceKeys) {
 			const space = this.spaces[key];
 			if (space instanceof BoardPropertySpace) {
