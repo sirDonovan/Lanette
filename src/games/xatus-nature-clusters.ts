@@ -3,6 +3,8 @@ import type { IGameCachedData, IGameFile } from "../types/games";
 import type { INature, StatIDExceptHP } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
+const MAX_VALID_NATURES = 2;
+
 class XatusNatureClusters extends QuestionAndAnswer {
 	static cachedData: IGameCachedData = {};
 
@@ -48,6 +50,7 @@ class XatusNatureClusters extends QuestionAndAnswer {
 				}
 			}
 
+			const validNatures: string[] = [];
 			const combinationCache: Dict<boolean> = {};
 			const permutations = Tools.getPermutations(highestStats.concat(lowestStats), 2, 2);
 			for (const permutation of permutations) {
@@ -59,9 +62,15 @@ class XatusNatureClusters extends QuestionAndAnswer {
 
 					for (const nature of natures) {
 						if (nature.plus === permutation[0] && nature.minus === permutation[1]) {
-							hints[nature.name].push(pokemon.name);
+							if (!validNatures.includes(nature.name)) validNatures.push(nature.name);
 						}
 					}
+				}
+			}
+
+			if (validNatures.length <= MAX_VALID_NATURES) {
+				for (const nature of validNatures) {
+					hints[nature].push(pokemon.name);
 				}
 			}
 		}
@@ -77,14 +86,15 @@ export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties
 	class: XatusNatureClusters,
 	commandDescriptions: [Config.commandCharacter + "g [Pokemon]"],
 	defaultOptions: ['points'],
-	description: "Players guess Pokemon that get +10% to their highest stats and -10% to their lowest stats for each generated nature!",
+	description: "Players guess Pokemon that get +10% to their highest stats and -10% to their lowest stats for each generated nature " +
+		"(only Pokemon with up to " + MAX_VALID_NATURES + " valid natures)!",
 	freejoin: true,
 	name: "Xatu's Nature Clusters",
 	mascot: "Xatu",
 	minigameCommand: 'naturecluster',
 	minigameCommandAliases: ['ncluster'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that gets +10% to its highest stat " +
-		"and -10% to its lowest stat for the generated nature!",
+		"and -10% to its lowest stat for the generated nature (only Pokemon with up to " + MAX_VALID_NATURES + " valid natures)!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
 		'survival': {
