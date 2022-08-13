@@ -286,6 +286,7 @@ export class Dex {
 	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
+	private readonly moveAvailbilityPokemonCache: Dict<string[]> = Object.create(null);
 	private readonly natureCache: Dict<INature> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
@@ -696,6 +697,11 @@ export class Dex {
 	getMoveAvailability(move: IMove): number {
 		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailability called for " + move.name + " in gen " + this.gen);
 		return this.moveAvailbilityCache[move.id];
+	}
+
+	getMoveAvailabilityPokemon(move: IMove): string[] {
+		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailabilityPokemon called for " + move.name + " in gen " + this.gen);
+		return this.moveAvailbilityPokemonCache[move.id];
 	}
 
 	/*
@@ -3104,13 +3110,16 @@ export class Dex {
 
 	private cacheMoveAvailability(move: IMove, pokedex: IPokemon[]): void {
 		let availability = 0;
+		const availabilityPokemon: string[] = [];
 		for (const pokemon of pokedex) {
 			if (this.getAllPossibleMoves(pokemon).includes(move.id)) {
 				availability++;
+				availabilityPokemon.push(pokemon.name);
 			}
 		}
 
 		this.moveAvailbilityCache[move.id] = availability;
+		this.moveAvailbilityPokemonCache[move.id] = availabilityPokemon;
 	}
 
 	private getAllEvolutionLines(pokemon: IPokemon, prevoList?: string[], evolutionLines?: string[][]): string[][] {
