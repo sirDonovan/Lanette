@@ -16,9 +16,7 @@ const chooseUtil = 'chooseutil';
 const commandPageCommand = 'commandspage';
 const closeCommand = 'close';
 
-const pageId = 'commands-guide';
-
-export const id = pageId;
+export const pageId = 'commands-guide';
 export const pages: Dict<CommandsGuide> = {};
 
 class CommandsGuide extends HtmlPageBase {

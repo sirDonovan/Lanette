@@ -13,9 +13,7 @@ const closeCommand = 'close';
 const leaderboardCommand = 'gameleaderboard';
 const pointsBreakdownCommand = 'gamepointsbreakdown';
 
-const pageId = 'scripted-game-stats';
-
-export const id = pageId;
+export const pageId = 'scripted-game-stats';
 export const pages: Dict<ScriptedGameStats> = {};
 
 class ScriptedGameStats extends HtmlPageBase {

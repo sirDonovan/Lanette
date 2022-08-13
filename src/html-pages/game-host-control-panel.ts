@@ -48,9 +48,7 @@ const maxGifs = 6;
 const maxIcons = 15;
 const maxTrainers = 6;
 
-const pageId = 'game-host-control-panel';
-
-export const id = pageId;
+export const pageId = 'game-host-control-panel';
 export const pages: Dict<GameHostControlPanel> = {};
 
 export class GameHostControlPanel extends HtmlPageBase {

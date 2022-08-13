@@ -59,12 +59,12 @@ export class Pagination extends ComponentBase<IPaginationProps> {
 		this.selectPage(page, true);
 	}
 
-	updateElements(elements: IPageElement[], onOpen?: boolean): void {
+	updateElements(elements: IPageElement[], dontRender?: boolean): void {
 		this.elements = elements;
 		this.totalPages = Math.ceil(elements.length / this.elementsIncrement);
 		this.autoSelectPage();
 
-		if (!onOpen) this.props.onSelectPage(this.currentPage);
+		if (!dontRender) this.props.onSelectPage(this.currentPage);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {

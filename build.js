@@ -10,7 +10,7 @@ const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 const removeFromBuild = ["require('better-sqlite3')", 'require("better-sqlite3")'];
 const removeFromPackageJson = [
 	// dependencies
-	"@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
+	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
 		"sql-template-strings", "sqlite",
