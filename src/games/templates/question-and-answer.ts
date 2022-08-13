@@ -655,7 +655,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(15000);
+			this.timeout(20000);
 
 			assert(!game.canGuess);
 			const name = getBasePlayerName() + " 1";
@@ -677,7 +677,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(15000);
+			this.timeout(20000);
 
 			await game.onNextRound();
 			const previousAnswers = game.answers;
@@ -699,7 +699,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(15000);
+			this.timeout(20000);
 
 			if (game.roundTime) {
 				const name = getBasePlayerName() + " 1";
@@ -719,7 +719,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(15000);
+			this.timeout(20000);
 
 			if (game.roundTime) {
 				await game.onNextRound();
@@ -734,7 +734,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(15000);
+			this.timeout(20000);
 
 			if (game.roundTime) {
 				await game.onNextRound();
@@ -751,7 +751,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		async test(game): Promise<void> {
 			if (game.usesWorkers) return;
 
-			this.timeout(15000);
+			this.timeout(20000);
 
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
@@ -779,7 +779,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		},
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
-			this.timeout(15000);
+			this.timeout(20000);
 			const room = game.room;
 			game.deallocate(true);
 
@@ -800,7 +800,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		},
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
-			this.timeout(15000);
+			this.timeout(20000);
 			const room = game.room;
 			game.deallocate(true);
 
