@@ -111,7 +111,9 @@ export const commands: BaseCommandDefinitions = {
 
 			const targets = target.split(",");
 			const host = Users.get(targets[0]);
-			if (approvedHost && user !== host) return user.say("You are only able to use this command on yourself as approved host.");
+			if (approvedHost && user !== host && !user.hasRank(room, 'voice')) {
+				return user.say("You are only able to use this command on yourself as approved host.");
+			}
 			if (!host || !host.rooms.has(room)) return this.say("Please specify a user currently in this room.");
 			if (host.isBot(room)) return this.say("You cannot use this command on a user with Bot rank.");
 
@@ -177,16 +179,31 @@ export const commands: BaseCommandDefinitions = {
 					format.name + " user-host cooldown remaining.");
 			}
 
-			if (Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames && database.userHostedGameQueue &&
-				database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id]) {
-				return this.say("The host queue is full.");
-			}
-
+			const fullQueue = Config.maxQueuedUserHostedGames && room.id in Config.maxQueuedUserHostedGames &&
+				database.userHostedGameQueue && database.userHostedGameQueue.length >= Config.maxQueuedUserHostedGames[room.id];
 			const otherUsersQueued = database.userHostedGameQueue && database.userHostedGameQueue.length;
 			const remainingGameCooldown = Games.getRemainingGameCooldown(room);
 			const inCooldown = remainingGameCooldown > 1000;
 			const requiresScriptedGame = Games.requiresScriptedGame(room);
-			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame) {
+			if (room.game || room.userHostedGame || otherUsersQueued || inCooldown || requiresScriptedGame || fullQueue) {
+				let userQueued = false;
+				let gameQueued = '';
+				if (database.userHostedGameQueue) {
+					for (const game of database.userHostedGameQueue) {
+						if (game.id === host.id) {
+							userQueued = true;
+						}
+
+						if (Games.getExistingUserHostedFormat(game.format).name === format.name) {
+							gameQueued = game.id;
+						}
+					}
+				}
+
+				if (!userQueued && fullQueue) {
+					return this.say("The host queue is full.");
+				}
+
 				if (room.game && room.game.format.id === format.id && !room.game.isMiniGame &&
 					(!database.userHostedGameQueue || !database.userHostedGameQueue.length)) {
 					return this.say("Scripted " + format.name + " is currently being played. " + host.name + " please choose a " +
@@ -194,22 +211,14 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				if (database.userHostedGameQueue) {
-					let alreadyQueued = '';
-					for (const game of database.userHostedGameQueue) {
-						if (Games.getExistingUserHostedFormat(game.format).name === format.name) {
-							alreadyQueued = game.id;
-							break;
-						}
-					}
-
-					if (alreadyQueued && alreadyQueued !== host.id) {
+					if (gameQueued && gameQueued !== host.id) {
 						return this.say("Another host is already queued for " + format.name + ". " + host.name + " please " +
 							"choose a different game!");
 					}
 
 					for (const game of database.userHostedGameQueue) {
 						if (game.id === host.id) {
-							if (alreadyQueued && !format.inputTarget.includes(',')) {
+							if (gameQueued && !format.inputTarget.includes(',')) {
 								return this.say(host.name + " is already queued for " + format.name + ".");
 							}
 							game.format = format.inputTarget;
