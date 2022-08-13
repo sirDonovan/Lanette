@@ -19,9 +19,7 @@ const discardCommand = 'discard';
 const undoDiscardCommand = 'undodiscard';
 const closeCommand = 'close';
 
-const pageId = 'offline-messages';
-
-export const id = pageId;
+export const pageId = 'offline-messages';
 export const pages: Dict<OfflineMessages> = {};
 
 class OfflineMessages extends HtmlPageBase {

@@ -1157,10 +1157,19 @@ export class Tournaments {
 		return html;
 	}
 
-	displayTrainerCard(room: Room, name: string): void {
+	displayTrainerCard(room: Room, name: string, htmlBefore?: string, htmlAfter?: string): void {
 		const id = Tools.toId(name);
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {
+			const sendTrainerCard = (username: string) => {
+				const trainerCard = this.getTrainerCardHtml(room, username);
+				if (trainerCard) {
+					room.sayHtml((htmlBefore || "") + trainerCard + (htmlAfter || ""));
+				} else if (htmlBefore || htmlAfter) {
+					room.sayHtml((htmlBefore || "") + (htmlAfter || ""));
+				}
+			};
+
 			const database = Storage.getDatabase(trainerCardRoom);
 			const user = Users.get(name);
 			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(id in database.tournamentTrainerCards))) {
@@ -1170,8 +1179,7 @@ export class Tournaments {
 						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
 					}
 
-					const trainerCard = this.getTrainerCardHtml(room, user.name);
-					if (trainerCard) room.sayHtml(trainerCard);
+					sendTrainerCard(user.name);
 				};
 
 				if (user.avatar && user.globalRank) {
@@ -1182,8 +1190,7 @@ export class Tournaments {
 					});
 				}
 			} else {
-				const trainerCard = this.getTrainerCardHtml(room, name);
-				if (trainerCard) room.sayHtml(trainerCard);
+				sendTrainerCard(name);
 			}
 		}
 	}

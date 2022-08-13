@@ -9,6 +9,7 @@ const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "sp
 	"spdef", "specialdefense", "spe", "speed", "bst", "basestattotal", "ht", "height", "weight", "wt", "gen", "g"];
 
 class DittosWhoAmI extends ScriptedGame {
+	canLateJoin: boolean = true;
 	tiers: string[] = [];
 	colors: string[] = [];
 	eggGroups: string[] = [];
@@ -17,15 +18,28 @@ class DittosWhoAmI extends ScriptedGame {
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
+	pokemonList: IPokemon[] = [];
 	playerPokemon = new Map<Player, IPokemon>();
 	playerWeaknesses = new Map<Player, string[]>();
 	playerResistances = new Map<Player, string[]>();
 	maxDittoRounds: number = 20;
 	roundTime: number = 30 * 1000;
-	winWarning: boolean = false;
+	finalRound: boolean = false;
+
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+		if (lateJoin) {
+			if (!this.pokemonList.length) return false;
+
+			if (this.playerOrder.length) this.playerOrder.push(player);
+			this.givePokemon(player, this.pokemonList[0]);
+			this.pokemonList.shift();
+		}
+
+		return true;
+	}
 
 	onStart(): void {
-		const pokemonList = this.shuffle(Games.getPokemonList(x => {
+		this.pokemonList = this.shuffle(Games.getPokemonList(x => {
 			const color = Tools.toId(x.color);
 			if (!this.colors.includes(color)) this.colors.push(color);
 
@@ -42,33 +56,9 @@ class DittosWhoAmI extends ScriptedGame {
 			return true;
 		}));
 
-		const typeKeys = Dex.getData().typeKeys;
-
 		for (const id in this.players) {
-			const player = this.players[id];
-			const pokemon = pokemonList[0];
-			pokemonList.shift();
-
-			this.playerPokemon.set(player, pokemon);
-
-			const resistances: string[] = [];
-			const weaknesses: string[] = [];
-			for (const key of typeKeys) {
-				const type = Dex.getExistingType(key);
-				if (Dex.isImmune(type.name, pokemon.types)) {
-					resistances.push(type.name);
-				} else {
-					const effectiveness = Dex.getEffectiveness(type.name, pokemon.types);
-					if (effectiveness <= -1) {
-						resistances.push(type.name);
-					} else if (effectiveness >= 1) {
-						weaknesses.push(type.name);
-					}
-				}
-			}
-
-			this.playerResistances.set(player, resistances);
-			this.playerWeaknesses.set(player, weaknesses);
+			this.givePokemon(this.players[id], this.pokemonList[0]);
+			this.pokemonList.shift();
 		}
 
 		const text = "Each round, you must guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
@@ -77,6 +67,29 @@ class DittosWhoAmI extends ScriptedGame {
 			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
+	}
+
+	givePokemon(player: Player, pokemon: IPokemon): void {
+		this.playerPokemon.set(player, pokemon);
+
+		const resistances: string[] = [];
+		const weaknesses: string[] = [];
+		for (const key of Dex.getData().typeKeys) {
+			const type = Dex.getExistingType(key);
+			if (Dex.isImmune(type.name, pokemon.types)) {
+				resistances.push(type.name);
+			} else {
+				const effectiveness = Dex.getEffectiveness(type.name, pokemon.types);
+				if (effectiveness <= -1) {
+					resistances.push(type.name);
+				} else if (effectiveness >= 1) {
+					weaknesses.push(type.name);
+				}
+			}
+		}
+
+		this.playerResistances.set(player, resistances);
+		this.playerWeaknesses.set(player, weaknesses);
 	}
 
 	checkTierAlias(input: string): string{
@@ -113,8 +126,8 @@ class DittosWhoAmI extends ScriptedGame {
 		const pokemon = Dex.getPokemon(guess);
 		if (pokemon) {
 			if (pokemon.name === playerPokemon.name) {
-				this.say("**Correct!**" + (this.playerOrder.length && !this.winWarning ? " This is now the final round of the game." : ""));
-				this.winWarning = true;
+				this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " This is now the final round of the game." : ""));
+				this.finalRound = true;
 				this.points.set(this.currentPlayer!, 1);
 			} else {
 				this.say("**Incorrect!** You were " + playerPokemon.name + ". " + this.currentPlayer!.name + " has been " +
@@ -123,6 +136,8 @@ class DittosWhoAmI extends ScriptedGame {
 			}
 
 			return true;
+		} else if (this.finalRound) {
+			return "This is the final round so you must guess your Pokemon.";
 		}
 
 		const move = Dex.getMove(guess);
@@ -336,7 +351,7 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		return "You must ask a question about moves, abilities, types, egg groups, color, formes, evolution stage, gen, " +
-			"weaknesses, resistances, or stats";
+			"weaknesses, resistances, or stats.";
 	}
 
 	onNextRound(): void {
@@ -433,6 +448,11 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 			const questions = target.split("|");
 			if (questions.length > MAX_ROUND_PARAMETERS) {
 				this.say("You can only include up to " + MAX_ROUND_PARAMETERS + " parameters per round.");
+				return false;
+			}
+
+			if (Dex.getPokemon(questions[0]) && questions.length > 1) {
+				this.say("You can only guess 1 Pokemon.");
 				return false;
 			}
 

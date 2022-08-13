@@ -849,7 +849,7 @@ export interface IFormat extends DeepMutable<IFormatDefinition>, IFormatDataLink
 	tournamentPlayable: boolean;
 	unranked: boolean;
 	customFormatName?: string;
-	hasValue?: boolean;
+	hasValue?: boolean | 'positive-integer' | 'integer';
 	tournamentName?: string;
 	usableAbilities?: string[];
 	usableItems?: string[];

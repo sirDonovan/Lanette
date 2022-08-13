@@ -21,9 +21,7 @@ const addDayTournamentCommand = 'adddaytournament';
 const removeDayTournamentCommand = 'removedaytournament';
 const closeCommand = 'close';
 
-const pageId = 'official-tournament-scheduler';
-
-export const id = pageId;
+export const pageId = 'official-tournament-scheduler';
 export const pages: Dict<OfficialTournamentScheduler> = {};
 
 const defaultTime: [number, number][] = [[2, 30], [9, 30], [15, 30], [20, 30]];
