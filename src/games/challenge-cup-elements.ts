@@ -23,11 +23,12 @@ class ChallengeCupElements extends SearchChallengeTournament {
 			const pokemon = Dex.getExistingPokemon(species);
 			if (!this.meetsPokemonCriteria(pokemon, teamPreviewHiddenFormes)) continue;
 
-            for (const type in pokemon.types){
-                if (!(pokemon.types[type] in typeCounts)) typeCounts[pokemon.types[type]] = 0;
-                typeCounts[pokemon.types[type]]++;
+            for (const type of pokemon.types) {
+                if (!(type in typeCounts)) typeCounts[type] = 0;
+                typeCounts[type]++;
             }
 		}
+
 		for (const type of Object.keys(typeCounts)) {
 			if (typeCounts[type] >= this.targetPokemon!) types.push(type);
 		}
@@ -38,7 +39,7 @@ class ChallengeCupElements extends SearchChallengeTournament {
 
 	getObjectiveText(): string {
 		if (!this.tournamentStarted) return "";
-		return "Find " + this.targetPokemon + " Pokemon having the type " + this.type + "</b>";
+		return "Find " + this.targetPokemon + " Pokemon that are pure or part <b>" + this.type + " type</b>";
 	}
 
 	registerTeamPreview(player: Player, pokemon: IPokemon): void {
