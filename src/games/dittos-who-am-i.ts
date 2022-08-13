@@ -24,13 +24,13 @@ class DittosWhoAmI extends ScriptedGame {
 	playerResistances = new Map<Player, string[]>();
 	maxDittoRounds: number = 20;
 	roundTime: number = 30 * 1000;
-	winWarning: boolean = false;
+	finalRound: boolean = false;
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			if (!this.pokemonList.length) return false;
 
-			this.playerOrder.push(player);
+			if (this.playerOrder.length) this.playerOrder.push(player);
 			this.givePokemon(player, this.pokemonList[0]);
 			this.pokemonList.shift();
 		}
@@ -126,8 +126,8 @@ class DittosWhoAmI extends ScriptedGame {
 		const pokemon = Dex.getPokemon(guess);
 		if (pokemon) {
 			if (pokemon.name === playerPokemon.name) {
-				this.say("**Correct!**" + (this.playerOrder.length && !this.winWarning ? " This is now the final round of the game." : ""));
-				this.winWarning = true;
+				this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " This is now the final round of the game." : ""));
+				this.finalRound = true;
 				this.points.set(this.currentPlayer!, 1);
 			} else {
 				this.say("**Incorrect!** You were " + playerPokemon.name + ". " + this.currentPlayer!.name + " has been " +
@@ -136,6 +136,8 @@ class DittosWhoAmI extends ScriptedGame {
 			}
 
 			return true;
+		} else if (this.finalRound) {
+			return "This is the final round so you must guess your Pokemon.";
 		}
 
 		const move = Dex.getMove(guess);
@@ -349,7 +351,7 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		return "You must ask a question about moves, abilities, types, egg groups, color, formes, evolution stage, gen, " +
-			"weaknesses, resistances, or stats";
+			"weaknesses, resistances, or stats.";
 	}
 
 	onNextRound(): void {
@@ -446,6 +448,11 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 			const questions = target.split("|");
 			if (questions.length > MAX_ROUND_PARAMETERS) {
 				this.say("You can only include up to " + MAX_ROUND_PARAMETERS + " parameters per round.");
+				return false;
+			}
+
+			if (Dex.getPokemon(questions[0]) && questions.length > 1) {
+				this.say("You can only guess 1 Pokemon.");
 				return false;
 			}
 
