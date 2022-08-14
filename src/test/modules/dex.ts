@@ -105,6 +105,8 @@ describe("Dex", () => {
 		// bypass gen 8 Sketch check
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aura Wheel")), 3);
 
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Toxic Thread")).join(','), 'Spinarak,Ariados');
+
 		assertStrictEqual(Dex.getExistingFormat("gen1ou").gen, 1);
 		assertStrictEqual(Dex.getExistingFormat("gen2ou").gen, 2);
 		assertStrictEqual(Dex.getExistingFormat("gen3ou").gen, 3);

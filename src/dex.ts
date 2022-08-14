@@ -699,6 +699,7 @@ export class Dex {
 		return this.moveAvailbilityCache[move.id];
 	}
 
+	/**Excludes Smeargle for ease of use with `Dex.isEvolutionFamily()` */
 	getMoveAvailabilityPokemon(move: IMove): string[] {
 		if (move.gen > this.gen) throw new Error("Dex.getMoveAvailabilityPokemon called for " + move.name + " in gen " + this.gen);
 		return this.moveAvailbilityPokemonCache[move.id];
@@ -3114,7 +3115,7 @@ export class Dex {
 		for (const pokemon of pokedex) {
 			if (this.getAllPossibleMoves(pokemon).includes(move.id)) {
 				availability++;
-				availabilityPokemon.push(pokemon.name);
+				if (pokemon.id !== 'smeargle') availabilityPokemon.push(pokemon.name);
 			}
 		}
 
