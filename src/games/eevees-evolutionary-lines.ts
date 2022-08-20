@@ -14,6 +14,8 @@ class EeveesEvolutionaryLines extends QuestionAndAnswer {
 			if (pokemon.prevo || !pokemon.evos.length) continue;
 
 			const evolutionLines = Dex.getEvolutionLines(pokemon);
+			if (evolutionLines.length === 1 && evolutionLines[0].length === 1) continue;
+
 			const key = evolutionLines.map(x => x.join(",")).join("|");
 			hints[key] = [pokemon.name];
 			hintKeys.push(key);
@@ -26,8 +28,12 @@ class EeveesEvolutionaryLines extends QuestionAndAnswer {
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const evolutionLines = hintKey.split("|").map(x => x.split(","));
+		let hiddenLine = this.sampleOne(evolutionLines);
+		while (hiddenLine.length === 1) {
+			hiddenLine = this.sampleOne(evolutionLines);
+		}
+
 		const branchEvolution = evolutionLines.length > 1;
-		const hiddenLine = this.sampleOne(evolutionLines);
 		const lineHints: string[] = [];
 		for (const line of evolutionLines) {
 			if (this.pokemonGifHints) {

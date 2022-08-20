@@ -22,7 +22,7 @@ class SilvallysUniquePairs extends QuestionAndAnswer {
 
 		const bannedMoves: Dict<boolean> = {};
 		for (const move of Dex.getMovesList()) {
-			if (Dex.isEvolutionFamily(Dex.getMoveAvailabilityPokemon(move))) bannedMoves[move.id] = true;
+			if (Dex.isSignatureMove(move)) bannedMoves[move.id] = true;
 		}
 
 		const movePairSingleLearners: Dict<string> = {};

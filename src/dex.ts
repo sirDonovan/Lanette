@@ -705,6 +705,10 @@ export class Dex {
 		return this.moveAvailbilityPokemonCache[move.id];
 	}
 
+	isSignatureMove(move: IMove): boolean {
+		return move.id === 'volttackle' || this.isEvolutionFamily(this.getMoveAvailabilityPokemon(move));
+	}
+
 	/*
 		Pokemon
 	*/
@@ -832,6 +836,12 @@ export class Dex {
 
 		const potentialEvolutionLines: string[][] = this.getAllEvolutionLines(pokemon);
 		const formesToCheck: string[] = [pokemon.name];
+
+		// use base forme by default if included formes aren't specified
+		if (!sortedFormes && pokemon.forme && pokemon.baseSpecies !== pokemon.name && !pokemon.prevo && !pokemon.evos.length) {
+			sortedFormes = [pokemon.baseSpecies];
+		}
+
 		if (sortedFormes) {
 			for (const name of sortedFormes) {
 				const forme = this.getPokemon(name);

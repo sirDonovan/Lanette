@@ -100,13 +100,6 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getExistingPokemon("Furfrou").spriteid, "furfrou");
 		assertStrictEqual(Dex.getExistingPokemon("Furfrou-Dandy").spriteid, "furfrou-dandy");
 
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 404);
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
-		// bypass gen 8 Sketch check
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aura Wheel")), 3);
-
-		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Toxic Thread")).join(','), 'Spinarak,Ariados');
-
 		assertStrictEqual(Dex.getExistingFormat("gen1ou").gen, 1);
 		assertStrictEqual(Dex.getExistingFormat("gen2ou").gen, 2);
 		assertStrictEqual(Dex.getExistingFormat("gen3ou").gen, 3);
@@ -575,6 +568,41 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, ['Ghost', 'Dark']), 0);
 		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, Dex.getExistingPokemon('Spiritomb')), 0);
 	});
+	it('should return proper values from getMoveAvailability()', () => {
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 404);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
+
+		// bypass gen 8 Sketch check
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aura Wheel")), 3);
+
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Origin Pulse")).join(','), 'Kyogre,Kyogre-Primal');
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Toxic Thread")).join(','), 'Spinarak,Ariados');
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Kinesis")).join(','), 'Kadabra,Alakazam,Alakazam-Mega');
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Judgment")).join(','), 'Arceus,Arceus-Bug,Arceus-Dark,' +
+			'Arceus-Dragon,Arceus-Electric,Arceus-Fairy,Arceus-Fighting,Arceus-Fire,Arceus-Flying,Arceus-Ghost,Arceus-Grass,' +
+			'Arceus-Ground,Arceus-Ice,Arceus-Poison,Arceus-Psychic,Arceus-Rock,Arceus-Steel,Arceus-Water');
+		assertStrictEqual(Dex.getMoveAvailabilityPokemon(Dex.getExistingMove("Volt Tackle")).join(','), 'Pikachu,Pikachu-Original,' +
+			'Pikachu-Hoenn,Pikachu-Sinnoh,Pikachu-Unova,Pikachu-Kalos,Pikachu-Alola,Pikachu-Partner,Pikachu-Gmax,Pikachu-World,Raichu,' +
+			'Raichu-Alola,Pichu,Pichu-Spiky-eared');
+	});
+	it('should return proper values from isSignatureMove()', () => {
+		assert(!Dex.isSignatureMove(Dex.getExistingMove("Tackle")));
+
+		// no evolutions
+		assert(Dex.isSignatureMove(Dex.getExistingMove("Origin Pulse")));
+
+		// evolution line
+		assert(Dex.isSignatureMove(Dex.getExistingMove("Toxic Thread")));
+
+		// mega evolution
+		assert(Dex.isSignatureMove(Dex.getExistingMove("Kinesis")));
+
+		// base formes
+		assert(Dex.isSignatureMove(Dex.getExistingMove("Judgment")));
+
+		// base formes + evolutions
+		assert(Dex.isSignatureMove(Dex.getExistingMove("Volt Tackle")));
+	});
 	it('should return proper values from isPseudoLCPokemon()', () => {
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pichu')), false);
 		assertStrictEqual(Dex.isPseudoLCPokemon(Dex.getExistingPokemon('Pikachu')), false);
@@ -589,7 +617,12 @@ describe("Dex", () => {
 			assertStrictEqual(evolutionLines[0].join(","), 'Charmander,Charmeleon,Charizard');
 		}
 
-		let evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Ditto'));
+		let evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Charizard-Mega-X'));
+		assertStrictEqual(evolutionLines.length, 2);
+		assertStrictEqual(evolutionLines[0].join(','), 'Charizard-Mega-X');
+		assertStrictEqual(evolutionLines[1].join(","), 'Charmander,Charmeleon,Charizard');
+
+		evolutionLines = Dex.getEvolutionLines(Dex.getExistingPokemon('Ditto'));
 		assertStrictEqual(evolutionLines.length, 1);
 		assertStrictEqual(evolutionLines[0].join(','), 'Ditto');
 
@@ -632,12 +665,22 @@ describe("Dex", () => {
 	});
 	it('should return proper values from isEvolutionFamily()', () => {
 		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon', 'Charizard-Mega-X']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon', 'Charizard-Mega-Y']));
 		assert(Dex.isEvolutionFamily(['Charmander', 'Charmeleon']));
 		assert(Dex.isEvolutionFamily(['Charmeleon', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmeleon', 'Charizard-Mega-X']));
+		assert(Dex.isEvolutionFamily(['Charmeleon', 'Charizard-Mega-Y']));
 		assert(Dex.isEvolutionFamily(['Charmander', 'Charizard']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charizard-Mega-X']));
+		assert(Dex.isEvolutionFamily(['Charmander', 'Charizard-Mega-Y']));
 		assert(Dex.isEvolutionFamily(['Charmander']));
 		assert(Dex.isEvolutionFamily(['Charmeleon']));
 		assert(Dex.isEvolutionFamily(['Charizard']));
+		assert(Dex.isEvolutionFamily(['Charizard-Mega-X']));
+		assert(Dex.isEvolutionFamily(['Charizard-Mega-Y']));
+		assert(Dex.isEvolutionFamily(['Charizard', 'Charizard-Mega-X']));
+		assert(Dex.isEvolutionFamily(['Charizard', 'Charizard-Mega-Y']));
 		assert(!Dex.isEvolutionFamily(['Bulbasaur', 'Charmeleon', 'Charizard']));
 		assert(Dex.isEvolutionFamily(['Tyrogue', 'Hitmonlee']));
 		assert(Dex.isEvolutionFamily(['Tyrogue', 'Hitmonchan']));
