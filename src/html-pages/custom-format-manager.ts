@@ -993,14 +993,26 @@ class CustomFormatManager extends HtmlPageBase {
 	setNextTournamentCommand(): void {
 		if (!this.format || !this.canCreateTournament) return;
 
-		const formatId = this.customFormatName && Tournaments.getFormat(this.customFormatName, this.room) ? this.customFormatName :
-			this.getCustomFormatId(true);
+		let formatId: string | undefined;
+		if (this.isUnchangedCustomFormat() && Tournaments.getFormat(this.customFormatName, this.room)) {
+			formatId = this.customFormatName;
+		} else {
+			formatId = this.getCustomFormatId(true);
+		}
+
 		if (!formatId) return;
 
 		const user = Users.get(this.userName);
 		if (user) {
 			CommandParser.parse(this.room, user, Config.commandCharacter + "forcenexttour " + formatId, Date.now());
 		}
+	}
+
+	isUnchangedCustomFormat(): boolean {
+		const customFormatId = Tools.toId(this.customFormatName);
+		const database = Storage.getDatabase(this.room);
+		return customFormatId && database.customFormats && customFormatId in database.customFormats &&
+			database.customFormats[customFormatId].formatId === this.getCustomFormatId() ? true : false;
 	}
 
 	getCustomFormatPageElements(): IPageElement[] {
@@ -1155,8 +1167,7 @@ class CustomFormatManager extends HtmlPageBase {
 
 				const customFormatId = Tools.toId(this.customFormatName);
 				html += this.getQuietPmButton(this.commandPrefix + ", " + saveCustomFormatCommand, "Save to database",
-					{disabled: !validatedFormat || !customFormatId || (database.customFormats && customFormatId in database.customFormats &&
-						database.customFormats[customFormatId].formatId === this.getCustomFormatId())});
+					{disabled: !validatedFormat || !customFormatId || this.isUnchangedCustomFormat()});
 				if (database.customFormats && customFormatId in database.customFormats) {
 					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + deleteCustomFormatCommand, "Remove from database");
 				}
