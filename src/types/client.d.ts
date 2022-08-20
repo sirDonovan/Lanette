@@ -43,6 +43,7 @@ export interface IOutgoingMessageAttributes {
 	text?: string;
 	uhtmlName?: string;
 	userid?: string;
+	userDetailsId?: string;
 	warnReason?: string;
 }
 
@@ -107,12 +108,12 @@ export interface IRoomsResponse {
 }
 
 export interface IUserDetailsResponse {
-	autoconfirmed: boolean;
-	avatar: number | string;
+	autoconfirmed: boolean | undefined;
+	avatar: number | string | undefined;
 	customgroup: string | undefined;
-	group: string;
+	group: string | undefined;
 	name: string;
-	status: string;
+	status: string | undefined;
 	userid: string;
 }
 

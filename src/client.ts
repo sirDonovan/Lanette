@@ -539,7 +539,7 @@ export class Client {
 		this.send({
 			message: '|/cmd userdetails ' + user.id,
 			type: 'query-userdetails',
-			userid: user.id,
+			userDetailsId: user.id,
 			measure: true,
 		});
 	}
@@ -1249,7 +1249,7 @@ export class Client {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (this.lastOutgoingMessage && this.lastOutgoingMessage.type === 'query-userdetails' &&
-						this.lastOutgoingMessage.userid === response.userid) {
+						this.lastOutgoingMessage.userDetailsId === response.userid) {
 						this.clearLastOutgoingMessage(now);
 					}
 
@@ -1261,16 +1261,18 @@ export class Client {
 					}
 
 					if (user) {
-						let avatar = "" + response.avatar;
-						if (avatar in DEFAULT_TRAINER_SPRITES) {
-							avatar = DEFAULT_TRAINER_SPRITES[avatar];
+						if (response.avatar) {
+							let avatar = "" + response.avatar;
+							if (avatar in DEFAULT_TRAINER_SPRITES) {
+								avatar = DEFAULT_TRAINER_SPRITES[avatar];
+							}
+							user.avatar = avatar;
+							user.customAvatar = !Dex.getTrainerSpriteId(avatar);
 						}
-						user.avatar = avatar;
-						user.customAvatar = !Dex.getTrainerSpriteId(avatar);
 
-						user.autoconfirmed = response.autoconfirmed;
-						user.status = response.status;
-						user.setGlobalRank(response.group);
+						user.autoconfirmed = response.autoconfirmed || false;
+						user.status = response.status || "";
+						if (response.group) user.setGlobalRank(response.group);
 
 						if (user.userDetailsListener) {
 							user.userDetailsListener(user);
