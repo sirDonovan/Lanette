@@ -23,7 +23,7 @@ type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom
 
 type Singles = "AG" | "Uber" | "(Uber)" | "OU" | "(OU)" | "UUBL" | "UU" | "RUBL" | "RU" | "NUBL" | "NU" |
 "(NU)" | "PUBL" | "PU" | "(PU)" | "ZU" | "NFE" | "LC";
-type Doubles = "DUber" | "(DUber)" | "DOU" | "(DOU)" | "DBL" | "DUU" | "(DUU)" | "NFE" | "LC";
+type Doubles = "DUber" | "(DUber)" | "DOU" | "(DOU)" | "DBL" | "DUU" | "(DUU)" | "DNU" | "NFE" | "LC";
 type Other = "Unreleased" | "Illegal" | "CAP" | "CAP NFE" | "CAP LC";
 
 /**
@@ -659,6 +659,10 @@ interface IPokemonDefinition extends IBasicEffect, ISpeciesFormatsData {
 	 * Doubles Tier. The Pokemon's location in the Smogon doubles tier system.
 	 */
 	readonly doublesTier: Doubles | Other;
+	/**
+	 * National Dex Tier. The Pokemon's location in the Smogon National Dex tier system.
+	 */
+	readonly natDexTier: Singles | Other;
 	readonly randomBattleMoves?: readonly string[];
 	readonly randomBattleLevel?: number;
 	readonly randomDoubleBattleMoves?: readonly string[];

@@ -61,7 +61,12 @@ const tagNames: Dict<string> = {
 	'dbl': 'DBL',
 	'duu': 'DUU',
 	'dnu': 'DNU',
+	'nduber': 'ND Uber',
+	'ndou': 'ND OU',
 	'nduubl': 'ND UUBL',
+	'nduu': 'ND UU',
+	'ndrubl': 'ND RUBL',
+	'ndru': 'ND RU',
 	'mega': 'Mega',
 	'glitch': 'Glitch',
 	'past': 'Past',
@@ -735,6 +740,17 @@ export class Dex {
 			} else if (pokemon.tier === '(PU)') {
 				pokemon.tier = 'ZU';
 			}
+
+			if (pokemon.doublesTier === '(DUU)') {
+				pokemon.doublesTier = 'DNU';
+			}
+
+			if (pokemon.natDexTier === '(NU)') {
+				pokemon.natDexTier = 'PU';
+			} else if (pokemon.natDexTier === '(PU)') {
+				pokemon.natDexTier = 'ZU';
+			}
+
 			this.pokemonCache[id] = pokemon;
 		}
 
