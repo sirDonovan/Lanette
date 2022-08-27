@@ -1373,10 +1373,19 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		this.pokedex = this.shuffle(pokedex);
 
+		this.debugLog("Original Pokedex size: " + this.pokedex.length);
+
 		// limit pokedex size for custom rules
 		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
 			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
-		if (this.pokedex.length > maxPokemon) this.pokedex = this.pokedex.slice(0, maxPokemon);
+
+		this.debugLog("Max Pokemon: " + maxPokemon + " (for " + this.maxPlayers + " max players)");
+
+		if (this.pokedex.length > maxPokemon) {
+			this.pokedex = this.pokedex.slice(0, maxPokemon);
+
+			this.debugLog("Reduced Pokedex size: " + this.pokedex.length);
+		}
 	}
 
 	onSignups(): void {
