@@ -15,6 +15,7 @@ class DittosWhoAmI extends ScriptedGame {
 	eggGroups: string[] = [];
 	currentPlayer: Player | null = null;
 	dittoRound: number = 0;
+	includedPokemon: string[] = [];
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
@@ -55,6 +56,8 @@ class DittosWhoAmI extends ScriptedGame {
 				x.forme === 'Galar' || x.forme === 'Hisui')) return false;
 			return true;
 		}));
+
+		this.includedPokemon = this.pokemonList.map(x => x.name);
 
 		for (const id in this.players) {
 			this.givePokemon(this.players[id], this.pokemonList[0]);
@@ -125,6 +128,10 @@ class DittosWhoAmI extends ScriptedGame {
 		let correctGuess: boolean | undefined;
 		const pokemon = Dex.getPokemon(guess);
 		if (pokemon) {
+			if (!this.includedPokemon.includes(pokemon.name)) {
+				return pokemon.name + " cannot be assigned in this game.";
+			}
+
 			if (pokemon.name === playerPokemon.name) {
 				this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " This is now the final round of the game." : ""));
 				this.finalRound = true;
