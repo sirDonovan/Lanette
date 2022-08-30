@@ -703,7 +703,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 			const storedMessageKeys = game.storedMessages ? Object.keys(game.storedMessages) : [];
 			if (storedMessageKeys.length) {
 				for (const key of storedMessageKeys) {
-					html += "<br />" + (key || "(none)") + " | <code>" + game.storedMessages![key] + "</code>";
+					html += "<br />" + Tools.escapeHTML(key || "(none)") + " | <code>" + Tools.escapeHTML(game.storedMessages![key]) +
+						"</code>";
 					html += "&nbsp;" + this.getQuietPmButton(Config.commandCharacter + "unstore, " + this.room.id +
 						(key ? ", " + key : ""), "Clear");
 					html += "&nbsp;" + Client.getMsgRoomButton(this.room,
@@ -718,7 +719,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 			html += "<b>Twist</b>: ";
 			if (game.twist) {
-				html += "<br />" + game.twist;
+				html += "<br />" + Tools.escapeHTML(game.twist);
 				html += "&nbsp;" + this.getQuietPmButton(Config.commandCharacter + "removetwist, " + this.room.id, "Clear");
 				html += "&nbsp;" + Client.getMsgRoomButton(this.room, Config.commandCharacter + "twist", "Send to " + this.room.title);
 			}
