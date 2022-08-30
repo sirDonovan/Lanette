@@ -245,7 +245,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		if (this.ended) return;
 
 		while ((hintKey && Client.checkFilters(hintKey, !this.isPmActivity(this.room) ? this.room : undefined)) ||
-			(this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint)) {
+			(this.minimumAnswersPerHint && this.answers.length < this.minimumAnswersPerHint) ||
+			this.exceedsMessageSizeLimit(this.getAnswersHtml(this.answers))) {
 			hintKey = await this.generateHint();
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this.ended) return;

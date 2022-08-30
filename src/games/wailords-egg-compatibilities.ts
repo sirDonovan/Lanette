@@ -101,7 +101,7 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 		}
 
 		const answers = finalValidChains.map(x => x.slice(1).join(" > "));
-		if (!finalValidChains.length || this.exceedsMessageSizeLimit(this.getAnswersHtml(answers))) {
+		if (!finalValidChains.length) {
 			return await this.customGenerateHint();
 		}
 
