@@ -1031,7 +1031,10 @@ export class ScriptedGame extends Game {
 		if (this.commandsListeners.length) {
 			const commandsListeners = this.commandsListeners.slice();
 			for (const listener of commandsListeners) {
-				if (listener.remainingPlayersMax) this.decreaseOnCommandsMax(listener, 1);
+				if (listener.remainingPlayersMax) {
+					this.decreaseOnCommandsMax(listener, 1);
+					if (this.ended) return;
+				}
 			}
 		}
 
@@ -1190,6 +1193,8 @@ export class ScriptedGame extends Game {
 			commandListener.max -= decrement;
 			if (commandListener.count >= commandListener.max) {
 				commandListener.listener(commandListener.lastUserId);
+				if (this.ended) return;
+
 				this.commandsListeners.splice(this.commandsListeners.indexOf(commandListener, 1));
 			}
 		}
