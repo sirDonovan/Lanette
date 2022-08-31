@@ -344,15 +344,19 @@ export class Tournament extends Activity {
 
 			if (showTrainerCard) {
 				const buttonRoom = this.room.alias || this.room.id;
+
+				const tournamentPointsShop = Tournaments.hasTournamentPointsShopItems(this.room) ? Client.getQuietPmButton(this.room,
+					Config.commandCharacter + "tpshop " + buttonRoom, "Visit the points shop") : "";
+
 				Tournaments.displayTrainerCard(this.room, winners[0], "<div class='infobox-limited'><center>" + placesHtml +
 					"</center><br />", "<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " +
 					buttonRoom, this.room.title + " leaderboard") + "&nbsp;" +
 					Client.getQuietPmButton(this.room, Config.commandCharacter + "topprivate " + buttonRoom + "," + this.format.name,
 						this.format.name + " leaderboard") + "&nbsp;" +
-					Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + (this.room.alias || this.room.id),
+					Client.getQuietPmButton(this.room, Config.commandCharacter + "nexttourprivate " + buttonRoom,
 						"Next tournament") + "&nbsp;" +
-					Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + (this.room.alias || this.room.id),
-						"Customize your profile") + "</center></div>");
+					Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + buttonRoom,
+						"Customize your profile") + tournamentPointsShop + "</center></div>");
 			} else {
 				const formatLeaderboard = Tournaments.getFormatLeaderboardHtml(this.room, this.format);
 

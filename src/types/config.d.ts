@@ -12,3 +12,14 @@ export interface IGameHostBoxPokemon {
 	two: number;
 	three: number;
 }
+
+export interface ITournamentPointsShopItem {
+	name: string;
+	points: number;
+	bits: number;
+	source: string;
+	width: number;
+	height: number;
+	pointsOverride?: Dict<number>;
+	bitsOverride?: Dict<number>;
+}

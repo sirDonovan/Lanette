@@ -1,7 +1,7 @@
 import type { Player } from "./room-activity";
 import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
-import type { IGameHostBoxPokemon, IGameTrainerCardPokemon } from "./types/config";
+import type { IGameHostBoxPokemon, IGameTrainerCardPokemon, ITournamentPointsShopItem } from "./types/config";
 import type { GameDifficulty, IGameFormat, IUserHostedFormat } from "./types/games";
 
 /* eslint-disable prefer-const*/
@@ -245,7 +245,17 @@ export let tournamentTrainerCardBadges: Dict<{name: string; source: string; widt
 /**
  * For each ribbon in the object, the link to the ribbon image
  */
- export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
+export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
+
+/**
+ * A list of rooms (roomids) where the tournament points shop can be accesssed
+ */
+export let tournamentPointsShop: string[] = [];
+
+/**
+ * For each room in the object, the list of ribbons available in the tournament points shop
+ */
+export let tournamentPointsShopRibbons: Dict<Dict<ITournamentPointsShopItem>> = {};
 
 /**
  * A list of rooms (roomids) where hosted tournaments go through the approval process
