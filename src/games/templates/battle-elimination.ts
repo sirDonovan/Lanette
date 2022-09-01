@@ -409,7 +409,8 @@ export abstract class BattleElimination extends ScriptedGame {
 			pokedex.push(pokemon);
 		}
 
-		return pokedex.filter(x => !(x.forme && pokedex.includes(Dex.getExistingPokemon(x.baseSpecies)))).map(x => x.name);
+		const pokedexNames = pokedex.map(x => x.name);
+		return pokedex.filter(x => !(x.forme && pokedexNames.includes(Dex.getExistingPokemon(x.baseSpecies).name))).map(x => x.name);
 	}
 
 	generateBracket(players?: Player[]): void {
