@@ -9,6 +9,7 @@ const description = "Every player battles with the same randomly generated team!
 class SameSix extends SameBattleEliminationTournament {
 	firstRoundExtraTime = 5 * 60 * 1000;
 	startingTeamsLength = 6;
+	allowsSingleStage = true;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
 }

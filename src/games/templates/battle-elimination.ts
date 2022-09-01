@@ -40,6 +40,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	advertisementInterval: NodeJS.Timer | null = null;
 	allowsFormes: boolean = true;
 	allowsScouting: boolean = false;
+	allowsSingleStage: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
 	battleFormatId: string = 'ou';
@@ -372,7 +373,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
 			} else if (fullyEvolved) {
-				if (!pokemon.prevo || pokemon.nfe) continue;
+				if ((!pokemon.prevo && !this.allowsSingleStage) || pokemon.nfe) continue;
 			} else {
 				if (pokemon.prevo || !pokemon.nfe) continue;
 			}
