@@ -759,12 +759,12 @@ export class Tournaments {
 
 		const currentGen = Dex.getCurrentGenString();
 		const formats: IFormat[] = [];
-		const possibleFormats: readonly string[] = database.randomTournamentFormats && database.randomTournamentFormats.length ?
-			database.randomTournamentFormats : Dex.getData().formatKeys;
+		const fromDatabase = database.randomTournamentFormats && database.randomTournamentFormats.length;
+		const possibleFormats: readonly string[] = fromDatabase ? database.randomTournamentFormats! : Dex.getData().formatKeys;
 		for (const i of possibleFormats) {
 			const format = this.getFormat(i, room);
 			if (!format || !format.tournamentPlayable || (officialFormat && officialFormat.id === format.id) ||
-				(!database.randomTournamentFormats && (format.unranked || format.mod !== currentGen))) continue;
+				(!fromDatabase && (format.unranked || format.mod !== currentGen))) continue;
 
 			if (quickFormat) {
 				if (!format.quickFormat) continue;
