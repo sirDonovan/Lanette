@@ -747,6 +747,7 @@ export class Tournaments {
 		if (room.id in this.nextOfficialTournaments) {
 			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id].format, room);
 		}
+
 		const database = Storage.getDatabase(room);
 		const pastTournamentIds: string[] = [];
 		if (database.pastTournaments) {
@@ -758,10 +759,12 @@ export class Tournaments {
 
 		const currentGen = Dex.getCurrentGenString();
 		const formats: IFormat[] = [];
-		for (const i of Dex.getData().formatKeys) {
-			const format = Dex.getExistingFormat(i);
-			if (!format.tournamentPlayable || format.unranked || format.mod !== currentGen ||
-				(officialFormat && officialFormat.id === format.id)) continue;
+		const possibleFormats: readonly string[] = database.randomTournamentFormats && database.randomTournamentFormats.length ?
+			database.randomTournamentFormats : Dex.getData().formatKeys;
+		for (const i of possibleFormats) {
+			const format = this.getFormat(i, room);
+			if (!format || !format.tournamentPlayable || (officialFormat && officialFormat.id === format.id) ||
+				(!database.randomTournamentFormats && (format.unranked || format.mod !== currentGen))) continue;
 
 			if (quickFormat) {
 				if (!format.quickFormat) continue;
