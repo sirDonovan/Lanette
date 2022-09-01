@@ -18,7 +18,7 @@ interface IEliminationTree<T> {
 
 interface ITeamChange {
 	additions: number;
-	choices: string[];
+	choices: string[] | undefined;
 	drops: number;
 	evolutions: number;
 }
@@ -760,7 +760,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		let winnerTeamChanges: ITeamChange[] = [];
 		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound)) {
 			let currentTeamLength: number;
-			const roundTeamLengthChange = this.additionsPerRound + this.dropsPerRound;
+			const roundTeamLengthChange = this.additionsPerRound + (-1 * this.dropsPerRound);
 			const addingPokemon = roundTeamLengthChange > 0;
 			const droppingPokemon = roundTeamLengthChange < 0;
 			const previousRounds = winner.round! - 1;
@@ -772,22 +772,31 @@ export abstract class BattleElimination extends ScriptedGame {
 				currentTeamLength = this.startingTeamsLength;
 			}
 
-			const dropsThisRound = Math.min(this.dropsPerRound, currentTeamLength - (this.additionsPerRound ? 0 : 1));
-			const additionsThisRound = Math.min(this.additionsPerRound, 6 - (currentTeamLength - dropsThisRound));
+			let dropsThisRound = this.dropsPerRound;
+			let additionsThisRound = this.additionsPerRound;
+			while (currentTeamLength + additionsThisRound - dropsThisRound < 1) {
+				dropsThisRound--;
+			}
+
+			while (currentTeamLength + additionsThisRound - dropsThisRound > 6) {
+				additionsThisRound--;
+			}
 
 			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
-				if (!loserTeam) {
-					loserTeam = this.getRandomTeam(loser);
-					this.debugLog(winner.name + " choices from " + loser.name + "'s team (random): " + loserTeam.join(", "));
-				} else {
-					if ((addingPokemon || droppingPokemon) && loserTeam.length < currentTeamLength) {
-						const originalTeam = loserTeam;
-						loserTeam = this.getRandomTeamIncluding(loser, loserTeam);
-
-						this.debugLog(winner.name + " choices from " + loser.name + "'s team (random including " +
-							originalTeam.join(", ") + "): " + loserTeam.join(", "));
+				if (additionsThisRound) {
+					if (!loserTeam) {
+						loserTeam = this.getRandomTeam(loser);
+						this.debugLog(winner.name + " choices from " + loser.name + "'s team (random): " + loserTeam.join(", "));
 					} else {
-						this.debugLog(winner.name + " choices from " + loser.name + "'s team: " + loserTeam.join(", "));
+						if (loserTeam.length < currentTeamLength) {
+							const originalTeam = loserTeam;
+							loserTeam = this.getRandomTeamIncluding(loser, loserTeam);
+
+							this.debugLog(winner.name + " choices from " + loser.name + "'s team (random including " +
+								originalTeam.join(", ") + "): " + loserTeam.join(", "));
+						} else {
+							this.debugLog(winner.name + " choices from " + loser.name + "'s team: " + loserTeam.join(", "));
+						}
 					}
 				}
 
@@ -1025,14 +1034,14 @@ export abstract class BattleElimination extends ScriptedGame {
 
 				if (teamChange.additions) {
 					roundChanges += "<li>";
-					const addAll = teamChange.choices.length <= teamChange.additions;
+					const addAll = teamChange.choices!.length <= teamChange.additions;
 					if (addAll) {
 						roundChanges += (pastTense ? "Added" : "Add") + " the following to your team:";
 					} else {
 						roundChanges += (pastTense ? "Chose" : "Choose") + " " + teamChange.additions + " of the following " +
 							"to add to your team:";
 					}
-					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices), undefined, undefined,
+					roundChanges += "<br />" + Tools.joinList(this.getPokemonIcons(teamChange.choices!), undefined, undefined,
 						addAll ? "and" : "or") + "</li>";
 				}
 
@@ -1225,7 +1234,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	giveStartingTeam(player: Player): void {
-		const team = this.getStartingTeam().filter(x => !!x);
+		const team: readonly string[] = this.getStartingTeam().filter(x => !!x);
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
 		const formeCombinations = Dex.getFormeCombinations(team, this.battleFormat.usablePokemon);
@@ -1237,7 +1246,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.possibleTeams.set(player, formeCombinations);
 
 			if (this.firstRoundByeAdditions.has(player)) {
-				this.updatePossibleTeams(player, this.firstRoundByeAdditions.get(player)!);
+				this.updatePossibleTeams(player, this.firstRoundByeAdditions.get(player));
 			}
 
 			this.debugLog(player.name + " possible starting teams" + (this.rerolls.has(player) ? " (reroll)" : "") +
@@ -1264,7 +1273,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		};
 	}
 
-	updatePossibleTeams(player: Player, additions: string[]): void {
+	updatePossibleTeams(player: Player, additions: string[] | undefined): void {
 		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, additions, this.getPossibleTeamsOptions()));
 	}
 

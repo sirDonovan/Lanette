@@ -2235,10 +2235,11 @@ export class Dex {
 		return Tools.getCombinations(...poolByFormes);
 	}
 
-	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[], options: IGetPossibleTeamsOptions): string[][] {
+	getPossibleTeams(previousTeams: readonly string[][], pool: readonly string[] | undefined,
+		options: IGetPossibleTeamsOptions): string[][] {
 		if (options.requiredAddition) {
 			if (!options.additions) throw new Error("Cannot require 0 additions");
-			if (!pool.length) throw new Error("Cannot require " + options.additions + " additions from empty pool");
+			if (!pool || !pool.length) throw new Error("Cannot require " + options.additions + " additions from empty pool");
 		}
 		if (options.additions && options.additions < 1) throw new Error("Use options.drops instead of negative additions");
 
@@ -2294,7 +2295,7 @@ export class Dex {
 		let additions = options.additions || 0;
 		if (additions) {
 			const filteredPool: string[] = [];
-			for (const item of pool) {
+			for (const item of pool!) {
 				let name = item;
 				if (options.allowFormes) {
 					name = this.getExistingPokemon(name).baseSpecies;
