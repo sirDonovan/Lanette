@@ -67,7 +67,6 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		const colorCounts: Dict<number> = {};
 		const eggGroupCounts: Dict<number> = {};
 		const typeCounts: Dict<number> = {};
-		if (!this.deckPool.length) this.createDeckPool();
 		const pokedex = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
 		const minimumDeck = (this.playerCount + 1) * this.options.cards!;
@@ -99,7 +98,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}
 
 			if (this.rollForShinyPokemon()) pokemon.shiny = true;
-			deck.push(pokemon);
+			deck.push(Tools.deepClone(pokemon));
 		}
 
 		if (deck.length < minimumDeck) {
@@ -255,7 +254,9 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	}
 
 	onStart(): void {
+		this.createDeckPool();
 		this.createDeck();
+
 		this.playerOrder = this.shufflePlayers();
 		this.say("Now sending out cards!");
 		for (const i in this.players) {
@@ -791,6 +792,15 @@ commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
+		test(game): void {
+			addPlayers(game, game.maxPlayers || 15);
+			game.start();
+			assert(game.deck.length);
+			assert(game.currentPlayer);
+			assert(game.awaitingCurrentPlayerCard);
+		},
+	},
+	'it should create unique regular cards': {
 		test(game): void {
 			addPlayers(game, game.maxPlayers || 15);
 			game.start();

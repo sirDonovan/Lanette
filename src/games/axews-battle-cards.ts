@@ -517,7 +517,6 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 	createDeck(): void {
 		const weaknessCounts: Dict<number> = {};
-		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
 		const dex = this.getDex();

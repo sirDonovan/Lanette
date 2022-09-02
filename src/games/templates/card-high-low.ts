@@ -40,22 +40,23 @@ export abstract class CardHighLow extends Card {
 	}
 
 	createDeck(): void {
-		if (!this.deckPool.length) this.createDeckPool();
-		this.deck = this.shuffle(this.deckPool);
+		this.deck = this.shuffle(this.deckPool.map(x => Tools.deepClone(x)));
 	}
 
 	onSignups(): void {
-		this.createDeck();
 		if (!this.format.inputOptions.points) this.options.points = 5;
 	}
 
 	onStart(): void {
+		this.createDeckPool();
 		this.createDeck();
+
 		this.say("Now sending out cards!");
 		for (const i in this.players) {
 			this.giveStartingCards(this.players[i]);
 			this.sendPlayerCards(this.players[i]);
 		}
+
 		this.nextRound();
 	}
 

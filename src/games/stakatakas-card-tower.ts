@@ -194,13 +194,31 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			assert(!game.ended);
 			assertStrictEqual(newCards.length, 4);
 
-			newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
-				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
-				game.pokemonToCard(Dex.getExistingPokemon("Charmander")), game.pokemonToCard(Dex.getExistingPokemon("Eevee"))];
+			const leadPokemon = Dex.getExistingPokemon("Stunfisk");
+			newCards = [game.pokemonToCard(leadPokemon), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
+				game.pokemonToCard(Dex.getExistingPokemon("Charmander"))];
+
+			let pairCards = 0;
+			let pairName = "";
+			while (pairCards < 2) {
+				const card = game.getCard();
+				if (pairName) {
+					if (card.name !== pairName) continue;
+					newCards.push(card as IPokemonCard);
+					pairCards++;
+				} else {
+					if (!card.action && Dex.getExistingPokemon(card.name).color === leadPokemon.color) {
+						pairName = card.name;
+						newCards.push(card as IPokemonCard);
+						pairCards++;
+					}
+				}
+			}
+
 			game.playerCards.set(player, newCards);
 			assert(game.hasPlayableCard(game.getTurnCards(player)));
 			game.canPlay = true;
-			player.useCommand('play', 'Stunfisk, Eevee, Pidgey, Eevee');
+			player.useCommand('play', leadPokemon.name + ', ' + pairName + ', Pidgey, ' + pairName);
 			assert(!game.ended);
 			assert(newCards.length < 5);
 		},

@@ -478,7 +478,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 	createDeck(): void {
 		const resistancesCounts: Dict<number> = {};
-		if (!this.deckPool.length) this.createDeckPool();
 		const deckPool = this.shuffle(this.deckPool);
 		const deck: ICard[] = [];
 		const dex = this.getDex();
