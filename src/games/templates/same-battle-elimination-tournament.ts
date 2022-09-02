@@ -8,6 +8,7 @@ export abstract class SameBattleEliminationTournament extends BattleEliminationT
 	evolutionsPerRound = 0;
 	canChangeFormat = true;
 	fullyEvolved = true;
+	allowsSingleStage = true;
 	sharedTeams = true;
 	canRejoin = true;
 
