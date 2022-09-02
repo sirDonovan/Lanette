@@ -811,7 +811,7 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.debugLog(winner.name + " team changes round " + winner.round + ": " + JSON.stringify(teamChanges));
 				winnerTeamChanges.push(teamChanges);
 
-				this.updatePossibleTeams(winner, loserTeam);
+				this.updatePossibleTeams(winner, loserTeam, teamChanges);
 
 				this.debugLog(winner.name + " new possible teams after win : " +
 					JSON.stringify(this.possibleTeams.get(winner)!.join(" | ")));
@@ -1274,8 +1274,15 @@ export abstract class BattleElimination extends ScriptedGame {
 		};
 	}
 
-	updatePossibleTeams(player: Player, additions: string[] | undefined): void {
-		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, additions, this.getPossibleTeamsOptions()));
+	updatePossibleTeams(player: Player, pool: string[] | undefined, roundOptions?: Partial<IGetPossibleTeamsOptions>): void {
+		const formatDefaultOptions = this.getPossibleTeamsOptions();
+		const options = roundOptions ? Object.assign(formatDefaultOptions, roundOptions) : formatDefaultOptions;
+
+		if (!options.additions) options.requiredAddition = false;
+		if (!options.drops) options.requiredDrop = false;
+		if (!options.evolutions) options.requiredEvolution = false;
+
+		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, pool, options));
 	}
 
 	getSignupsHtml(): string {
@@ -2761,20 +2768,26 @@ const tests: GameFileTests<BattleElimination> = {
 
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
-			for (let i = 1; i <= ((6 - game.startingTeamsLength) / game.additionsPerRound); i++) {
+			const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
 				const round = matchRounds[i - 1];
 				if (!round) break;
+
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
+
 					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
 						assert(game.possibleTeams.get(winner)!.length);
 					}
 				}
 
-				assertStrictEqual(game.teamChanges.get(player)!.length, i);
-				matchesByRound = game.getMatchesByRound();
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
 			}
 		},
 	},
@@ -2794,20 +2807,26 @@ const tests: GameFileTests<BattleElimination> = {
 
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
-			for (let i = 1; i <= ((game.startingTeamsLength - 1) / game.additionsPerRound); i++) {
+			const iterations = ((game.startingTeamsLength - 1) / game.additionsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
 				const round = matchRounds[i - 1];
 				if (!round) break;
+
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
 					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
+
 					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
 						assert(game.possibleTeams.get(winner)!.length);
 					}
 				}
 
-				assertStrictEqual(game.teamChanges.get(player)!.length, i);
-				matchesByRound = game.getMatchesByRound();
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
 			}
 		},
 	},
