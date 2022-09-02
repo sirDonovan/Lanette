@@ -79,7 +79,15 @@ export abstract class Game extends Activity {
 		}
 	}
 
-	exceedsMessageSizeLimit(message: string): boolean {
+	exceedsMessageSizeLimit(message: string, html?: boolean, uhtmlName?: string): boolean {
+		if (html) {
+			if (uhtmlName) {
+				message = "/adduhtml " + uhtmlName + ", " + message;
+			} else {
+				message = "/addhtmlbox " + message;
+			}
+		}
+
 		return Client.exceedsMessageSizeLimit(this.room.getMessageWithClientPrefix(message));
 	}
 
