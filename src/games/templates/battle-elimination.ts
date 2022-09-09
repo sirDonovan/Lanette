@@ -777,10 +777,12 @@ export abstract class BattleElimination extends ScriptedGame {
 			let additionsThisRound = this.additionsPerRound;
 			while (currentTeamLength + additionsThisRound - dropsThisRound < 1) {
 				dropsThisRound--;
+				if (!dropsThisRound) break;
 			}
 
 			while (currentTeamLength + additionsThisRound - dropsThisRound > 6) {
 				additionsThisRound--;
+				if (!additionsThisRound) break;
 			}
 
 			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
