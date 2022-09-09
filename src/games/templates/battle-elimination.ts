@@ -761,13 +761,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		let winnerTeamChanges: ITeamChange[] = [];
 		if (this.getRemainingPlayerCount() > 1 && (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound)) {
 			let currentTeamLength: number;
-			const roundTeamLengthChange = this.additionsPerRound + (-1 * this.dropsPerRound);
-			const addingPokemon = roundTeamLengthChange > 0;
-			const droppingPokemon = roundTeamLengthChange < 0;
+			const roundTeamLengthChange = this.additionsPerRound - this.dropsPerRound;
 			const previousRounds = winner.round! - 1;
-			if (addingPokemon) {
+			if (roundTeamLengthChange > 0) {
 				currentTeamLength = Math.min(6, this.startingTeamsLength + (previousRounds * roundTeamLengthChange));
-			} else if (droppingPokemon) {
+			} else if (roundTeamLengthChange < 0) {
 				currentTeamLength = Math.max(1, this.startingTeamsLength - (previousRounds * roundTeamLengthChange));
 			} else {
 				currentTeamLength = this.startingTeamsLength;
@@ -775,14 +773,12 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			let dropsThisRound = this.dropsPerRound;
 			let additionsThisRound = this.additionsPerRound;
-			while (currentTeamLength + additionsThisRound - dropsThisRound < 1) {
+			while (dropsThisRound && currentTeamLength + additionsThisRound - dropsThisRound < 1) {
 				dropsThisRound--;
-				if (!dropsThisRound) break;
 			}
 
-			while (currentTeamLength + additionsThisRound - dropsThisRound > 6) {
+			while (additionsThisRound && currentTeamLength + additionsThisRound - dropsThisRound > 6) {
 				additionsThisRound--;
-				if (!additionsThisRound) break;
 			}
 
 			if (additionsThisRound || dropsThisRound || this.evolutionsPerRound) {
@@ -2757,12 +2753,12 @@ const tests: GameFileTests<BattleElimination> = {
 	'should give team changes until players have a full team - additionsPerRound': {
 		test(game) {
 			this.timeout(15000);
-			if (!game.additionsPerRound || game.dropsPerRound || game.maxPlayers < 64) return;
+			if (!game.additionsPerRound || game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 64);
+			addPlayers(game, game.maxPlayers);
 			if (!game.started) game.start();
 			game.startElimination();
 
@@ -2778,12 +2774,19 @@ const tests: GameFileTests<BattleElimination> = {
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
+
 					game.removePlayer(match.children![1].user!.name);
 					if (game.ended) break;
 
-					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
-						assert(game.possibleTeams.get(winner)!.length);
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
+						assert(teamChanges[j].drops === 0);
 					}
+
+					assert(game.possibleTeams.get(winner)!.length);
 				}
 
 				if (!game.ended) {
@@ -2796,12 +2799,12 @@ const tests: GameFileTests<BattleElimination> = {
 	'should give team changes until players have a full team - dropsPerRound': {
 		test(game) {
 			this.timeout(15000);
-			if (!game.dropsPerRound || game.additionsPerRound || game.maxPlayers < 64) return;
+			if (!game.dropsPerRound || game.additionsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 64);
+			addPlayers(game, game.maxPlayers);
 			if (!game.started) game.start();
 			game.startElimination();
 
@@ -2809,7 +2812,7 @@ const tests: GameFileTests<BattleElimination> = {
 
 			let matchesByRound = game.getMatchesByRound();
 			const matchRounds = Object.keys(matchesByRound).sort();
-			const iterations = ((game.startingTeamsLength - 1) / game.additionsPerRound) + 1;
+			const iterations = ((game.startingTeamsLength - 1) / game.dropsPerRound) + 1;
 			for (let i = 1; i <= iterations; i++) {
 				const round = matchRounds[i - 1];
 				if (!round) break;
@@ -2817,12 +2820,19 @@ const tests: GameFileTests<BattleElimination> = {
 				const player = matchesByRound[round][0].children![0].user!;
 				for (const match of matchesByRound[round]) {
 					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
+
 					game.removePlayer(match.children![1].user!.name);
 					if (game.ended) break;
 
-					if (game.additionsPerRound || game.dropsPerRound || game.evolutionsPerRound) {
-						assert(game.possibleTeams.get(winner)!.length);
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
+						assert(teamChanges[j].additions === 0);
 					}
+
+					assert(game.possibleTeams.get(winner)!.length);
 				}
 
 				if (!game.ended) {
