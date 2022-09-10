@@ -23,8 +23,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			getTargetErrors() {
+				return "";
 			},
 		},
 		"phione": {
@@ -36,8 +36,8 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			getTargetErrors() {
+				return "";
 			},
 		},
 		"pachirisu": {
@@ -49,7 +49,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget(game, targets, hand) {
+			getTargetErrors(game, targets, hand) {
 				let hasRegularCard = false;
 				for (const card of hand!) {
 					if (!card.action) {
@@ -58,7 +58,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 					}
 				}
 
-				return hasRegularCard;
+				if (!hasRegularCard) return "No regular cards remain in the deck";
 			},
 		},
 	};
@@ -89,7 +89,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
+		if (card.action.getTargetErrors(this, targets, cards, player)) return false;
 
 		let drawnCards: ICard[] | undefined;
 		const id = card.id as ActionCardNames;
@@ -129,7 +129,9 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 					cardPool.shift();
 				}
 				if (this.players[i] !== player) {
-					this.sendPlayerCards(this.players[i]);
+					const htmlPage = this.getHtmlPage(this.players[i]);
+					htmlPage.renderHandHtml();
+					htmlPage.send();
 				}
 			}
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
@@ -156,7 +158,12 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 		this.currentPlayer = null;
 
 		if (!player.eliminated) {
-			this.sendPlayerCards(player, drawnCards);
+			const htmlPage = this.getHtmlPage(player);
+			htmlPage.renderHandHtml();
+			htmlPage.renderCardActionsHtml();
+			htmlPage.renderPlayedCardsHtml([card]);
+			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.send();
 		}
 
 		return true;
@@ -169,7 +176,11 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			this.currentPlayer = null;
 			const drawnCards = this.drawCard(this.players[user.id]);
-			this.sendPlayerCards(this.players[user.id], drawnCards);
+			const htmlPage = this.getHtmlPage(this.players[user.id]);
+			htmlPage.renderCardActionsHtml();
+			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.send();
+
 			this.nextRound();
 			return true;
 		},
@@ -323,10 +334,10 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const pachirisu = game.actionCards.pachirisu;
 			assert(pachirisu);
 
-			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
-			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [manaphy.getCard(game)]), false);
-			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [phione.getCard(game)]), false);
-			assertStrictEqual(pachirisu.isPlayableTarget(game, [], [pachirisu.getCard(game)]), false);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [manaphy.getCard(game)]), false);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [phione.getCard(game)]), false);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [pachirisu.getCard(game)]), false);
 		},
 	},
 	'it should not try to find pairs for action cards when Pachirisu is played': {

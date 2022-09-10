@@ -7,7 +7,7 @@ import { ColorPicker } from "./components/color-picker";
 import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { ITrainerPick } from "./components/trainer-picker";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 import type { PokemonChoices } from "./game-host-control-panel";
 import { PokemonTextInput } from "./components/pokemon-text-input";
 
@@ -19,7 +19,6 @@ const choosePokemonPicker = 'choosepokemonpicker';
 const setBackgroundColorCommand = 'setbackgroundcolor';
 const setPokemonCommand = 'setpokemon';
 const setTrainerCommand = 'settrainer';
-const closeCommand = 'close';
 
 export const pageId = 'game-trainer-card';
 export const pages: Dict<GameTrainerCard> = {};
@@ -194,7 +193,7 @@ class GameTrainerCard extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Trainer Card</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 
 		html += "<br />";
 		const currentCard = Games.getTrainerCardHtml(this.room, name);
@@ -301,7 +300,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new GameTrainerCard(targetRoom, user, maxIcons);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new GameTrainerCard(targetRoom, user, maxIcons);
 
 			if (cmd === chooseBackgroundColorPicker) {
 				pages[user.id].chooseBackgroundColorPicker();
@@ -309,7 +308,7 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === choosePokemonPicker) {
 				pages[user.id].choosePokemonPicker();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

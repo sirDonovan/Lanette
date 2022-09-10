@@ -1,11 +1,11 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { User } from "../users";
+import { CLOSE_COMMAND } from "./html-page-base";
 import { TournamentTrainerCard } from "./tournament-trainer-card";
 
 const baseCommand = 'tournamentpointsshop';
 const baseCommandAlias = 'tpshop';
-const closeCommand = 'close';
 const unlockRibbonCommand = 'unlockribbon';
 
 export const pageId = 'tournament-points-shop';
@@ -110,7 +110,7 @@ class TournamentPointsShop extends TournamentTrainerCard {
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" +
 			this.room.title + ": Tournament Points Shop</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 
 		const currentCard = Tournaments.getTrainerCardHtml(this.room, this.userName);
 		if (currentCard) {
@@ -147,9 +147,9 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new TournamentPointsShop(targetRoom, user);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new TournamentPointsShop(targetRoom, user);
 
-			if (cmd === closeCommand) {
+			if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else if (cmd === unlockRibbonCommand) {
 				if (user.id in pages) pages[user.id].unlockRibbon(targets[0].trim());

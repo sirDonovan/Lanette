@@ -6,7 +6,7 @@ import type { User } from "../users";
 import { FormatTextInput } from "./components/format-text-input";
 import { NumberTextInput } from "./components/number-text-input";
 import { TextInput } from "./components/text-input";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'officialtournamentscheduler';
 const baseAlias = 'ots';
@@ -19,7 +19,6 @@ const formatsInputCommand = 'setformat';
 const tournamentTimeInputCommand = 'settournamenttime';
 const addDayTournamentCommand = 'adddaytournament';
 const removeDayTournamentCommand = 'removedaytournament';
-const closeCommand = 'close';
 
 export const pageId = 'official-tournament-scheduler';
 export const pages: Dict<OfficialTournamentScheduler> = {};
@@ -321,7 +320,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Official Tournament " +
 			"Scheduler</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 		html += "<br /><br />";
 		html += "</center>";
 
@@ -455,7 +454,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new OfficialTournamentScheduler(targetRoom, user);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new OfficialTournamentScheduler(targetRoom, user);
 
 			if (cmd === chooseYearCommand) {
 				pages[user.id].chooseYearCommand(targets[0].trim());
@@ -469,7 +468,7 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].addDayTournamentCommand();
 			} else if (cmd === removeDayTournamentCommand) {
 				pages[user.id].removeDayTournamentCommand();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

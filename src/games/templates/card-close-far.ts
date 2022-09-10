@@ -112,7 +112,11 @@ export abstract class CardCloseFar extends CardHighLow {
 			this.say(text);
 			for (const i in this.players) {
 				if (!this.players[i].eliminated) {
-					this.sendPlayerCards(this.players[i]);
+					const htmlPage = this.getHtmlPage(this.players[i]);
+					htmlPage.renderHandHtml();
+					htmlPage.renderPlayedCardsHtml();
+					htmlPage.renderDrawnCardsHtml();
+					htmlPage.send();
 				}
 			}
 		});

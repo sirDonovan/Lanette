@@ -1,3 +1,4 @@
+import type { Player } from "../room-activity";
 import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ComponentBase } from "./components/component-base";
@@ -10,13 +11,22 @@ export interface IQuietPMButtonOptions {
 	style?: string;
 }
 
+export const CLOSE_COMMAND = 'closehtmlpage';
+export const SWITCH_LOCATION_COMMAND = 'switchhtmlpagelocation';
+
 export abstract class HtmlPageBase {
 	abstract pageId: string;
 
+	baseChatUhtmlName: string = "";
+	chatUhtmlName: string = "";
 	closed: boolean = false;
+	closeButtonHtml: string = "";
 	components: ComponentBase[] = [];
+	globalRoomPage: boolean = false;
 	lastRender: string = '';
 	readonly: boolean = false;
+	showSwitchLocationButton: boolean = false;
+	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
 
 	baseCommand: string;
@@ -28,16 +38,17 @@ export abstract class HtmlPageBase {
 	userName!: string;
 	userId!: string;
 
-	constructor(room: Room, user: User, baseCommand: string, pageList: Dict<HtmlPageBase>) {
+	constructor(room: Room, userOrPlayer: User | Player, baseCommand: string, pageList: Dict<HtmlPageBase>) {
 		this.room = room;
 		this.baseCommand = baseCommand;
 		this.commandPrefix = Config.commandCharacter + baseCommand + " " + (room.alias || room.id);
 		this.pageList = pageList;
 
-		this.setUser(user);
+		this.setUser(userOrPlayer);
+		this.setCloseButton();
 
-		if (user.id in pageList) pageList[user.id].destroy();
-		pageList[user.id] = this;
+		if (userOrPlayer.id in pageList) pageList[userOrPlayer.id].destroy();
+		pageList[userOrPlayer.id] = this;
 	}
 
 	abstract render(onOpen?: boolean): string;
@@ -57,6 +68,10 @@ export abstract class HtmlPageBase {
 		this.send(true);
 	}
 
+	tryClose(): void {
+		if (!this.closed) this.close();
+	}
+
 	close(): void {
 		if (this.closed) throw new Error(this.pageId + " page already closed for user " + this.userId);
 
@@ -67,10 +82,41 @@ export abstract class HtmlPageBase {
 		this.destroy();
 	}
 
-	setUser(user: User): void {
-		this.userName = user.name;
-		this.userId = user.id;
-		this.isRoomStaff = user.hasRank(this.room, 'driver') || user.isDeveloper();
+	temporarilyClose(): void {
+		const user = Users.get(this.userId);
+		if (user) this.room.closeHtmlPage(user, this.pageId);
+	}
+
+	switchLocation(): void {
+		let closeHtmlPage = true;
+		if (this.chatUhtmlName) {
+			closeHtmlPage = false;
+			this.chatUhtmlName = "";
+		} else {
+			this.chatUhtmlName = this.baseChatUhtmlName;
+		}
+
+		this.usedCommandAfterLastRender = true;
+		this.setSwitchLocationButton();
+		this.setCloseButton();
+		this.send();
+
+		const user = Users.get(this.userId);
+		if (user) {
+			if (closeHtmlPage) {
+				this.temporarilyClose();
+			} else {
+				this.room.sayPrivateUhtml(user, this.baseChatUhtmlName, "<div>Successfully moved to an HTML page.</div>");
+			}
+		}
+	}
+
+	setUser(userOrPlayer: User | Player): void {
+		this.userName = userOrPlayer.name;
+		this.userId = userOrPlayer.id;
+
+		const user = Users.get(userOrPlayer.name);
+		this.isRoomStaff = user ? user.hasRank(this.room, 'driver') || user.isDeveloper() : false;
 	}
 
 	onRenameUser(user: User, oldId: string): void {
@@ -104,7 +150,12 @@ export abstract class HtmlPageBase {
 
 		this.lastRender = render;
 		this.usedCommandAfterLastRender = false;
-		this.room.sendHtmlPage(user, this.pageId, render);
+
+		if (this.chatUhtmlName) {
+			this.room.sayPrivateUhtml(user, this.chatUhtmlName, render);
+		} else {
+			this.room.sendHtmlPage(user, this.pageId, render);
+		}
 
 		if (this.onSend) this.onSend(onOpen);
 	}
@@ -131,6 +182,24 @@ export abstract class HtmlPageBase {
 		}
 
 		return Client.getQuietPmButton(this.room, message, label, disabled, style);
+	}
+
+	setCloseButton(options?: IQuietPMButtonOptions): void {
+		if (this.chatUhtmlName) {
+			this.closeButtonHtml = "";
+		} else {
+			this.closeButtonHtml = this.getQuietPmButton(this.commandPrefix + (this.globalRoomPage ? " " : ", ") + CLOSE_COMMAND,
+				"Close page", options);
+		}
+	}
+
+	setSwitchLocationButton(): void {
+		if (this.showSwitchLocationButton) {
+			this.switchLocationButtonHtml = this.getQuietPmButton(this.commandPrefix + (this.globalRoomPage ? " " : ", ") +
+			SWITCH_LOCATION_COMMAND, "Move to " + (this.chatUhtmlName ? "HTML page" : "chat"));
+		} else {
+			this.switchLocationButtonHtml = "";
+		}
 	}
 
 	beforeSend?(onOpen?: boolean): boolean;

@@ -2,11 +2,10 @@ import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { User } from "../users";
 import { FormatTextInput } from "./components/format-text-input";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'randomtournamentformats';
 const baseCommandAlias = 'rtf';
-const closeCommand = 'close';
 const formatsInputCommand = 'formatsinput';
 const removeFormatCommand = 'removeformat';
 
@@ -63,7 +62,7 @@ class RandomTournamentFormats extends HtmlPageBase {
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" +
 			this.room.title + " Random Tournament Formats</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 		html += "</center>";
 		html += "<br /><br />";
 
@@ -121,11 +120,11 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new RandomTournamentFormats(targetRoom, user);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new RandomTournamentFormats(targetRoom, user);
 
 			if (cmd === removeFormatCommand) {
 				if (user.id in pages) pages[user.id].removeFormat(targets[0]);
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

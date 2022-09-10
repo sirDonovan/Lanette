@@ -1,3 +1,4 @@
+import type { CardMatchingPage } from '../../html-pages/game-pages/card-matching';
 import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';
@@ -11,7 +12,7 @@ export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extend
 	getCard: (game: T) => ICard;
 	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
 	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
-	isPlayableTarget: (game: T, targets: string[], hand?: U[], player?: Player) => boolean;
+	getTargetErrors: (game: T, targets: string[], hand?: U[], player?: Player) => string | undefined;
 	readonly description: string;
 	readonly name: string;
 	drawCards?: number;
@@ -51,9 +52,11 @@ export interface IItemCard extends ICard {
 }
 
 const GAME_ACTION_TYPE: GameActionGames = 'card';
+const HTML_PAGE_COMMAND = 'cardhtmlpagecommand';
 
-export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
+export abstract class CardGame<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
 	abstract actionCards: ActionCardsType;
+	abstract playCommand: string;
 
 	awaitingCurrentPlayerCard: boolean = false;
 	canLateJoin: boolean = true;
@@ -68,6 +71,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	finitePlayerCards: boolean = false;
 	gameActionType = GAME_ACTION_TYPE;
 	hackmonsTypes: boolean = false;
+	htmlPages = new Map<Player, CardMatchingPage>();
+	htmlPageCommand: string = HTML_PAGE_COMMAND;
 	inverseTypes: boolean = false;
 	lastPlayer: Player | null = null;
 	maxCardRounds: number = 0;
@@ -78,17 +83,22 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	playerOrder: Player[] = [];
 	showPlayerCards: boolean = false;
 	usesActionCards: boolean = true;
+	usesColors: boolean = false;
+	usesEggGroups: boolean = false;
+	usesTypings: boolean = true;
 	usesHtmlPage = true;
 
 	declare readonly room: Room;
 
 	gifGeneration?: ModelGeneration;
+	maximumPlayedCards?: number;
+	maxShownPlayableGroupSize?: number;
 	requiredGen?: number;
 	topCard?: ICard;
 
 	abstract createDeck(): void;
+	abstract createHtmlPage(player: Player): CardMatchingPage;
 	abstract getCardChatDetails(card: ICard): string;
-	abstract getCardsPrivateHtml(cards: ICard[], player?: Player, playableCards?: boolean): string;
 	abstract onNextRound(): void;
 	abstract onStart(): void;
 
@@ -221,13 +231,17 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		for (let i = 0; i < this.options.cards!; i++) {
 			cards.push(this.getCard());
 		}
+
 		this.playerCards.set(player, cards);
+		this.getHtmlPage(player).renderHandHtml();
 	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
+		this.createHtmlPage(player);
+
 		if (lateJoin) {
 			this.giveStartingCards(player);
-			this.sendPlayerCards(player);
+			this.sendHtmlPage(player);
 			this.playerOrder.push(player);
 			this.playerList.push(player);
 		}
@@ -356,31 +370,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 		return cards;
 	}
 
-	sendPlayerCards(player: Player, drawnCards?: ICard[], playedCards?: ICard[]): void {
-		const playerCards = this.playerCards.get(player)!.sort((a, b) => {
-			if (b.action && !a.action) return 1;
-			if (a.action && !b.action) return -1;
-			return 0;
-		});
-
-		let html = '<b>Your cards' + (this.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br /><br />';
-		const playerTurn = this.currentPlayer === player && this.awaitingCurrentPlayerCard;
-		if (playerTurn && this.getPlayerTurnHtml) {
-			html += this.getPlayerTurnHtml(player);
-		} else {
-			html += this.getCardsPrivateHtml(playerCards, player, playerTurn);
-		}
-
-		if (playedCards && drawnCards) {
-			html += "<br />You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b> and drew <b>" +
-				Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
-		} else if (playedCards) {
-			html += "<br />You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b>!";
-		} else if (drawnCards) {
-			html += "<br />You drew <b>" + Tools.joinList(drawnCards.map(x => x.name)) + "</b>!";
-		}
-
-		this.sendPlayerActions(player, this.getCustomBoxDiv(html, player));
+	getHtmlPage(player: Player): CardMatchingPage {
+		return this.htmlPages.get(player) || this.createHtmlPage(player);
 	}
 
 	onTimeLimit(): boolean {
@@ -439,9 +430,8 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 
 		if (newCardRound) {
 			for (const i in this.players) {
-				if (!this.players[i].eliminated && this.players[i] !== player && this.players[i] !== this.lastPlayer &&
-					this.players[i].sentPrivateHtml) {
-					this.sendPlayerCards(this.players[i]);
+				if (!this.players[i].eliminated && this.players[i] !== player && this.players[i] !== this.lastPlayer) {
+					this.sendChatHtmlPage(this.players[i]);
 				}
 			}
 		}
@@ -454,6 +444,11 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 			const cards = this.playerCards.get(player);
 			return this.getPlayerUsernameHtml(player.name) + (cards ? " (" + cards.length + ")" : "");
 		}, players).join(', ');
+	}
+
+	getPlayerSummary(player: Player): void {
+		if (player.eliminated) return;
+		this.sendHtmlPage(player);
 	}
 
 	destroyPlayers(): void {
@@ -482,11 +477,20 @@ export abstract class Card<ActionCardsType = Dict<IActionCardData>> extends Scri
 	getPlayerTurnHtml?(player: Player): string;
 }
 
-const commands: GameCommandDefinitions<Card> = {};
+const commands: GameCommandDefinitions<CardGame> = {
+	[HTML_PAGE_COMMAND]: {
+		command(target, room, user) {
+			this.runHtmlPageCommand(target, user);
+			return true;
+		},
+		eliminatedGameCommand: true,
+		pmGameCommand: true,
+	},
+};
 commands.summary = Tools.deepClone(Games.getSharedCommands().summary);
 commands.summary.aliases = ['cards', 'hand'];
 
-const tests: GameFileTests<Card> = {
+const tests: GameFileTests<CardGame> = {
 	'it should have all required card properties': {
 		test(game): void {
 			const tackle = Dex.getExistingMove("Tackle");
@@ -512,7 +516,7 @@ const tests: GameFileTests<Card> = {
 	},
 };
 
-export const game: IGameTemplateFile<Card> = {
+export const game: IGameTemplateFile<CardGame> = {
 	category: 'tabletop',
 	commands,
 	defaultOptions: ['cards'],

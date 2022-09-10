@@ -1,5 +1,6 @@
 import path = require('path');
 
+import type { GamePageBase } from './html-pages/game-pages/game-page-base';
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
@@ -32,6 +33,7 @@ export class ScriptedGame extends Game {
 	debugLogWriteCount: number = 0;
 	enabledAssistActions = new Map<Player, boolean>();
 	gameActionLocations = new Map<Player, GameActionLocations>();
+	htmlPages = new Map<Player, GamePageBase>();
 	inactiveRounds: number = 0;
 	inheritedPlayers: boolean = false;
 	internalGame: boolean = false;
@@ -655,6 +657,10 @@ export class ScriptedGame extends Game {
 			for (const i in this.players) {
 				this.players[i].closeHtmlPage();
 			}
+
+			this.htmlPages.forEach(htmlPage => {
+				htmlPage.tryClose();
+			});
 		}
 
 		const now = Date.now();
@@ -723,6 +729,10 @@ export class ScriptedGame extends Game {
 			for (const i in this.players) {
 				this.players[i].closeHtmlPage();
 			}
+
+			this.htmlPages.forEach(htmlPage => {
+				htmlPage.tryClose();
+			});
 		}
 
 		this.ended = true;
@@ -1049,7 +1059,11 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.usesHtmlPage) player.closeHtmlPage();
+		if (this.usesHtmlPage) {
+			player.closeHtmlPage();
+			const htmlPage = this.htmlPages.get(player);
+			if (htmlPage) htmlPage.tryClose();
+		}
 	}
 
 	/** Returns `true` if the player has been inactive for the game's inactive round limit */
@@ -1115,7 +1129,7 @@ export class ScriptedGame extends Game {
 		if (player.sentAssistActions) player.clearPrivateUhtml(uhtmlName);
 	}
 
-	sendPlayerActions(player: Player, html: string): void {
+	getGameActionLocation(player: Player): GameActionLocations {
 		if (this.gameActionType && !this.gameActionLocations.has(player)) {
 			const database = Storage.getDatabase(this.room as Room);
 			if (database.gameScriptedOptions && player.id in database.gameScriptedOptions &&
@@ -1127,7 +1141,11 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		const location = this.gameActionLocations.get(player) || 'chat';
+		return this.gameActionLocations.get(player) || 'chat';
+	}
+
+	sendPlayerActions(player: Player, html: string): void {
+		const location = this.getGameActionLocation(player);
 		if (location === 'htmlpage') {
 			player.sendHtmlPage(html);
 		} else {
@@ -1290,6 +1308,35 @@ export class ScriptedGame extends Game {
 		return result;
 	}
 
+	sendHtmlPage(player: Player): void {
+		if (this.getHtmlPage) this.getHtmlPage(player).send();
+	}
+
+	sendChatHtmlPage(player: Player): void {
+		if (this.getHtmlPage) {
+			const htmlPage = this.getHtmlPage(player);
+			if (htmlPage.chatUhtmlName) htmlPage.send();
+		}
+	}
+
+	runHtmlPageCommand(target: string, user: User): void {
+		if (!(user.id in this.players)) return;
+
+		const htmlPage = this.htmlPages.get(this.players[user.id]);
+		if (!htmlPage) return;
+
+		const targets = target.split(',');
+		const targetRoom = Rooms.search(targets[0]);
+		targets.shift();
+
+		if (!targetRoom || targetRoom.id !== this.room.id) return;
+
+		const command = Tools.toId(targets[0]);
+		targets.shift();
+
+		htmlPage.tryCommand(command, targets);
+	}
+
 	addBits(user: User | Player, bits: number, noPm?: boolean, achievementBits?: boolean): boolean {
 		if (this.isPmActivity(this.room) || !Config.rankedGames || !Config.rankedGames.includes(this.room.id) ||
 			(this.parentGame && this.parentGame.allowChildGameBits !== true) ||
@@ -1440,6 +1487,7 @@ export class ScriptedGame extends Game {
 	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
 	getForceEndMessage?(): string;
+	getHtmlPage?(player: Player): GamePageBase;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */

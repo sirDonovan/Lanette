@@ -33,6 +33,7 @@ const tagName = 'textInput';
 
 export class TextInput<OutputType = string> extends ComponentBase<ITextInputProps<OutputType>> {
 	componentId: string = 'text-input';
+	afterSubmitHtml: string = "";
 	clearCommand: string = 'clear';
 	currentInput: string | undefined = undefined;
 	currentOutput: OutputType | undefined = undefined;
@@ -48,6 +49,14 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		if (props.currentInput) this.currentInput = props.currentInput;
 		this.clearText = props.clearText || "Clear";
 		this.submitText = props.submitText || "Submit";
+	}
+
+	updateSubmitText(text: string): void {
+		this.submitText = text;
+	}
+
+	updateAfterSubmitHtml(html: string): void {
+		this.afterSubmitHtml = html;
 	}
 
 	parentClearInput(): void {
@@ -149,6 +158,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + this.clearCommand, this.clearText,
 				{disabled: !this.currentInput});
 		}
+
+		html += this.afterSubmitHtml;
 
 		html += "</form>";
 

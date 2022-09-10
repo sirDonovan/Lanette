@@ -4,7 +4,7 @@ import type { IDatabase, ITournamentTrainerCard } from "../types/storage";
 import type { User } from "../users";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { ITrainerPick } from "./components/trainer-picker";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 import { FormatTextInput } from "./components/format-text-input";
 import type { IFormat } from "../types/pokemon-showdown";
 import { TrainerCardBadgePicker } from "./components/trainer-card-badge-picker";
@@ -41,7 +41,6 @@ const setTableColorCommand = 'settablecolor';
 const setFooterColorCommand = 'setfootercolor';
 const setPokemonCommand = 'setpokemon';
 const setTargetUserIdCommand = 'settargetuserid';
-const closeCommand = 'close';
 
 export const pageId = 'tournament-trainer-card';
 export const pages: Dict<TournamentTrainerCard> = {};
@@ -111,6 +110,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		this.trainerCardUserIdPicker.active = this.viewAllMode;
 
 		this.loadTournamentTrainerCard();
+		this.setCloseButton({enabledReadonly: true});
 	}
 
 	getDatabase(): IDatabase {
@@ -552,7 +552,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Tournament Trainer " +
 			"Card</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close", {enabledReadonly: true});
+		html += "&nbsp;" + this.closeButtonHtml;
 
 		html += "<br />";
 		const currentCard = name ? Tournaments.getTrainerCardHtml(this.room, name) : "";
@@ -660,7 +660,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand && cmd !== viewAllCommand && cmd !== staffEditCommand) {
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND && cmd !== viewAllCommand && cmd !== staffEditCommand) {
 				new TournamentTrainerCard(targetRoom, user, baseCommandAlias);
 			}
 
@@ -685,7 +685,7 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseBioView) {
 				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 				pages[user.id].chooseBioView();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else if (cmd === viewAllCommand) {
 				let targetUserId;

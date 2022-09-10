@@ -27,19 +27,14 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getAutoPlayTarget(game) {
-				if (this.isPlayableTarget(game, [])) {
+				if (!this.getTargetErrors(game, [])) {
 					return this.name;
 				}
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game) {
 				if (game.topCard.types.includes('Poison')) {
-					if (player) {
-						player.say(game.topCard.name + " is already " + (game.topCard.types.length > 1 ? "part " : "") + "Poison-type!");
-					}
-					return false;
+					return game.topCard.name + " is already " + (game.topCard.types.length > 1 ? "part " : "") + "Poison-type!";
 				}
-
-				return true;
 			},
 		},
 		"irondefense": {
@@ -49,19 +44,14 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				return game.moveToActionCard(this);
 			},
 			getAutoPlayTarget(game) {
-				if (this.isPlayableTarget(game, [])) {
+				if (!this.getTargetErrors(game, [])) {
 					return this.name;
 				}
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game) {
 				if (game.topCard.types.includes('Steel')) {
-					if (player) {
-						player.say(game.topCard.name + " is already " + (game.topCard.types.length > 1 ? "part " : "") + "Steel-type!");
-					}
-					return false;
+					return game.topCard.name + " is already " + (game.topCard.types.length > 1 ? "part " : "") + "Steel-type!";
 				}
-
-				return true;
 			},
 		},
 		"batonpass": {
@@ -74,7 +64,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (this.isPlayableTarget(game, [card.name], hand)) {
+					if (!this.getTargetErrors(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -82,43 +72,35 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game, targets, hand) {
 				if (targets.length !== 1) {
-					if (player) player.say("You must specify 1 Pokemon.");
-					return false;
+					return "You must specify 1 Pokemon.";
 				}
 
 				const id = Tools.toId(targets[0]);
 				if (!id) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
-					return false;
+					return "Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``";
 				}
 
 				const pokemon = Dex.getPokemon(targets[0]);
 				if (!pokemon) {
-					if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-					return false;
+					return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
 				}
 
 				if (hand) {
 					const index = game.getCardIndex(pokemon.name, hand);
 					if (index === -1) {
-						if (player) player.say("You do not have [ " + pokemon.name + " ].");
-						return false;
+						return "You do not have [ " + pokemon.name + " ].";
 					}
 
 					if (hand[index].action) {
-						if (player) player.say("You cannot pass an action card.");
-						return false;
+						return "You cannot pass an action card.";
 					}
 				}
 
 				if (game.topCard.id === pokemon.id) {
-					if (player) player.say("The top card is already " + pokemon.name + ".");
-					return false;
+					return "The top card is already " + pokemon.name + ".";
 				}
-
-				return true;
 			},
 		},
 		"allyswitch": {
@@ -131,7 +113,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getRandomTarget(game, hand) {
 				const cards = game.shuffle(hand);
 				for (const card of cards) {
-					if (this.isPlayableTarget(game, [card.name], hand)) {
+					if (!this.getTargetErrors(game, [card.name], hand)) {
 						return this.name + ", " + card.name;
 					}
 				}
@@ -139,43 +121,35 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game, targets, hand) {
 				if (targets.length !== 1) {
-					if (player) player.say("You must specify 1 Pokemon.");
-					return false;
+					return "You must specify 1 Pokemon.";
 				}
 
 				const id = Tools.toId(targets[0]);
 				if (!id) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
-					return false;
+					return "Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``";
 				}
 
 				const pokemon = Dex.getPokemon(targets[0]);
 				if (!pokemon) {
-					if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-					return false;
+					return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
 				}
 
 				if (hand) {
 					const index = game.getCardIndex(pokemon.name, hand);
 					if (index === -1) {
-						if (player) player.say("You do not have [ " + pokemon.name + " ].");
-						return false;
+						return "You do not have [ " + pokemon.name + " ].";
 					}
 
 					if (hand[index].action) {
-						if (player) player.say("You cannot switch an action card.");
-						return false;
+						return "You cannot switch an action card.";
 					}
 				}
 
 				if (game.topCard.id === pokemon.id) {
-					if (player) player.say("The top card is already " + pokemon.name + ".");
-					return false;
+					return "The top card is already " + pokemon.name + ".";
 				}
-
-				return true;
 			},
 		},
 		"conversion": {
@@ -191,7 +165,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				let usableType: string | undefined;
 				for (const typeKey of typeKeys) {
 					const typeName = dex.getExistingType(typeKey).name;
-					if (this.isPlayableTarget(game, [typeName])) {
+					if (!this.getTargetErrors(game, [typeName])) {
 						usableType = typeName;
 						break;
 					}
@@ -204,29 +178,23 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game, targets) {
 				if (targets.length !== 1) {
-					if (player) player.say("You must specify 1 type.");
-					return false;
+					return "You must specify 1 type.";
 				}
 
 				const type = Tools.toId(targets[0]);
 				if (!type) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type]``");
-					return false;
+					return "Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type]``";
 				}
 
 				if (!(type in game.usableTypes)) {
-					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
-					return false;
+					return CommandParser.getErrorText(['invalidType', targets[0]]);
 				}
 
 				if (game.topCard.types.length === 1 && game.usableTypes[type] === game.topCard.types[0]) {
-					if (player) player.say("The top card is already " + game.usableTypes[type] + " type.");
-					return false;
+					return "The top card is already " + game.usableTypes[type] + " type.";
 				}
-
-				return true;
 			},
 		},
 		"conversion2": {
@@ -245,7 +213,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 					for (let j = 0; j < typeKeys.length; j++) {
 						if (j === i) continue;
 						const typeNameB = dex.getExistingType(typeKeys[j]).name;
-						if (this.isPlayableTarget(game, [typeNameA, typeNameB])) {
+						if (!this.getTargetErrors(game, [typeNameA, typeNameB])) {
 							usableTypes = typeNameA + ", " + typeNameB;
 							break;
 						}
@@ -260,43 +228,35 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game, targets) {
 				if (targets.length !== 2) {
-					if (player) player.say("You must specify 2 types.");
-					return false;
+					return "You must specify 2 types.";
 				}
 
 				const type1 = Tools.toId(targets[0]);
 				const type2 = Tools.toId(targets[1]);
 				if (!type1 || !type2) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type 1], [type 2]``");
-					return false;
+					return "Usage: ``" + Config.commandCharacter + "play " + this.name + ", [type 1], [type 2]``";
 				}
 
 				if (!(type1 in game.usableTypes)) {
-					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[0]]));
-					return false;
+					return CommandParser.getErrorText(['invalidType', targets[0]]);
 				}
 
 				if (!(type2 in game.usableTypes)) {
-					if (player) player.say(CommandParser.getErrorText(['invalidType', targets[1]]));
-					return false;
+					return CommandParser.getErrorText(['invalidType', targets[1]]);
 				}
 
 				if (type1 === type2) {
-					if (player) player.say("Please enter two unique types.");
-					return false;
+					return "Please enter two unique types.";
 				}
 
 				if (game.topCard.types.length === 2) {
 					const typesList = [game.usableTypes[type1], game.usableTypes[type2]];
 					if (game.topCard.types.slice().sort().join(",") === typesList.sort().join(",")) {
-						if (player) player.say("The top card is already " + typesList.join("/") + " type.");
-						return false;
+						return "The top card is already " + typesList.join("/") + " type.";
 					}
 				}
-
-				return true;
 			},
 		},
 		"transform": {
@@ -310,7 +270,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				const pool = game.shuffle(game.deckPool);
 				let usableCard: string | undefined;
 				for (const card of pool) {
-					if (this.isPlayableTarget(game, [card.name])) {
+					if (!this.getTargetErrors(game, [card.name])) {
 						usableCard = card.name;
 						break;
 					}
@@ -322,17 +282,15 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget(game, hand) {
 				return this.getRandomTarget!(game, hand);
 			},
-			isPlayableTarget(game, targets, hand, player) {
+			getTargetErrors(game, targets) {
 				const id = Tools.toId(targets[0]);
 				if (!id) {
-					if (player) player.say("Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``");
-					return false;
+					return "Usage: ``" + Config.commandCharacter + "play " + this.name + ", [Pokemon]``";
 				}
 
 				const pokemon = Dex.getPokemon(targets[0]);
 				if (!pokemon) {
-					if (player) player.say(CommandParser.getErrorText(['invalidPokemon', targets[0]]));
-					return false;
+					return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
 				}
 
 				let deckHasSpecies = false;
@@ -344,16 +302,12 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 				}
 
 				if (!deckHasSpecies) {
-					if (player) player.say(pokemon.name + " is not playable in this game.");
-					return false;
+					return pokemon.name + " is not playable in this game.";
 				}
 
 				if (game.topCard.id === pokemon.id) {
-					if (player) player.say("The top card is already " + pokemon.name + ".");
-					return false;
+					return "The top card is already " + pokemon.name + ".";
 				}
-
-				return true;
 			},
 		},
 		"protect": {
@@ -365,8 +319,8 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			getTargetErrors() {
+				return "";
 			},
 		},
 		"teeterdance": {
@@ -378,8 +332,8 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			getTargetErrors() {
+				return "";
 			},
 		},
 		"topsyturvy": {
@@ -391,8 +345,8 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			isPlayableTarget() {
-				return true;
+			getTargetErrors() {
+				return "";
 			},
 		},
 	};
@@ -535,10 +489,6 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		return this.getChatTypeLabel(card);
 	}
 
-	getCardPrivateDetails(card: IPokemonCard): string {
-		return "<b>Typing</b>:&nbsp;" + this.getChatTypeLabel(card);
-	}
-
 	hasNoResistances(dex: typeof Dex, types: readonly string[]): boolean {
 		let noResistances = true;
 		for (const key of dex.getData().typeKeys) {
@@ -588,7 +538,7 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IMoveCard, player: Player, targets: string[], cards: ICard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (!card.action.isPlayableTarget(this, targets, cards, player)) return false;
+		if (card.action.getTargetErrors(this, targets, cards, player)) return false;
 
 		const id = card.id as ActionCardNames;
 		let firstTimeShiny = false;
@@ -658,7 +608,12 @@ class ShucklesDefenseCards extends CardMatching<ActionCardsType> {
 		if (!player.eliminated) {
 			this.currentPlayer = null;
 			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
-			this.sendPlayerCards(player, drawnCards);
+			const htmlPage = this.getHtmlPage(player);
+			htmlPage.renderHandHtml();
+			htmlPage.renderCardActionsHtml();
+			htmlPage.renderPlayedCardsHtml([card]);
+			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.send();
 		}
 
 		return true;
@@ -698,15 +653,15 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
 			assert(acidarmor.getAutoPlayTarget(game, []));
-			assertStrictEqual(acidarmor.isPlayableTarget(game, []), true);
+			assertStrictEqual(!acidarmor.getTargetErrors(game, []), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(!acidarmor.getAutoPlayTarget(game, []));
-			assertStrictEqual(acidarmor.isPlayableTarget(game, []), false);
+			assertStrictEqual(!acidarmor.getTargetErrors(game, []), false);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Ekans"));
 			assert(!acidarmor.getAutoPlayTarget(game, []));
-			assertStrictEqual(acidarmor.isPlayableTarget(game, []), false);
+			assertStrictEqual(!acidarmor.getTargetErrors(game, []), false);
 		},
 	},
 	'action cards - batonpass': {
@@ -719,13 +674,13 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(batonpass.getAutoPlayTarget(game, hand));
-			assertStrictEqual(batonpass.isPlayableTarget(game, ["Squirtle"], hand), true);
-			assertStrictEqual(batonpass.isPlayableTarget(game, ["Charmander"], hand), false);
-			assertStrictEqual(batonpass.isPlayableTarget(game, [""], hand), false);
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Squirtle"], hand), true);
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Charmander"], hand), false);
+			assertStrictEqual(!batonpass.getTargetErrors(game, [""], hand), false);
 
 			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
 			assert(!batonpass.getAutoPlayTarget(game, hand));
-			assertStrictEqual(batonpass.isPlayableTarget(game, ["Bulbasaur"], hand), false);
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Bulbasaur"], hand), false);
 		},
 	},
 	'action cards - allyswitch': {
@@ -738,13 +693,13 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(allyswitch.getAutoPlayTarget(game, hand));
-			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Squirtle"], hand), true);
-			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Charmander"], hand), false);
-			assertStrictEqual(allyswitch.isPlayableTarget(game, [""], hand), false);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Squirtle"], hand), true);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Charmander"], hand), false);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, [""], hand), false);
 
 			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
 			assert(!allyswitch.getAutoPlayTarget(game, hand));
-			assertStrictEqual(allyswitch.isPlayableTarget(game, ["Bulbasaur"], hand), false);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Bulbasaur"], hand), false);
 		},
 	},
 	'action cards - conversion': {
@@ -756,15 +711,15 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion.getAutoPlayTarget(game, []));
-			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass"]), true);
-			assertStrictEqual(conversion.isPlayableTarget(game, ["Poison"]), true);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"]), true);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Poison"]), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
 			assert(conversion.getAutoPlayTarget(game, []));
-			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass"]), true);
-			assertStrictEqual(conversion.isPlayableTarget(game, ["Water"]), false);
-			assertStrictEqual(conversion.isPlayableTarget(game, [""]), false);
-			assertStrictEqual(conversion.isPlayableTarget(game, ["Grass", "Fire"]), false);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"]), true);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Water"]), false);
+			assertStrictEqual(!conversion.getTargetErrors(game, [""]), false);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass", "Fire"]), false);
 		},
 	},
 	'action cards - conversion2': {
@@ -776,11 +731,11 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion2.getAutoPlayTarget(game, []));
-			assertStrictEqual(conversion2.isPlayableTarget(game, ["Water", "Fire"]), true);
-			assertStrictEqual(conversion2.isPlayableTarget(game, ["Grass", "Poison"]), false);
-			assertStrictEqual(conversion2.isPlayableTarget(game, ["Poison", "Grass"]), false);
-			assertStrictEqual(conversion2.isPlayableTarget(game, ["Water"]), false);
-			assertStrictEqual(conversion2.isPlayableTarget(game, [""]), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water", "Fire"]), true);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Grass", "Poison"]), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Poison", "Grass"]), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water"]), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, [""]), false);
 		},
 	},
 	'action cards - transform': {
@@ -793,9 +748,9 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(transform.getAutoPlayTarget(game, []));
-			assertStrictEqual(transform.isPlayableTarget(game, ["Squirtle"]), true);
-			assertStrictEqual(transform.isPlayableTarget(game, ["Bulbasaur"]), false);
-			assertStrictEqual(transform.isPlayableTarget(game, [""]), false);
+			assertStrictEqual(!transform.getTargetErrors(game, ["Squirtle"]), true);
+			assertStrictEqual(!transform.getTargetErrors(game, ["Bulbasaur"]), false);
+			assertStrictEqual(!transform.getTargetErrors(game, [""]), false);
 		},
 	},
 	'action cards - protect': {
@@ -807,7 +762,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(protect.getAutoPlayTarget(game, []));
-			assertStrictEqual(protect.isPlayableTarget(game, []), true);
+			assertStrictEqual(!protect.getTargetErrors(game, []), true);
 		},
 	},
 	'action cards - teeterdance': {
@@ -819,7 +774,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(teeterdance.getAutoPlayTarget(game, []));
-			assertStrictEqual(teeterdance.isPlayableTarget(game, []), true);
+			assertStrictEqual(!teeterdance.getTargetErrors(game, []), true);
 		},
 	},
 	'action cards - topsyturvy': {
@@ -831,7 +786,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(topsyturvy.getAutoPlayTarget(game, []));
-			assertStrictEqual(topsyturvy.isPlayableTarget(game, []), true);
+			assertStrictEqual(!topsyturvy.getTargetErrors(game, []), true);
 		},
 	},
 };

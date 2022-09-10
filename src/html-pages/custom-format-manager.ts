@@ -7,7 +7,7 @@ import { FormatTextInput } from "./components/format-text-input";
 import { type IPageElement, Pagination } from "./components/pagination";
 import { type ITextInputValidation, TextInput } from "./components/text-input";
 import { TypePicker } from "./components/type-picker";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'customformatmanager';
 const baseCommandAlias = 'cfm';
@@ -38,7 +38,6 @@ const deleteCustomFormatCommand = 'deleteroomcustomformat';
 const loadNextTournamentCommand = 'loadnexttournament';
 const loadPastTournamentCommand = 'loadpasttournament';
 const loadCustomFormatCommand = 'loadcustomformat';
-const closeCommand = 'close';
 
 const abilityTag = "ability:";
 const itemTag = "item:";
@@ -1117,7 +1116,7 @@ class CustomFormatManager extends HtmlPageBase {
 		const database = Storage.getDatabase(this.room);
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>Custom Format Manager</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 		html += "</center><br />";
 
 		if (this.format) {
@@ -1327,9 +1326,9 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new CustomFormatManager(targetRoom, user);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new CustomFormatManager(targetRoom, user);
 
-			if (cmd === closeCommand) {
+			if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else if (cmd === chooseFormatView) {
 				pages[user.id].chooseFormatView();

@@ -16,7 +16,7 @@ export class Player {
 	metWinCondition: boolean | undefined;
 	round: number | undefined;
 	sentAssistActions: boolean | undefined;
-	sentHtmlPage: boolean | undefined;
+	sentHtmlPage: string | undefined;
 	sentPrivateHtml: boolean | undefined;
 	team: PlayerTeam | undefined;
 
@@ -89,22 +89,23 @@ export class Player {
 	}
 
 	sendHtmlPage(html: string, pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
-		if (!this.sentHtmlPage) this.sentHtmlPage = true;
-		this.activity.getPmRoom().sendHtmlPage(this, pageId || this.activity.baseHtmlPageId, this.activity.getHtmlPageWithHeader(html),
+		if (!pageId) pageId = this.activity.baseHtmlPageId;
+		if (!this.sentHtmlPage) this.sentHtmlPage = pageId;
+
+		this.activity.getPmRoom().sendHtmlPage(this, pageId, this.activity.getHtmlPageWithHeader(html),
 			additionalAttributes);
 	}
 
-	closeHtmlPage(pageId?: string, additionalAttributes?: IOutgoingMessageAttributes): void {
+	closeHtmlPage(additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (!this.sentHtmlPage) return;
 
-		this.activity.getPmRoom().closeHtmlPage(this, pageId || this.activity.baseHtmlPageId, additionalAttributes);
+		this.activity.getPmRoom().closeHtmlPage(this, this.sentHtmlPage, additionalAttributes);
 	}
 
 	sendHighlight(notificationTitle: string, highlightPhrase?: string, pageId?: string,
 		additionalAttributes?: IOutgoingMessageAttributes): void {
 		if (this.sentHtmlPage) {
-			this.activity.getPmRoom().sendHighlightPage(this, pageId || this.activity.baseHtmlPageId, notificationTitle, highlightPhrase,
-				additionalAttributes);
+			this.activity.getPmRoom().sendHighlightPage(this, this.sentHtmlPage, notificationTitle, highlightPhrase, additionalAttributes);
 		} else {
 			this.sendRoomHighlight(notificationTitle, highlightPhrase, additionalAttributes);
 		}

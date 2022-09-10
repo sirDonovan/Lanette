@@ -10,7 +10,7 @@ import type { IHostDisplayProps } from "./components/host-display-base";
 import type { IPokemonPick } from "./components/pokemon-picker-base";
 import { RandomHostDisplay } from "./components/random-host-display";
 import type { ITrainerPick } from "./components/trainer-picker";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 import { MultiTextInput } from "./components/multi-text-input";
 import { TextInput } from "./components/text-input";
 import { NumberTextInput } from "./components/number-text-input";
@@ -42,7 +42,6 @@ const autoSendNo = 'no';
 
 const refreshCommand = 'refresh';
 const autoRefreshCommand = 'autorefresh';
-const closeCommand = 'close';
 
 const maxGifs = 6;
 const maxIcons = 15;
@@ -598,7 +597,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Hosting Control " +
 			"Panel</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 		html += "<br /><br />";
 
 		const user = Users.get(this.userId);
@@ -798,7 +797,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand && cmd !== autoRefreshCommand && cmd !== setCurrentPlayerCommand &&
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND && cmd !== autoRefreshCommand && cmd !== setCurrentPlayerCommand &&
 				cmd !== sendDisplayCommand) {
 				new GameHostControlPanel(targetRoom, user);
 			}
@@ -832,7 +831,7 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === sendDisplayCommand) {
 				if (!(user.id in pages)) return;
 				pages[user.id].sendHostDisplay();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

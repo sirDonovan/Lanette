@@ -12,7 +12,7 @@ import { GameTextInput } from "./components/game-text-input";
 import { PokemonPickerBase } from "./components/pokemon-picker-base";
 import { PokemonTextInput } from "./components/pokemon-text-input";
 import type { PokemonChoices } from "./game-host-control-panel";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 type BorderPickers = 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'game-background' | 'game-buttons';
 type BorderDatabaseKeys = 'backgroundBorder' | 'buttonsBorder' | 'signupsBackgroundBorder' | 'signupsButtonsBorder' |
@@ -55,7 +55,6 @@ const setSignupsBackgroudBorderStyleCommand = 'setsignupsbackgroundborderstyle';
 const setSignupsButtonBorderStyleCommand = 'setsignupsbuttonborderstyle';
 const setGameBackgroudBorderStyleCommand = 'setgamebackgroundborderstyle';
 const setGameButtonBorderStyleCommand = 'setgamebuttonborderstyle';
-const closeCommand = 'close';
 
 export const pageId = 'game-scripted-box';
 export const pages: Dict<GameScriptedBox> = {};
@@ -825,7 +824,7 @@ class GameScriptedBox extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Scripted Box</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 
 		const format = Games.getExistingFormat(this.activeGameFormat || "pmp");
 		let mascot: IPokemon | undefined;
@@ -1070,7 +1069,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new GameScriptedBox(targetRoom, user, pokemonAvatar);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new GameScriptedBox(targetRoom, user, pokemonAvatar);
 
 			if (cmd === loadFormatCommand) {
 				pages[user.id].loadFormat();
@@ -1119,7 +1118,7 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].setMascotGeneration(gen);
 			} else if (cmd === clearMascotGenerationCommand) {
 				pages[user.id].clearMascotGeneration();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

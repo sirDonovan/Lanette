@@ -12,7 +12,7 @@ import type { IPokemonPick } from "./components/pokemon-picker-base";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { PokemonChoices } from "./game-host-control-panel";
-import { HtmlPageBase } from "./html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 type BorderPickers = 'background' | 'buttons' | 'signups-background' | 'signups-buttons';
 type BorderDatabaseKeys = 'backgroundBorder' | 'buttonsBorder' | 'signupsBackgroundBorder' | 'signupsButtonsBorder';
@@ -38,7 +38,6 @@ const setSignupsBackgroudBorderStyleCommand = 'setsignupsbackgroundborderstyle';
 const setSignupsButtonBorderStyleCommand = 'setsignupsbuttonborderstyle';
 const setTrainerCommand = 'settrainer';
 const setPokemonModelCommand = 'setpokemonmodel';
-const closeCommand = 'close';
 
 export const pageId = 'game-host-box';
 export const pages: Dict<GameHostBox> = {};
@@ -597,7 +596,7 @@ class GameHostBox extends HtmlPageBase {
 		if (user) name = user.name;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Game Host Box</b>";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + closeCommand, "Close");
+		html += "&nbsp;" + this.closeButtonHtml;
 
 		html += "<br />";
 		html += Games.getHostBoxHtml(this.room, name, name + "'s Game");
@@ -723,7 +722,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-			if (!(user.id in pages) && cmd !== closeCommand) new GameHostBox(targetRoom, user);
+			if (!(user.id in pages) && cmd !== CLOSE_COMMAND) new GameHostBox(targetRoom, user);
 
 			if (cmd === chooseBackgroundColorPicker) {
 				pages[user.id].chooseBackgroundColorPicker();
@@ -745,7 +744,7 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseTrainerPicker();
 			} else if (cmd === choosePokemonModelPicker) {
 				pages[user.id].choosePokemonModelPicker();
-			} else if (cmd === closeCommand) {
+			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
 				const error = pages[user.id].checkComponentCommands(cmd, targets);

@@ -1,3 +1,4 @@
+import type { CardMatchingPage } from '../../html-pages/game-pages/card-matching';
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
 import type {
@@ -5,7 +6,7 @@ import type {
 } from '../../types/games';
 import type { IPokemon } from '../../types/pokemon-showdown';
 import type { IActionCardData, ICard, IPokemonCard } from './card';
-import { Card, game as cardGame } from './card';
+import { CardGame, game as cardGame } from './card';
 
 interface IPreviouslyPlayedCard {
 	card: string;
@@ -21,7 +22,9 @@ interface ITurnCards {
 	unplayable: ICard[];
 }
 
-export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> extends Card<ActionCardsType> {
+const PLAY_COMMAND = "play";
+
+export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> extends CardGame<ActionCardsType> {
 	actionCardAmount: number = 5;
 	autoFillHands: boolean = false;
 	canPlay: boolean = false;
@@ -32,6 +35,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	maxCardRounds: number = 30;
 	maxPlayers: number = 15;
 	minimumPlayedCards: number = 1;
+	playCommand: string = PLAY_COMMAND;
 	playableCardDescription: string = "You must play a card that matches the color or at least one type of the top card.";
 	playableCardsDescription: string = "Your first played card must match the color or at least one type of the top card.";
 	previouslyPlayedCards: IPreviouslyPlayedCard[] = [];
@@ -42,13 +46,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	turnTimeLimit: number = 30 * 1000;
 	turnPmWarningTime: number = 20 * 1000;
 	typesLimit: number = 0;
-	usesColors: boolean = false;
 
 	// always truthy once the game starts
 	declare topCard: IPokemonCard;
 
-	maximumPlayedCards?: number;
-	maxShownPlayableGroupSize?: number;
 	skippedPlayerAchievement?: IGameAchievement;
 	skippedPlayerAchievementAmount?: number;
 	shinyCardAchievement?: IGameAchievement;
@@ -155,91 +156,19 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		return html;
 	}
 
-	getPlayerTurnHtml(player: Player): string {
-		const playerCards = this.playerCards.get(player)!;
-		const turnCards = this.getTurnCards(player);
-		let html = this.getCardsPrivateHtml(playerCards);
+	createHtmlPage(player: Player): CardMatchingPage {
+		const gameActionLocation = this.getGameActionLocation(player);
+		const page = new (CommandParser.getGameHtmlPages().cardMatching)(this, player, this.htmlPageCommand || this.id, {
+			detailLabelWidth: this.detailLabelWidth,
+			sendToChat: gameActionLocation === 'chat',
+			showColors: this.usesColors,
+			showEggGroups: this.usesEggGroups,
+			showTypings: this.usesTypings,
+		});
 
-		const playButtons: string[] = [];
-		for (const card of turnCards.action) {
-			playButtons.push(this.getCardPlayButton(card, player));
-		}
+		this.htmlPages.set(player, page);
 
-		for (const card of turnCards.group) {
-			playButtons.push(this.getCardGroupPlayButton(card, player));
-		}
-
-		for (const card of turnCards.single) {
-			playButtons.push(this.getCardPlayButton(card, player));
-		}
-
-		if (playButtons.length) {
-			html += '<br /><b>Playable cards</b>' + (turnCards.group.length && this.maxShownPlayableGroupSize &&
-				(!this.maximumPlayedCards || this.maxShownPlayableGroupSize < this.maximumPlayedCards) ? ' (there may be longer chains ' +
-				'to play manually)' : '') + ':<br />' + playButtons.join("&nbsp;|&nbsp;");
-		}
-
-		return html;
-	}
-
-	getCardPrivateDetails(card: IPokemonCard): string {
-		return "<b>Typing</b>:&nbsp;" + this.getChatTypeLabel(card) + "&nbsp;|&nbsp;<b>Color</b>:&nbsp;" + this.getChatColorLabel(card);
-	}
-
-	getCardPlayButton(card: ICard, player: Player): string {
-		let html = '';
-		if (card.action && card.action.getRandomTarget) {
-			html += this.getMsgRoomButton("play " + card.action.getRandomTarget(this, this.playerCards.get(player)!),
-				"Play <b>randomized " + card.name + "</b>", player.eliminated, player) + " (or manually)";
-		} else {
-			if (card.action && card.action.requiredTarget) {
-				html += '<b>Play ' + card.name + ' manually!</b>';
-			} else {
-				html += this.getMsgRoomButton("play " + card.name, "Play <b>" + card.name + "</b>", player.eliminated, player);
-			}
-		}
-
-		return html;
-	}
-
-	getCardGroupPlayButton(cards: ICard[], player: Player): string {
-		const names = cards.map(x => x.name);
-		return this.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"), player.eliminated, player);
-	}
-
-	getCardPrivateHtml(card: ICard): string {
-		let html = '<div class="infobox">';
-
-		if (card.action) {
-			html += '&nbsp;&nbsp;' + Dex.getItemIcon(Dex.getExistingItem("Poke Ball")) + '&nbsp;';
-		} else {
-			if (this.getDex().getData().pokemonKeys.includes(card.id)) {
-				html += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
-			}
-		}
-
-		html += "<b>" + card.name + "</b>";
-
-		const blackHex = Tools.getNamedHexCode('Black');
-
-		html += "&nbsp;|&nbsp;";
-		if (card.action) {
-			html += '<b>Action</b>:&nbsp;' +
-				Tools.getHexLabel(blackHex, '&nbsp;&nbsp;&nbsp;' + card.action.description + '&nbsp;&nbsp;&nbsp;', 'auto');
-		} else {
-			html += this.getCardPrivateDetails(card as IPokemonCard);
-		}
-
-		html += '</div>';
-		return html;
-	}
-
-	getCardsPrivateHtml(cards: ICard[]): string {
-		const html: string[] = [];
-		for (const card of cards) {
-			html.push('<div style="height:auto">' + this.getCardPrivateHtml(card) + '</div>');
-		}
-		return html.join("<br />");
+		return page;
 	}
 
 	setTopCard(card: IPokemonCard, player: Player): void {
@@ -261,7 +190,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.say("Now sending out cards!");
 		for (const i in this.players) {
 			this.giveStartingCards(this.players[i]);
-			this.sendPlayerCards(this.players[i]);
+			this.sendHtmlPage(this.players[i]);
 		}
 
 		// may be set in tests
@@ -398,7 +327,10 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		this.say(player.name + " did not play a card and has been eliminated from the game!" + (autoPlay ? " Auto-playing: " +
 			autoPlay : ""));
 		this.eliminatePlayer(player);
-		this.sendPlayerCards(player);
+
+		const htmlPage = this.getHtmlPage(player);
+		htmlPage.renderCardActionsHtml();
+		htmlPage.send();
 
 		if (autoPlay) {
 			player.useCommand('play', autoPlay);
@@ -490,7 +422,12 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			const names: string[] = [];
 			autoDraws.forEach((cards, autoDrawPlayer) => {
 				if (autoDrawPlayer.eliminated) return;
-				this.sendPlayerCards(autoDrawPlayer, cards);
+
+				const htmlPage = this.getHtmlPage(autoDrawPlayer);
+				htmlPage.renderDrawnCardsHtml(cards);
+				htmlPage.renderHandHtml();
+				htmlPage.send();
+
 				names.push("__" + autoDrawPlayer.name + "__");
 			});
 			this.say("Automatically drawing for: " + names.join(", "));
@@ -521,7 +458,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			}
 
 			this.canPlay = true;
-			this.sendPlayerCards(player!);
+
+			turnCards = this.getTurnCards(player!);
+			const htmlPage = this.getHtmlPage(player!);
+			htmlPage.renderCardActionsHtml(turnCards.action, turnCards.group, turnCards.single);
+			htmlPage.renderDrawnCardsHtml();
+			htmlPage.renderPlayedCardsHtml();
+			htmlPage.send();
 			player!.sendHighlight("It is your turn!");
 
 			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
@@ -539,7 +482,9 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);
-								this.sendPlayerCards(player!);
+
+								htmlPage.renderCardActionsHtml();
+								htmlPage.send();
 
 								const newFinalPlayer = this.getFinalPlayer();
 								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
@@ -697,15 +642,16 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			if (drawCards > 0) {
 				drawnCards = this.drawCard(player, drawCards);
 			}
-			this.sendPlayerCards(player, drawnCards);
+
+			const htmlPage = this.getHtmlPage(player);
+			htmlPage.renderCardActionsHtml();
+			htmlPage.renderPlayedCardsHtml(playedCards);
+			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.renderHandHtml();
+			htmlPage.send();
 		}
 
 		return true;
-	}
-
-	getPlayerSummary(player: Player): void {
-		if (player.eliminated) return;
-		this.sendPlayerCards(player);
 	}
 
 	botChallengeTurn(botPlayer: Player): void {
@@ -737,7 +683,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 }
 
 const commands: GameCommandDefinitions<CardMatching> = {
-	play: {
+	[PLAY_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canPlay || this.players[user.id].frozen || this.currentPlayer !== this.players[user.id]) return false;
 			const targets = target.split(",");

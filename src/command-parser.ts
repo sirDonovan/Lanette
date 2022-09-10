@@ -1,5 +1,7 @@
 import fs = require('fs');
 import path = require('path');
+import { CardHighLowPage } from './html-pages/game-pages/card-high-low';
+import { CardMatchingPage } from './html-pages/game-pages/card-matching';
 
 import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
@@ -7,6 +9,11 @@ import type {
 	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, ICommandGuide, IHtmlPageFile, LoadedCommands
 } from "./types/command-parser";
 import type { User } from "./users";
+
+interface IGameHtmlPages {
+	cardMatching: typeof CardMatchingPage;
+	cardHighLow: typeof CardHighLowPage;
+}
 
 export class CommandContext {
 	runningMultipleTargets: boolean | null = null;
@@ -122,6 +129,10 @@ export class CommandParser {
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
 	private htmlPageModules: Dict<IHtmlPageFile> = {};
 	private htmlPagesDir: string = path.join(Tools.buildFolder, 'html-pages');
+	private readonly gameHtmlPages: IGameHtmlPages = {
+		cardMatching: CardMatchingPage,
+		cardHighLow: CardHighLowPage,
+	};
 
 	private commandsDir: string;
 	private privateCommandsDir: string;
@@ -129,6 +140,10 @@ export class CommandParser {
 	constructor() {
 		this.commandsDir = path.join(Tools.buildFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
+	}
+
+	getGameHtmlPages(): IGameHtmlPages {
+		return this.gameHtmlPages;
 	}
 
 	loadCommandDefinitions<ThisContext, ReturnType>(definitions: CommandDefinitions<ThisContext, ReturnType>):
