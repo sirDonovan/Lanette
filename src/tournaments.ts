@@ -429,6 +429,11 @@ export class Tournaments {
 							if (format.customFormatName) tournamentName = format.customFormatName;
 							break;
 						}
+
+						if (!format) {
+							return "All formats for " + database.eventInformation[id].name + " are either unplayable or on the past " +
+								"tournaments list.";
+						}
 					}
 				}
 			}
