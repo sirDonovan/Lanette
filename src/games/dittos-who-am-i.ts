@@ -125,7 +125,6 @@ class DittosWhoAmI extends ScriptedGame {
 			guess = guess.slice(1);
 		}
 
-		let correctGuess: boolean | undefined;
 		const pokemon = Dex.getPokemon(guess);
 		if (pokemon) {
 			if (!this.includedPokemon.includes(pokemon.name)) {
@@ -147,6 +146,7 @@ class DittosWhoAmI extends ScriptedGame {
 			return "This is the final round so you must guess your Pokemon.";
 		}
 
+		let correctGuess: boolean | undefined;
 		const move = Dex.getMove(guess);
 		if (move) {
 			correctGuess = false;
@@ -155,6 +155,8 @@ class DittosWhoAmI extends ScriptedGame {
 					correctGuess = true;
 				}
 			}
+
+			return this.checkAnswerNegation(correctGuess, negation);
 		}
 
 		const ability = Dex.getAbility(guess);
@@ -166,6 +168,8 @@ class DittosWhoAmI extends ScriptedGame {
 					correctGuess = true;
 				}
 			}
+
+			return this.checkAnswerNegation(correctGuess, negation);
 		}
 
 		const id = Tools.toId(guess);
@@ -178,9 +182,7 @@ class DittosWhoAmI extends ScriptedGame {
 					correctGuess = true;
 				}
 			}
-		}
 
-		if (correctGuess !== undefined) {
 			return this.checkAnswerNegation(correctGuess, negation);
 		}
 
