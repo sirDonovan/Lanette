@@ -457,14 +457,20 @@ export abstract class Activity {
 		if (this.ended) return;
 
 		this.messageListeners.push(message);
-		this.room.on(message, listener);
+		this.room.on(message, (timestamp: number) => {
+			if (this.ended) return;
+			listener(timestamp);
+		});
 	}
 
 	onHtml(html: string, listener: MessageListener, serverHtml?: boolean): void {
 		if (this.ended) return;
 
 		this.htmlMessageListeners.push({html, serverHtml});
-		this.room.onHtml(html, listener, serverHtml);
+		this.room.onHtml(html, (timestamp: number) => {
+			if (this.ended) return;
+			listener(timestamp);
+		}, serverHtml);
 	}
 
 	onUhtml(name: string, html: string, listener: MessageListener): void {
@@ -474,7 +480,10 @@ export abstract class Activity {
 		if (!(id in this.uhtmlMessageListeners)) this.uhtmlMessageListeners[id] = [];
 		this.uhtmlMessageListeners[id].push({name, html});
 
-		this.room.onUhtml(name, html, listener);
+		this.room.onUhtml(name, html, (timestamp: number) => {
+			if (this.ended) return;
+			listener(timestamp);
+		});
 	}
 
 	off(message: string): void {
