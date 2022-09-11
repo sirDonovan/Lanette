@@ -20,6 +20,7 @@ export abstract class HtmlPageBase {
 	baseChatUhtmlName: string = "";
 	chatUhtmlName: string = "";
 	closed: boolean = false;
+	destroyed: boolean = false;
 	closeButtonHtml: string = "";
 	components: ComponentBase[] = [];
 	globalRoomPage: boolean = false;
@@ -54,37 +55,42 @@ export abstract class HtmlPageBase {
 	abstract render(onOpen?: boolean): string;
 
 	destroy(): void {
+		if (this.destroyed) throw new Error(this.pageId + " page already destroyed for user " + this.userId);
+
 		for (const component of this.components) {
 			component.destroy();
 		}
 
 		delete this.pageList[this.userId];
 
-		this.closed = true;
-		Tools.unrefProperties(this, ['closed', 'pageId', 'userName', 'userId']);
+		this.destroyed = true;
+		Tools.unrefProperties(this, ['closed', 'destroyed', 'pageId', 'userName', 'userId']);
 	}
 
 	open(): void {
 		this.send(true);
 	}
 
-	tryClose(): void {
-		if (!this.closed) this.close();
-	}
-
 	close(): void {
-		if (this.closed) throw new Error(this.pageId + " page already closed for user " + this.userId);
+		if (!this.closed) {
+			const user = Users.get(this.userId);
+			if (user) this.room.closeHtmlPage(user, this.pageId);
 
-		const user = Users.get(this.userId);
-		if (user) this.room.closeHtmlPage(user, this.pageId);
+			this.closed = true;
 
-		if (this.onClose) this.onClose();
+			if (this.onClose) this.onClose();
+		}
+
 		this.destroy();
 	}
 
 	temporarilyClose(): void {
-		const user = Users.get(this.userId);
-		if (user) this.room.closeHtmlPage(user, this.pageId);
+		if (!this.closed) {
+			const user = Users.get(this.userId);
+			if (user) this.room.closeHtmlPage(user, this.pageId);
+
+			this.closed = true;
+		}
 	}
 
 	switchLocation(): void {
@@ -99,7 +105,6 @@ export abstract class HtmlPageBase {
 		this.usedCommandAfterLastRender = true;
 		this.setSwitchLocationButton();
 		this.setCloseButton();
-		this.send();
 
 		const user = Users.get(this.userId);
 		if (user) {
@@ -109,6 +114,8 @@ export abstract class HtmlPageBase {
 				this.room.sayPrivateUhtml(user, this.baseChatUhtmlName, "<div>Successfully moved to an HTML page.</div>");
 			}
 		}
+
+		this.send();
 	}
 
 	setUser(userOrPlayer: User | Player): void {
@@ -138,7 +145,7 @@ export abstract class HtmlPageBase {
 	}
 
 	send(onOpen?: boolean): void {
-		if (this.closed) return;
+		if (this.destroyed) return;
 
 		if (this.beforeSend && !this.beforeSend(onOpen)) return;
 
@@ -150,6 +157,7 @@ export abstract class HtmlPageBase {
 
 		this.lastRender = render;
 		this.usedCommandAfterLastRender = false;
+		this.closed = false;
 
 		if (this.chatUhtmlName) {
 			this.room.sayPrivateUhtml(user, this.chatUhtmlName, render);

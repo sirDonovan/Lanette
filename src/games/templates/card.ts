@@ -52,7 +52,7 @@ export interface IItemCard extends ICard {
 }
 
 const GAME_ACTION_TYPE: GameActionGames = 'card';
-const HTML_PAGE_COMMAND = 'cardhtmlpagecommand';
+const HTML_PAGE_COMMAND = 'cardhtmlpage';
 
 export abstract class CardGame<ActionCardsType = Dict<IActionCardData>> extends ScriptedGame {
 	abstract actionCards: ActionCardsType;

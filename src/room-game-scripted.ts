@@ -659,7 +659,7 @@ export class ScriptedGame extends Game {
 			}
 
 			this.htmlPages.forEach(htmlPage => {
-				htmlPage.tryClose();
+				htmlPage.close();
 			});
 		}
 
@@ -731,7 +731,7 @@ export class ScriptedGame extends Game {
 			}
 
 			this.htmlPages.forEach(htmlPage => {
-				htmlPage.tryClose();
+				htmlPage.close();
 			});
 		}
 
@@ -1062,7 +1062,7 @@ export class ScriptedGame extends Game {
 		if (this.usesHtmlPage) {
 			player.closeHtmlPage();
 			const htmlPage = this.htmlPages.get(player);
-			if (htmlPage) htmlPage.tryClose();
+			if (htmlPage) htmlPage.close();
 		}
 	}
 
