@@ -653,16 +653,6 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.usesHtmlPage && !this.dontAutoCloseHtmlPages) {
-			for (const i in this.players) {
-				this.players[i].closeHtmlPage();
-			}
-
-			this.htmlPages.forEach(htmlPage => {
-				htmlPage.close();
-			});
-		}
-
 		const now = Date.now();
 
 		if (this.isMiniGame) {
@@ -725,16 +715,6 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		if (this.usesHtmlPage && !this.dontAutoCloseHtmlPages) {
-			for (const i in this.players) {
-				this.players[i].closeHtmlPage();
-			}
-
-			this.htmlPages.forEach(htmlPage => {
-				htmlPage.close();
-			});
-		}
-
 		this.ended = true;
 		this.deallocate(true);
 	}
@@ -761,6 +741,16 @@ export class ScriptedGame extends Game {
 
 	deallocate(forceEnd: boolean): void {
 		if (!this.ended) this.ended = true;
+
+		if (this.usesHtmlPage && !this.dontAutoCloseHtmlPages) {
+			for (const i in this.players) {
+				this.players[i].closeHtmlPage();
+			}
+
+			this.htmlPages.forEach(htmlPage => {
+				htmlPage.close();
+			});
+		}
 
 		this.cleanupMessageListeners();
 		this.cleanupTimers();
@@ -1062,7 +1052,10 @@ export class ScriptedGame extends Game {
 		if (this.usesHtmlPage) {
 			player.closeHtmlPage();
 			const htmlPage = this.htmlPages.get(player);
-			if (htmlPage) htmlPage.close();
+			if (htmlPage) {
+				htmlPage.close();
+				this.htmlPages.delete(player);
+			}
 		}
 	}
 

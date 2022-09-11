@@ -117,10 +117,14 @@ module.exports = (inputOptions: Dict<string>): void => {
 		const mochaRunsOption = testOptions.mochaRuns ? parseInt(testOptions.mochaRuns) : 0;
 		const maxMochaRuns = !isNaN(mochaRunsOption) ? Math.max(1, mochaRunsOption) : 1;
 
-		const mocha = new Mocha({
+		const mochaOptions: Mocha.MochaInstanceOptions = {
 			reporter: 'spec',
 			ui: 'bdd',
-		});
+		};
+
+		if (testOptions.grep) mochaOptions.grep = testOptions.grep;
+
+		const mocha = new Mocha(mochaOptions);
 
 		if (modulesToTest.includes(pokemonShowdownTestFile)) mocha.addFile(path.join(__dirname, pokemonShowdownTestFile));
 

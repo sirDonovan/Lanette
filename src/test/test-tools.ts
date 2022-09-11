@@ -79,6 +79,8 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 export function addPlayer(game: ScriptedGame, name: string): Player {
 	const user = Users.add(name, Tools.toId(name));
 	assert(user);
+	user.autoconfirmed = true;
+
 	(game.room as Room).onUserJoin(user, ' ');
 
 	const player = game.addPlayer(user);

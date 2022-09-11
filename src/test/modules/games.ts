@@ -5,7 +5,7 @@ import { PRNG } from '../../lib/prng';
 import type { ScriptedGame } from '../../room-game-scripted';
 import type { GameFileTests, IGameFormat, IGameTestAttributes, IUserHostedFormat } from '../../types/games';
 import type { IPastGame } from '../../types/storage';
-import { assert, assertClientSendQueue, assertStrictEqual, createTestRoom, runCommand, testOptions } from '../test-tools';
+import { addPlayers, assert, assertClientSendQueue, assertStrictEqual, createTestRoom, runCommand, testOptions } from '../test-tools';
 
 /* eslint-env mocha */
 
@@ -269,21 +269,36 @@ describe("Games", () => {
 
 	it('should properly deallocate games', () => {
 		const room = createTestRoom();
-		Games.createGame(room, Games.getExistingFormat('trivia'));
-		assert(room.game);
-		room.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
-		room.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
-		room.game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+		for (const format of formatsToTest) {
+			const game = Games.createGame(room, format);
+			assert(game);
+			assert(room.game === game);
+			assert(!game.ended);
 
-		assertStrictEqual(Object.keys(room.messageListeners).length, 1);
-		assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 1);
-		assertStrictEqual(Object.keys(room.uhtmlMessageListeners).length, 1);
+			if (!format.freejoin && !game.managedPlayers && !game.usesTournamentJoin) {
+				game.signups();
+				const players = addPlayers(game, game.maxPlayers);
+				if (!game.started) game.start();
 
-		room.game.deallocate(true);
+				game.removePlayer(players[0].name);
+			}
 
-		assertStrictEqual(Object.keys(room.messageListeners).length, 0);
-		assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 0);
-		assertStrictEqual(Object.keys(room.uhtmlMessageListeners).length, 0);
+			game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+			game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+			game.onUhtml("uhtml-base-name", "html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
+
+			assert(Object.keys(room.messageListeners).length >= 1);
+			assert(Object.keys(room.htmlMessageListeners).length >= 1);
+			assert(Object.keys(room.uhtmlMessageListeners).length >= 1);
+
+			game.deallocate(true);
+			assert(!room.game);
+			assert(game.ended);
+
+			assertStrictEqual(Object.keys(room.messageListeners).length, 0);
+			assertStrictEqual(Object.keys(room.htmlMessageListeners).length, 0);
+			assertStrictEqual(Object.keys(room.uhtmlMessageListeners).length, 0);
+		}
 
 		Rooms.remove(room);
 	});
