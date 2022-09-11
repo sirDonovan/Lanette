@@ -179,6 +179,7 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 			const htmlPage = this.getHtmlPage(this.players[user.id]);
 			htmlPage.renderCardActionsHtml();
 			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.renderHandHtml();
 			htmlPage.send();
 
 			this.nextRound();

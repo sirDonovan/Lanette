@@ -542,6 +542,7 @@ const commands: GameCommandDefinitions<BlisseysEggCards> = {
 			const htmlPage = this.getHtmlPage(this.players[user.id]);
 			htmlPage.renderCardActionsHtml();
 			htmlPage.renderDrawnCardsHtml(drawnCards);
+			htmlPage.renderHandHtml();
 			htmlPage.send();
 
 			this.nextRound();
