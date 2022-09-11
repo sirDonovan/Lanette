@@ -341,6 +341,12 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 				trainerSprites[trainerId].endsWith("-masters3")) {
 				this.mastersTrainerIds.push(trainerId);
 				this.mastersTrainerNames[trainerId] = trainerSprites[trainerId];
+			} else if (trainerSprites[trainerId].endsWith("-usum") || trainerSprites[trainerId].endsWith("-lgpe")) {
+				this.genSevenTrainerIds.push(trainerId);
+				this.genSevenTrainerNames[trainerId] = trainerSprites[trainerId];
+			} else if (trainerSprites[trainerId].endsWith("-dojo")) {
+				this.genEightTrainerIds.push(trainerId);
+				this.genEightTrainerNames[trainerId] = trainerSprites[trainerId];
 			} else {
 				this.defaultTrainerIds.push(trainerId);
 				this.defaultTrainerNames[trainerId] = trainerSprites[trainerId];
