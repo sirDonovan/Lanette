@@ -22,7 +22,7 @@ export type TrainerChoices = (ITrainerPick | undefined)[];
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
 'zygardesorders'];
 
-const baseCommand = 'gamehostcontrolpanel';
+export const baseCommand = 'gamehostcontrolpanel';
 const chooseHostInformation = 'choosehostinformation';
 const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
@@ -41,7 +41,7 @@ const autoSendYes = 'yes';
 const autoSendNo = 'no';
 
 const refreshCommand = 'refresh';
-const autoRefreshCommand = 'autorefresh';
+export const autoRefreshCommand = 'autorefresh';
 
 const maxGifs = 6;
 const maxIcons = 15;

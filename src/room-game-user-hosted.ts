@@ -1,3 +1,5 @@
+import { autoRefreshCommand, baseCommand } from "./html-pages/game-host-control-panel";
+import { CLOSE_COMMAND } from "./html-pages/html-page-base";
 import type { Player } from "./room-activity";
 import { Game } from "./room-game";
 import type { Room } from "./rooms";
@@ -176,7 +178,7 @@ export class UserHostedGame extends Game {
 		if (user) {
 			this.room.pmHtml(user, "To assist with your game, try using the <b>Host Control Panel</b>! It allows you to manage " +
 				"attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
-				Client.getPmSelfButton(Config.commandCharacter + "gamehostcontrolpanel " + this.room.title, "Open panel"));
+				Client.getPmSelfButton(Config.commandCharacter + baseCommand + " " + this.room.title, "Open panel"));
 		}
 	}
 
@@ -185,7 +187,7 @@ export class UserHostedGame extends Game {
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title + ", autorefresh",
+			CommandParser.parse(user, user, Config.commandCharacter + baseCommand + " " + this.room.title + ", " + autoRefreshCommand,
 				Date.now());
 		}
 	}
@@ -195,7 +197,7 @@ export class UserHostedGame extends Game {
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			CommandParser.parse(user, user, Config.commandCharacter + "gamehostcontrolpanel " + this.room.title + ", close",
+			CommandParser.parse(user, user, Config.commandCharacter + baseCommand + " " + this.room.title + ", " + CLOSE_COMMAND,
 				Date.now());
 		}
 	}
