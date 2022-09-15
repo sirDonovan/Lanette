@@ -346,6 +346,10 @@ export abstract class Activity {
 		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 		// @ts-expect-error
 		player.name = name;
+
+		const htmlPage = this.htmlPages.get(player);
+		if (htmlPage) htmlPage.onRenameUser(player, oldId);
+
 		if (player.id === id) return;
 		// @ts-expect-error
 		player.id = id;
