@@ -1,4 +1,4 @@
-import type { CardMatchingPage } from '../../html-pages/game-pages/card-matching';
+import type { CardMatchingPage } from '../../html-pages/activity-pages/card-matching';
 import type { Player } from '../../room-activity';
 import { addPlayers, assert } from '../../test/test-tools';
 import type {
@@ -158,7 +158,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 	createHtmlPage(player: Player): CardMatchingPage {
 		const gameActionLocation = this.getGameActionLocation(player);
-		const page = new (CommandParser.getGameHtmlPages().cardMatching)(this, player, this.htmlPageCommand || this.id, {
+		const page = new (CommandParser.getGameHtmlPages().cardMatching)(this, player, this.htmlPageCommand, {
 			detailLabelWidth: this.detailLabelWidth,
 			sendToChat: gameActionLocation === 'chat',
 			showColors: this.usesColors,

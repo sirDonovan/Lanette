@@ -29,7 +29,7 @@ export class CardMatchingPage extends GamePageBase {
 	detailLabelWidth: number;
 	actionCardInput: TextInput;
 
-	declare game: CardGame;
+	declare activity: CardGame;
 	declare pageId: string;
 
 	constructor(game: ScriptedGame, player: Player, baseCommand: string, options: ICardMatchingPageOptions) {
@@ -71,7 +71,7 @@ export class CardMatchingPage extends GamePageBase {
 		if (card.action) {
 			html += '&nbsp;&nbsp;' + Dex.getItemIcon(Dex.getExistingItem("Poke Ball")) + '&nbsp;';
 		} else {
-			if (this.game.getDex().getData().pokemonKeys.includes(card.id)) {
+			if (this.activity.getDex().getData().pokemonKeys.includes(card.id)) {
 				html += Dex.getPokemonIcon(Dex.getExistingPokemon(card.name));
 			}
 		}
@@ -141,15 +141,15 @@ export class CardMatchingPage extends GamePageBase {
 
 			if (card.action.getRandomTarget) {
 				if (html) html += "&nbsp; - ";
-				html += this.game.getMsgRoomButton(this.game.playCommand + " " + card.action.getRandomTarget(this.game,
-					this.game.playerCards.get(this.player)!), "Play <b>randomized " + card.name + "</b>", this.player.eliminated,
+				html += this.activity.getMsgRoomButton(this.activity.playCommand + " " + card.action.getRandomTarget(this.activity,
+					this.activity.playerCards.get(this.player)!), "Play <b>randomized " + card.name + "</b>", this.player.eliminated,
 					this.player);
 			}
 		}
 
 		if (!card.action || !card.action.requiredTarget) {
 			if (html) html += "&nbsp; - ";
-			html += this.game.getMsgRoomButton(this.game.playCommand + " " + card.name, "Play <b>" + card.name + "</b>",
+			html += this.activity.getMsgRoomButton(this.activity.playCommand + " " + card.name, "Play <b>" + card.name + "</b>",
 				this.player.eliminated, this.player);
 		}
 
@@ -158,7 +158,7 @@ export class CardMatchingPage extends GamePageBase {
 
 	getCardGroupPlayButton(cards: ICard[]): string {
 		const names = cards.map(x => x.name);
-		return this.game.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"),
+		return this.activity.getMsgRoomButton("play " + names.join(", "), "Play " + Tools.joinList(names, "<b>", "</b>"),
 			this.player.eliminated, this.player);
 	}
 
@@ -168,7 +168,7 @@ export class CardMatchingPage extends GamePageBase {
 		const user = Users.get(this.userName);
 		if (!user) return;
 
-		const error = this.selectedActionCard.action!.getTargetErrors(this.game, target.split(","));
+		const error = this.selectedActionCard.action!.getTargetErrors(this.activity, target.split(","));
 		if (error) {
 			this.actionCardInput.updateAfterSubmitHtml("");
 			this.actionCardInput.parentSetErrors([error]);
@@ -177,7 +177,7 @@ export class CardMatchingPage extends GamePageBase {
 		}
 
 		this.actionCardTarget = target;
-		this.actionCardInput.updateAfterSubmitHtml("&nbsp; --> " + this.game.getMsgRoomButton(this.game.playCommand + " " +
+		this.actionCardInput.updateAfterSubmitHtml("&nbsp; --> " + this.activity.getMsgRoomButton(this.activity.playCommand + " " +
 			this.selectedActionCard.name + ", " + this.actionCardTarget, "Play <b>" + this.selectedActionCard.name + " " + target + "</b>",
 			this.player.eliminated, this.player));
 		this.send();
@@ -190,7 +190,7 @@ export class CardMatchingPage extends GamePageBase {
 			const name = targets[0].trim();
 			if (this.selectedActionCard && this.selectedActionCard.name === name) return;
 
-			const playerCards = this.game.playerCards.get(this.player)!;
+			const playerCards = this.activity.playerCards.get(this.player)!;
 			for (const card of playerCards) {
 				if (card.action && card.name === name) {
 					this.selectedActionCard = card;
@@ -223,13 +223,13 @@ export class CardMatchingPage extends GamePageBase {
     }
 
 	renderHandHtml(): void {
-		const playerCards = this.game.playerCards.get(this.player)!.sort((a, b) => {
+		const playerCards = this.activity.playerCards.get(this.player)!.sort((a, b) => {
 			if (b.action && !a.action) return 1;
 			if (a.action && !b.action) return -1;
 			return 0;
 		});
 
-		let html = '<b>Your cards' + (this.game.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br /><br />';
+		let html = '<b>Your cards' + (this.activity.finitePlayerCards ? " (" + playerCards.length + ")" : "") + '</b>:<br /><br />';
 		html += this.getCardsPrivateHtml(playerCards);
 
 		this.currentHandHtml = html;
@@ -257,8 +257,8 @@ export class CardMatchingPage extends GamePageBase {
 
 		let html = "";
 		if (playButtons.length) {
-			html += '<br /><b>Playable cards</b>' + (groupCards && groupCards.length && this.game.maxShownPlayableGroupSize &&
-				(!this.game.maximumPlayedCards || this.game.maxShownPlayableGroupSize < this.game.maximumPlayedCards) ?
+			html += '<br /><b>Playable cards</b>' + (groupCards && groupCards.length && this.activity.maxShownPlayableGroupSize &&
+				(!this.activity.maximumPlayedCards || this.activity.maxShownPlayableGroupSize < this.activity.maximumPlayedCards) ?
 				' (there may be longer chains to play manually)' : '') + ':<br />' + playButtons.join("&nbsp;|&nbsp;");
 		}
 

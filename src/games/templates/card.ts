@@ -1,4 +1,4 @@
-import type { CardMatchingPage } from '../../html-pages/game-pages/card-matching';
+import type { CardMatchingPage } from '../../html-pages/activity-pages/card-matching';
 import type { Player } from '../../room-activity';
 import { ScriptedGame } from '../../room-game-scripted';
 import type { Room } from '../../rooms';

@@ -1,3 +1,4 @@
+import type { ActivityPageBase } from "./html-pages/activity-pages/activity-page-base";
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Room } from "./rooms";
@@ -195,6 +196,7 @@ export abstract class Activity {
 	ended: boolean = false;
 	htmlMessageListeners: IActivityHtmlListener[] = [];
 	htmlPageHeader: string = '';
+	htmlPages = new Map<Player, ActivityPageBase>();
 	messageListeners: string[] = [];
 	pastPlayers: Dict<Player> = {};
 	playerCount: number = 0;
@@ -616,6 +618,7 @@ export abstract class Activity {
 		return this.getPlayerAttributes(player => player.name, players);
 	}
 
+	getHtmlPage?(player: Player): ActivityPageBase;
 	onCreatePlayer?(player: Player, isPastPlayer: boolean): void;
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;

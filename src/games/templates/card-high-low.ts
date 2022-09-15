@@ -3,7 +3,7 @@ import type { GameCommandDefinitions, IGameTemplateFile } from '../../types/game
 import type { ICard } from './card';
 import { CardGame, game as cardGame } from './card';
 import type { IPokemon } from '../../types/pokemon-showdown';
-import type { CardHighLowPage } from '../../html-pages/game-pages/card-high-low';
+import type { CardHighLowPage } from '../../html-pages/activity-pages/card-high-low';
 
 export interface IRoundCardInfo {
 	card: ICard;
@@ -71,7 +71,7 @@ export abstract class CardHighLow extends CardGame {
 
 	createHtmlPage(player: Player): CardHighLowPage {
 		const gameActionLocation = this.getGameActionLocation(player);
-		const page = new (CommandParser.getGameHtmlPages().cardHighLow)(this, player, this.htmlPageCommand || this.id, {
+		const page = new (CommandParser.getGameHtmlPages().cardHighLow)(this, player, this.htmlPageCommand, {
 			detailLabelWidth: this.detailLabelWidth,
 			sendToChat: gameActionLocation === 'chat',
 			showColors: false,

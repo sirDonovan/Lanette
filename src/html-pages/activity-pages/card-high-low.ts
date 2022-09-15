@@ -8,7 +8,7 @@ export class CardHighLowPage extends CardMatchingPage {
 
 	detailLabelWidth: number = 50;
 
-	declare game: CardHighLow;
+	declare activity: CardHighLow;
 	declare pageId: string;
 
 	constructor(game: ScriptedGame, player: Player, baseCommand: string, options: ICardMatchingPageOptions) {
@@ -25,12 +25,12 @@ export class CardHighLowPage extends CardMatchingPage {
 	getCardsPrivateHtml(cards: ICard[]): string {
 		const cardInfo: {card: ICard; detail: number}[] = [];
 		for (const card of cards) {
-			cardInfo.push({card: card, detail: this.game.getCardDetail(card, this.game.currentCategory)});
+			cardInfo.push({card: card, detail: this.activity.getCardDetail(card, this.activity.currentCategory)});
 		}
 
-		const sorted = this.game.sortCardInfoForRound(cardInfo);
+		const sorted = this.activity.sortCardInfoForRound(cardInfo);
 
-		const canPlay = this.game.currentCategory && !this.game.roundPlays.has(this.player);
+		const canPlay = this.activity.currentCategory && !this.activity.roundPlays.has(this.player);
 		let bestDetail = -1;
 		if (canPlay) {
 			bestDetail = sorted[0].detail;
@@ -65,20 +65,20 @@ export class CardHighLowPage extends CardMatchingPage {
 				cardHtml += card.name + '';
 			}
 
-			if (this.game.currentCategory) {
+			if (this.activity.currentCategory) {
 				cardHtml += '&nbsp;|&nbsp;<b>Current category</b>:&nbsp;' + Tools.getHexLabel(currentHex, info.detail +
-					'<br /><span title="' + this.game.categoryNames[this.game.currentCategory] + '">' +
-					this.game.categoryAbbreviations[this.game.currentCategory] + '</span>', this.detailLabelWidth);
+					'<br /><span title="' + this.activity.categoryNames[this.activity.currentCategory] + '">' +
+					this.activity.categoryAbbreviations[this.activity.currentCategory] + '</span>', this.detailLabelWidth);
 
 				cardHtml += '<br />';
 
 				const otherCategories: string[] = [];
-				for (const category of this.game.detailCategories) {
-					if (category === this.game.currentCategory) continue;
-					const detail = '' + this.game.getCardDetail(card, category);
+				for (const category of this.activity.detailCategories) {
+					if (category === this.activity.currentCategory) continue;
+					const detail = '' + this.activity.getCardDetail(card, category);
 					otherCategories.push(Tools.getHexLabel(otherCategoryHex, detail +
-						'<br /><span title="' + this.game.categoryNames[category] + '">' +
-						this.game.categoryAbbreviations[category] + '</span>', this.detailLabelWidth));
+						'<br /><span title="' + this.activity.categoryNames[category] + '">' +
+						this.activity.categoryAbbreviations[category] + '</span>', this.detailLabelWidth));
 				}
 				cardHtml += '<div>' + otherCategories.join('&nbsp;|&nbsp;') + '</div>';
 			}

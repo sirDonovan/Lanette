@@ -1,6 +1,6 @@
 import path = require('path');
 
-import type { GamePageBase } from './html-pages/game-pages/game-page-base';
+import type { GamePageBase } from './html-pages/activity-pages/game-page-base';
 import type { PRNGSeed } from "./lib/prng";
 import { PRNG } from "./lib/prng";
 import type { Player } from "./room-activity";
@@ -1480,7 +1480,6 @@ export class ScriptedGame extends Game {
 	botChallengeTurn?(botPlayer: Player, newAnswer: boolean): void;
 	cancelChallenge?(user: User): boolean;
 	getForceEndMessage?(): string;
-	getHtmlPage?(player: Player): GamePageBase;
 	getPlayerSummary?(player: Player): void;
 	getRandomAnswer?(): IRandomGameAnswer;
 	/** Return `false` to prevent a user from being added to the game (and send the reason to the user) */

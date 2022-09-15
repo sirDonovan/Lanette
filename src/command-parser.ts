@@ -1,7 +1,7 @@
 import fs = require('fs');
 import path = require('path');
-import { CardHighLowPage } from './html-pages/game-pages/card-high-low';
-import { CardMatchingPage } from './html-pages/game-pages/card-matching';
+import { CardHighLowPage } from './html-pages/activity-pages/card-high-low';
+import { CardMatchingPage } from './html-pages/activity-pages/card-matching';
 
 import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
