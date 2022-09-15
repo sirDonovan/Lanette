@@ -126,19 +126,19 @@ export abstract class HtmlPageBase {
 		this.isRoomStaff = user ? user.hasRank(this.room, 'driver') || user.isDeveloper() : false;
 	}
 
-	onRenameUser(user: User, oldId: string): void {
+	onRenameUser(userOrPlayer: User | Player, oldId: string): void {
 		if (!(oldId in this.pageList)) return;
 
-		if (oldId === user.id) {
-			this.userName = user.name;
+		if (oldId === userOrPlayer.id) {
+			this.userName = userOrPlayer.name;
 			return;
 		}
 
-		if (user.id in this.pageList) {
+		if (userOrPlayer.id in this.pageList) {
 			this.pageList[oldId].destroy();
 		} else {
-			this.setUser(user);
-			this.pageList[user.id] = this;
+			this.setUser(userOrPlayer);
+			this.pageList[userOrPlayer.id] = this;
 		}
 
 		delete this.pageList[oldId];
@@ -153,7 +153,7 @@ export abstract class HtmlPageBase {
 		if (!user) return;
 
 		const render = this.render(onOpen);
-		if (render === this.lastRender && !this.usedCommandAfterLastRender) return;
+		if (render === this.lastRender && !this.usedCommandAfterLastRender && !this.closed) return;
 
 		this.lastRender = render;
 		this.usedCommandAfterLastRender = false;
