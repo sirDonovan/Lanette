@@ -1413,7 +1413,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		this.playerCap = this.maxPlayers;
 
-		this.startAdvertisements();
+		if (!this.creatingSubRoom) this.startAdvertisements();
+
 		this.room.notifyRank("all", this.room.title + " " + Users.self.name + " tournament", this.name,
 			Users.self.name + " is hosting a tournament");
 	}
