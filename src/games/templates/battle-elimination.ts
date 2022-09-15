@@ -55,6 +55,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
 	color: string | null = null;
+	creatingSubRoom: boolean = false;
 	disqualifiedOpponents = new Map<Player, Player>();
 	disqualifiedPlayers = new Map<Player, string>();
 	dontAutoCloseHtmlPages: boolean = true;
