@@ -22,7 +22,7 @@ export type TrainerChoices = (ITrainerPick | undefined)[];
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
 'zygardesorders'];
 
-export const baseCommand = 'gamehostcontrolpanel';
+const baseCommand = 'gamehostcontrolpanel';
 const chooseHostInformation = 'choosehostinformation';
 const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
@@ -41,7 +41,7 @@ const autoSendYes = 'yes';
 const autoSendNo = 'no';
 
 const refreshCommand = 'refresh';
-export const autoRefreshCommand = 'autorefresh';
+const autoRefreshCommand = 'autorefresh';
 
 const maxGifs = 6;
 const maxIcons = 15;
@@ -53,6 +53,8 @@ export const pages: Dict<GameHostControlPanel> = {};
 export class GameHostControlPanel extends HtmlPageBase {
 	static compatibleHintGames: string[] = [];
 	static GameHostControlPanelLoaded: boolean = false;
+	static baseCommand: string = baseCommand;
+	static autoRefreshCommand: string = autoRefreshCommand;
 
 	pageId = pageId;
 

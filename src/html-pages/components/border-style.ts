@@ -22,9 +22,6 @@ export interface IBorderStyleProps extends IComponentProps {
 	onPickType: (type: BorderType) => void;
 }
 
-const borderTypes = Tools.getBorderTypes();
-borderTypes.splice(borderTypes.indexOf('solid'), 1);
-
 const defaultValue = 'default';
 const setColorCommand = 'setcolor';
 const setRadiusCommand = 'setradius';
@@ -34,6 +31,7 @@ const setTypeCommand = 'settype';
 export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	componentId: string = 'border-style';
 
+	borderTypes: BorderType[];
 	colorPicker: ColorPicker;
 	radius: number | undefined;
 	size: number | undefined;
@@ -59,6 +57,11 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		this.radius = props.currentBorder ? props.currentBorder.radius : undefined;
 		this.size = props.currentBorder ? props.currentBorder.size : undefined;
 		this.type = props.currentBorder ? props.currentBorder.type : undefined;
+
+		const borderTypes = Tools.getBorderTypes();
+		borderTypes.splice(borderTypes.indexOf('solid'), 1);
+
+		this.borderTypes = borderTypes;
 	}
 
 	pickColorHueVariation(dontRender?: boolean): void {
@@ -157,7 +160,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 			if (type === defaultValue) {
 				this.clearType();
 			} else {
-				if (!borderTypes.includes(type as BorderType)) {
+				if (!this.borderTypes.includes(type as BorderType)) {
 					return "'" + type + "' is not a valid type.";
 				}
 				this.setType(type as BorderType);
@@ -206,7 +209,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		html += "Type:&nbsp;";
 		html += this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + defaultValue, "Default",
 			{selectedAndDisabled: !this.type});
-		for (const borderType of borderTypes) {
+		for (const borderType of this.borderTypes) {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTypeCommand + ", " + borderType, borderType,
 				{selectedAndDisabled: this.type === borderType});
 		}

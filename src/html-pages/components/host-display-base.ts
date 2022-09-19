@@ -45,8 +45,6 @@ const setBackgroundColorCommand = 'setbackgroundcolor';
 const setBackgroudBorderStyleCommand = 'setbackgroundborderstyle';
 const setPokemonCommand = 'setpokemon';
 
-const modelGenerations = Dex.getModelGenerations();
-
 export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	chooseBackgroundColorPickerCommand: string = 'choosebackgroundcolorpicker';
 	chooseBackgroundBorderPickerCommand: string = 'choosebackgroundborderpicker';
@@ -477,7 +475,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			}
 		} else if (cmd === this.setGenerationCommand) {
 			const gen = targets[0].trim() as ModelGeneration | '';
-			if (!modelGenerations.includes(gen as ModelGeneration)) {
+			if (!Dex.getModelGenerations().includes(gen as ModelGeneration)) {
 				return "'" + targets[0].trim() + "' is not a valid model generation.";
 			}
 

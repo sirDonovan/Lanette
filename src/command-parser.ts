@@ -3,6 +3,7 @@ import path = require('path');
 import { BattleEliminationPage } from './html-pages/activity-pages/battle-elimination';
 import { CardHighLowPage } from './html-pages/activity-pages/card-high-low';
 import { CardMatchingPage } from './html-pages/activity-pages/card-matching';
+import { GameHostControlPanel } from './html-pages/game-host-control-panel';
 
 import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
@@ -15,6 +16,7 @@ interface IGameHtmlPages {
 	cardMatching: typeof CardMatchingPage;
 	cardHighLow: typeof CardHighLowPage;
 	battleElimination: typeof BattleEliminationPage;
+	gameHostControlPanel: typeof GameHostControlPanel;
 }
 
 export class CommandContext {
@@ -135,6 +137,7 @@ export class CommandParser {
 		cardMatching: CardMatchingPage,
 		cardHighLow: CardHighLowPage,
 		battleElimination: BattleEliminationPage,
+		gameHostControlPanel: GameHostControlPanel,
 	};
 
 	private commandsDir: string;
