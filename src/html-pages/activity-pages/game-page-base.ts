@@ -19,7 +19,9 @@ export abstract class GamePageBase extends ActivityPageBase {
         let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.activity.format.nameWithOptions + "</b>";
 		html += this.closeButtonHtml ? "&nbsp;" + this.closeButtonHtml : "";
 
-        if (this.showSwitchLocationButton) {
+        if (this.activity.ended) {
+            html += "<br /><h3>The game has ended!</h3>";
+        } else if (this.showSwitchLocationButton) {
             html += "<br />" + this.switchLocationButtonHtml;
         }
 

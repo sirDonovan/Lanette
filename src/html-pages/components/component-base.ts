@@ -48,7 +48,8 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	}
 
 	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
-		let disabled = options && (options.disabled || options.selectedAndDisabled);
+		let disabled = this.htmlPage.closingSnapshot || this.htmlPage.staffUserView ||
+			(options && (options.disabled || options.selectedAndDisabled));
 		if (!disabled && options && !options.enabledReadonly && this.props.readonly) disabled = true;
 
 		let style = options && options.style ? options.style : "";

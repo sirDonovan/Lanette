@@ -43,7 +43,6 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	canLateJoin: boolean = true;
 	canSwim: boolean = false;
 	consecutiveWheelSpins = new Map<Player, number>();
-	dontAutoCloseHtmlPages = true;
 	gameActionType = GAME_ACTION_TYPE;
 	maxRound: number = 20;
 	playerWheels = new Map<Player, WheelsKey>();

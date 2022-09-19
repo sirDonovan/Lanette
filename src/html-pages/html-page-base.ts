@@ -26,6 +26,7 @@ export abstract class HtmlPageBase {
 	globalRoomPage: boolean = false;
 	lastRender: string = '';
 	readonly: boolean = false;
+	closingSnapshot: boolean = false;
 	showSwitchLocationButton: boolean = false;
 	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
@@ -71,7 +72,7 @@ export abstract class HtmlPageBase {
 	}
 
 	close(): void {
-		if (!this.closed) {
+		if (!this.closed && !this.closingSnapshot) {
 			const user = Users.get(this.userId);
 			if (user) this.getPmRoom().closeHtmlPage(user, this.pageId);
 
@@ -90,6 +91,24 @@ export abstract class HtmlPageBase {
 
 			this.closed = true;
 		}
+	}
+
+	sendClosingSnapshot(): void {
+		if (!this.closed) {
+			this.closingSnapshot = true;
+
+			const user = Users.get(this.userId);
+			if (user) {
+				const render = this.render();
+				if (this.chatUhtmlName) {
+					this.getPmRoom().sayPrivateUhtml(user, this.chatUhtmlName, render);
+				} else {
+					this.getPmRoom().sendHtmlPage(user, this.pageId, render);
+				}
+			}
+		}
+
+		this.destroy();
 	}
 
 	switchLocation(): void {
@@ -143,11 +162,11 @@ export abstract class HtmlPageBase {
 		delete this.pageList[oldId];
 	}
 
-	send(onOpen?: boolean): void {
 	getPmRoom(): Room {
 		return this.room;
 	}
 
+	send(onOpen?: boolean, forceSend?: boolean): void {
 		if (this.destroyed) return;
 
 		if (this.beforeSend && !this.beforeSend(onOpen)) return;
@@ -156,7 +175,7 @@ export abstract class HtmlPageBase {
 		if (!user) return;
 
 		const render = this.render(onOpen);
-		if (render === this.lastRender && !this.usedCommandAfterLastRender && !this.closed) return;
+		if (render === this.lastRender && !this.usedCommandAfterLastRender && !this.closed && !forceSend) return;
 
 		this.lastRender = render;
 		this.usedCommandAfterLastRender = false;
@@ -183,7 +202,7 @@ export abstract class HtmlPageBase {
 	}
 
 	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
-		let disabled = options && (options.disabled || options.selectedAndDisabled);
+		let disabled = this.closingSnapshot || this.staffUserView || (options && (options.disabled || options.selectedAndDisabled));
 		if (!disabled && options && !options.enabledReadonly && this.readonly) disabled = true;
 
 		let style = options && options.style ? options.style : "";
