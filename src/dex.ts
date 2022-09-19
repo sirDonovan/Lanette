@@ -31,6 +31,17 @@ const ROA_SPOTLIGHT = 'RoA Spotlight';
 const OM_OF_THE_MONTH_PREFIX = 'omotm';
 const ROA_SPOTLIGHT_PREFIX = 'roas';
 
+const smogonDexGenPaths: Dict<string> = {
+	1: 'rb',
+	2: 'gs',
+	3: 'rs',
+	4: 'dp',
+	5: 'bw',
+	6: 'xy',
+	7: 'sm',
+	8: 'ss',
+};
+
 const mechanicsDifferences: Dict<string> = {
 	'gen1': '3668073/post-8553244',
 	'gen2': '3668073/post-8553245',
@@ -939,6 +950,22 @@ export class Dex {
 
 		this.isEvolutionFamilyCache[cacheKey] = true;
 		return true;
+	}
+
+	getPokemonAnalysisLink(pokemon: IPokemon, format?: IFormat): string {
+		const gen = format && format.gen ? format.gen : this.gen;
+		return Tools.smogonDexPrefix + smogonDexGenPaths[gen] + "/pokemon/" + pokemon.id + "/";
+	}
+
+	getPokemonUsableAbility(pokemon: IPokemon, format: IFormat): string | undefined {
+		if (format.gen < 3) return undefined;
+
+		const usableAbilities = this.getUsableAbilities(format);
+		for (const i in pokemon.abilities) {
+			// @ts-expect-error
+			const ability = this.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			if (ability && usableAbilities.includes(ability.name)) return ability.name;
+		}
 	}
 
 	getType(name: string): ITypeData | undefined {
@@ -1880,11 +1907,13 @@ export class Dex {
 
 		const formatDex = format.mod in this.dexes ? this.dexes[format.mod] : this;
 		const usableAbilities: string[] = [];
-		for (const i of formatDex.getData().abilityKeys) {
-			// PS ability.id compatibility
-			const ability = formatDex.pokemonShowdownDex.abilities.get(i);
-			if (!validator.checkAbility({}, ability, {})) {
-				usableAbilities.push(ability.name);
+		if (formatDex.getGen() >= 3) {
+			for (const i of formatDex.getData().abilityKeys) {
+				// PS ability.id compatibility
+				const ability = formatDex.pokemonShowdownDex.abilities.get(i);
+				if (!validator.checkAbility({}, ability, {})) {
+					usableAbilities.push(ability.name);
+				}
 			}
 		}
 

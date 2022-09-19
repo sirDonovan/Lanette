@@ -1256,6 +1256,9 @@ export class ScriptedGame extends Game {
 			if (commandDefinition.pmOnly) return false;
 		}
 
+		this.debugLog(user.name + " used the " + (isPm ? "PM " : "") + "command: " + Config.commandCharacter + command +
+			(target ? " " + target : ""));
+
 		let result: GameCommandReturnType = false;
 		try {
 			result = commandDefinition.command.call(this, target, room, user, command, timestamp);

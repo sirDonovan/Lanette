@@ -1,5 +1,6 @@
 import fs = require('fs');
 import path = require('path');
+import { BattleEliminationPage } from './html-pages/activity-pages/battle-elimination';
 import { CardHighLowPage } from './html-pages/activity-pages/card-high-low';
 import { CardMatchingPage } from './html-pages/activity-pages/card-matching';
 
@@ -13,6 +14,7 @@ import type { User } from "./users";
 interface IGameHtmlPages {
 	cardMatching: typeof CardMatchingPage;
 	cardHighLow: typeof CardHighLowPage;
+	battleElimination: typeof BattleEliminationPage;
 }
 
 export class CommandContext {
@@ -132,6 +134,7 @@ export class CommandParser {
 	private readonly gameHtmlPages: IGameHtmlPages = {
 		cardMatching: CardMatchingPage,
 		cardHighLow: CardHighLowPage,
+		battleElimination: BattleEliminationPage,
 	};
 
 	private commandsDir: string;

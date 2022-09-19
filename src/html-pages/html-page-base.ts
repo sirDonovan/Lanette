@@ -28,6 +28,7 @@ export abstract class HtmlPageBase {
 	readonly: boolean = false;
 	closingSnapshot: boolean = false;
 	showSwitchLocationButton: boolean = false;
+	staffUserView: boolean = false;
 	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
 
