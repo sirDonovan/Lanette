@@ -354,7 +354,9 @@ describe("Games", () => {
 		runCommand("rhint", "trivia", Users.self, Users.self);
 	});
 
-	it('should support setting the initial PRNG seed', () => {
+	it('should support setting the initial PRNG seed', function() {
+		this.timeout(10000);
+
 		const room = createTestRoom();
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
