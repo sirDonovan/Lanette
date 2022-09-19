@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
@@ -14,8 +14,8 @@ export class FormatTextInput extends TextInput {
 
 	declare props: IFormatTextInputProps;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IFormatTextInputProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IFormatTextInputProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}
 
 	onSubmit(input: string): void {
@@ -24,7 +24,7 @@ export class FormatTextInput extends TextInput {
 
 		const formats: string[] = [];
 		for (const part of parts) {
-			const format = Tournaments.getFormat(part, this.room);
+			const format = Tournaments.getFormat(part, this.htmlPage.room);
 			if (!format || format.effectType !== 'Format') {
 				this.errors.push("'" + part + "' is not a valid format.");
 			} else {

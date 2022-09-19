@@ -25,13 +25,15 @@ class TournamentStats extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
 
+		this.setCloseButton();
+
 		const showPreviousCycles = user.isDeveloper() || user.hasRank(room, 'voice');
-		this.tournamentLeaderboard = new TournamentLeaderboard(room, this.commandPrefix, leaderboardCommand, {
+		this.tournamentLeaderboard = new TournamentLeaderboard(this, this.commandPrefix, leaderboardCommand, {
 			showPreviousCycles,
 			reRender: () => this.send(),
 		});
 
-		this.tournamentPointsBreakdown = new TournamentPointsBreakdown(room, this.commandPrefix, pointsBreakdownCommand, {
+		this.tournamentPointsBreakdown = new TournamentPointsBreakdown(this, this.commandPrefix, pointsBreakdownCommand, {
 			showPreviousCycles,
 			reRender: () => this.send(),
 		});

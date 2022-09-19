@@ -1,5 +1,5 @@
-import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
@@ -57,8 +57,8 @@ export abstract class PokemonPickerBase extends PickerBase<IPokemonPick, IPokemo
 	replicationTargets: PokemonPickerBase[] = [];
 	shininess: boolean = false;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerBase.loadData();
 

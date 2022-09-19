@@ -1,5 +1,4 @@
-import type { Room } from "../../rooms";
-import type { IQuietPMButtonOptions } from "../html-page-base";
+import type { HtmlPageBase, IQuietPMButtonOptions } from "../html-page-base";
 
 export interface IComponentProps {
 	readonly?: boolean;
@@ -14,14 +13,14 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	components: ComponentBase[] = [];
 	timeout: NodeJS.Timer | null = null;
 
-	room: Room;
+	htmlPage: HtmlPageBase;
 	commandPrefix: string;
 	parentCommandPrefix: string;
 	componentCommand: string;
 	props: PropsType;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
-		this.room = room;
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
+		this.htmlPage = htmlPage;
 		this.parentCommandPrefix = parentCommandPrefix;
 		this.componentCommand = componentCommand;
 		this.commandPrefix = parentCommandPrefix + ", " + componentCommand;
@@ -58,6 +57,6 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 			style += 'border-color: #ffffff;';
 		}
 
-		return Client.getQuietPmButton(this.room, message, label, disabled, style);
+		return Client.getQuietPmButton(this.htmlPage.getPmRoom(), message, label, disabled, style);
 	}
 }

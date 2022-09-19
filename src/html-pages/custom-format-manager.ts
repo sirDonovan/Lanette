@@ -96,8 +96,9 @@ class CustomFormatManager extends HtmlPageBase {
 		super(room, user, baseCommandAlias, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
+		this.setCloseButton();
 
-		this.formatInput = new FormatTextInput(room, this.commandPrefix, formatsInputCommand, {
+		this.formatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
 			label: "",
 			submitText: "Set format",
 			maxFormats: 1,
@@ -108,7 +109,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.customFormatsPagination = new Pagination(this.room, this.commandPrefix, banPageCommand, {
+		this.customFormatsPagination = new Pagination(this, this.commandPrefix, banPageCommand, {
 			elements: this.getCustomFormatPageElements(),
 			elementsPerRow: 5,
 			rowsPerPage: 8,
@@ -117,7 +118,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.customFormatNameInput = new TextInput(room, this.commandPrefix, customFormatNameInputCommand, {
+		this.customFormatNameInput = new TextInput(this, this.commandPrefix, customFormatNameInputCommand, {
 			label: "Custom format name",
 			validateSubmission: (input): ITextInputValidation => {
 				if (Dex.getFormat(input)) {
@@ -131,7 +132,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.customRulesInput = new CustomRuleTextInput(room, this.commandPrefix, customRulesInputCommand, {
+		this.customRulesInput = new CustomRuleTextInput(this, this.commandPrefix, customRulesInputCommand, {
 			label: "",
 			submitText: "Add rules",
 			hideClearButton: true,
@@ -143,7 +144,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.banPagination = new Pagination(this.room, this.commandPrefix, banPageCommand, {
+		this.banPagination = new Pagination(this, this.commandPrefix, banPageCommand, {
 			elements: [],
 			elementsPerRow: 5,
 			rowsPerPage: 8,
@@ -152,7 +153,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.unbanPagination = new Pagination(this.room, this.commandPrefix, unbanPageCommand, {
+		this.unbanPagination = new Pagination(this, this.commandPrefix, unbanPageCommand, {
 			elements: [],
 			elementsPerRow: 5,
 			rowsPerPage: 8,
@@ -161,7 +162,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.addRulePagination = new Pagination(this.room, this.commandPrefix, addRulePageCommand, {
+		this.addRulePagination = new Pagination(this, this.commandPrefix, addRulePageCommand, {
 			elements: [],
 			elementsPerRow: 1,
 			rowsPerPage: 7,
@@ -170,7 +171,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.removeRulePagination = new Pagination(this.room, this.commandPrefix, removeRulePageCommand, {
+		this.removeRulePagination = new Pagination(this, this.commandPrefix, removeRulePageCommand, {
 			elements: [],
 			elementsPerRow: 1,
 			rowsPerPage: 7,
@@ -179,7 +180,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.forceMonotypePicker = new TypePicker(this.room, this.commandPrefix, setForceMonotypeCommand, {
+		this.forceMonotypePicker = new TypePicker(this, this.commandPrefix, setForceMonotypeCommand, {
 			hideLabel: true,
 			onClear: () => this.clearForceMonotype(),
 			onPick: (index, type) => this.pickForceMonotype(type),
@@ -192,7 +193,7 @@ class CustomFormatManager extends HtmlPageBase {
 		for (const rule of Dex.getRulesList()) {
 			if (!rule.hasValue || rule.id === forceMonotype) continue;
 
-			this.valueRulesTextInputs[rule.id] = new TextInput(room, this.commandPrefix, valueRulesInputCommand + rule.id, {
+			this.valueRulesTextInputs[rule.id] = new TextInput(this, this.commandPrefix, valueRulesInputCommand + rule.id, {
 				label: "<b>" + rule.name + "</b>",
 				validateSubmission: (input): ITextInputValidation => {
 					try {

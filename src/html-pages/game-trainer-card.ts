@@ -37,11 +37,13 @@ class GameTrainerCard extends HtmlPageBase {
 	constructor(room: Room, user: User, maxIcons: number) {
 		super(room, user, baseCommand, pages);
 
+		this.setCloseButton();
+
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
-		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
 			currentPickObject: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
 				trainerCard.background : undefined,
@@ -52,7 +54,7 @@ class GameTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.trainerPicker = new TrainerPicker(room, this.commandPrefix, setTrainerCommand, {
+		this.trainerPicker = new TrainerPicker(this, this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
 			userId: this.userId,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
@@ -64,7 +66,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 		PokemonPickerBase.loadData();
 
-		this.pokemonPicker = new PokemonTextInput(room, this.commandPrefix, setPokemonCommand, {
+		this.pokemonPicker = new PokemonTextInput(this, this.commandPrefix, setPokemonCommand, {
 			gif: false,
 			currentInput: trainerCard ? trainerCard.pokemon.join(", ") : "",
 			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],

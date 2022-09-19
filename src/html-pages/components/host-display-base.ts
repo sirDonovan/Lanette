@@ -9,10 +9,10 @@ import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel"
 import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
-import type { Room } from "../../rooms";
 import type { BorderType, HexCode, IHexCodeData } from "../../types/tools";
 import type { GifIcon, ICustomBorder, IGameHostDisplay } from "../../types/storage";
 import { BorderStyle } from "./border-style";
+import type { HtmlPageBase } from "../html-page-base";
 
 export interface IHostDisplayProps extends IComponentProps {
 	currentBackground?: HexCode | IHexCodeData;
@@ -78,11 +78,11 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 	iconPokemonPickers: PokemonPickerBase[];
 	trainerPickers: TrainerPicker[];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps,
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps,
 		pokemonPickerClass: (typeof PokemonPickerManual | typeof PokemonPickerRandom)) {
-		super(room, parentCommandPrefix, componentCommand, props);
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
-		this.backgroundColorPicker = new ColorPicker(room, this.commandPrefix, setBackgroundColorCommand, {
+		this.backgroundColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setBackgroundColorCommand, {
 			currentPick: typeof props.currentBackground === 'string' ? props.currentBackground : undefined,
 			currentPickObject: props.currentBackground && typeof props.currentBackground !== 'string' ? props.currentBackground : undefined,
 			random: props.random,
@@ -94,7 +94,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			reRender: () => this.props.reRender(),
 		});
 
-		this.backgroundBorderStyle = new BorderStyle(room, this.commandPrefix, setBackgroudBorderStyleCommand, {
+		this.backgroundBorderStyle = new BorderStyle(htmlPage, this.commandPrefix, setBackgroudBorderStyleCommand, {
 			currentBorder: props.currentBackgroundBorder,
 			minRadius: 2,
 			maxRadius: 100,
@@ -118,7 +118,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxTrainerPickerIndex = props.maxTrainers - 1;
 		this.trainerPickers = [];
 		for (let i = 0; i < props.maxTrainers; i++) {
-			const trainerPicker = new TrainerPicker(room, this.commandPrefix, this.setTrainerCommand, {
+			const trainerPicker = new TrainerPicker(htmlPage, this.commandPrefix, this.setTrainerCommand, {
 				random: props.random,
 				pickerIndex: i,
 				onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
@@ -150,7 +150,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxGifPokemonPickerIndex = props.maxGifs - 1;
 		this.gifPokemonPickers = [];
 		for (let i = 0; i < props.maxGifs; i++) {
-			const pokemonPicker = new pokemonPickerClass(room, this.commandPrefix, setPokemonCommand,
+			const pokemonPicker = new pokemonPickerClass(htmlPage, this.commandPrefix, setPokemonCommand,
 				Object.assign({}, pokemonPickerProps, {
 					gif: true,
 					pickerIndex: i,
@@ -165,7 +165,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		this.maxIconPokemonPickerIndex = props.maxIcons - 1;
 		this.iconPokemonPickers = [];
 		for (let i = 0; i < props.maxIcons; i++) {
-			const pokemonPicker = new pokemonPickerClass(room, this.commandPrefix, setPokemonCommand,
+			const pokemonPicker = new pokemonPickerClass(htmlPage, this.commandPrefix, setPokemonCommand,
 				Object.assign({}, pokemonPickerProps, {
 					pickerIndex: i,
 				})

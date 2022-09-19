@@ -1,6 +1,6 @@
-import type { Room } from "../../rooms";
 import type { ModelGeneration } from "../../types/dex";
 import type { PokemonChoices } from "../game-host-control-panel";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
 import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
@@ -78,15 +78,15 @@ export class PokemonPickerManual extends PokemonPickerBase {
 	pokemonTextInputs: KeyedDict<ModelGeneration, PokemonTextInput>;
 	replicationTargets: PokemonPickerManual[] = [];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPokemonPickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		PokemonPickerManual.loadData();
 
 		const pokemonTextInputs: Dict<PokemonTextInput> = {};
 		const lists = props.gif ? PokemonPickerBase.pokemonGifsGens : PokemonPickerBase.pokemonGens;
 		for (const generation of Dex.getModelGenerations()) {
-			pokemonTextInputs[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand, {
+			pokemonTextInputs[generation] = new PokemonTextInput(htmlPage, this.commandPrefix, pokemonInputCommand, {
 				gif: props.gif,
 				pokemonList: lists[generation],
 				maxPokemon: 1,
@@ -116,7 +116,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 			for (const letter of letters) {
 				this.letterElements[generation][letter] = {html: this.renderLetterElement(letter), selected: false};
 
-				this.letterPaginations[generation][letter] = new Pagination(room, this.commandPrefix, pokemonListCommand, {
+				this.letterPaginations[generation][letter] = new Pagination(htmlPage, this.commandPrefix, pokemonListCommand, {
 					elements: pokemonByLetter[letter].map(x => this.choiceElements[x]),
 					elementsPerRow: 6,
 					rowsPerPage: 6,

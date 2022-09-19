@@ -42,7 +42,7 @@ export class CardHighLowPage extends CardMatchingPage {
 			const card = info.card;
 			let cardHtml = '<div class="infobox">';
 			if (canPlay) {
-				cardHtml += Client.getQuietPmButton(this.room, Config.commandCharacter + "play " + card.name, "Play!") +
+				cardHtml += Client.getQuietPmButton(this.getPmRoom(), Config.commandCharacter + "play " + card.name, "Play!") +
 					'&nbsp;&nbsp;|&nbsp;';
 			}
 

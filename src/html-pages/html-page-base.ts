@@ -46,7 +46,6 @@ export abstract class HtmlPageBase {
 		this.pageList = pageList;
 
 		this.setUser(userOrPlayer);
-		this.setCloseButton();
 
 		if (userOrPlayer.id in pageList) pageList[userOrPlayer.id].destroy();
 		pageList[userOrPlayer.id] = this;
@@ -74,7 +73,7 @@ export abstract class HtmlPageBase {
 	close(): void {
 		if (!this.closed) {
 			const user = Users.get(this.userId);
-			if (user) this.room.closeHtmlPage(user, this.pageId);
+			if (user) this.getPmRoom().closeHtmlPage(user, this.pageId);
 
 			this.closed = true;
 
@@ -87,7 +86,7 @@ export abstract class HtmlPageBase {
 	temporarilyClose(): void {
 		if (!this.closed) {
 			const user = Users.get(this.userId);
-			if (user) this.room.closeHtmlPage(user, this.pageId);
+			if (user) this.getPmRoom().closeHtmlPage(user, this.pageId);
 
 			this.closed = true;
 		}
@@ -111,7 +110,7 @@ export abstract class HtmlPageBase {
 			if (closeHtmlPage) {
 				this.temporarilyClose();
 			} else {
-				this.room.sayPrivateUhtml(user, this.baseChatUhtmlName, "<div>Successfully moved to an HTML page.</div>");
+				this.getPmRoom().sayPrivateUhtml(user, this.baseChatUhtmlName, "<div>Successfully moved to an HTML page.</div>");
 			}
 		}
 
@@ -145,6 +144,10 @@ export abstract class HtmlPageBase {
 	}
 
 	send(onOpen?: boolean): void {
+	getPmRoom(): Room {
+		return this.room;
+	}
+
 		if (this.destroyed) return;
 
 		if (this.beforeSend && !this.beforeSend(onOpen)) return;
@@ -160,9 +163,9 @@ export abstract class HtmlPageBase {
 		this.closed = false;
 
 		if (this.chatUhtmlName) {
-			this.room.sayPrivateUhtml(user, this.chatUhtmlName, render);
+			this.getPmRoom().sayPrivateUhtml(user, this.chatUhtmlName, render);
 		} else {
-			this.room.sendHtmlPage(user, this.pageId, render);
+			this.getPmRoom().sendHtmlPage(user, this.pageId, render);
 		}
 
 		if (this.onSend) this.onSend(onOpen);
@@ -189,7 +192,7 @@ export abstract class HtmlPageBase {
 			style += 'border-color: #ffffff;';
 		}
 
-		return Client.getQuietPmButton(this.room, message, label, disabled, style);
+		return Client.getQuietPmButton(this.getPmRoom(), message, label, disabled, style);
 	}
 
 	setCloseButton(options?: IQuietPMButtonOptions): void {

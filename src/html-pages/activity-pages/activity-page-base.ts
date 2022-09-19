@@ -47,4 +47,8 @@ export abstract class ActivityPageBase extends HtmlPageBase {
             this.player.sentHtmlPage = this.pageId;
         }
     }
+
+    getPmRoom(): Room {
+		return this.activity.getPmRoom();
+	}
 }

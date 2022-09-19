@@ -77,6 +77,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 		GameHostControlPanel.loadData();
 
+		this.setCloseButton();
+
 		const database = Storage.getDatabase(this.room);
 		let hostDisplay: IGameHostDisplay | undefined;
 
@@ -87,7 +89,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
 		const hostInformation = this.currentView === 'hostinformation';
 
-		this.addPointsInput = new NumberTextInput(room, this.commandPrefix, addPointsCommand, {
+		this.addPointsInput = new NumberTextInput(this, this.commandPrefix, addPointsCommand, {
 			min: 1,
 			label: "Add point(s)",
 			submitText: "Add",
@@ -98,7 +100,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.addPointsInput.active = hostInformation;
 
-		this.removePointsInput = new NumberTextInput(room, this.commandPrefix, removePointsCommand, {
+		this.removePointsInput = new NumberTextInput(this, this.commandPrefix, removePointsCommand, {
 			min: 1,
 			label: "Remove point(s)",
 			submitText: "Remove",
@@ -109,7 +111,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.removePointsInput.active = hostInformation;
 
-		this.storedMessageInput = new MultiTextInput(room, this.commandPrefix, storedMessageInputCommand, {
+		this.storedMessageInput = new MultiTextInput(this, this.commandPrefix, storedMessageInputCommand, {
 			inputCount: 2,
 			labels: ['Key', 'Message'],
 			textAreas: [false, true],
@@ -121,7 +123,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		});
 		this.storedMessageInput.active = hostInformation;
 
-		this.twistInput = new TextInput(room, this.commandPrefix, twistInputCommand, {
+		this.twistInput = new TextInput(this, this.commandPrefix, twistInputCommand, {
 			currentInput: room.userHostedGame && room.userHostedGame.twist ? room.userHostedGame.twist : "",
 			label: "Enter twist",
 			textArea: true,
@@ -160,10 +162,10 @@ export class GameHostControlPanel extends HtmlPageBase {
 			reRender: () => this.send(),
 		};
 
-		this.manualHostDisplay = new ManualHostDisplay(room, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
+		this.manualHostDisplay = new ManualHostDisplay(this, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
 		this.manualHostDisplay.active = !hostInformation;
 
-		this.randomHostDisplay = new RandomHostDisplay(room, this.commandPrefix, randomHostDisplayCommand,
+		this.randomHostDisplay = new RandomHostDisplay(this, this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
 		this.randomHostDisplay.active = false;
 

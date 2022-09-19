@@ -1,12 +1,12 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
 export class HexCodeInput extends TextInput {
 	componentId: string = 'hex-code-input';
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}
 
 	onSubmit(input: string): void {

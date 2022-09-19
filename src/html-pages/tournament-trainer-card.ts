@@ -80,6 +80,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		this.targetUserId = (options && options.targetUserId) || this.userId;
 		this.viewAllMode = options && options.viewAllMode ? true : false;
 		this.readonly = this.viewAllMode;
+		this.setCloseButton();
 
 		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
 		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);
@@ -97,7 +98,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			this.trainerCardUserIds = [];
 		}
 
-		this.trainerCardUserIdPicker = new NamePicker(room, this.commandPrefix, setTargetUserIdCommand, {
+		this.trainerCardUserIdPicker = new NamePicker(this, this.commandPrefix, setTargetUserIdCommand, {
 			currentPick: this.targetUserId,
 			names: this.trainerCardUserIds,
 			namesHtml: this.trainerCardUserIdNames,
@@ -224,7 +225,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			}
 		}
 
-		this.trainerPicker = new TrainerPicker(this.room, this.commandPrefix, setTrainerCommand, {
+		this.trainerPicker = new TrainerPicker(this, this.commandPrefix, setTrainerCommand, {
 			currentPick: trainerCard ? trainerCard.avatar : undefined,
 			userId: this.targetUserId,
 			onSetTrainerGen: (index, trainerGen, dontRender) => this.setTrainerGen(dontRender),
@@ -239,7 +240,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			format = Dex.getFormat(trainerCard.favoriteFormat);
 		}
 
-		this.formatPicker = new FormatTextInput(this.room, this.commandPrefix, setFormatCommand, {
+		this.formatPicker = new FormatTextInput(this, this.commandPrefix, setFormatCommand, {
 			currentInput: format ? format.name : "",
 			inputWidth: Tools.minRoomWidth,
 			placeholder: "Enter a format",
@@ -251,7 +252,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.trainerCardBadgePicker = new TrainerCardBadgePicker(this.room, this.commandPrefix, setBadgesCommand, {
+		this.trainerCardBadgePicker = new TrainerCardBadgePicker(this, this.commandPrefix, setBadgesCommand, {
 			currentPicks: trainerCard ? trainerCard.badges : undefined,
 			maxPicks: 0,
 			onClear: (index, dontRender) => this.clearBadges(dontRender),
@@ -261,7 +262,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this.room, this.commandPrefix, setRibbonsCommand, {
+		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this, this.commandPrefix, setRibbonsCommand, {
 			currentPicks: trainerCard ? trainerCard.ribbons : undefined,
 			maxPicks: 0,
 			onClear: (index, dontRender) => this.clearRibbons(dontRender),
@@ -271,7 +272,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.bioInput = new TextInput(this.room, this.commandPrefix, setBioCommand, {
+		this.bioInput = new TextInput(this, this.commandPrefix, setBioCommand, {
 			placeholder: "Enter bio",
 			stripHtmlCharacters: true,
 			onClear: () => this.clearBio(),
@@ -281,7 +282,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.headerColorPicker = new ColorPicker(this.room, this.commandPrefix, setHeaderColorCommand, {
+		this.headerColorPicker = new ColorPicker(this, this.commandPrefix, setHeaderColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.header === 'string' ? trainerCard.header : undefined,
 			currentPickObject: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ? trainerCard.header : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickHeaderHueVariation(dontRender),
@@ -292,7 +293,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.tableColorPicker = new ColorPicker(this.room, this.commandPrefix, setTableColorCommand, {
+		this.tableColorPicker = new ColorPicker(this, this.commandPrefix, setTableColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.table === 'string' ? trainerCard.table : undefined,
 			currentPickObject: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ? trainerCard.table : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickTableHueVariation(dontRender),
@@ -303,7 +304,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.footerColorPicker = new ColorPicker(this.room, this.commandPrefix, setFooterColorCommand, {
+		this.footerColorPicker = new ColorPicker(this, this.commandPrefix, setFooterColorCommand, {
 			currentPick: trainerCard && typeof trainerCard.footer === 'string' ? trainerCard.footer : undefined,
 			currentPickObject: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ? trainerCard.footer : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickFooterHueVariation(dontRender),
@@ -316,7 +317,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 
 		PokemonPickerBase.loadData();
 
-		this.pokemonPicker = new PokemonTextInput(this.room, this.commandPrefix, setPokemonCommand, {
+		this.pokemonPicker = new PokemonTextInput(this, this.commandPrefix, setPokemonCommand, {
 			gif: false,
 			currentInput: trainerCard && trainerCard.pokemon ? trainerCard.pokemon.join(", ") : "",
 			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],

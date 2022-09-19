@@ -51,6 +51,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
+		this.setCloseButton();
 
 		const date = new Date();
 		this.currentYear = date.getFullYear();
@@ -58,7 +59,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		this.selectedMonth = "" + (date.getMonth() + 1);
 		this.lastDayOfSelectedMonth = Tools.getLastDayOfMonth(date);
 
-		this.newMonthInput = new NumberTextInput(room, this.commandPrefix, newMonthInputCommand, {
+		this.newMonthInput = new NumberTextInput(this, this.commandPrefix, newMonthInputCommand, {
 			label: "Add new month",
 			min: 1,
 			max: 12,
@@ -71,7 +72,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		const database = this.getDatabase();
 		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
 
-		this.dayFormatInput = new FormatTextInput(room, this.commandPrefix, formatsInputCommand, {
+		this.dayFormatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
 			currentInput: this.selectedMonth in schedule.months && this.selectedDay in schedule.months[this.selectedMonth].days ?
 				schedule.months[this.selectedMonth].days[this.selectedDay].format : "",
 			label: "Update format",
@@ -85,7 +86,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.tournamentTimeInput = new TextInput(room, this.commandPrefix, tournamentTimeInputCommand, {
+		this.tournamentTimeInput = new TextInput(this, this.commandPrefix, tournamentTimeInputCommand, {
 			label: "Update time",
 			submitText: "Submit",
 			onClear: () => this.send(),

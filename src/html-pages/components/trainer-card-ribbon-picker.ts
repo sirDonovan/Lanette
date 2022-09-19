@@ -1,12 +1,12 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
 export class TrainerCardRibbonPicker extends PickerBase {
 	componentId: string = 'trainer-card-ribbon-picker';
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		if (Config.tournamentTrainerCardRibbons) {
 			for (const i in Config.tournamentTrainerCardRibbons) {

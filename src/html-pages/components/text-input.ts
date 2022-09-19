@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 
@@ -43,8 +43,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 	clearText: string;
 	submitText: string;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps<OutputType>) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps<OutputType>) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		if (props.currentInput) this.currentInput = props.currentInput;
 		this.clearText = props.clearText || "Clear";
@@ -127,8 +127,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			html += "<br />";
 		}
 
-		html += "<form data-submitsend='/msgroom " + this.room.id + ", /botmsg " + Users.self.name + ", " + this.commandPrefix + ", " +
-			this.submitCommand + ", {" + tagName + "}'>";
+		html += "<form data-submitsend='/msgroom " + this.htmlPage.room.id + ", /botmsg " + Users.self.name + ", " +
+			this.commandPrefix + ", " + this.submitCommand + ", {" + tagName + "}'>";
 
 		if (this.props.label) html += this.props.label + ":&nbsp;";
 		if (this.props.textArea) {

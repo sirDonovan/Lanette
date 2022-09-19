@@ -1,20 +1,20 @@
-import type { Room } from "../../rooms";
 import { GameTextInput } from "./game-text-input";
 import { LeaderboardBase } from "./leaderboard-base";
 import type { ILeaderboardProps } from "./leaderboard-base";
+import type { HtmlPageBase } from "../html-page-base";
 
 export class GameLeaderboard extends LeaderboardBase {
 	componentId = 'game-leaderboard';
 
 	formatsInput: GameTextInput;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
-		super(room, parentCommandPrefix, componentCommand, Object.assign({}, props, {
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, Object.assign({}, props, {
 			leaderboardType: 'gameLeaderboard',
 			pointsName: 'bit',
 		}));
 
-		this.formatsInput = new GameTextInput(room, this.commandPrefix, this.formatsInputCommand, {
+		this.formatsInput = new GameTextInput(htmlPage, this.commandPrefix, this.formatsInputCommand, {
 			label: "Filter by game(s)",
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},

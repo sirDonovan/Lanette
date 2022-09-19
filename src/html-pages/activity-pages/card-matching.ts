@@ -44,7 +44,7 @@ export class CardMatchingPage extends GamePageBase {
 
 		this.setSwitchLocationButton();
 
-		this.actionCardInput = new TextInput(this.room, this.commandPrefix, actionCardInputCommand, {
+		this.actionCardInput = new TextInput(this, this.commandPrefix, actionCardInputCommand, {
 			hideClearButton: true,
 			submitText: "Validate",
 			onClear: () => this.send(),

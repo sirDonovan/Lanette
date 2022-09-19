@@ -18,6 +18,7 @@ class TournamentPointsShop extends TournamentTrainerCard {
 		super(room, user, baseCommandAlias, {}, pages);
 
 		this.components = [];
+		this.setCloseButton();
 	}
 
 	unlockRibbon(id: string): void {

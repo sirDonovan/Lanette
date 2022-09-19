@@ -1,5 +1,5 @@
-import type { Room } from "../../rooms";
 import type { TrainerSpriteId } from "../../types/dex";
+import type { HtmlPageBase } from "../html-page-base";
 import { type IPageElement, Pagination } from "./pagination";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
@@ -93,8 +93,8 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 	paginations: Pagination[] = [];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITrainerPickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITrainerPickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		TrainerPicker.loadData();
 
@@ -163,7 +163,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 
 		this.renderChoices();
 
-		this.defaultTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.defaultTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.defaultTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: defaultTrainersPerRow,
 			rowsPerPage,
@@ -175,7 +175,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.defaultTrainersPagination.active = this.trainerGen === defaultTrainers;
 
-		this.genOneTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genOneTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genOneTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -187,7 +187,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genOneTrainersPagination.active = this.trainerGen === genOneTrainers;
 
-		this.genTwoTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genTwoTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genTwoTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -199,7 +199,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genTwoTrainersPagination.active = this.trainerGen === genTwoTrainers;
 
-		this.genThreeTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genThreeTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genThreeTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -211,7 +211,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genThreeTrainersPagination.active = this.trainerGen === genThreeTrainers;
 
-		this.genFourTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genFourTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genFourTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -223,7 +223,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genFourTrainersPagination.active = this.trainerGen === genFourTrainers;
 
-		this.genFiveTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genFiveTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genFiveTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -235,7 +235,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genFiveTrainersPagination.active = this.trainerGen === genFiveTrainers;
 
-		this.genSixTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genSixTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genSixTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -247,7 +247,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genSixTrainersPagination.active = this.trainerGen === genSixTrainers;
 
-		this.genSevenTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genSevenTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genSevenTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -259,7 +259,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genSevenTrainersPagination.active = this.trainerGen === genSevenTrainers;
 
-		this.genEightTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.genEightTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.genEightTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,
@@ -271,7 +271,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 		});
 		this.genEightTrainersPagination.active = this.trainerGen === genEightTrainers;
 
-		this.mastersTrainersPagination = new Pagination(room, this.commandPrefix, trainersListCommand, {
+		this.mastersTrainersPagination = new Pagination(htmlPage, this.commandPrefix, trainersListCommand, {
 			elements: [this.noPickElement].concat(TrainerPicker.mastersTrainerIds.map(x => this.choiceElements[x])),
 			elementsPerRow: olderTrainersPerRow,
 			rowsPerPage,

@@ -1,15 +1,15 @@
-import type { Room } from "../../rooms";
 import type { ICachedPointsBreakdown, IPointBreakdown } from "../../types/storage";
 import { LeaderboardBase } from "./leaderboard-base";
 import type { ILeaderboardProps } from "./leaderboard-base";
 import type { IPageElement } from "./pagination";
+import type { HtmlPageBase } from "../html-page-base";
 
 export abstract class PointsBreakdownBase extends LeaderboardBase {
 	cachedPointBreakdowns: ICachedPointsBreakdown[] = [];
 	rowsPerPage: number = 10;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}
 
 	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>, maxPercentageLength: number): string;
@@ -21,10 +21,10 @@ export abstract class PointsBreakdownBase extends LeaderboardBase {
 
 	updateCachedPointBreakdowns(): void {
 		if (this.selectedCycle === Storage.currentCycle) {
-			this.cachedPointBreakdowns = Storage.getPointsBreakdownCache(this.room, this.leaderboardType);
+			this.cachedPointBreakdowns = Storage.getPointsBreakdownCache(this.htmlPage.room, this.leaderboardType);
 		} else {
 			if (this.cycleLeaderboard) {
-				this.cachedPointBreakdowns = Storage.getPreviousCyclePointsBreakdownCache(this.room, this.cycleLeaderboard,
+				this.cachedPointBreakdowns = Storage.getPreviousCyclePointsBreakdownCache(this.htmlPage.room, this.cycleLeaderboard,
 					this.selectedCycle);
 			} else {
 				this.cachedPointBreakdowns = [];

@@ -7,7 +7,7 @@ import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 
 export interface IPokemonModelPickerProps extends IComponentProps {
 	maxPokemon: number;
@@ -36,8 +36,8 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 	allPokemonTextInputGens!: KeyedDict<ModelGeneration, PokemonTextInput>;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IPokemonModelPickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPokemonModelPickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
 			gif: true,
@@ -57,7 +57,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		const allPokemonTextInputGens: Dict<PokemonTextInput> = {};
 		for (const generation of Dex.getModelGenerations()) {
-			allPokemonTextInputGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputGens[generation] = new PokemonTextInput(htmlPage, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					modelGeneration: generation,
 					pokemonList: PokemonPickerBase.pokemonGifsGens[generation],
@@ -87,7 +87,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 
 		this.maxPickerIndex = props.maxPokemon - 1;
 		for (let i = 0; i < props.maxPokemon; i++) {
-			const pokemonPicker = new PokemonPickerManual(room, this.commandPrefix, setPokemonCommand,
+			const pokemonPicker = new PokemonPickerManual(htmlPage, this.commandPrefix, setPokemonCommand,
 				Object.assign({}, pokemonPickerProps, {
 					gif: true,
 					pickerIndex: i,

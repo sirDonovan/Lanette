@@ -1,10 +1,10 @@
-import type { Room } from "../../rooms";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { ICachedLeaderboardEntry, ILeaderboard, IPreviousCycle, LeaderboardType } from "../../types/storage";
 import { Pagination } from "./pagination";
 import type { IPageElement } from "./pagination";
 import type { TextInput } from "./text-input";
+import type { HtmlPageBase } from "../html-page-base";
 
 export interface ILeaderboardProps extends IComponentProps {
 	showPreviousCycles: boolean;
@@ -32,17 +32,17 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 
 	leaderboardPagination!: Pagination;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.leaderboardType = props.leaderboardType || 'unsortedLeaderboard';
 		this.pointsName = props.pointsName || 'point';
 
-		const database = Storage.getDatabase(this.room);
+		const database = Storage.getDatabase(this.htmlPage.room);
 		this.cycleLeaderboard = database[this.leaderboardType];
 		this.cycleOptions = [Storage.currentCycle];
 
-		const archiveDatabase = Storage.getArchiveDatabase(this.room);
+		const archiveDatabase = Storage.getArchiveDatabase(this.htmlPage.room);
 		if (archiveDatabase.previousCycles) {
 			for (const previousCycle of archiveDatabase.previousCycles) {
 				if (!previousCycle[this.leaderboardType]) continue;
@@ -50,7 +50,7 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 			}
 		}
 
-		this.leaderboardPagination = new Pagination(this.room, this.commandPrefix, this.leaderboardPageCommand, {
+		this.leaderboardPagination = new Pagination(htmlPage, this.commandPrefix, this.leaderboardPageCommand, {
 			elements: [],
 			elementsPerRow: 1,
 			rowsPerPage: this.rowsPerPage,
@@ -70,12 +70,12 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 		if (!this.cycleOptions.includes(cycle)) return false;
 
 		if (this.selectedCycle !== cycle) {
-			const database = Storage.getDatabase(this.room);
+			const database = Storage.getDatabase(this.htmlPage.room);
 			if (cycle === Storage.currentCycle) {
 				this.cycleLeaderboard = database[this.leaderboardType];
 			} else {
 				const parts = cycle.split(" - ");
-				const archiveDatabase = Storage.getArchiveDatabase(this.room);
+				const archiveDatabase = Storage.getArchiveDatabase(this.htmlPage.room);
 				for (const previousCycle of archiveDatabase.previousCycles!) {
 					if (previousCycle.cycleStartDate === parts[0] && previousCycle.cycleEndDate === parts[1]) {
 						this.cycleLeaderboard = previousCycle[this.leaderboardType];
@@ -138,17 +138,18 @@ export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {
 	updateCachedLeaderboardEntries(): void {
 		if (this.selectedCycle === Storage.currentCycle) {
 			if (this.selectedFormatIds.length) {
-				this.cachedLeaderboardEntries = Storage.getSourcePointsCache(this.room, this.leaderboardType, this.selectedFormatIds);
+				this.cachedLeaderboardEntries = Storage.getSourcePointsCache(this.htmlPage.room, this.leaderboardType,
+					this.selectedFormatIds);
 			} else {
-				this.cachedLeaderboardEntries = Storage.getPointsCache(this.room, this.leaderboardType);
+				this.cachedLeaderboardEntries = Storage.getPointsCache(this.htmlPage.room, this.leaderboardType);
 			}
 		} else {
 			if (this.cycleLeaderboard) {
 				if (this.selectedFormatIds.length) {
-					this.cachedLeaderboardEntries = Storage.getPreviousCycleSourcePointsCache(this.room, this.cycleLeaderboard,
+					this.cachedLeaderboardEntries = Storage.getPreviousCycleSourcePointsCache(this.htmlPage.room, this.cycleLeaderboard,
 						this.selectedFormatIds, this.selectedCycle);
 				} else {
-					this.cachedLeaderboardEntries = Storage.getPreviousCyclePointsCache(this.room, this.cycleLeaderboard,
+					this.cachedLeaderboardEntries = Storage.getPreviousCyclePointsCache(this.htmlPage.room, this.cycleLeaderboard,
 						this.selectedCycle);
 				}
 			} else {

@@ -3,8 +3,8 @@ import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
-import type { Room } from "../../rooms";
 import { HexCodeInput } from "./hex-code-input";
+import type { HtmlPageBase } from "../html-page-base";
 
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation' | 'maxvariation';
 export type Lightness = 'shade' | 'lowlightness' | 'standardlightness' | 'highlightness' | 'tint';
@@ -99,8 +99,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 	paginations: Pagination[] = [];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		ColorPicker.loadData();
 
@@ -252,7 +252,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.highLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.highLightnessMaxVariation);
 		this.tintPagination = this.createColorPagination(ColorPicker.tints);
 
-		this.customPrimaryColorInput = new HexCodeInput(room, this.commandPrefix, customPrimaryCommand, {
+		this.customPrimaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customPrimaryCommand, {
 			currentInput: this.customPrimaryColor,
 			label: "Custom primary color",
 			hideClearButton: true,
@@ -262,7 +262,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			reRender: () => this.props.reRender(),
 		});
 
-		this.customSecondaryColorInput = new HexCodeInput(room, this.commandPrefix, customSecondaryCommand, {
+		this.customSecondaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customSecondaryCommand, {
 			currentInput: this.customSecondaryColor,
 			label: "Custom secondary color",
 			onClear: () => this.clearCustomSecondaryColor(),
@@ -390,7 +390,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			elements.push(this.choiceElements[color]);
 		}
 
-		return new Pagination(this.room, this.commandPrefix, huesListCommand, {
+		return new Pagination(this.htmlPage, this.commandPrefix, huesListCommand, {
 			elements,
 			elementsPerRow: colorsPerRow,
 			rowsPerPage,

@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
@@ -12,8 +12,8 @@ export class GameTextInput extends TextInput {
 
 	declare props: IGameTextInputProps;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IGameTextInputProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IGameTextInputProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}
 
 	onSubmit(input: string): void {

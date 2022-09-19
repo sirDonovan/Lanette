@@ -1,5 +1,5 @@
-import type { Room } from "../../rooms";
 import type { ICachedPointsBreakdown, IPointBreakdown } from "../../types/storage";
+import type { HtmlPageBase } from "../html-page-base";
 import type { ILeaderboardProps } from "./leaderboard-base";
 import { PointsBreakdownBase } from "./points-breakdown-base";
 
@@ -7,8 +7,8 @@ export class GamePointsBreakdown extends PointsBreakdownBase {
 	componentId = 'game-points-breakdown';
 	cachedPointBreakdowns: ICachedPointsBreakdown[] = [];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
-		super(room, parentCommandPrefix, componentCommand, Object.assign({}, props, {
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, Object.assign({}, props, {
 			leaderboardType: 'gameLeaderboard',
 			pointsName: 'bit',
 		}));

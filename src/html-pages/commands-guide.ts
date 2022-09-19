@@ -29,9 +29,10 @@ class CommandsGuide extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
+		this.setCloseButton();
 
 		this.showDeveloperCommands = user.isDeveloper();
-		this.commandsPagination = new Pagination(this.room, this.commandPrefix, commandPageCommand, {
+		this.commandsPagination = new Pagination(this, this.commandPrefix, commandPageCommand, {
 			elements: [],
 			elementsPerRow: 1,
 			rowsPerPage: 20,

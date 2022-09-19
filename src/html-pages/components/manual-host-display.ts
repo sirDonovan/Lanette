@@ -9,7 +9,7 @@ import { PokemonTextInput } from "./pokemon-text-input";
 import type { IPokemonPick } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 
 const pokemonInputCommand = 'pokemoninput';
 
@@ -21,8 +21,8 @@ export class ManualHostDisplay extends HostDisplayBase {
 	declare gifPokemonPickers: PokemonPickerManual[];
 	declare iconPokemonPickers: PokemonPickerManual[];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
-		super(room, parentCommandPrefix, componentCommand, props, PokemonPickerManual);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IHostDisplayProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props, PokemonPickerManual);
 
 		const pokemonTextInputProps: IPokemonTextInputProps = {
 			gif: false,
@@ -42,7 +42,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 		const allPokemonTextInputGifGens: Dict<PokemonTextInput> = {};
 		const allPokemonTextInputIconGens: Dict<PokemonTextInput> = {};
 		for (const generation of Dex.getModelGenerations()) {
-			allPokemonTextInputGifGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputGifGens[generation] = new PokemonTextInput(htmlPage, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					gif: true,
 					pokemonList: PokemonPickerBase.pokemonGifsGens[generation],
@@ -50,7 +50,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 				}));
 			allPokemonTextInputGifGens[generation].active = false;
 
-			allPokemonTextInputIconGens[generation] = new PokemonTextInput(room, this.commandPrefix, pokemonInputCommand,
+			allPokemonTextInputIconGens[generation] = new PokemonTextInput(htmlPage, this.commandPrefix, pokemonInputCommand,
 				Object.assign({}, pokemonTextInputProps, {
 					maxPokemon: props.maxIcons,
 					pokemonList: PokemonPickerBase.pokemonGens[generation],

@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { IPageElement } from "./pagination";
@@ -30,8 +30,8 @@ export abstract class PickerBase<PickType = string, PropsType extends IPickerPro
 
 	replicationTargets?: PickerBase<PickType, PropsType>[];
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.currentPicks = props.currentPicks ? props.currentPicks : props.currentPick ? [props.currentPick] : [];
 		this.maxPicks = props.maxPicks !== undefined ? props.maxPicks : 1;

@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import { type IPageElement, Pagination } from "./pagination";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
@@ -21,8 +21,8 @@ export class NamePicker extends PickerBase {
 
 	pagination: Pagination;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: INamePickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: INamePickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		for (const name of props.names) {
 			this.choices[name] = name;
@@ -35,7 +35,7 @@ export class NamePicker extends PickerBase {
 			elements.push(this.choiceElements[name]);
 		}
 
-		this.pagination = new Pagination(this.room, this.commandPrefix, namePickerPageCommand, {
+		this.pagination = new Pagination(htmlPage, this.commandPrefix, namePickerPageCommand, {
 			elements,
 			elementsPerRow: this.props.elementsPerRow || 5,
 			rowsPerPage: this.props.rowsPerPage || 20,

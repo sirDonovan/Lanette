@@ -1,10 +1,10 @@
-import type { Room } from "../../rooms";
 import type { ICustomBorder } from "../../types/storage";
 import type { BorderType } from "../../types/tools";
 import { ColorPicker } from "./color-picker";
 import type { IColorPick } from "./color-picker";
 import { ComponentBase } from "./component-base";
 import type { IComponentProps } from "./component-base";
+import type { HtmlPageBase } from "../html-page-base";
 
 export interface IBorderStyleProps extends IComponentProps {
 	currentBorder: ICustomBorder | undefined;
@@ -39,10 +39,10 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	size: number | undefined;
 	type: BorderType | undefined;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IBorderStyleProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IBorderStyleProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
-		this.colorPicker = new ColorPicker(room, this.commandPrefix, setColorCommand, {
+		this.colorPicker = new ColorPicker(htmlPage, this.commandPrefix, setColorCommand, {
 			currentPick: props.currentBorder && typeof props.currentBorder.color === 'string' ? props.currentBorder.color : undefined,
 			currentPickObject: props.currentBorder && props.currentBorder.color && typeof props.currentBorder.color !== 'string' ?
 				props.currentBorder.color : undefined,

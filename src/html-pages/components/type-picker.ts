@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
@@ -14,8 +14,8 @@ export class TypePicker extends PickerBase {
 
 	declare props: ITypePickerProps;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: ITypePickerProps) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITypePickerProps) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		TypePicker.loadData();
 

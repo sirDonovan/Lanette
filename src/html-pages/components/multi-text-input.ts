@@ -1,4 +1,4 @@
-import type { Room } from "../../rooms";
+import type { HtmlPageBase } from "../html-page-base";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
 import type { ITextAreaConfiguration } from "./text-input";
@@ -32,8 +32,8 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 	clearText: string;
 	submitText: string;
 
-	constructor(room: Room, parentCommandPrefix: string, componentCommand: string, props: IMultiTextInputProps<OutputType>) {
-		super(room, parentCommandPrefix, componentCommand, props);
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IMultiTextInputProps<OutputType>) {
+		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		if (props.currentInputs) this.currentInputs = props.currentInputs;
 		this.clearText = props.clearText || "Clear";
@@ -102,8 +102,8 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 			tagNames.push(tagBaseName + "-" + i);
 		}
 
-		html += "<form data-submitsend='/msgroom " + this.room.id + ", /botmsg " + Users.self.name + ", " + this.commandPrefix + ", " +
-			this.submitCommand + ", {" + tagNames.join("}" + this.delimiter + "{") + "}'>";
+		html += "<form data-submitsend='/msgroom " + this.htmlPage.room.id + ", /botmsg " + Users.self.name + ", " +
+			this.commandPrefix + ", " + this.submitCommand + ", {" + tagNames.join("}" + this.delimiter + "{") + "}'>";
 
 		for (let i = 0; i < tagNames.length; i++) {
 			html += this.props.labels[i] + ":&nbsp;";

@@ -43,6 +43,7 @@ class OfflineMessages extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		this.commandPrefix = Config.commandCharacter + baseCommand;
+		this.setCloseButton();
 
 		const database = Storage.getGlobalDatabase();
 		const timezone = database.offlineMessages![this.userId].timezone;
