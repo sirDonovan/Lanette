@@ -65,6 +65,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	currentPlayer: string = '';
 	generateHintsGameHtml: string = '';
 	generatedAnswer: IRandomGameAnswer | undefined = undefined;
+	generatedAnswerErrorHtml: string = '';
 	pokemonGeneration: ModelGeneration = 'xy';
 	storedMessageInput: MultiTextInput;
 	twistInput: TextInput;
@@ -567,6 +568,20 @@ export class GameHostControlPanel extends HtmlPageBase {
 		if (game) {
 			this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
 			this.generatedAnswer = game.getRandomAnswer!();
+
+			let attempts = 0;
+			while (this.exceedsMessageSizeLimit() && attempts < 100) {
+				attempts++;
+				this.generatedAnswer = game.getRandomAnswer!();
+			}
+
+			if (this.exceedsMessageSizeLimit()) {
+				this.generatedAnswer = undefined;
+				this.generatedAnswerErrorHtml = "A random answer could not be generated. Please try again!";
+			} else {
+				this.generatedAnswerErrorHtml = "";
+			}
+
 			game.deallocate(true);
 		}
 
@@ -765,6 +780,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 				html += "<br /><br />";
 				html += "<b>Answer" + (this.generatedAnswer.answers.length > 1 ? "s" : "") + "</b>: " +
 					this.generatedAnswer.answers.join(", ") + "</div>";
+			} else if (this.generatedAnswerErrorHtml) {
+				html += this.generatedAnswerErrorHtml;
 			} else {
 				html += "<center><b>Click on a game's name to generate a hint and see the answer</b>!</center>";
 			}

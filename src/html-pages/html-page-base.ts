@@ -167,6 +167,10 @@ export abstract class HtmlPageBase {
 		return this.room;
 	}
 
+	exceedsMessageSizeLimit(): boolean {
+		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render());
+	}
+
 	send(onOpen?: boolean, forceSend?: boolean): void {
 		if (this.destroyed) return;
 
