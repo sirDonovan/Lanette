@@ -94,6 +94,8 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		}
 
 		if (this.errors.length) {
+			if (!this.props.stripHtmlCharacters) this.currentInput = Tools.stripHtmlCharacters(this.currentInput);
+
 			this.props.onErrors(this.errors);
 		} else {
 			this.props.onSubmit(this.currentOutput!);
