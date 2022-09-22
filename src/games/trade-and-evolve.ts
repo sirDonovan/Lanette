@@ -9,12 +9,13 @@ const description = "Every player is given a randomly generated team to start ou
 	"evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
+// starting team length > 3 is too slow and eventually runs out of memory
 class TradeAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	dropsPerRound = 1;
 	evolutionsPerRound = 1;
-	startingTeamsLength = 6;
+	startingTeamsLength = 3;
 	maxPlayers = 64;
 	requiredAddition = true;
 	requiredDrop = true;

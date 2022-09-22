@@ -8,13 +8,14 @@ const description = "Every player is given a randomly generated team to start ou
 	"must 'release' 1 of your Pokemon (remove it from your team), 'catch' 1 of your opponent's Pokemon (add it to your team), and then " +
 	"de-volve 1 Pokemon on your team.";
 
+// starting team length > 3 is too slow and eventually runs out of memory
 class TradeAndDevolve extends BattleEliminationTournament {
 	banlist = ['Wobbuffet'];
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	dropsPerRound = 1;
 	evolutionsPerRound = -1;
-	startingTeamsLength = 6;
+	startingTeamsLength = 3;
 	maxPlayers = 64;
 	requiredAddition = true;
 	requiredDrop = true;

@@ -2858,6 +2858,52 @@ const tests: GameFileTests<BattleElimination> = {
 			}
 		},
 	},
+	'should give team changes until players have a full team - additionsPerRound and dropsPerRound': {
+		test(game) {
+			this.timeout(15000);
+			if (!game.additionsPerRound || !game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
+
+			disableTournamentProperties(game);
+
+			game.canReroll = false;
+			addPlayers(game, game.maxPlayers);
+			if (!game.started) game.start();
+			game.startElimination();
+
+			assert(!game.firstRoundByes.size);
+
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
+				const round = matchRounds[i - 1];
+				if (!round) break;
+
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
+
+					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
+
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
+						assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
+					}
+
+					assert(game.possibleTeams.get(winner)!.length);
+				}
+
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
+			}
+		},
+	},
 };
 
 export const game: IGameTemplateFile<BattleElimination> = {
