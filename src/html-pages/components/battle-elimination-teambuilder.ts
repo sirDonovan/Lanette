@@ -92,13 +92,19 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	syncRound(): void {
 		this.props.game.debugLog(this.props.player.name + " syncRound() at " + this.props.player.round);
 
-		const nextRound = this.currentRound + 1;
-		if (this.props.player.round! > nextRound || this.remainingRoundAdditions || this.remainingRoundDrops ||
-			this.remainingRoundEvolutions) {
-			this.moreRoundsAvailableMessage = "<b>Finish making changes to unlock round " + this.props.player.round + "</b>!";
-		} else {
+		// ensure initial add/drop/evolve buttons are shown when the player is advanced from round 1 to >2 at once
+		if (this.currentRound === 1 && this.props.player.round! > 2) {
 			this.moreRoundsAvailableMessage = "";
-			this.setRound(this.props.player.round!);
+			this.setRound(2);
+		} else {
+			const nextRound = this.currentRound + 1;
+			if (this.props.player.round! > nextRound || this.remainingRoundAdditions || this.remainingRoundDrops ||
+				this.remainingRoundEvolutions) {
+				this.moreRoundsAvailableMessage = "<b>Finish making changes to unlock round " + this.props.player.round + "</b>!";
+			} else {
+				this.moreRoundsAvailableMessage = "";
+				this.setRound(this.props.player.round!);
+			}
 		}
 	}
 
