@@ -56,6 +56,101 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		}
 	}
 
+	getCustomRules(): string[] {
+		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
+		const allPokemon: string[] = [];
+		const checkedPokemon: Dict<boolean> = {};
+
+		for (const name of this.pokedex) {
+			const pokemon = Dex.getExistingPokemon(name);
+
+			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [pokemon.name];
+			const usableFormes: string[] = [];
+			for (const forme of formes) {
+				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
+			}
+
+			if (this.evolutionsPerRound) {
+				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
+				for (const line of evolutionLines) {
+					for (const stage of line) {
+						if (stage in checkedPokemon) continue;
+
+						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+						const usableStageFormes: string[] = [];
+						for (const stageForme of stageFormes) {
+							if (this.battleFormat.usablePokemon!.includes(stageForme)) usableStageFormes.push(stageForme);
+						}
+
+						let addBaseModifier = false;
+						if (!Dex.getExistingPokemon(stage).forme && usableStageFormes.length !== stageFormes.length) {
+							for (const usableStageForme of usableStageFormes) {
+								if (!Dex.getExistingPokemon(usableStageForme).forme) {
+									addBaseModifier = true;
+									break;
+								}
+							}
+						}
+
+						if (addBaseModifier) {
+							const baseModifier = stage + "-Base";
+							if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+						}
+
+						for (const usableStageForme of usableStageFormes) {
+							if (addBaseModifier && usableStageForme === stage) continue;
+
+							if (!allPokemon.includes(usableStageForme)) allPokemon.push(usableStageForme);
+						}
+
+						checkedPokemon[stage] = true;
+					}
+				}
+			} else {
+				let addBaseModifier = false;
+				if (!pokemon.forme && usableFormes.length !== formes.length) {
+					for (const forme of usableFormes) {
+						if (!Dex.getExistingPokemon(forme).forme) {
+							addBaseModifier = true;
+							break;
+						}
+					}
+				}
+
+				if (addBaseModifier) {
+					const baseModifier = pokemon.name + "-Base";
+					if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+				}
+
+				for (const usableForme of usableFormes) {
+					if (addBaseModifier && usableForme === pokemon.name) continue;
+
+					if (!allPokemon.includes(usableForme)) allPokemon.push(usableForme);
+				}
+			}
+		}
+
+		const pokemonListRules = Dex.getCustomRulesForPokemonList(allPokemon);
+		for (const rule of pokemonListRules) {
+			if (!customRules.includes(rule)) customRules.push(rule);
+		}
+
+		if (this.getGameCustomRules) {
+			const ruleTable = Dex.getRuleTable(this.battleFormat);
+			const gameCustomRules = this.getGameCustomRules();
+			for (const rule of gameCustomRules) {
+				try {
+					const validated = Dex.validateRule(rule);
+					if (typeof validated === 'string' && !ruleTable.has(validated) && !customRules.includes(validated)) {
+						customRules.push(validated);
+					}
+				} catch (e) {} // eslint-disable-line no-empty
+			}
+		}
+
+		return customRules;
+	}
+
 	createTournament(): void {
 		if (this.subRoom.tournament) {
 			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament in " + this.subRoom.title + " to end.");
@@ -76,7 +171,11 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.subRoom.disallowTournamentModjoin();
 
 				const customRules = this.getCustomRules();
-				if (customRules.length) this.subRoom.setTournamentRules(customRules.join(","));
+				if (customRules.length) {
+					this.subRoom.setTournamentRules(customRules.join(","));
+
+					this.pokedex = this.shuffle(this.pokedex);
+				}
 
 				this.subRoom.announce("You must join the tournament in this room to play!" +
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
