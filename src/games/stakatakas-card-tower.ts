@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
+import { addPlayer, addPlayers, assert, assertStrictEqual, runCommand } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IActionCardData, ICard, IPokemonCard } from "./templates/card";
 import { CardMatching, game as cardGame } from "./templates/card-matching";
@@ -49,12 +49,16 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			getAutoPlayTarget() {
 				return this.name;
 			},
-			getTargetErrors(game, targets, hand) {
+			getTargetErrors(game, targets, player, cardsSubset) {
 				let hasRegularCard = false;
-				for (const card of hand!) {
-					if (!card.action) {
-						hasRegularCard = true;
-						break;
+
+				const cards = cardsSubset || game.playerCards.get(player);
+				if (cards) {
+					for (const card of cards) {
+						if (!card.action) {
+							hasRegularCard = true;
+							break;
+						}
 					}
 				}
 
@@ -89,7 +93,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (card.action.getTargetErrors(this, targets, cards, player)) return false;
+		if (card.action.getTargetErrors(this, targets, player, cards)) return false;
 
 		let drawnCards: ICard[] | undefined;
 		const id = card.id as ActionCardNames;
@@ -335,10 +339,11 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const pachirisu = game.actionCards.pachirisu;
 			assert(pachirisu);
 
-			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
-			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [manaphy.getCard(game)]), false);
-			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [phione.getCard(game)]), false);
-			assertStrictEqual(!pachirisu.getTargetErrors(game, [], [pachirisu.getCard(game)]), false);
+			const player = addPlayer(game, "Player 1");
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [manaphy.getCard(game)]), false);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [phione.getCard(game)]), false);
+			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [pachirisu.getCard(game)]), false);
 		},
 	},
 	'it should not try to find pairs for action cards when Pachirisu is played': {

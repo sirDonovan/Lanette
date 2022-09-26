@@ -142,7 +142,7 @@ export class CardMatchingPage extends GamePageBase {
 			if (card.action.getRandomTarget) {
 				if (html) html += "&nbsp; - ";
 				html += this.activity.getMsgRoomButton(this.activity.playCommand + " " + card.action.getRandomTarget(this.activity,
-					this.activity.playerCards.get(this.player)!), "Play <b>randomized " + card.name + "</b>", this.player.eliminated,
+					this.player), "Play <b>randomized " + card.name + "</b>", this.player.eliminated,
 					this.player);
 			}
 		}
@@ -168,7 +168,7 @@ export class CardMatchingPage extends GamePageBase {
 		const user = Users.get(this.userName);
 		if (!user) return;
 
-		const error = this.selectedActionCard.action!.getTargetErrors(this.activity, target.split(","));
+		const error = this.selectedActionCard.action!.getTargetErrors(this.activity, target.split(","), this.player);
 		if (error) {
 			this.actionCardInput.updateAfterSubmitHtml("");
 			this.actionCardInput.parentSetErrors([error]);

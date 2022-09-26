@@ -234,7 +234,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		if (this.minimumPlayedCards === 1 && this.maximumPlayedCards === 1) {
 			for (const card of cards) {
 				if (card.action) {
-					const autoPlay = card.action.getAutoPlayTarget(this, cards);
+					const autoPlay = card.action.getAutoPlayTarget(this, player);
 					if (autoPlay) action.push(card);
 				} else {
 					if (this.isPlayableCard(card, this.topCard)) single.push(card);
@@ -244,7 +244,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 			const regularCards: IPokemonCard[] = [];
 			for (const card of cards) {
 				if (card.action) {
-					const autoPlay = card.action.getAutoPlayTarget(this, cards);
+					const autoPlay = card.action.getAutoPlayTarget(this, player);
 					if (autoPlay) action.push(card);
 				} else {
 					regularCards.push(card as IPokemonCard);
@@ -308,11 +308,9 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	}
 
 	autoPlay(player: Player, splitCards: ITurnCards): void {
-		const playerCards = this.playerCards.get(player)!;
-
 		const autoPlayOptions: string[] = [];
 		for (const card of splitCards.action) {
-			autoPlayOptions.push(card.action!.getAutoPlayTarget(this, playerCards)!);
+			autoPlayOptions.push(card.action!.getAutoPlayTarget(this, player)!);
 		}
 		for (const group of splitCards.group) {
 			autoPlayOptions.push(group.map(x => x.name).join(", "));
@@ -665,7 +663,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 		} else if (turnCards.single.length) {
 			play = this.sampleOne(turnCards.single).name;
 		} else if (turnCards.action.length) {
-			play = this.sampleOne(turnCards.action).action!.getAutoPlayTarget(this, cards);
+			play = this.sampleOne(turnCards.action).action!.getAutoPlayTarget(this, botPlayer);
 		}
 
 		if (!play) throw new Error(botPlayer.name + " does not have a card to play");

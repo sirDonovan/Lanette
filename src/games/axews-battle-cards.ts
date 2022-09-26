@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import { assert, assertStrictEqual } from "../test/test-tools";
+import { addPlayer, assert, assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import type { IActionCardData, ICard, IMoveCard, IPokemonCard } from "./templates/card";
@@ -26,8 +26,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game) {
-				if (!this.getTargetErrors(game, [])) {
+			getAutoPlayTarget(game, player, cardsSubset) {
+				if (!this.getTargetErrors(game, [], player, cardsSubset)) {
 					return this.name;
 				}
 			},
@@ -43,8 +43,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game) {
-				if (!this.getTargetErrors(game, [])) {
+			getAutoPlayTarget(game, player, cardsSubset) {
+				if (!this.getTargetErrors(game, [], player, cardsSubset)) {
 					return this.name;
 				}
 			},
@@ -60,8 +60,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game) {
-				if (!this.getTargetErrors(game, [])) {
+			getAutoPlayTarget(game, player, cardsSubset) {
+				if (!this.getTargetErrors(game, [], player, cardsSubset)) {
 					return this.name;
 				}
 			},
@@ -77,8 +77,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getAutoPlayTarget(game) {
-				if (!this.getTargetErrors(game, [])) {
+			getAutoPlayTarget(game, player, cardsSubset) {
+				if (!this.getTargetErrors(game, [], player, cardsSubset)) {
 					return this.name;
 				}
 			},
@@ -95,18 +95,21 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
-				const cards = game.shuffle(hand);
-				for (const card of cards) {
-					if (!this.getTargetErrors(game, [card.name], hand)) {
-						return this.name + ", " + card.name;
+			getRandomTarget(game, player, cardsSubset) {
+				const cards = cardsSubset || game.playerCards.get(player);
+				if (cards) {
+					const shuffledCards = game.shuffle(cards);
+					for (const card of shuffledCards) {
+						if (!this.getTargetErrors(game, [card.name], player, cardsSubset)) {
+							return this.name + ", " + card.name;
+						}
 					}
 				}
 			},
-			getAutoPlayTarget(game, hand) {
-				return this.getRandomTarget!(game, hand);
+			getAutoPlayTarget(game, player, cardsSubset) {
+				return this.getRandomTarget!(game, player, cardsSubset);
 			},
-			getTargetErrors(game, targets, hand) {
+			getTargetErrors(game, targets, player, cardsSubset) {
 				if (targets.length !== 1) {
 					return "You must specify 1 Pokemon.";
 				}
@@ -121,13 +124,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
 				}
 
-				if (hand) {
-					const index = game.getCardIndex(pokemon.name, hand);
+				const cards = cardsSubset || game.playerCards.get(player);
+				if (cards) {
+					const index = game.getCardIndex(pokemon.name, cards);
 					if (index === -1) {
 						return "You do not have [ " + pokemon.name + " ].";
 					}
 
-					if (hand[index].action) {
+					if (cards[index].action) {
 						return "You cannot pass an action card.";
 					}
 				}
@@ -144,18 +148,21 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game, hand) {
-				const cards = game.shuffle(hand);
-				for (const card of cards) {
-					if (!this.getTargetErrors(game, [card.name], hand)) {
-						return this.name + ", " + card.name;
+			getRandomTarget(game, player, cardsSubset) {
+				const cards = cardsSubset || game.playerCards.get(player);
+				if (cards) {
+					const shuffledCards = game.shuffle(cards);
+					for (const card of shuffledCards) {
+						if (!this.getTargetErrors(game, [card.name], player, cardsSubset)) {
+							return this.name + ", " + card.name;
+						}
 					}
 				}
 			},
-			getAutoPlayTarget(game, hand) {
-				return this.getRandomTarget!(game, hand);
+			getAutoPlayTarget(game, player, cardsSubset) {
+				return this.getRandomTarget!(game, player, cardsSubset);
 			},
-			getTargetErrors(game, targets, hand) {
+			getTargetErrors(game, targets, player, cardsSubset) {
 				if (targets.length !== 1) {
 					return "You must specify 1 Pokemon.";
 				}
@@ -170,13 +177,14 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					return CommandParser.getErrorText(['invalidPokemon', targets[0]]);
 				}
 
-				if (hand) {
-					const index = game.getCardIndex(pokemon.name, hand);
+				const cards = cardsSubset || game.playerCards.get(player);
+				if (cards) {
+					const index = game.getCardIndex(pokemon.name, cards);
 					if (index === -1) {
 						return "You do not have [ " + pokemon.name + " ].";
 					}
 
-					if (hand[index].action) {
+					if (cards[index].action) {
 						return "You cannot switch an action card.";
 					}
 				}
@@ -193,13 +201,13 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game) {
+			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
 				const typeKeys = game.shuffle(dex.getData().typeKeys);
 				let usableType: string | undefined;
 				for (const typeKey of typeKeys) {
 					const typeName = dex.getExistingType(typeKey).name;
-					if (!this.getTargetErrors(game, [typeName])) {
+					if (!this.getTargetErrors(game, [typeName], player, cardsSubset)) {
 						usableType = typeName;
 						break;
 					}
@@ -209,8 +217,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 				return this.name + ", " + usableType;
 			},
-			getAutoPlayTarget(game, hand) {
-				return this.getRandomTarget!(game, hand);
+			getAutoPlayTarget(game, player, cardsSubset) {
+				return this.getRandomTarget!(game, player, cardsSubset);
 			},
 			getTargetErrors(game, targets) {
 				if (targets.length !== 1) {
@@ -239,7 +247,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game) {
+			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
 				const typeKeys = game.shuffle(dex.getData().typeKeys);
 				let usableTypes: string | undefined;
@@ -248,7 +256,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 					for (let j = 0; j < typeKeys.length; j++) {
 						if (j === i) continue;
 						const typeNameB = dex.getExistingType(typeKeys[j]).name;
-						if (!this.getTargetErrors(game, [typeNameA, typeNameB])) {
+						if (!this.getTargetErrors(game, [typeNameA, typeNameB], player, cardsSubset)) {
 							usableTypes = typeNameA + ", " + typeNameB;
 							break;
 						}
@@ -260,8 +268,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				if (!usableTypes) return;
 				return this.name + ", " + usableTypes;
 			},
-			getAutoPlayTarget(game, hand) {
-				return this.getRandomTarget!(game, hand);
+			getAutoPlayTarget(game, player, cardsSubset) {
+				return this.getRandomTarget!(game, player, cardsSubset);
 			},
 			getTargetErrors(game, targets) {
 				if (targets.length !== 2) {
@@ -301,11 +309,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			getCard(game) {
 				return game.moveToActionCard(this);
 			},
-			getRandomTarget(game) {
+			getRandomTarget(game, player, cardsSubset) {
 				const pool = game.shuffle(game.deckPool);
 				let usableCard: string | undefined;
 				for (const card of pool) {
-					if (!this.getTargetErrors(game, [card.name])) {
+					if (!this.getTargetErrors(game, [card.name], player, cardsSubset)) {
 						usableCard = card.name;
 						break;
 					}
@@ -314,8 +322,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 				if (!usableCard) return;
 				return this.name + ", " + usableCard;
 			},
-			getAutoPlayTarget(game, hand) {
-				return this.getRandomTarget!(game, hand);
+			getAutoPlayTarget(game, player, cardsSubset) {
+				return this.getRandomTarget!(game, player, cardsSubset);
 			},
 			getTargetErrors(game, targets) {
 				const id = Tools.toId(targets[0]);
@@ -585,7 +593,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IMoveCard, player: Player, targets: string[], cards: ICard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (card.action.getTargetErrors(this, targets, cards, player)) return false;
+		if (card.action.getTargetErrors(this, targets, player, cards)) return false;
 
 		const id = card.id as ActionCardNames;
 		let firstTimeShiny = false;
@@ -702,17 +710,18 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const soak = game.actionCards.soak;
 			assert(soak);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(soak.getAutoPlayTarget(game, []));
-			assertStrictEqual(!soak.getTargetErrors(game, []), true);
+			assert(soak.getAutoPlayTarget(game, player));
+			assertStrictEqual(!soak.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Poliwrath"));
-			assert(soak.getAutoPlayTarget(game, []));
-			assertStrictEqual(!soak.getTargetErrors(game, []), true);
+			assert(soak.getAutoPlayTarget(game, player));
+			assertStrictEqual(!soak.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
-			assert(!soak.getAutoPlayTarget(game, []));
-			assertStrictEqual(!soak.getTargetErrors(game, []), false);
+			assert(!soak.getAutoPlayTarget(game, player));
+			assertStrictEqual(!soak.getTargetErrors(game, [], player), false);
 		},
 	},
 	'action cards - trickortreat': {
@@ -722,17 +731,18 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const trickortreat = game.actionCards.trickortreat;
 			assert(trickortreat);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(trickortreat.getAutoPlayTarget(game, []));
-			assertStrictEqual(!trickortreat.getTargetErrors(game, []), true);
+			assert(trickortreat.getAutoPlayTarget(game, player));
+			assertStrictEqual(!trickortreat.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Gastly"));
-			assert(!trickortreat.getAutoPlayTarget(game, []));
-			assertStrictEqual(!trickortreat.getTargetErrors(game, []), false);
+			assert(!trickortreat.getAutoPlayTarget(game, player));
+			assertStrictEqual(!trickortreat.getTargetErrors(game, [], player), false);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Duskull"));
-			assert(!trickortreat.getAutoPlayTarget(game, []));
-			assertStrictEqual(!trickortreat.getTargetErrors(game, []), false);
+			assert(!trickortreat.getAutoPlayTarget(game, player));
+			assertStrictEqual(!trickortreat.getTargetErrors(game, [], player), false);
 		},
 	},
 	'action cards - forestscurse': {
@@ -742,17 +752,18 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const forestscurse = game.actionCards.forestscurse;
 			assert(forestscurse);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
-			assert(forestscurse.getAutoPlayTarget(game, []));
-			assertStrictEqual(!forestscurse.getTargetErrors(game, []), true);
+			assert(forestscurse.getAutoPlayTarget(game, player));
+			assertStrictEqual(!forestscurse.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(!forestscurse.getAutoPlayTarget(game, []));
-			assertStrictEqual(!forestscurse.getTargetErrors(game, []), false);
+			assert(!forestscurse.getAutoPlayTarget(game, player));
+			assertStrictEqual(!forestscurse.getTargetErrors(game, [], player), false);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Tangela"));
-			assert(!forestscurse.getAutoPlayTarget(game, []));
-			assertStrictEqual(!forestscurse.getTargetErrors(game, []), false);
+			assert(!forestscurse.getAutoPlayTarget(game, player));
+			assertStrictEqual(!forestscurse.getTargetErrors(game, [], player), false);
 		},
 	},
 	'action cards - magicpowder': {
@@ -762,17 +773,18 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const magicpowder = game.actionCards.magicpowder;
 			assert(magicpowder);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(magicpowder.getAutoPlayTarget(game, []));
-			assertStrictEqual(!magicpowder.getTargetErrors(game, []), true);
+			assert(magicpowder.getAutoPlayTarget(game, player));
+			assertStrictEqual(!magicpowder.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Slowpoke"));
-			assert(magicpowder.getAutoPlayTarget(game, []));
-			assertStrictEqual(!magicpowder.getTargetErrors(game, []), true);
+			assert(magicpowder.getAutoPlayTarget(game, player));
+			assertStrictEqual(!magicpowder.getTargetErrors(game, [], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Abra"));
-			assert(!magicpowder.getAutoPlayTarget(game, []));
-			assertStrictEqual(!magicpowder.getTargetErrors(game, []), false);
+			assert(!magicpowder.getAutoPlayTarget(game, player));
+			assertStrictEqual(!magicpowder.getTargetErrors(game, [], player), false);
 		},
 	},
 	'action cards - batonpass': {
@@ -782,16 +794,17 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
-			assert(batonpass.getAutoPlayTarget(game, hand));
-			assertStrictEqual(!batonpass.getTargetErrors(game, ["Squirtle"], hand), true);
-			assertStrictEqual(!batonpass.getTargetErrors(game, ["Charmander"], hand), false);
-			assertStrictEqual(!batonpass.getTargetErrors(game, [""], hand), false);
+			assert(batonpass.getAutoPlayTarget(game, player, hand));
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Squirtle"], player, hand), true);
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Charmander"], player, hand), false);
+			assertStrictEqual(!batonpass.getTargetErrors(game, [""], player, hand), false);
 
 			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
-			assert(!batonpass.getAutoPlayTarget(game, hand));
-			assertStrictEqual(!batonpass.getTargetErrors(game, ["Bulbasaur"], hand), false);
+			assert(!batonpass.getAutoPlayTarget(game, player, hand));
+			assertStrictEqual(!batonpass.getTargetErrors(game, ["Bulbasaur"], player, hand), false);
 		},
 	},
 	'action cards - allyswitch': {
@@ -801,16 +814,17 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
-			assert(allyswitch.getAutoPlayTarget(game, hand));
-			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Squirtle"], hand), true);
-			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Charmander"], hand), false);
-			assertStrictEqual(!allyswitch.getTargetErrors(game, [""], hand), false);
+			assert(allyswitch.getAutoPlayTarget(game, player, hand));
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Squirtle"], player, hand), true);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Charmander"], player, hand), false);
+			assertStrictEqual(!allyswitch.getTargetErrors(game, [""], player, hand), false);
 
 			hand = [game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"))];
-			assert(!allyswitch.getAutoPlayTarget(game, hand));
-			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Bulbasaur"], hand), false);
+			assert(!allyswitch.getAutoPlayTarget(game, player, hand));
+			assertStrictEqual(!allyswitch.getTargetErrors(game, ["Bulbasaur"], player, hand), false);
 		},
 	},
 	'action cards - conversion': {
@@ -820,17 +834,18 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(conversion.getAutoPlayTarget(game, []));
-			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"]), true);
-			assertStrictEqual(!conversion.getTargetErrors(game, ["Poison"]), true);
+			assert(conversion.getAutoPlayTarget(game, player));
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"], player), true);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Poison"], player), true);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
-			assert(conversion.getAutoPlayTarget(game, []));
-			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"]), true);
-			assertStrictEqual(!conversion.getTargetErrors(game, ["Water"]), false);
-			assertStrictEqual(!conversion.getTargetErrors(game, [""]), false);
-			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass", "Fire"]), false);
+			assert(conversion.getAutoPlayTarget(game, player));
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"], player), true);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Water"], player), false);
+			assertStrictEqual(!conversion.getTargetErrors(game, [""], player), false);
+			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass", "Fire"], player), false);
 		},
 	},
 	'action cards - conversion2': {
@@ -840,13 +855,14 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const conversion2 = game.actionCards['conversion2'];
 			assert(conversion2);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(conversion2.getAutoPlayTarget(game, []));
-			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water", "Fire"]), true);
-			assertStrictEqual(!conversion2.getTargetErrors(game, ["Grass", "Poison"]), false);
-			assertStrictEqual(!conversion2.getTargetErrors(game, ["Poison", "Grass"]), false);
-			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water"]), false);
-			assertStrictEqual(!conversion2.getTargetErrors(game, [""]), false);
+			assert(conversion2.getAutoPlayTarget(game, player));
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water", "Fire"], player), true);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Grass", "Poison"], player), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Poison", "Grass"], player), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water"], player), false);
+			assertStrictEqual(!conversion2.getTargetErrors(game, [""], player), false);
 		},
 	},
 	'action cards - transform': {
@@ -857,11 +873,12 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const transform = game.actionCards.transform;
 			assert(transform);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(transform.getAutoPlayTarget(game, []));
-			assertStrictEqual(!transform.getTargetErrors(game, ["Squirtle"]), true);
-			assertStrictEqual(!transform.getTargetErrors(game, ["Bulbasaur"]), false);
-			assertStrictEqual(!transform.getTargetErrors(game, [""]), false);
+			assert(transform.getAutoPlayTarget(game, player));
+			assertStrictEqual(!transform.getTargetErrors(game, ["Squirtle"], player), true);
+			assertStrictEqual(!transform.getTargetErrors(game, ["Bulbasaur"], player), false);
+			assertStrictEqual(!transform.getTargetErrors(game, [""], player), false);
 		},
 	},
 	'action cards - protect': {
@@ -871,9 +888,10 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const protect = game.actionCards.protect;
 			assert(protect);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(protect.getAutoPlayTarget(game, []));
-			assertStrictEqual(!protect.getTargetErrors(game, []), true);
+			assert(protect.getAutoPlayTarget(game, player));
+			assertStrictEqual(!protect.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - teeterdance': {
@@ -883,9 +901,10 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(teeterdance.getAutoPlayTarget(game, []));
-			assertStrictEqual(!teeterdance.getTargetErrors(game, []), true);
+			assert(teeterdance.getAutoPlayTarget(game, player));
+			assertStrictEqual(!teeterdance.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - topsyturvy': {
@@ -895,9 +914,10 @@ const tests: GameFileTests<AxewsBattleCards> = {
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
 
+			const player = addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
-			assert(topsyturvy.getAutoPlayTarget(game, []));
-			assertStrictEqual(!topsyturvy.getTargetErrors(game, []), true);
+			assert(topsyturvy.getAutoPlayTarget(game, player));
+			assertStrictEqual(!topsyturvy.getTargetErrors(game, [], player), true);
 		},
 	},
 };

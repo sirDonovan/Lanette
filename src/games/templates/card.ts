@@ -10,9 +10,9 @@ import type { GameActionGames } from '../../types/storage';
 
 export interface IActionCardData<T extends ScriptedGame = ScriptedGame, U extends ICard = ICard> {
 	getCard: (game: T) => ICard;
-	getRandomTarget?: (game: T, hand: U[]) => string | undefined;
-	getAutoPlayTarget: (game: T, hand: U[]) => string | undefined;
-	getTargetErrors: (game: T, targets: string[], hand?: U[], player?: Player) => string | undefined;
+	getRandomTarget?: (game: T, player: Player, cardsSubset?: U[]) => string | undefined;
+	getAutoPlayTarget: (game: T, player: Player, cardsSubset?: U[]) => string | undefined;
+	getTargetErrors: (game: T, targets: string[], player: Player, cardsSubset?: U[]) => string | undefined;
 	readonly description: string;
 	readonly name: string;
 	drawCards?: number;
