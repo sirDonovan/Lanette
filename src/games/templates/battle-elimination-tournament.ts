@@ -197,6 +197,20 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	onSignups(): void {
 		super.onSignups();
 
+		this.debugLog("Original Pokedex size: " + this.pokedex.length);
+
+		// limit pokedex size for custom rules
+		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
+			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
+
+		this.debugLog("Max Pokemon: " + maxPokemon + " (for " + this.maxPlayers + " max players)");
+
+		if (this.pokedex.length > maxPokemon) {
+			this.pokedex = this.pokedex.slice(0, maxPokemon);
+
+			this.debugLog("Reduced Pokedex size: " + this.pokedex.length);
+		}
+
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (this.subRoom && this.subRoom.initialized) {
 			this.createTournament();

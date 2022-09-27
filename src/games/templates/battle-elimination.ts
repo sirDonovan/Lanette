@@ -1236,24 +1236,28 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.color = colors[colorKeys[0]];
 			colorKeys.shift();
 			pokedex = this.createPokedex();
+
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!colorKeys.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
 				this.color = colors[colorKeys[0]];
 				colorKeys.shift();
 				pokedex = this.createPokedex();
 			}
+
 			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
 		} else if (this.monoType) {
 			const types = this.shuffle(Dex.getData().typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
 			pokedex = this.createPokedex();
+
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!types.length) throw new Error("No type has at least " + minimumPokemon + " Pokemon");
 				this.type = Dex.getExistingType(types[0]).name;
 				types.shift();
 				pokedex = this.createPokedex();
 			}
+
 			this.htmlPageGameName = "Mono-" + this.type + " " + this.baseHtmlPageGameName;
 		} else if (this.monoRegion) {
 			const currentGen = Dex.getGen();
@@ -1266,6 +1270,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.gen = gens[0];
 			gens.shift();
 			pokedex = this.createPokedex();
+
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!gens.length) throw new Error("No gen has at least " + minimumPokemon + " Pokemon");
 				this.gen = gens[0];
@@ -1302,24 +1307,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		this.pokedex = this.shuffle(pokedex);
-
-		this.debugLog("Original Pokedex size: " + this.pokedex.length);
-
-		// limit pokedex size for custom rules
-		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
-			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
-
-		this.debugLog("Max Pokemon: " + maxPokemon + " (for " + this.maxPlayers + " max players)");
-
-		if (this.pokedex.length > maxPokemon) {
-			this.pokedex = this.pokedex.slice(0, maxPokemon);
-
-			this.debugLog("Reduced Pokedex size: " + this.pokedex.length);
-		}
 	}
 
 	onSignups(): void {
 		this.generatePokedex();
+
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.htmlPageGameName + "</h2><hr />";
 
 		const maxPlayers = this.getMaxPlayers(this.pokedex.length);
