@@ -1019,6 +1019,8 @@ export abstract class BattleElimination extends ScriptedGame {
 		const team: readonly string[] = this.getStartingTeam().filter(x => !!x);
 		if (team.length < this.startingTeamsLength) throw new Error("Out of Pokemon to give (" + player.name + ")");
 
+		this.starterPokemon.set(player, team);
+
 		const formeCombinations = Dex.getFormeCombinations(team, this.battleFormat.usablePokemon);
 
 		if (this.usesCloakedPokemon) {
@@ -1036,7 +1038,6 @@ export abstract class BattleElimination extends ScriptedGame {
 				JSON.stringify(this.possibleTeams.get(player)!.join(" | ")));
 		}
 
-		this.starterPokemon.set(player, team);
 		this.updateTeamChangesHtml(player);
 
 		const htmlPage = this.getHtmlPage(player);
@@ -1500,7 +1501,11 @@ export abstract class BattleElimination extends ScriptedGame {
 				}, this.getSignupsUpdateDelay());
 			}
 
+			this.debugLog("Pokedex before giving " + player.name + " their starting team: " + this.pokedex.join(", "));
+
 			this.giveStartingTeam(player);
+
+			this.debugLog("Pokedex after giving " + player.name + " their starting team: " + this.pokedex.join(", "));
 
 			if (this.canReroll && this.playerCap && this.playerCount >= this.playerCap) {
 				player.say("You have " + Tools.toDurationString(REROLL_START_DELAY) + " to decide whether you want to use ``" +
@@ -2217,12 +2222,20 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			if (!starterPokemon) return false;
 
 			this.debugLog("Rerolling starter for " + player.name);
+
+			this.debugLog("Pokedex before adding " + player.name + "'s original starting team: " + this.pokedex.join(", "));
+
 			for (const pokemon of starterPokemon) {
 				this.pokedex.push(pokemon);
 			}
 
+			this.debugLog("Pokedex after adding " + player.name + "'s original starting team: " + this.pokedex.join(", "));
+
 			this.rerolls.set(player, true);
 			this.giveStartingTeam(player);
+
+			this.debugLog("Pokedex after giving " + player.name + " their rerolled starting team: " + this.pokedex.join(", "));
+
 			return true;
 		},
 		pmOnly: true,

@@ -267,7 +267,10 @@ describe("Games", () => {
 		}
 	});
 
-	it('should properly deallocate games', () => {
+	it('should properly deallocate games', function() {
+		// eslint-disable-next-line @typescript-eslint/no-invalid-this
+		this.timeout(10000);
+
 		const room = createTestRoom();
 		for (const format of formatsToTest) {
 			const game = Games.createGame(room, format);
