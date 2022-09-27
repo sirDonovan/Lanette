@@ -238,9 +238,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 
 		const availableEvolutionSlots = this.availableEvolutionSlots.length;
 		if (availableEvolutionSlots < Math.abs(this.roundRequirements.evolutionsThisRound)) {
-			const availableEvolutionSlotsValue = devolve ? -1 * availableEvolutionSlots : availableEvolutionSlots;
-			this.remainingRoundEvolutions = availableEvolutionSlotsValue;
-			this.roundRequirements.evolutionsThisRound = availableEvolutionSlotsValue;
+			this.remainingRoundEvolutions = devolve ? -1 * availableEvolutionSlots : availableEvolutionSlots;
 		}
 	}
 
