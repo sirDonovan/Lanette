@@ -166,33 +166,8 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		}
 
 		this.roundEvolvedSlots = [];
-		this.availableEvolutionSlots = [];
 
-		if (this.remainingRoundEvolutions) {
-			const devolve = this.remainingRoundEvolutions < 0;
-			for (let i = 0; i < this.slots.length; i++) {
-				const pokemon = this.dex.getExistingPokemon(this.slots[i]);
-				if (devolve) {
-					const prevo = this.dex.getPokemon(pokemon.prevo);
-					if (prevo && this.props.game.battleFormat.usablePokemon!.includes(prevo.name)) this.availableEvolutionSlots.push(i);
-				} else {
-					for (const name of pokemon.evos) {
-						const evo = this.dex.getPokemon(name);
-						if (evo && this.props.game.battleFormat.usablePokemon!.includes(evo.name)) {
-							this.availableEvolutionSlots.push(i);
-							break;
-						}
-					}
-				}
-			}
-
-			const availableEvolutions = this.availableEvolutionSlots.length;
-			if (availableEvolutions < Math.abs(this.remainingRoundEvolutions)) {
-				const availableEvolutionsValue = devolve ? -1 * availableEvolutions : availableEvolutions;
-				this.remainingRoundEvolutions = availableEvolutionsValue;
-				this.roundRequirements.evolutionsThisRound = availableEvolutionsValue;
-			}
-		}
+		this.setAvailableEvolutionSlots();
 
 		if (this.currentRound === this.props.player.round || (!this.remainingRoundAdditions && !this.remainingRoundDrops &&
 			!this.remainingRoundEvolutions)) {
@@ -211,7 +186,11 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		this.setTeamBuilderImport();
 
 		this.remainingRoundAdditions--;
-		if (!this.remainingRoundAdditions && !this.remainingRoundDrops && !this.remainingRoundEvolutions) this.nextRound();
+		if (!this.remainingRoundAdditions && !this.remainingRoundDrops) {
+			this.setAvailableEvolutionSlots();
+
+			if (!this.remainingRoundEvolutions) this.nextRound();
+		}
 
 		this.props.reRender();
 	}
@@ -226,17 +205,43 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		this.setTeamBuilderImport();
 
 		this.remainingRoundDrops--;
+		if (!this.remainingRoundAdditions && !this.remainingRoundDrops) {
+			this.setAvailableEvolutionSlots();
 
-		const evolutionsIndex = this.availableEvolutionSlots.indexOf(index);
-		if (evolutionsIndex !== -1) {
-			this.availableEvolutionSlots.splice(evolutionsIndex, 1);
-			const availableEvolutions = this.availableEvolutionSlots.length;
-			if (availableEvolutions < this.remainingRoundEvolutions) this.remainingRoundEvolutions = availableEvolutions;
+			if (!this.remainingRoundEvolutions) this.nextRound();
 		}
 
-		if (!this.remainingRoundAdditions && !this.remainingRoundDrops && !this.remainingRoundEvolutions) this.nextRound();
-
 		this.props.reRender();
+	}
+
+	setAvailableEvolutionSlots(): void {
+		if (!this.roundRequirements.evolutionsThisRound) return;
+
+		this.availableEvolutionSlots = [];
+
+		const devolve = this.roundRequirements.evolutionsThisRound < 0;
+		for (let i = 0; i < this.slots.length; i++) {
+			const pokemon = this.dex.getExistingPokemon(this.slots[i]);
+			if (devolve) {
+				const prevo = this.dex.getPokemon(pokemon.prevo);
+				if (prevo && this.props.game.battleFormat.usablePokemon!.includes(prevo.name)) this.availableEvolutionSlots.push(i);
+			} else {
+				for (const name of pokemon.evos) {
+					const evo = this.dex.getPokemon(name);
+					if (evo && this.props.game.battleFormat.usablePokemon!.includes(evo.name)) {
+						this.availableEvolutionSlots.push(i);
+						break;
+					}
+				}
+			}
+		}
+
+		const availableEvolutionSlots = this.availableEvolutionSlots.length;
+		if (availableEvolutionSlots < Math.abs(this.roundRequirements.evolutionsThisRound)) {
+			const availableEvolutionSlotsValue = devolve ? -1 * availableEvolutionSlots : availableEvolutionSlots;
+			this.remainingRoundEvolutions = availableEvolutionSlotsValue;
+			this.roundRequirements.evolutionsThisRound = availableEvolutionSlotsValue;
+		}
 	}
 
 	evolvePokemon(from: string, to: string): void {
