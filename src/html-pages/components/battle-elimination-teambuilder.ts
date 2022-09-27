@@ -20,7 +20,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	componentId: string = 'battle-elimination-teambuilder';
 	declare props: IBattleEliminationTeambuilderProps;
 
-	availableEvolutions: number = 0;
+	availableEvolutionSlots: number[] = [];
 	currentRound: number = 1;
 	moreRoundsAvailableMessage: string = "";
 	remainingRoundAdditions: number = 0;
@@ -166,28 +166,29 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		}
 
 		this.roundEvolvedSlots = [];
-		this.availableEvolutions = 0;
+		this.availableEvolutionSlots = [];
 
 		if (this.remainingRoundEvolutions) {
 			const devolve = this.remainingRoundEvolutions < 0;
-			for (const slot of this.slots) {
-				const pokemon = this.dex.getExistingPokemon(slot);
+			for (let i = 0; i < this.slots.length; i++) {
+				const pokemon = this.dex.getExistingPokemon(this.slots[i]);
 				if (devolve) {
 					const prevo = this.dex.getPokemon(pokemon.prevo);
-					if (prevo && this.props.game.battleFormat.usablePokemon!.includes(prevo.name)) this.availableEvolutions++;
+					if (prevo && this.props.game.battleFormat.usablePokemon!.includes(prevo.name)) this.availableEvolutionSlots.push(i);
 				} else {
 					for (const name of pokemon.evos) {
 						const evo = this.dex.getPokemon(name);
 						if (evo && this.props.game.battleFormat.usablePokemon!.includes(evo.name)) {
-							this.availableEvolutions++;
+							this.availableEvolutionSlots.push(i);
 							break;
 						}
 					}
 				}
 			}
 
-			if (this.availableEvolutions < Math.abs(this.remainingRoundEvolutions)) {
-				const availableEvolutionsValue = devolve ? -1 * this.availableEvolutions : this.availableEvolutions;
+			const availableEvolutions = this.availableEvolutionSlots.length;
+			if (availableEvolutions < Math.abs(this.remainingRoundEvolutions)) {
+				const availableEvolutionsValue = devolve ? -1 * availableEvolutions : availableEvolutions;
 				this.remainingRoundEvolutions = availableEvolutionsValue;
 				this.roundRequirements.evolutionsThisRound = availableEvolutionsValue;
 			}
@@ -225,6 +226,14 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		this.setTeamBuilderImport();
 
 		this.remainingRoundDrops--;
+
+		const evolutionsIndex = this.availableEvolutionSlots.indexOf(index);
+		if (evolutionsIndex !== -1) {
+			this.availableEvolutionSlots.splice(evolutionsIndex, 1);
+			const availableEvolutions = this.availableEvolutionSlots.length;
+			if (availableEvolutions < this.remainingRoundEvolutions) this.remainingRoundEvolutions = availableEvolutions;
+		}
+
 		if (!this.remainingRoundAdditions && !this.remainingRoundDrops && !this.remainingRoundEvolutions) this.nextRound();
 
 		this.props.reRender();
@@ -419,7 +428,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 				"below to release from your team!</li>");
 		}
 
-		if (this.remainingRoundEvolutions && this.availableEvolutions) {
+		if (this.remainingRoundEvolutions && this.availableEvolutionSlots.length) {
 			const multiple = this.roundRequirements.evolutionsThisRound > 1 || this.roundRequirements.evolutionsThisRound < -1;
 			roundRequirements.push("<li>choose " + Math.abs(this.remainingRoundEvolutions) + (multiple ? " more" : "") +
 				" Pokemon on your team below to " + (this.remainingRoundEvolutions > 0 ? "evolve" : "de-volve") + "!</li>");
