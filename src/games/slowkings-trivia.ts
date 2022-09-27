@@ -6,8 +6,8 @@ type AchievementNames = "knowitall" | "captainknowitall";
 class SlowkingsTrivia extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		'knowitall': {name: "Know-It-All", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
-		'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, description: "get every answer for your " +
-			"team and win the game"},
+		'captainknowitall': {name: "Captain Know-It-All", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
+			description: "get every answer for your team and win the game"},
 	};
 	static cachedData: IGameCachedData = {};
 

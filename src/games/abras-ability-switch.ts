@@ -6,8 +6,8 @@ type AchievementNames = "skillswapper" | "captainskillswapper";
 class AbrasAbilitySwitch extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"skillswapper": {name: "Skill Swapper", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-		"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, description: 'get every answer for ' +
-			'your team and win the game'},
+		"captainskillswapper": {name: "Captain Skill Swapper", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
+			description: 'get every answer for your team and win the game'},
 	};
 	static cachedData: IGameCachedData = {};
 

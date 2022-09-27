@@ -7,8 +7,8 @@ type AchievementNames = "achillesheel" | "captainachilles";
 class MagcargosWeakSpot extends QuestionAndAnswer {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"achillesheel": {name: "Achilles Heel", type: 'all-answers', bits: 1000, description: 'get every answer in one game'},
-		"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, description: 'get every answer for your team ' +
-			'and win the game'},
+		"captainachilles": {name: "Captain Achilles", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam',
+			description: 'get every answer for your team and win the game'},
 	};
 	static cachedData: IGameCachedData = {};
 
