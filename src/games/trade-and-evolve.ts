@@ -21,7 +21,7 @@ class TradeAndEvolve extends BattleEliminationTournament {
 	requiredDrop = true;
 	requiredEvolution = true;
 	canReroll = true;
-	firstRoundExtraTime = 5 * 60 * 1000;
+	firstRoundExtraTime = 2 * 60 * 1000;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
 	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
