@@ -295,8 +295,13 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		const times = serverId in defaultTimes && this.room.id in defaultTimes[serverId] ? defaultTimes[serverId][this.room.id].slice() :
 			defaultTime.slice();
 
+		const date = new Date();
+		date.setFullYear(this.selectedYear);
+		date.setMonth(parseInt(month) - 1, 1);
+		const lastDayOfNewMonth = Tools.getLastDayOfMonth(date);
+
 		const days: Dict<ITournamentScheduleDay> = {};
-		for (let i = 1; i <= this.lastDayOfSelectedMonth; i++) {
+		for (let i = 1; i <= lastDayOfNewMonth; i++) {
 			days[i] = {format: "", times};
 		}
 
