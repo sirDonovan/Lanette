@@ -25,7 +25,7 @@ export interface ITournamentScheduleDay {
 }
 
 export interface ITournamentScheduleMonth {
-	days: Dict<ITournamentScheduleDay>;
+	days: Dict<ITournamentScheduleDay | undefined>;
 }
 
 export interface ITournamentScheduleYear {
