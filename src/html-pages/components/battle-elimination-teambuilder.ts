@@ -33,13 +33,13 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	slots: string[] = [];
 	teamBuilderImport: string = "";
 
-	dex: typeof Dex;
+	battleFormatMod: string;
 	roundRequirements: IRoundTeamRequirements;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IBattleEliminationTeambuilderProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
-		this.dex = Dex.getDex(props.game.battleFormat.mod);
+		this.battleFormatMod = props.game.battleFormat.mod;
 
 		this.roundRequirements = {
 			additionsThisRound: 0,
@@ -47,6 +47,10 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			dropsThisRound: 0,
 			evolutionsThisRound: 0,
 		};
+	}
+
+	getDex(): typeof Dex {
+		return Dex.getDex(this.battleFormatMod);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -79,7 +83,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 
 		this.slots = [];
 		for (const name of starterPokemon) {
-			const pokemon = this.dex.getExistingPokemon(name);
+			const pokemon = this.getDex().getExistingPokemon(name);
 			this.slots.push(pokemon.name);
 		}
 
@@ -155,8 +159,8 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		if (this.roundTeamChange && this.roundTeamChange.choices) {
 			const choices = this.roundTeamChange.choices.slice();
 			for (const choice of this.roundTeamChange.choices) {
-				const pokemon = this.dex.getExistingPokemon(choice);
-				const formes = this.dex.getFormes(pokemon);
+				const pokemon = this.getDex().getExistingPokemon(choice);
+				const formes = this.getDex().getFormes(pokemon);
 				for (const forme of formes) {
 					if (!choices.includes(forme) && this.props.game.battleFormat.usablePokemon!.includes(forme)) choices.push(forme);
 				}
@@ -179,7 +183,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		if (!this.roundTeamChange || !this.roundTeamChange.choices || !this.roundTeamChange.choices.includes(name) ||
 			!this.remainingRoundAdditions || this.slots.length === 6) return;
 
-		const pokemon = this.dex.getPokemon(name);
+		const pokemon = this.getDex().getPokemon(name);
 		if (!pokemon || this.slots.includes(pokemon.name)) return;
 
 		this.slots.push(pokemon.name);
@@ -221,13 +225,13 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 
 		const devolve = this.roundRequirements.evolutionsThisRound < 0;
 		for (let i = 0; i < this.slots.length; i++) {
-			const pokemon = this.dex.getExistingPokemon(this.slots[i]);
+			const pokemon = this.getDex().getExistingPokemon(this.slots[i]);
 			if (devolve) {
-				const prevo = this.dex.getPokemon(pokemon.prevo);
+				const prevo = this.getDex().getPokemon(pokemon.prevo);
 				if (prevo && this.props.game.battleFormat.usablePokemon!.includes(prevo.name)) this.availableEvolutionSlots.push(i);
 			} else {
 				for (const name of pokemon.evos) {
-					const evo = this.dex.getPokemon(name);
+					const evo = this.getDex().getPokemon(name);
 					if (evo && this.props.game.battleFormat.usablePokemon!.includes(evo.name)) {
 						this.availableEvolutionSlots.push(i);
 						break;
@@ -250,14 +254,14 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		const index = this.slots.indexOf(from);
 		if (index === -1 || this.roundEvolvedSlots.includes(index)) return;
 
-		const pokemon = this.dex.getPokemon(from);
+		const pokemon = this.getDex().getPokemon(from);
 		if (!pokemon) return;
 
 		for (const name of pokemon.evos) {
-			const evo = this.dex.getPokemon(name);
+			const evo = this.getDex().getPokemon(name);
 			if (!evo) continue;
 
-			const formes = this.dex.getFormes(evo);
+			const formes = this.getDex().getFormes(evo);
 			if (formes.includes(to) && this.props.game.battleFormat.usablePokemon!.includes(to)) {
 				this.slots.splice(index, 1, to);
 				this.roundEvolvedSlots.push(index);
@@ -279,13 +283,13 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		const index = this.slots.indexOf(from);
 		if (index === -1 || this.roundEvolvedSlots.includes(index)) return;
 
-		const pokemon = this.dex.getPokemon(from);
+		const pokemon = this.getDex().getPokemon(from);
 		if (!pokemon) return;
 
-		const prevo = this.dex.getPokemon(pokemon.prevo);
+		const prevo = this.getDex().getPokemon(pokemon.prevo);
 		if (!prevo) return;
 
-		const formes = this.dex.getFormes(prevo);
+		const formes = this.getDex().getFormes(prevo);
 		if (formes.includes(to) && this.props.game.battleFormat.usablePokemon!.includes(to)) {
 			this.slots.splice(index, 1, to);
 			this.roundEvolvedSlots.push(index);
@@ -302,12 +306,12 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	setTeamBuilderImport(): void {
 		const teambuilderImports: string[] = [];
 
-		const includeAbilities = this.dex.getGen() >= 3;
+		const includeAbilities = this.getDex().getGen() >= 3;
 		for (const slot of this.slots) {
-			const pokemon = this.dex.getPokemon(slot);
+			const pokemon = this.getDex().getPokemon(slot);
 			if (!pokemon) continue;
 
-			const ability = includeAbilities ? this.dex.getPokemonUsableAbility(pokemon, this.props.game.battleFormat) : undefined;
+			const ability = includeAbilities ? this.getDex().getPokemonUsableAbility(pokemon, this.props.game.battleFormat) : undefined;
 			teambuilderImports.push("<br /><code>" + pokemon.name + "<br />Ability: " + (ability || "No Ability") + "</code>");
 		}
 
@@ -315,11 +319,11 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	}
 
 	renderPokemon(name: string, slot: number): string {
-		const pokemon = this.dex.getPokemon(name);
+		const pokemon = this.getDex().getPokemon(name);
 		if (!pokemon) return "";
 
 		let html = Dex.getPokemonIcon(pokemon) + "<b>" + pokemon.name + "</b> | " +
-			"<a href='" + this.dex.getPokemonAnalysisLink(pokemon, this.props.game.battleFormat) + "'>Smogon analysis</a>";
+			"<a href='" + this.getDex().getPokemonAnalysisLink(pokemon, this.props.game.battleFormat) + "'>Smogon analysis</a>";
 
 		const additionsOrDrops = this.remainingRoundAdditions || this.remainingRoundDrops ? true : false;
 		if (additionsOrDrops) {
@@ -335,10 +339,10 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 				html += additionsOrDrops ? "&nbsp;" : "<br />";
 
 				for (const evoName of pokemon.evos) {
-					const evo = this.dex.getPokemon(evoName);
+					const evo = this.getDex().getPokemon(evoName);
 					if (!evo) continue;
 
-					const formes = this.dex.getFormes(evo, true);
+					const formes = this.getDex().getFormes(evo, true);
 					for (const forme of formes) {
 						if (!evolutions.includes(forme) && this.props.game.battleFormat.usablePokemon!.includes(forme)) {
 							html += (evolutions.length ? "&nbsp;" : "") + this.getQuietPmButton(this.commandPrefix + ", " +
@@ -350,9 +354,9 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			} else if (this.remainingRoundEvolutions < 0 && pokemon.prevo) {
 				html += additionsOrDrops ? "&nbsp;" : "<br />";
 
-				const prevo = this.dex.getPokemon(pokemon.prevo);
+				const prevo = this.getDex().getPokemon(pokemon.prevo);
 				if (prevo) {
-					const formes = this.dex.getFormes(prevo, true);
+					const formes = this.getDex().getFormes(prevo, true);
 					for (const forme of formes) {
 						if (!evolutions.includes(forme) && this.props.game.battleFormat.usablePokemon!.includes(forme)) {
 							html += (evolutions.length ? "&nbsp;" : "") + this.getQuietPmButton(this.commandPrefix + ", " +
@@ -416,7 +420,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			let changeHtml = "<li>choose " + this.remainingRoundAdditions + (multiple ? " more" : "") + " Pokemon to " +
 				"add to your team!<br />";
 			for (const choice of this.roundTeamChange.choices) {
-				const pokemon = this.dex.getExistingPokemon(choice);
+				const pokemon = this.getDex().getExistingPokemon(choice);
 				if (this.slots.includes(pokemon.name)) continue;
 
 				changeHtml += this.getQuietPmButton(this.commandPrefix + ", " + addPokemonCommand + ", " + choice,
