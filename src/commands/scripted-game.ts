@@ -983,7 +983,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				if (room.game) {
-					if (!room.game.usesTournamentJoin)room.game.removePlayer(user);
+					if (!room.game.usesTournamentJoin) room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.removePlayer(user);
 				}

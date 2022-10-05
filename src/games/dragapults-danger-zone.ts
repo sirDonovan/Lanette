@@ -345,11 +345,12 @@ class DragapultsDangerZone extends ScriptedGame {
 
 	cancelMatchup(loser: Player): void {
 		if (this.timeout) clearTimeout(this.timeout);
+
 		this.canSelect = false;
+		this.currentPlayer = null;
 
 		const text = loser.name + " did not select a Pokemon and was eliminated from the game!";
 		this.on(text, () => {
-			this.currentPlayer = null;
 			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
 		});
 		this.say(text);
