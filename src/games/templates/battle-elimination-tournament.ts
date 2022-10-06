@@ -392,6 +392,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			playerList = this.getPlayerList(this.players);
 			this.debugLog("Players after tournament comparison (" + playerList.length + "): " + playerList.map(x => x.name).join(", "));
 
+			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
+
 			this.start(true);
 		}
 	}
