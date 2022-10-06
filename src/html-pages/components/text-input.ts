@@ -81,10 +81,10 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	submit(input: string): void {
 		if (this.props.stripHtmlCharacters) input = Tools.stripHtmlCharacters(input);
-		this.currentInput = input;
+		this.currentInput = Tools.unescapeHTML(input);
 		this.errors = [];
 
-		this.onSubmit(input);
+		this.onSubmit(this.currentInput);
 
 		if (this.props.validateSubmission) {
 			const validation = this.props.validateSubmission(this.currentInput, this.currentOutput);
@@ -93,9 +93,9 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			if (validation.errors) this.errors = this.errors.concat(validation.errors);
 		}
 
-		if (this.errors.length) {
-			if (!this.props.stripHtmlCharacters) this.currentInput = Tools.stripHtmlCharacters(this.currentInput);
+		this.currentInput = Tools.escapeHTML(this.currentInput);
 
+		if (this.errors.length) {
 			this.props.onErrors(this.errors);
 		} else {
 			this.props.onSubmit(this.currentOutput!);
