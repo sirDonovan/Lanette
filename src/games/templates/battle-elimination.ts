@@ -335,6 +335,9 @@ export abstract class BattleElimination extends ScriptedGame {
 		let tree: IEliminationTree<Player> | null = null;
 
 		if (!players) players = this.shufflePlayers();
+
+		this.debugLog("Generating bracket with the following players (" + players.length + "): " + players.map(x => x.name).join(", "));
+
 		for (const player of players) {
 			if (!tree) {
 				tree = {
@@ -1009,7 +1012,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	playerCanReroll(player: Player): boolean {
-		if (this.rerolls.has(player) || !this.starterPokemon.has(player) || this.playerBattleRooms.has(player) ||
+		if (!this.pokedex.length || this.rerolls.has(player) || !this.starterPokemon.has(player) || this.playerBattleRooms.has(player) ||
 			(player.round! > 1 && !(this.firstRoundByes.has(player) && player.round === 2))) return false;
 
 		return true;

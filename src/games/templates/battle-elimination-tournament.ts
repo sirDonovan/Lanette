@@ -373,6 +373,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			root.destroy();
 		} else {
+			let playerList = this.getPlayerList(this.players);
+			this.debugLog("Players before tournament comparison (" + playerList.length + "): " + playerList.map(x => x.name).join(", "));
+
 			this.playerCap = 0;
 			for (const i in players) {
 				if (!(players[i].id in this.players)) {
@@ -386,7 +389,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				}
 			}
 
-			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
+			playerList = this.getPlayerList(this.players);
+			this.debugLog("Players after tournament comparison (" + playerList.length + "): " + playerList.map(x => x.name).join(", "));
 
 			this.start(true);
 		}
