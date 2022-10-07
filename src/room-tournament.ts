@@ -410,7 +410,7 @@ export class Tournament extends Activity {
 			}
 		}
 
-		if (this.battleRoomGame) {
+		if (this.battleRoomGame && this.updates.bracketData) {
 			if (this.info.isStarted && this.battleRoomGame.onTournamentBracketUpdate) {
 				this.battleRoomGame.onTournamentBracketUpdate(this.players, this.info.bracketData, this.info.isStarted);
 			} else if (!this.info.isStarted && this.info.bracketData.users && this.battleRoomGame.onTournamentUsersUpdate) {
