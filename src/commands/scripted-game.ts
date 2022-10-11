@@ -977,13 +977,19 @@ export const commands: BaseCommandDefinitions = {
 				if (!chatRoom) return;
 
 				if (chatRoom.game) {
-					if (!chatRoom.game.usesTournamentJoin) chatRoom.game.removePlayer(user);
+					if (chatRoom.game.usesTournamentJoin || !(user.id in chatRoom.game.players) ||
+						chatRoom.game.players[user.id].eliminated) return;
+
+					chatRoom.game.removePlayer(user);
 				} else if (chatRoom.userHostedGame) {
 					chatRoom.userHostedGame.removePlayer(user);
 				}
 			} else {
 				if (room.game) {
-					if (!room.game.usesTournamentJoin) room.game.removePlayer(user);
+					if (room.game.usesTournamentJoin || !(user.id in room.game.players) ||
+						room.game.players[user.id].eliminated) return;
+
+					room.game.removePlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.removePlayer(user);
 				}

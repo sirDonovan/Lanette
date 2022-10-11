@@ -1014,12 +1014,10 @@ export class ScriptedGame extends Game {
 	removePlayer(user: User | string, silent?: boolean, notAutoconfirmed?: boolean): void {
 		if (this.isMiniGame) return;
 
-		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
-		if (id in this.players && this.players[id].eliminated) return;
-
 		const player = this.destroyPlayer(user);
 		if (!player) return;
 
+		const id = typeof user === 'string' ? Tools.toId(user) : user.id;
 		if (!silent && !this.leaveNotices.has(id)) {
 			this.sendLeaveNotice(player);
 			this.leaveNotices.add(id);
