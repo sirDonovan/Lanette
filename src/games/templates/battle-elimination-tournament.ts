@@ -277,27 +277,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		if (tournamentStarted) this.createBracketFromClientData(players, clientTournamentData);
 	}
 
-	onTournamentUsersUpdate(players: Dict<Player>, users: string[]): void {
-		const ids: string[] = [];
-		const extraPlayers: string[] = [];
-		for (const user of users) {
-			const id = Tools.toId(user);
-			ids.push(id);
-			if (!(id in this.players)) extraPlayers.push(user);
-		}
-
-		const missingPlayers: Player[] = [];
-		for (const i in this.players) {
-			if (!ids.includes(this.players[i].id)) missingPlayers.push(this.players[i]);
-		}
-
-		if (missingPlayers.length === 1 && extraPlayers.length === 1) {
-			this.debugLog("Missed rename in signups: " + missingPlayers[0].name + " -> " + extraPlayers[0]);
-
-			this.renamePlayer(extraPlayers[0], Tools.toId(extraPlayers[0]), missingPlayers[0].id);
-		}
-	}
-
 	createBracketFromClientData(players: Dict<Player>, clientTournamentData?: IClientTournamentData): void {
 		if (!clientTournamentData || !clientTournamentData.rootNode) return;
 
@@ -373,9 +352,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			root.destroy();
 		} else {
-			let playerList = this.getPlayerList(this.players);
-			this.debugLog("Players before tournament comparison (" + playerList.length + "): " + playerList.map(x => x.name).join(", "));
-
 			this.playerCap = 0;
 			for (const i in players) {
 				if (!(players[i].id in this.players)) {
@@ -388,9 +364,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					this.removePlayer(this.players[i].name, true);
 				}
 			}
-
-			playerList = this.getPlayerList(this.players);
-			this.debugLog("Players after tournament comparison (" + playerList.length + "): " + playerList.map(x => x.name).join(", "));
 
 			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
 
