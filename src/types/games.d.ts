@@ -208,6 +208,7 @@ export interface IGameOptions {
 	ports?: number;
 	teams?: number;
 	format?: string;
+	rules?: string;
 }
 
 export type GameNumberOptions = keyof FilterByType<IGameOptions, number | undefined>;

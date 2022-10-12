@@ -196,11 +196,32 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.setFormat();
 				this.generatePokedex();
 			} catch (e) {
-				this.say("Unable to generate valid Pokemon for the format " + battleFormat.name + ".");
+				this.say("Unable to generate enough valid Pokemon for the format " + battleFormat.name + ".");
 				return false;
 			}
 
 			this.format.nameWithOptions += ": " + battleFormat.nameWithoutGen;
+		}
+
+		if (inputProperties.options.rules) {
+			const rules = inputProperties.options.rules.split("|");
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, Dex.resolveCustomRuleAliases(rules));
+			try {
+				formatid = Dex.validateFormat(formatid);
+			} catch (e) {
+				this.say("Error setting custom rules: " + (e as Error).message);
+				return false;
+			}
+
+			this.battleFormatId = formatid;
+			try {
+				this.setFormat();
+				this.generatePokedex();
+			} catch (e) {
+				this.say("Unable to generate enough valid Pokemon for the format " + Dex.getExistingFormat(this.battleFormatId).name +
+					" with custom rules.");
+				return false;
+			}
 		}
 
 		return true;
