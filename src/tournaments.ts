@@ -130,7 +130,6 @@ export class Tournaments {
 
 		if (!monthsAndYears.length) return;
 
-		// const months = Object.keys(schedule.months).map(x => parseInt(x));
 		let monthAndYear = monthsAndYears[0];
 		let month = monthAndYear.month;
 		monthsAndYears.shift();

@@ -127,7 +127,7 @@ export class Tournament extends Activity {
 
 	willAwardPoints(): boolean {
 		if (this.manuallyEnabledPoints !== undefined) return this.manuallyEnabledPoints;
-		return this.formatAwardsPoints();
+		return this.official || this.formatAwardsPoints();
 	}
 
 	adjustCap(cap?: number): void {
