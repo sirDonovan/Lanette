@@ -1,5 +1,6 @@
 import type { BattleElimination, IRoundTeamRequirements, ITeamChange } from "../../games/templates/battle-elimination";
 import type { Player } from "../../room-activity";
+import type { ModelGeneration } from "../../types/dex";
 import type { HtmlPageBase } from "../html-page-base";
 import { ComponentBase, type IComponentProps } from "./component-base";
 
@@ -7,6 +8,7 @@ export interface IBattleEliminationTeambuilderProps extends IComponentProps {
 	game: BattleElimination;
 	player: Player;
 	rerollCommand: string;
+	modelGeneration: ModelGeneration;
 }
 
 const addPokemonCommand = 'addpokemon';
@@ -322,7 +324,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		const pokemon = this.getDex().getPokemon(name);
 		if (!pokemon) return "";
 
-		let html = Dex.getPokemonIcon(pokemon) + "<b>" + pokemon.name + "</b> | " +
+		let html = Dex.getPokemonModel(pokemon, this.props.modelGeneration) + "<b>" + pokemon.name + "</b> | " +
 			"<a href='" + this.getDex().getPokemonAnalysisLink(pokemon, this.props.game.battleFormat) + "'>Smogon analysis</a>";
 
 		const additionsOrDrops = this.remainingRoundAdditions || this.remainingRoundDrops ? true : false;

@@ -918,6 +918,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	createHtmlPage(player: Player): BattleEliminationPage {
 		const page = new (CommandParser.getGameHtmlPages().battleElimination)(this, player, this.htmlPageCommand, {
+			gen: this.battleFormat.gen,
 			rerollCommand: REROLL_COMMAND,
 			rulesHtml: this.rulesHtml,
 			showBracket: !this.subRoom,

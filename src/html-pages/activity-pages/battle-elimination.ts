@@ -5,6 +5,7 @@ import { BattleEliminationTeambuilder } from "../components/battle-elimination-t
 import { GamePageBase, type IGamePageOptions } from "./game-page-base";
 
 export interface IBattleEliminationPageOptions extends IGamePageOptions {
+	gen: number;
 	rerollCommand: string;
 	rulesHtml: string;
 	showBracket?: boolean;
@@ -41,6 +42,7 @@ export class BattleEliminationPage extends GamePageBase {
 				game: game as BattleElimination,
 				player,
 				rerollCommand: options.rerollCommand,
+				modelGeneration: Dex.getModelGenerationName(options.gen),
 				reRender: () => this.send(),
 			});
 
