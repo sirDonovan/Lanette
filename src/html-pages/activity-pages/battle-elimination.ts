@@ -42,6 +42,7 @@ export class BattleEliminationPage extends GamePageBase {
 				game: game as BattleElimination,
 				player,
 				rerollCommand: options.rerollCommand,
+				gen: options.gen,
 				modelGeneration: Dex.getModelGenerationName(options.gen),
 				reRender: () => this.send(),
 			});

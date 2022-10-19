@@ -6,6 +6,7 @@ import { ComponentBase, type IComponentProps } from "./component-base";
 
 export interface IBattleEliminationTeambuilderProps extends IComponentProps {
 	game: BattleElimination;
+	gen: number;
 	player: Player;
 	rerollCommand: string;
 	modelGeneration: ModelGeneration;
@@ -324,7 +325,14 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		const pokemon = this.getDex().getPokemon(name);
 		if (!pokemon) return "";
 
-		let html = Dex.getPokemonModel(pokemon, this.props.modelGeneration) + "<b>" + pokemon.name + "</b> | " +
+		let html = "";
+		if (this.props.gen < Dex.getGen()) {
+			html += Dex.getPokemonModel(pokemon, this.props.modelGeneration) + "&nbsp;";
+		} else {
+			html += Dex.getPokemonIcon(pokemon);
+		}
+
+		html += "<b>" + pokemon.name + "</b> | " +
 			"<a href='" + this.getDex().getPokemonAnalysisLink(pokemon, this.props.game.battleFormat) + "'>Smogon analysis</a>";
 
 		const additionsOrDrops = this.remainingRoundAdditions || this.remainingRoundDrops ? true : false;
