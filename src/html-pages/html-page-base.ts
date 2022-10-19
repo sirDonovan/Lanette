@@ -65,7 +65,7 @@ export abstract class HtmlPageBase {
 		delete this.pageList[this.userId];
 
 		this.destroyed = true;
-		Tools.unrefProperties(this, ['closed', 'destroyed', 'pageId', 'userName', 'userId']);
+		Tools.unrefProperties(this, ['closed', 'closingSnapshot', 'destroyed', 'pageId', 'userName', 'userId']);
 	}
 
 	open(): void {
@@ -74,10 +74,10 @@ export abstract class HtmlPageBase {
 
 	close(): void {
 		if (!this.closed && !this.closingSnapshot) {
+			this.closed = true;
+
 			const user = Users.get(this.userId);
 			if (user) this.getPmRoom().closeHtmlPage(user, this.pageId);
-
-			this.closed = true;
 
 			if (this.onClose) this.onClose();
 		}
@@ -87,15 +87,15 @@ export abstract class HtmlPageBase {
 
 	temporarilyClose(): void {
 		if (!this.closed) {
+			this.closed = true;
+
 			const user = Users.get(this.userId);
 			if (user) this.getPmRoom().closeHtmlPage(user, this.pageId);
-
-			this.closed = true;
 		}
 	}
 
 	sendClosingSnapshot(): void {
-		if (!this.closed) {
+		if (!this.closed && !this.closingSnapshot) {
 			this.closingSnapshot = true;
 
 			const user = Users.get(this.userId);
@@ -196,6 +196,8 @@ export abstract class HtmlPageBase {
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
+		if (this.destroyed) return;
+
 		for (const component of this.components) {
 			if (component.active && component.componentCommand === componentCommand) {
 				this.usedCommandAfterLastRender = true;

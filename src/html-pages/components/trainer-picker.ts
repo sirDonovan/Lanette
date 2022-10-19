@@ -525,7 +525,7 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 			this.props.reRender();
 
 			Client.getUserDetails(user, updatedUser => {
-				if (this.closed) return;
+				if (this.destroyed) return;
 
 				if (updatedUser.avatar && updatedUser.customAvatar) {
 					this.updateCustomAvatar(updatedUser.avatar);

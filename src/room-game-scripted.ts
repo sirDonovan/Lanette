@@ -751,7 +751,9 @@ export class ScriptedGame extends Game {
 					htmlPage.close();
 				}
 			});
-		} else if (this.usesHtmlPage) {
+		}
+
+		if (this.usesHtmlPage) {
 			for (const i in this.players) {
 				this.players[i].closeHtmlPage();
 			}
@@ -1055,13 +1057,14 @@ export class ScriptedGame extends Game {
 			}
 		}
 
+		const htmlPage = this.htmlPages.get(player);
+		if (htmlPage) {
+			htmlPage.close();
+			this.htmlPages.delete(player);
+		}
+
 		if (this.usesHtmlPage) {
 			player.closeHtmlPage();
-			const htmlPage = this.htmlPages.get(player);
-			if (htmlPage) {
-				htmlPage.close();
-				this.htmlPages.delete(player);
-			}
 		}
 	}
 

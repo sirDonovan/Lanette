@@ -157,6 +157,8 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 	}
 
 	createHtmlPage(player: Player): CardMatchingPage {
+		if (this.htmlPages.has(player)) return this.htmlPages.get(player)!;
+
 		const gameActionLocation = this.getGameActionLocation(player);
 		const page = new (CommandParser.getGameHtmlPages().cardMatching)(this, player, this.htmlPageCommand, {
 			detailLabelWidth: this.detailLabelWidth,

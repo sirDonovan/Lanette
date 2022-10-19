@@ -25,6 +25,7 @@ export abstract class CardHighLow extends CardGame {
 	currentCategory: string = '';
 	detailLabelWidth: number = 50;
 	highOrLow: 'High' | 'Low' = 'High';
+	htmlPages = new Map<Player, CardHighLowPage>();
 	maxPlayers: number = 20;
 	playCommand: string = PLAY_COMMAND;
 	points = new Map<Player, number>();
@@ -70,6 +71,8 @@ export abstract class CardHighLow extends CardGame {
 	}
 
 	createHtmlPage(player: Player): CardHighLowPage {
+		if (this.htmlPages.has(player)) return this.htmlPages.get(player)!;
+
 		const gameActionLocation = this.getGameActionLocation(player);
 		const page = new (CommandParser.getGameHtmlPages().cardHighLow)(this, player, this.htmlPageCommand, {
 			detailLabelWidth: this.detailLabelWidth,
