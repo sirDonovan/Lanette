@@ -161,6 +161,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		const gameActionLocation = this.getGameActionLocation(player);
 		const page = new (CommandParser.getGameHtmlPages().cardMatching)(this, player, this.htmlPageCommand, {
+			customBox: this.getPlayerOrPickedCustomBox(player),
 			detailLabelWidth: this.detailLabelWidth,
 			sendToChat: gameActionLocation === 'chat',
 			showColors: this.usesColors,

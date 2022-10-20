@@ -208,9 +208,15 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
-	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+	getButtonDisabled(options?: IQuietPMButtonOptions): boolean | undefined {
 		let disabled = this.closingSnapshot || this.staffUserView || (options && (options.disabled || options.selectedAndDisabled));
 		if (!disabled && options && !options.enabledReadonly && this.readonly) disabled = true;
+
+		return disabled;
+	}
+
+	getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+		const disabled = this.getButtonDisabled(options);
 
 		let style = options && options.style ? options.style : "";
 		if (options && (options.selected || options.selectedAndDisabled)) {

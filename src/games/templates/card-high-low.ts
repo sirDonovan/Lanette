@@ -75,6 +75,7 @@ export abstract class CardHighLow extends CardGame {
 
 		const gameActionLocation = this.getGameActionLocation(player);
 		const page = new (CommandParser.getGameHtmlPages().cardHighLow)(this, player, this.htmlPageCommand, {
+			customBox: this.getPlayerOrPickedCustomBox(player),
 			detailLabelWidth: this.detailLabelWidth,
 			sendToChat: gameActionLocation === 'chat',
 			showColors: false,

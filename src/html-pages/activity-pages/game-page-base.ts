@@ -1,25 +1,38 @@
 import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
+import type { IGameCustomBox } from "../../types/storage";
+import type { IQuietPMButtonOptions } from "../html-page-base";
 import { ActivityPageBase, type IActivityPageOptions } from "./activity-page-base";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IGamePageOptions extends IActivityPageOptions {
+    customBox?: IGameCustomBox;
     pageName?: string;
 }
 
 export abstract class GamePageBase extends ActivityPageBase {
 	declare activity: ScriptedGame;
 
+    customBox?: IGameCustomBox;
     pageName?: string;
 
 	constructor(activity: ScriptedGame, player: Player, baseCommand: string, options: IGamePageOptions) {
 		super(activity, player, baseCommand, options);
 
+        this.customBox = options.customBox;
         this.pageName = options.pageName;
 	}
 
-    abstract tryCommand(command: string, targets: string[]): void;
-    abstract renderDetails(): string;
+    getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
+        if (this.customBox) {
+            const disabled = this.getButtonDisabled(options);
+
+            if (!options) options = {};
+            options.style = Games.getCustomBoxButtonStyle(this.customBox, 'game', disabled);
+        }
+
+        return super.getQuietPmButton(message, label, options);
+    }
 
     render(): string {
         let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" +
@@ -37,8 +50,12 @@ export abstract class GamePageBase extends ActivityPageBase {
 
 		html += "</center>";
 
-        html += this.renderDetails();
+        let details = this.renderDetails();
+        if (this.customBox) {
+            details = Games.getGameCustomBoxDiv(details, this.customBox);
+        }
 
+        html += details;
         html += "</div>";
 
         return html;
