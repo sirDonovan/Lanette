@@ -21,6 +21,8 @@ export abstract class GamePageBase extends ActivityPageBase {
 
         this.customBox = options.customBox;
         this.pageName = options.pageName;
+
+        if (this.customBox) this.setCloseButton();
 	}
 
     getQuietPmButton(message: string, label: string, options?: IQuietPMButtonOptions): string {
