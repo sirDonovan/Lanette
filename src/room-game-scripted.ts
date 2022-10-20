@@ -1057,14 +1057,16 @@ export class ScriptedGame extends Game {
 			}
 		}
 
-		const htmlPage = this.htmlPages.get(player);
-		if (htmlPage) {
-			htmlPage.close();
-			this.htmlPages.delete(player);
-		}
+		if (!this.ended) {
+			const htmlPage = this.htmlPages.get(player);
+			if (htmlPage) {
+				htmlPage.close();
+				this.htmlPages.delete(player);
+			}
 
-		if (this.usesHtmlPage) {
-			player.closeHtmlPage();
+			if (this.usesHtmlPage) {
+				player.closeHtmlPage();
+			}
 		}
 	}
 
