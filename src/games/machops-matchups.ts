@@ -111,12 +111,12 @@ class MachopsMatchups extends ScriptedGame {
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const pokemonHtml = this.getPokemonHtml(this.currentPokemon);
 				const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 					this.canAttack = true;
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 			}, 5 * 1000);

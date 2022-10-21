@@ -49,7 +49,7 @@ export abstract class MapCurrencyGame extends MapGame {
 				this.displayMapLegend();
 			}
 			this.updateRoundHtml();
-			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

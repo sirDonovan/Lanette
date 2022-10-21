@@ -117,7 +117,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			this.giveStartingBerries(this.players[i]);
 			this.showBerryPiles(this.players[i]);
 		}
-		this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+		this.setTimeout(() => this.nextRound(), 3 * 1000);
 	}
 
 	giveStartingBerries(player: Player): void {
@@ -219,7 +219,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			const finishedText = "All players have finished their turns!";
 			this.on(finishedText, () => {
 				this.canLateJoin = true;
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					let greedentText: string;
 					if (this.greedentTotalForaged > this.maxBerryTotal) {
 						greedentText = "Greedent foraged too many berries and dropped them all!";
@@ -228,7 +228,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 					}
 
 					this.on(greedentText, () => {
-						this.timeout = setTimeout(() => this.endSubGame(), 3 * 1000);
+						this.setTimeout(() => this.endSubGame(), 3 * 1000);
 					});
 					this.say(greedentText);
 				}, 3 * 1000);
@@ -243,7 +243,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;
 			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
-			this.timeout = setTimeout(() => this.nextRound(), 15 * 1000);
+			this.setTimeout(() => this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 
@@ -291,7 +291,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		}
 
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextSubGame(), 3 * 1000);
+			this.setTimeout(() => this.nextSubGame(), 3 * 1000);
 		});
 		this.say(text);
 	}

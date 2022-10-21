@@ -79,7 +79,7 @@ class PanchamPairs extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin && !this.isMiniGame) {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -126,14 +126,14 @@ class PanchamPairs extends ScriptedGame {
 		this.onUhtml(uhtmlName, html, () => {
 			if (!this.canPair) this.canPair = true;
 			if (this.isMiniGame) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.say("Time is up! " + this.getAnswers(""));
 					this.end();
 				}, this.roundTime);
 			} else if (this.options.freejoin) {
 				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
 			} else {
-				this.timeout = setTimeout(() => this.listPossiblePairs(), this.getRoundTime());
+				this.setTimeout(() => this.listPossiblePairs(), this.getRoundTime());
 			}
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
@@ -235,13 +235,13 @@ class PanchamPairs extends ScriptedGame {
 		if (this.isMiniGame) {
 			this.listPossiblePairs();
 		} else if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
+			this.setTimeout(() => this.listPossiblePairs(), 5000);
 		} else {
 			const html = this.getRoundHtml(players => this.options.freejoin ? this.getPlayerPoints(players) :
 				this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			this.onUhtml(uhtmlName, html, () => {
-				this.timeout = setTimeout(() => this.listPossiblePairs(), 5000);
+				this.setTimeout(() => this.listPossiblePairs(), 5000);
 			});
 			this.sayUhtml(uhtmlName, html);
 		}
@@ -307,8 +307,7 @@ class PanchamPairs extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = "pair";
 			const answer = this.getRandomPair()!.join(", ").toLowerCase();
 			const text = Config.commandCharacter + command + " " + answer;

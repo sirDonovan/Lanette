@@ -32,7 +32,7 @@ class SpotlightTeam extends CollectiveTeam {
 				this.winners.set(player, 1);
 			}
 
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.setTimeout(() => this.end(), 5000);
 			return false;
 		}
 

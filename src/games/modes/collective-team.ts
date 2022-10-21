@@ -125,7 +125,7 @@ export class CollectiveTeam {
 
 	onStart(this: CollectiveTeamThis): void {
 		this.setTeams();
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	getTeamPoints(): string {
@@ -150,7 +150,7 @@ export class CollectiveTeam {
 				this.winners.set(player, 1);
 			}
 
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.setTimeout(() => this.end(), 5000);
 			return false;
 		} else {
 			if (newAnswer) {
@@ -236,7 +236,7 @@ const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 			}
 
 			this.answers = [];
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 
 			return true;
 		},

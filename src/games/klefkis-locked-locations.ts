@@ -145,7 +145,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 					this.playerCurrency.set(player, this.playerCurrency.get(player)! + amount);
 				}
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+					this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 				});
 				this.say(text);
 			},
@@ -183,7 +183,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 
 		const text = "**" + space.name + "** has an elimination chance of **" + eliminationChance + "%**!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.checkEliminationChanceOnProperty(player, space, eliminationChance), this.roundTime);
+			this.setTimeout(() => this.checkEliminationChanceOnProperty(player, space, eliminationChance), this.roundTime);
 		});
 		this.say(text);
 	}
@@ -199,7 +199,7 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 	onInsufficientCurrencyToAcquire(property: BoardPropertyEliminationSpace): void {
 		const text = "They do not have enough " + this.currencyPluralName + " so **" + property.name + "** will remain locked!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 		});
 		this.say(text);
 	}

@@ -113,7 +113,7 @@ class LandorusWar extends ScriptedGame {
 
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
 	}
@@ -289,8 +289,7 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 				if (this.getRemainingPlayerCount() < 2) {
 					this.say("Only " + player.name + " the " + this.playerAliases.get(player) + " (" +
 						this.playerPokemon.get(player)!.name + ") remains!");
-					if (this.timeout) clearTimeout(this.timeout);
-					this.timeout = setTimeout(() => this.end(), 5000);
+					this.setTimeout(() => this.end(), 5000);
 					return true;
 				}
 			} else {

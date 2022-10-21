@@ -50,7 +50,7 @@ export abstract class MapDamageGame extends MapGame {
 				this.displayMapLegend();
 			}
 			this.updateRoundHtml();
-			this.timeout = setTimeout(() => this.damagePlayers(), 30 * 1000);
+			this.setTimeout(() => this.damagePlayers(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

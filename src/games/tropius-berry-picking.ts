@@ -125,7 +125,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart(): void {
@@ -181,7 +181,7 @@ class TropiusBerryPicking extends ScriptedGame {
 			}
 			if (this.round > this.roundLimit) {
 				this.say("Tropius flew away!");
-				this.timeout = setTimeout(() => this.end(), 5000);
+				this.setTimeout(() => this.end(), 5000);
 				return;
 			}
 			if (this.getRemainingPlayerCount() < 2) return this.end();
@@ -252,7 +252,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		this.on(smeargleText, () => {
 			this.canEat = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(smeargleText, [], true);
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 
 		if (this.options.freejoin) {
@@ -261,7 +261,7 @@ class TropiusBerryPicking extends ScriptedGame {
 			const html = this.getRoundHtml(players => this.getPlayerNames(players));
 			const uhtmlName = this.uhtmlBaseName + '-round-html';
 			this.onUhtml(uhtmlName, html, () => {
-				this.timeout = setTimeout(() => this.say(smeargleText), 5000);
+				this.setTimeout(() => this.say(smeargleText), 5000);
 			});
 			this.sayUhtml(uhtmlName, html);
 		}
@@ -295,8 +295,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			let answer = '';
 			const keys = this.shuffle(Object.keys(berries));
 			for (const key of keys) {
@@ -353,7 +352,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 					return true;
 				}
 				this.roundEffect = noEffect;
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			} else {
 				if (this.roundBerries.has(player)) return false;
 				this.roundBerries.set(player, berry);

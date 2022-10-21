@@ -117,7 +117,7 @@ export abstract class BoardGame extends ScriptedGame {
 			player.say("You will play as **" + playerLetter + "** for " + this.name + "!");
 		}
 
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	getDisplayedRoundNumber(): number {
@@ -132,7 +132,7 @@ export abstract class BoardGame extends ScriptedGame {
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder));
 			this.onUhtml(uhtmlName, html, () => {
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => this.nextRound(), 5 * 1000);
 			});
 			this.sayUhtml(uhtmlName, html);
 			return;

@@ -23,7 +23,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 	onStart(): void {
 		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
 			" and " + senseRolls.fortune + " based on Absol's senses!");
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onNextRound(): void {
@@ -53,9 +53,9 @@ class AbsolsDiceDisaster extends ScriptedGame {
 			const text = absolSenseText + " Place your bids now with ``" + Config.commandCharacter + "bid``.";
 			this.on(text, () => {
 				this.canBid = true;
-				this.timeout = setTimeout(() => this.endBidding(), this.roundTimer);
+				this.setTimeout(() => this.endBidding(), this.roundTimer);
 			});
-			this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+			this.setTimeout(() => this.say(text), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -69,13 +69,13 @@ class AbsolsDiceDisaster extends ScriptedGame {
 				this.inactivityEnd();
 				return;
 			}
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		} else {
 			if (this.inactiveRounds) this.inactiveRounds = 0;
 
 			const bidText = "**" + this.bestPlayer.name + "** has the highest bid of " + this.bestBid + "!";
 			this.on(bidText, () => {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					const diceText = "The dice landed on " + this.roundDiceRoll + "!";
 					if (this.roundDiceRoll >= this.bestBid) {
 						this.say(diceText);
@@ -88,7 +88,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 					} else {
 						this.say(diceText + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
 						this.bestPlayer!.eliminated = true;
-						this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+						this.setTimeout(() => this.nextRound(), 5 * 1000);
 					}
 				}, 5 * 1000);
 			});

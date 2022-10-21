@@ -35,7 +35,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
+			this.setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
@@ -54,7 +54,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 		const summonText = "Shedinja summoned **" + this.currentPokemon.name + "**!";
 		this.on(summonText, () => {
 			this.canUseMove = true;
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const fledText = this.currentPokemon!.name + " fled!";
 				this.on(fledText, () => this.nextRound());
 				this.say(fledText);
@@ -116,23 +116,23 @@ class ShedinjasWonderTrials extends ScriptedGame {
 			}
 
 			if (highestPoints >= this.maxPoints) {
-				this.timeout = setTimeout(() => this.end(), 3000);
+				this.setTimeout(() => this.end(), 3000);
 				return;
 			}
 
 			if (this.round > 20) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.say("We've reached the end of the game!");
 					this.maxPoints = highestPoints;
 				}, 3000);
-				this.timeout = setTimeout(() => this.end(), 6000);
+				this.setTimeout(() => this.end(), 6000);
 				return;
 			}
 		}
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.generatePokemon(), 5 * 1000);
+			this.setTimeout(() => this.generatePokemon(), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

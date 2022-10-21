@@ -22,7 +22,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 
 	onSignups(): void {
 		if (!this.format.inputOptions.points) this.options.points = 30;
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 10000);
+		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 10000);
 	}
 
 	onNextRound(): void {
@@ -61,7 +61,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.displayStones(), 5000);
+			this.setTimeout(() => this.displayStones(), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -85,7 +85,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-stones';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canMine = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

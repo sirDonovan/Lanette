@@ -88,7 +88,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
+		this.setTimeout(() => this.nextRound(), 10 * 1000);
 	}
 
 	onNextRound(): void {
@@ -127,9 +127,9 @@ class SerperiorLengthyChains extends ScriptedGame {
 			const text = "Make a chain of **" + this.category + "** " + (this.dataType === 'moves' ? "moves" : "Pokemon") + "!";
 			this.on(text, () => {
 				this.canChain = true;
-				this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+				this.setTimeout(() => this.nextRound(), this.getRoundTime());
 			});
-			this.timeout = setTimeout(() => this.say(text), 5000);
+			this.setTimeout(() => this.say(text), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

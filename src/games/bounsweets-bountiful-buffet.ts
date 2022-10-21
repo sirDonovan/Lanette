@@ -119,13 +119,13 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const roundUhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(roundUhtmlName, roundHtml, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const mealsHtml = "<center>" + this.getCustomBoxDiv("<h3>Current meals</h3>" + mealNames.join("&nbsp;|&nbsp;")) +
 					"</center>";
 				const mealsUhtmlName = this.uhtmlBaseName + '-round-meals';
 				this.onUhtml(mealsUhtmlName, mealsHtml, () => {
 					this.canSelect = true;
-					this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+					this.setTimeout(() => this.nextRound(), 30 * 1000);
 				});
 				this.sayUhtml(mealsUhtmlName, mealsHtml);
 			}, 5000);

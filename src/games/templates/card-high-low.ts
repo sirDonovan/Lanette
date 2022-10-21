@@ -145,9 +145,9 @@ export abstract class CardHighLow extends CardGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-score';
 		this.onUhtml(uhtmlName, html, () => {
 			if (ended) {
-				this.timeout = setTimeout(() => this.end(), 5000);
+				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -176,7 +176,7 @@ export abstract class CardHighLow extends CardGame {
 				"**!";
 			this.on(text, () => {
 				this.canPlay = true;
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.scoreRound();
 				}, this.sampleOne(this.roundTimes));
 			});

@@ -122,7 +122,7 @@ const commands: GameCommandDefinitions<EggToss> = {
 			this.lastHolder = this.currentHolder;
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
 			if (targetUser.id === Users.self.id) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					const selectedUser = this.selectUser();
 					if (selectedUser) {
 						this.say(Config.commandCharacter + "pass " + selectedUser.name);

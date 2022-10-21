@@ -43,7 +43,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 10 * 1000);
+			this.setTimeout(() => this.nextRound(), 10 * 1000);
 		}
 	}
 
@@ -73,7 +73,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 			} else {
 				const text = "No one reeled in!";
 				this.on(text, () => this.nextRound());
-				this.timeout = setTimeout(() => this.say(text), 5000);
+				this.setTimeout(() => this.say(text), 5000);
 			}
 			return;
 		}
@@ -111,9 +111,9 @@ class WishiwashisStatFishing extends ScriptedGame {
 			"earned") + " its " + this.statNames[stat] + " (" + statPoints + ")!</center>");
 		this.onUhtml(uhtmlName, html, () => {
 			if (points >= this.maxPoints) {
-				this.timeout = setTimeout(() => this.end(), 5000);
+				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -131,10 +131,10 @@ class WishiwashisStatFishing extends ScriptedGame {
 			const reelUhtmlName = this.uhtmlBaseName + '-reel';
 			this.onUhtml(reelUhtmlName, reelHtml, () => {
 				this.canReel = true;
-				this.timeout = setTimeout(() => this.scoreRound(), 5 * 1000);
+				this.setTimeout(() => this.scoreRound(), 5 * 1000);
 			});
 			const time = this.sampleOne([7000, 8000, 9000, 10000, 11000]);
-			this.timeout = setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);
+			this.setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);
 		});
 		this.sayUhtml(uhtmlName, roundHtml);
 	}

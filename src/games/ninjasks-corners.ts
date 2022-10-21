@@ -25,7 +25,7 @@ class NinjasksCorners extends ScriptedGame {
 	onSignups(): void {
 		if (this.options.freejoin) {
 			this.maxRound = 0;
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -76,12 +76,12 @@ class NinjasksCorners extends ScriptedGame {
 			this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const text = "The corner is **" + color + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(color, [], true);
-					this.timeout = setTimeout(() => this.checkRoundTravels(), this.getRoundTime());
+					this.setTimeout(() => this.checkRoundTravels(), this.getRoundTime());
 				});
 				this.say(text);
 			}, this.sampleOne([4000, 5000, 6000]));
@@ -112,8 +112,7 @@ class NinjasksCorners extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = "travel";
 			const answer = this.color.toLowerCase();
 			const text = Config.commandCharacter + command + " " + answer;

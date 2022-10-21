@@ -47,7 +47,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onStart(): void {
@@ -109,13 +109,13 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const text = "Poipole opened a portal to a **" + Dex.getLocationTypeNames()[type] + " location** in " +
 					"**" + Dex.getRegionNames()[region] + "**!";
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", this.roundLocations, true);
-					this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+					this.setTimeout(() => this.nextRound(), this.getRoundTime());
 				});
 				this.say(text);
 			}, 5000);
@@ -137,8 +137,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = "travel";
 			let answer = this.sampleOne(this.roundLocations);
 			let text = Config.commandCharacter + command + " " + answer.toLowerCase();

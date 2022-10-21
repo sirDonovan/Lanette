@@ -80,7 +80,7 @@ class TapusTerrains extends ScriptedGame {
 		if (this.options.freejoin) {
 			this.roundTime = 3 * 1000;
 			this.terrainDisplayTime = 3 * 1000;
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
 
@@ -171,26 +171,26 @@ class TapusTerrains extends ScriptedGame {
 					terrains[this.currentTerrain!] + '</b> type Pokemon)!<br />&nbsp;</center></div>';
 				const terrainUhtmlName = this.uhtmlBaseName + '-terrain';
 				this.onUhtml(terrainUhtmlName, terrainHtml, () => {
-					this.timeout = setTimeout(() => {
+					this.setTimeout(() => {
 						const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
 						this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 							this.canJump = true;
 							if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
-							this.timeout = setTimeout(() => this.nextRound(), roundTime);
+							this.setTimeout(() => this.nextRound(), roundTime);
 						});
 						this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 					}, roundTime);
 				});
-				this.timeout = setTimeout(() => this.sayUhtml(terrainUhtmlName, terrainHtml), this.terrainDisplayTime);
+				this.setTimeout(() => this.sayUhtml(terrainUhtmlName, terrainHtml), this.terrainDisplayTime);
 			});
 			this.sayUhtml(roundUhtmlName, roundHtml);
 		} else {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const uhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(uhtmlName, pokemonHtml, () => {
 					this.canJump = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], false);
-					this.timeout = setTimeout(() => this.nextRound(), roundTime);
+					this.setTimeout(() => this.nextRound(), roundTime);
 				});
 				this.sayUhtmlAuto(uhtmlName, pokemonHtml);
 			}, roundTime);
@@ -225,8 +225,7 @@ class TapusTerrains extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player): void {
 		if (!this.isValidJump()) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = "jump";
 			const text = Config.commandCharacter + command;
 			this.on(text, () => {
@@ -260,7 +259,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 						return true;
 					} else {
 						this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
-						this.timeout = setTimeout(() => {
+						this.setTimeout(() => {
 							this.roundJumps.clear();
 							this.nextRound();
 						}, 3 * 1000);

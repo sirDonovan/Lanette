@@ -55,7 +55,7 @@ class TrubbishsTrash extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
 
@@ -73,7 +73,7 @@ class TrubbishsTrash extends ScriptedGame {
 		const text = "Trubbish found **" + moves.join(", ") + "**!";
 		this.on(text, () => {
 			this.canTrash = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -129,15 +129,15 @@ class TrubbishsTrash extends ScriptedGame {
 			this.roundTrashes.clear();
 			this.roundMoves.clear();
 			if (highestPoints >= this.maxPoints) {
-				this.timeout = setTimeout(() => this.end(), 3000);
+				this.setTimeout(() => this.end(), 3000);
 				return;
 			}
 
 			if (this.round > this.roundLimit) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.say("We've reached the end of the game!");
 					this.maxPoints = highestPoints;
-					this.timeout = setTimeout(() => this.end(), 3000);
+					this.setTimeout(() => this.end(), 3000);
 				}, 3000);
 				return;
 			}
@@ -145,7 +145,7 @@ class TrubbishsTrash extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.generateMoves(), this.revealTime);
+			this.setTimeout(() => this.generateMoves(), this.revealTime);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

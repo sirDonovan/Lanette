@@ -83,7 +83,7 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 	onSignups(): void {
 		this.options.points = 1000;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
-		this.timeout = setTimeout(() => this.generateNewDisplay(), 10 * 1000);
+		this.setTimeout(() => this.generateNewDisplay(), 10 * 1000);
 	}
 
 	onEnd(): void {
@@ -210,8 +210,7 @@ const commands: GameCommandDefinitions<TrevenantsTrickOrTreat> = {
 				this.generateNewDisplay();
 			} else {
 				this.display();
-				if (this.timeout) clearTimeout(this.timeout);
-				this.timeout = setTimeout(() => this.generateNewDisplay(), 60 * 1000);
+				this.setTimeout(() => this.generateNewDisplay(), 60 * 1000);
 			}
 
 			return true;

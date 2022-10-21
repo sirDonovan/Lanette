@@ -93,11 +93,11 @@ class HitmonchansHangman extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			});
 			this.say(text);
 		} else {
-			this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => this.nextRound(), this.updateHintTime);
 		}
 	}
 

@@ -12,7 +12,7 @@ class PonytasPinataParty extends ScriptedGame {
 	roundTimes: number[] = [4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000];
 
 	onSignups(): void {
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onMaxRound(): void {
@@ -37,11 +37,11 @@ class PonytasPinataParty extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const text = "A Piñata appeared!";
 				this.on(text, () => {
 					this.canHit = true;
-					this.timeout = setTimeout(() => this.breakPinata(), this.sampleOne(this.roundTimes));
+					this.setTimeout(() => this.breakPinata(), this.sampleOne(this.roundTimes));
 				});
 				this.say(text);
 			}, 5000);
@@ -67,7 +67,7 @@ class PonytasPinataParty extends ScriptedGame {
 			}
 		}
 
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onEnd(): void {

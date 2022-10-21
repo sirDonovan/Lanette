@@ -77,7 +77,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 	onSignups(): void {
 		if (!this.isMiniGame) {
-			if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+			if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -388,11 +388,11 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 		if (typeof roundText === 'string') {
 			this.on(roundText, () => {
-				this.timeout = setTimeout(() => sayHint(), this.beforeNextRoundTime);
+				this.setTimeout(() => sayHint(), this.beforeNextRoundTime);
 			});
 			this.say(roundText);
 		} else if (this.cooldownBetweenRounds) {
-			this.timeout = setTimeout(() => sayHint(), this.cooldownBetweenRounds);
+			this.setTimeout(() => sayHint(), this.cooldownBetweenRounds);
 		} else {
 			sayHint();
 		}
@@ -428,8 +428,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 					this.displayAnswers();
 					this.answers = [];
 					if (this.answerTimeout) clearTimeout(this.answerTimeout);
-					if (this.timeout) clearTimeout(this.timeout);
-					this.timeout = setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => this.nextRound(), 5000);
 				}
 				return false;
 			}
@@ -528,8 +527,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = this.answerCommands ? this.answerCommands[0] : "g";
 			let answer = this.sampleOne(this.answers);
 			let text = Config.commandCharacter + command + " " + answer.toLowerCase();
@@ -622,7 +620,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					return true;
 				} else {
 					this.answers = [];
-					this.timeout = setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => this.nextRound(), 5000);
 				}
 			} else {
 				if (this.allowRepeatCorrectAnswers) {
@@ -640,7 +638,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					if (!this.allowRepeatCorrectAnswers) this.removeAnswer(answer);
 				}
 
-				if (!this.answers.length) this.timeout = setTimeout(() => this.nextRound(), 5000);
+				if (!this.answers.length) this.setTimeout(() => this.nextRound(), 5000);
 			}
 
 			return true;

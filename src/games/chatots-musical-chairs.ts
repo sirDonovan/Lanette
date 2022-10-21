@@ -45,18 +45,18 @@ class ChatotsMusicalChairs extends ScriptedGame {
 			const startText = "The music has started! There " + (roundChairs === 1 ? "is **1 chair**" :
 				"are **" + roundChairs + " chairs**") + " remaining.";
 			this.on(startText, () => {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					const stopText = "**The music stopped!**";
 					this.on(stopText, () => {
 						this.roundChairs = roundChairs;
 					});
 					this.say(stopText);
 
-					this.timeout = setTimeout(() => this.stopMusic(), 5 * 1000);
+					this.setTimeout(() => this.stopMusic(), 5 * 1000);
 				}, this.sampleOne(this.roundTimes));
 			});
 
-			this.timeout = setTimeout(() => this.say(startText), 5 * 1000);
+			this.setTimeout(() => this.say(startText), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

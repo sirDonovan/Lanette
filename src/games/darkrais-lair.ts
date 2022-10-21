@@ -302,7 +302,7 @@ class DarkraisLair extends MapGame {
 
 		if (emptyTeams >= this.teamCount - 1) {
 			this.say("Only one team remains!");
-			this.timeout = setTimeout(() => this.end(), 5000);
+			this.setTimeout(() => this.end(), 5000);
 			return;
 		}
 
@@ -319,7 +319,7 @@ class DarkraisLair extends MapGame {
 			if (this.round === 1) this.displayMapLegend();
 			if (!this.canMove) this.canMove = true;
 			this.updateRoundHtml();
-			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

@@ -75,9 +75,9 @@ class JigglypuffsDodgeball extends ScriptedGame {
 			const text = "**THROW**";
 			this.on(text, () => {
 				this.throwTime = true;
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => this.nextRound(), 5 * 1000);
 			});
-			this.timeout = setTimeout(() => this.say(text), time);
+			this.setTimeout(() => this.say(text), time);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

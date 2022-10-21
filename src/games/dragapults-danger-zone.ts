@@ -150,7 +150,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				this.canHide = true;
 				this.onCommands([HIDE_COMMAND], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
 					() => this.checkPlayerLocations());
-				this.timeout = setTimeout(() => this.checkPlayerLocations(), 60 * 1000);
+				this.setTimeout(() => this.checkPlayerLocations(), 60 * 1000);
 			});
 			this.say(text);
 		} else {
@@ -171,7 +171,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				usedLocations.push(location);
 			}
 
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -226,7 +226,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
 				return;
@@ -255,7 +255,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				const html = this.getRoundHtml(players => this.getPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
 				return;
@@ -273,7 +273,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		this.on(fireText, () => {
 			this.canFire = true;
-			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.say(fireText);
 	}
@@ -338,7 +338,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			Config.commandCharacter + "select [Pokemon]``!";
 		this.on(text, () => {
 			this.canSelect = true;
-			this.timeout = setTimeout(() => this.calculateMatchup(), 30 * 1000);
+			this.setTimeout(() => this.calculateMatchup(), 30 * 1000);
 		});
 		this.say(text);
 	}
@@ -351,7 +351,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		const text = loser.name + " did not select a Pokemon and was eliminated from the game!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+			this.setTimeout(() => this.nextRound(), 3 * 1000);
 		});
 		this.say(text);
 	}
@@ -368,7 +368,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			const text = "Neither player selected a Pokemon!";
 			this.on(text, () => {
 				this.currentPlayer = null;
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => this.nextRound(), 5 * 1000);
 			});
 			this.say(text);
 			return;
@@ -408,14 +408,14 @@ class DragapultsDangerZone extends ScriptedGame {
 		if (tie && this.rematchCount < MAX_REMATCHES) {
 			this.rematchCount++;
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.startMatchup(this.matchupPlayers), 3 * 1000);
+				this.setTimeout(() => this.startMatchup(this.matchupPlayers), 3 * 1000);
 			});
 		} else {
 			if (this.rematchCount) this.rematchCount = 0;
 			this.currentPlayer = null;
 
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+				this.setTimeout(() => this.nextRound(), 3 * 1000);
 			});
 		}
 
@@ -496,7 +496,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 
 		this.on(text, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				if (hitPlayer) {
 					this.say(hitPlayer.name + " was there!");
 					if (hitPlayer.eliminated) {

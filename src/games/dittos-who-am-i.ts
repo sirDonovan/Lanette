@@ -67,7 +67,7 @@ class DittosWhoAmI extends ScriptedGame {
 		const text = "Each round, you must guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
 			"know what Pokemon you are, you may guess that instead with ``" + Config.commandCharacter + "g [Pokemon]``!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
 	}
@@ -401,7 +401,7 @@ class DittosWhoAmI extends ScriptedGame {
 			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.getRemainingPlayers(this.playerOrder),
 				"Round " + this.dittoRound);
 			this.onUhtml(uhtmlName, html, () => {
-				this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => this.nextRound(), 5 * 1000);
 			});
 			this.sayUhtml(uhtmlName, html);
 
@@ -428,7 +428,7 @@ class DittosWhoAmI extends ScriptedGame {
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
-			this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+			this.setTimeout(() => this.nextRound(), this.roundTime);
 		});
 		this.say(text);
 	}
@@ -489,8 +489,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 				}
 			}
 
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+			this.setTimeout(() => this.nextRound(), 3 * 1000);
 
 			return true;
 		},

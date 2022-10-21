@@ -239,6 +239,16 @@ export abstract class Activity {
 		return this.subRoom || this.pmRoom;
 	}
 
+	setTimeout(callback: () => void, time: number): void {
+		if (this.timeout) clearTimeout(this.timeout);
+
+		this.timeout = setTimeout(() => {
+			if (this.ended) return;
+
+			callback();
+		}, time);
+	}
+
 	destroyPlayers(): void {
 		for (const i in this.players) {
 			this.players[i].destroy();

@@ -305,7 +305,7 @@ export class Vote extends ScriptedGame {
 
 		this.onHtml(html, () => {
 			this.canVote = true;
-			this.timeout = setTimeout(() => this.endVoting(), timeLimit);
+			this.setTimeout(() => this.endVoting(), timeLimit);
 		});
 		this.sayHtml(html);
 		this.updateVotesHtml(undefined, true);
@@ -319,7 +319,7 @@ export class Vote extends ScriptedGame {
 
 		this.canVote = false;
 		this.updateVotesHtml(() => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const votes: {formatid: string, anonymous: boolean, player: Player}[] = [];
 				this.votes.forEach((vote, player) => {
 					votes.push({formatid: vote.format, anonymous: vote.anonymous, player});

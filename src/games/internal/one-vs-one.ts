@@ -34,7 +34,7 @@ export class OneVsOne extends ScriptedGame {
 			challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
 			this.canAcceptChallenge = true;
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				this.say(this.defender!.name + " failed to accept the challenge in time!");
 				this.forceEnd(Users.self);
 			}, 2 * 60 * 1000);
@@ -103,12 +103,12 @@ export class OneVsOne extends ScriptedGame {
 
 		if (this.defender.eliminated) {
 			this.say(this.defender.name + " has left the game!");
-			this.timeout = setTimeout(() => this.end(), 5 * 1000);
+			this.setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
 		if (this.challenger.eliminated) {
 			this.say(this.challenger.name + " has left the game!");
-			this.timeout = setTimeout(() => this.end(), 5 * 1000);
+			this.setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
 
@@ -141,7 +141,7 @@ export class OneVsOne extends ScriptedGame {
 				game.sendJoinNotice(this.challenger);
 			}
 
-			this.timeout = setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
+			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

@@ -52,7 +52,7 @@ class FeebasChainFishing extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		}
 	}
 
@@ -127,10 +127,10 @@ class FeebasChainFishing extends ScriptedGame {
 			const reelUhtmlName = this.uhtmlBaseName + '-reel';
 			this.onUhtml(reelUhtmlName, reelHtml, () => {
 				this.canReel = true;
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			});
 			const time = this.sampleOne([8000, 9000, 10000]);
-			this.timeout = setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);
+			this.setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);
 		});
 		this.sayUhtml(roundUhtmlName, roundHtml);
 	}

@@ -63,7 +63,7 @@ class TaurosSafariZone extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin) {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				this.nextRound();
 			}, 5000);
 		}
@@ -105,7 +105,7 @@ class TaurosSafariZone extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -155,15 +155,15 @@ class TaurosSafariZone extends ScriptedGame {
 			this.roundCatches.clear();
 			this.roundPokemon.clear();
 			if (highestPoints >= this.maxPoints) {
-				this.timeout = setTimeout(() => this.end(), 3000);
+				this.setTimeout(() => this.end(), 3000);
 				return;
 			}
 
 			if (this.round > this.roundLimit) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.say("We've reached the end of the game!");
 					this.maxPoints = highestPoints;
-					this.timeout = setTimeout(() => this.end(), 3000);
+					this.setTimeout(() => this.end(), 3000);
 				}, 3000);
 				return;
 			}
@@ -171,7 +171,7 @@ class TaurosSafariZone extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.generatePokemon(), this.revealTime);
+			this.setTimeout(() => this.generatePokemon(), this.revealTime);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

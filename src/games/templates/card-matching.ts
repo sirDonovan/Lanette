@@ -470,13 +470,13 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
 
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const timeAfterWarning = this.turnTimeLimit - this.turnPmWarningTime;
 				const timeAfterWarningString = Tools.toDurationString(timeAfterWarning);
 				player!.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString +
 					" of your turn left!");
 
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					if (!player!.eliminated) {
 						if (this.finitePlayerCards) {
 							if (this.addPlayerInactiveRound(player!)) {
@@ -671,7 +671,7 @@ export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> exte
 
 		if (!play) throw new Error(botPlayer.name + " does not have a card to play");
 
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const text = Config.commandCharacter + "play " + play;
 			this.on(text, () => {
 				botPlayer.useCommand("play", play);

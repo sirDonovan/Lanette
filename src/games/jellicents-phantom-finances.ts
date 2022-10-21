@@ -171,7 +171,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 				}
 
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+					this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 				});
 				this.say(text);
 			},
@@ -185,7 +185,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 					this.playerCurrency.set(player, this.playerCurrency.get(player)! + amount);
 				}
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+					this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 				});
 				this.say(text);
 			},
@@ -236,14 +236,14 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		if (this.acquireProperties) {
 			const text = "They do not have enough " + this.currencyPluralName + " so an auction will begin!";
 			this.on(text, () => {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.propertyToAcquire = property;
 					this.beginAuction();
 				}, this.roundTime);
 			});
 			this.say(text);
 		} else {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				this.propertyToAcquire = property;
 				this.beginAuction();
 			}, this.roundTime);
@@ -257,7 +257,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		this.say("Place your bids for **" + this.propertyToAcquire!.name + "** (cost: **" + this.propertyToAcquire!.cost + " " +
 			POKE_DOLLAR + "**) with ``" + Config.commandCharacter + "bid [amount]``!");
 		this.canBid = true;
-		this.timeout = setTimeout(() => this.sellProperty(), 10 * 1000);
+		this.setTimeout(() => this.sellProperty(), 10 * 1000);
 	}
 
 	sellProperty(): void {
@@ -272,7 +272,7 @@ class JellicentsPhantomFinances extends BoardPropertyGame<IBoardSpaces> {
 		} else {
 			this.say("No one bid for **" + this.propertyToAcquire!.name + "**!");
 		}
-		this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+		this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 	}
 }
 
@@ -288,17 +288,19 @@ const commands: GameCommandDefinitions<JellicentsPhantomFinances> = {
 				player.say("You cannot bid more " + POKE_DOLLAR + " than you currently have!");
 				return false;
 			}
+
 			if (amount % BID_MULTIPLE !== 0) {
 				player.say("You must bid by a multiple of " + BID_MULTIPLE + " " + POKE_DOLLAR + ".");
 				return false;
 			}
+
 			this.highestBidder = player;
 			this.highestBidAmount = amount;
 			if (this.timeout) clearTimeout(this.timeout);
 			this.sayUhtml(this.auctionUhtmlName, "<b>Bidding for</b>: " + this.propertyToAcquire!.name + " (worth " +
 				this.propertyToAcquire!.cost + " " + POKE_DOLLAR + ")<br /><br />The current highest bid is <b>" + amount + " " +
 				POKE_DOLLAR + "</b> from <b>" + player.name + "</b>!");
-			this.timeout = setTimeout(() => this.sellProperty(), 5 * 1000);
+			this.setTimeout(() => this.sellProperty(), 5 * 1000);
 			return true;
 		},
 	},

@@ -80,12 +80,12 @@ export class BotChallenge extends ScriptedGame {
 
 		if (this.defender.eliminated) {
 			this.say(this.defender.name + " has left the game!");
-			this.timeout = setTimeout(() => this.end(), 5 * 1000);
+			this.setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
 		if (this.challenger.eliminated) {
 			this.say(this.challenger.name + " has left the game!");
-			this.timeout = setTimeout(() => this.end(), 5 * 1000);
+			this.setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
 
@@ -121,7 +121,7 @@ export class BotChallenge extends ScriptedGame {
 				game.sendJoinNotice(this.challenger);
 			}
 
-			this.timeout = setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
+			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

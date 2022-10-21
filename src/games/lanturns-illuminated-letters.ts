@@ -137,7 +137,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 			return;
 		}
 
-		this.timeout = setTimeout(() => this.nextRound(), this.updateHintTime);
+		this.setTimeout(() => this.nextRound(), this.updateHintTime);
 	}
 
 	getDisplayedRoundNumber(): number {

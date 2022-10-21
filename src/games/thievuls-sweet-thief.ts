@@ -18,16 +18,13 @@ class ThievulsSweetThief extends ScriptedGame {
 		if (!this.started || player.eliminated || player !== this.currentHolder) return;
 		this.eliminatePlayer(player);
 		this.say(player.name + " was DQed for changing their username while holding the sweets!");
-
-		if (this.timeout) clearTimeout(this.timeout);
-		this.timeout = setTimeout(() => this.nextRound(), 5000);
+		this.setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onRemovePlayer(player: Player): void {
 		if (player === this.currentHolder) {
 			this.say(player.name + " left the game while holding the sweets!");
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
@@ -52,7 +49,7 @@ class ThievulsSweetThief extends ScriptedGame {
 			}
 
 			if (this.getRemainingPlayerCount() < 2) return this.end();
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
@@ -66,7 +63,7 @@ class ThievulsSweetThief extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const holder = this.shufflePlayers()[0];
 				const eggText = "Thievul hid the sweets with **" + holder.name + "**!";
 				this.on(eggText, () => {
@@ -79,7 +76,7 @@ class ThievulsSweetThief extends ScriptedGame {
 
 					this.currentHolder = holder;
 					this.canSteal = true;
-					this.timeout = setTimeout(() => {
+					this.setTimeout(() => {
 						this.canSteal = false;
 						this.takeBackSweets();
 					}, time);

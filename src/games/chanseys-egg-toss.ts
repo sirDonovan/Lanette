@@ -80,7 +80,7 @@ class ChanseysEggToss extends ScriptedGame {
 		}
 
 		if (this.getRemainingPlayerCount() < 2) return this.end();
-		this.timeout = setTimeout(() => this.nextRound(), 5000);
+		this.setTimeout(() => this.nextRound(), 5000);
 	}
 
 	onNextRound(): void {
@@ -94,7 +94,7 @@ class ChanseysEggToss extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const holder = this.shufflePlayers()[0];
 				const eggText = "Chansey handed the egg to **" + holder.name + "**!";
 				this.on(eggText, () => {
@@ -106,11 +106,11 @@ class ChanseysEggToss extends ScriptedGame {
 					}
 					this.giveEgg(holder);
 					this.canToss = true;
-					this.timeout = setTimeout(() => {
+					this.setTimeout(() => {
 						const boomText = "**BOOOOOM**";
 						this.on(boomText, () => {
 							this.canToss = false;
-							this.timeout = setTimeout(() => this.explodeEgg(), 3000);
+							this.setTimeout(() => this.explodeEgg(), 3000);
 						});
 						this.say(boomText);
 					}, time);

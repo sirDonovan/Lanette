@@ -74,7 +74,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		this.playerLocations.set(player, this.getSpaceLocation(this.startingSpace)!);
 		const text = "They hop on the Flying Taxi and advance to " + this.startingSpace.name + "!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 		});
 		this.say(text);
 	},
@@ -83,7 +83,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		this.escapeFromJailCards.set(player, getOutOfJailCards + 1);
 		const text = "They draw a " + this.escapeFromJailCard + "!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 		});
 		this.say(text);
 	},
@@ -96,7 +96,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const text = "They slip on an Inkay and go back **" + (-1 * spaces) + "** space" + (spaces < -1 ? "s" : "") + " to **" +
 			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.onSpaceLanding(player, spaces, locationAfterMovement, true), this.roundTime);
+			this.setTimeout(() => this.onSpaceLanding(player, spaces, locationAfterMovement, true), this.roundTime);
 		});
 		this.say(text);
 	},
@@ -132,7 +132,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 			if (reachedMaxCurrency) {
 				this.onMaxCurrency(player);
 			} else {
-				this.timeout = setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true),
+				this.setTimeout(() => this.onSpaceLanding(player, passedSpaces.length, locationAfterMovement, true),
 					this.roundTime);
 			}
 		});
@@ -148,7 +148,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 			if (this.maxCurrency && currency >= this.maxCurrency) {
 				this.onMaxCurrency(player);
 			} else {
-				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+				this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 			}
 		});
 		this.say(text);
@@ -164,7 +164,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const text = "An Abra appeared and teleported them to **" +
 			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.onSpaceLanding(player, spacesMoved, locationAfterMovement, true), this.roundTime);
+			this.setTimeout(() => this.onSpaceLanding(player, spacesMoved, locationAfterMovement, true), this.roundTime);
 		});
 		this.say(text);
 	},
@@ -175,7 +175,7 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		if (this.currentPlayerReRoll) this.currentPlayerReRoll = false;
 		const text = "They are caught trying to hack " + Users.self.name + " and are sent to " + this.jailSpace.name + "!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+			this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 		});
 		this.say(text);
 	},
@@ -348,7 +348,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 					}
 					this.playersInJail.splice(this.playersInJail.indexOf(player), 1);
 					this.on(text, () => {
-						this.timeout = setTimeout(() => this.rollDice(player), this.roundTime);
+						this.setTimeout(() => this.rollDice(player), this.roundTime);
 					});
 					this.say(text);
 				} else {
@@ -356,7 +356,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 						this.currencyPluralName + " to escape and have been eliminated from the game!";
 					this.on(text, () => {
 						this.eliminatePlayer(player);
-						this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+						this.setTimeout(() => this.nextRound(), this.roundTime);
 					});
 					this.say(text);
 				}
@@ -369,7 +369,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 						(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
 						Config.commandCharacter + "escape``)!";
 					this.on(text, () => {
-						this.timeout = setTimeout(() => {
+						this.setTimeout(() => {
 							this.canRollOrEscapeJail = false;
 							this.rollDice(player);
 						}, 30 * 1000);
@@ -380,7 +380,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 					const text = "This is **" + player.name + "**'s " + Tools.toNumberOrderString(turnsInJail) + " turn in " +
 						this.jailSpace.name + ", but they cannot escape so they must roll!";
 					this.on(text, () => {
-						this.timeout = setTimeout(() => this.rollDice(player), this.roundTime);
+						this.setTimeout(() => this.rollDice(player), this.roundTime);
 					});
 					this.say(text);
 				}
@@ -396,7 +396,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				const text = "**" + player.name + "** rolled [ " + this.dice[0] + " ] [ " + this.dice[1] + " ] and failed to get out of " +
 					this.jailSpace.name + "!";
 				this.on(text, () => {
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+					this.setTimeout(() => this.nextRound(), this.roundTime);
 				});
 				this.say(text);
 				return false;
@@ -454,11 +454,11 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				if (space.owner === player) {
 					if (rollText) {
 						this.on(rollText, () => {
-							this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+							this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 						});
 						this.say(rollText);
 					} else {
-						this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+						this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 					}
 				} else {
 					if (rollText) this.say(rollText);
@@ -476,7 +476,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 					this.on(text, () => {
 						this.canAcquire = true;
 						this.propertyToAcquire = space;
-						this.timeout = setTimeout(() => this.passOnPropertySpace(player), 15 * 1000);
+						this.setTimeout(() => this.passOnPropertySpace(player), 15 * 1000);
 					});
 					this.say(text);
 				} else {
@@ -489,7 +489,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			const eliminationChance = this.getSpaceEliminationValue(space);
 			const text = "**" + space.name + "** has an elimination chance of **" + eliminationChance + "%**!";
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.checkEliminationChance(player, eliminationChance), this.roundTime);
+				this.setTimeout(() => this.checkEliminationChance(player, eliminationChance), this.roundTime);
 			});
 			this.say(text);
 			return;
@@ -504,13 +504,13 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			return;
 		} else if (rollText) {
 			this.on(rollText, () => {
-				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+				this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 			});
 			this.say(rollText);
 			return;
 		}
 
-		this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+		this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 	}
 
 	checkEliminationChance(player: Player, eliminationChance: number, eliminator?: Player): void {
@@ -520,12 +520,12 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			text += " **" + player.name + "** has been eliminated" + (eliminator ? " by **" + eliminator.name + "**" : "") + "!";
 			this.on(text, () => {
 				this.eliminatePlayer(player, undefined, eliminator);
-				this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+				this.setTimeout(() => this.nextRound(), this.roundTime);
 			});
 		} else {
 			text += " They remain in the game.";
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+				this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 			});
 		}
 
@@ -563,7 +563,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 					this.onMaxCurrency(owner!);
 				} else {
 					this.eliminatePlayer(player, undefined, owner);
-					this.timeout = setTimeout(() => this.nextRound(), this.roundTime);
+					this.setTimeout(() => this.nextRound(), this.roundTime);
 				}
 			});
 		} else {
@@ -574,7 +574,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 				if (reachedMaxCurrency) {
 					this.onMaxCurrency(owner!);
 				} else {
-					this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+					this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 				}
 			});
 		}
@@ -589,7 +589,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 
 		const text = winner.name + " has reached the " + this.currencyPluralName + " limit!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.end(), this.roundTime);
+			this.setTimeout(() => this.end(), this.roundTime);
 		});
 		this.say(text);
 	}
@@ -698,7 +698,7 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 			if (this.timeout) clearTimeout(this.timeout);
 			const text = "They " + this.acquirePropertyActionPast + " **" + this.propertyToAcquire.name + "**!";
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.beforeNextRound(), this.roundTime);
+				this.setTimeout(() => this.beforeNextRound(), this.roundTime);
 			});
 			this.say(text);
 			return true;
@@ -732,7 +732,7 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 			}
 			this.playersInJail.splice(this.playersInJail.indexOf(player), 1);
 			this.on(text, () => {
-				this.timeout = setTimeout(() => this.rollDice(player), this.roundTime);
+				this.setTimeout(() => this.rollDice(player), this.roundTime);
 			});
 			this.say(text);
 			return true;

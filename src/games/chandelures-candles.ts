@@ -53,7 +53,7 @@ class ChandeluresCandles extends ScriptedGame {
 
 		const text = this.roundTarget.name + "'s candle was exposed!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
@@ -68,7 +68,7 @@ class ChandeluresCandles extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.exposeCandle(), 5 * 1000);
+			this.setTimeout(() => this.exposeCandle(), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -123,19 +123,22 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 				if (!lives) this.eliminatePlayer(player, "You ran out of lives!");
 				return false;
 			}
+
 			if (this.timeout) clearTimeout(this.timeout);
 			this.say(this.roundTarget.name + " has safely escaped to the shadows...");
 			this.roundTarget = null;
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 			return true;
 		},
 	},
 	puff: {
 		command(target, room, user) {
 			if (!this.roundTarget || this.roundActions.has(this.players[user.id])) return false;
+
 			const player = this.players[user.id];
 			const id = Tools.toId(target);
 			if (!(id in this.players) || this.players[id].eliminated) return false;
+
 			const targetPlayer = this.players[id];
 			if (targetPlayer !== this.roundTarget) {
 				player.say("You aimed at the wrong person! Your puff used up one of your lives.");
@@ -146,17 +149,19 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 
 			this.roundActions.set(player, true);
 			if (targetPlayer.eliminated) return false;
+
 			let puffs = this.puffs.get(player) || 0;
 			puffs++;
 			this.puffs.set(player, puffs);
 			if (puffs === puffAchievementAmount) this.unlockAchievement(player, ChandeluresCandles.achievements.spectralsnuffer);
+
 			const targetLives = this.addLives(targetPlayer, -1);
 			if (!targetLives) {
 				if (this.timeout) clearTimeout(this.timeout);
 				this.say(targetPlayer.name + " has been eliminated from the game!");
 				this.eliminatePlayer(targetPlayer);
 				this.roundTarget = null;
-				this.timeout = setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => this.nextRound(), 5000);
 			}
 			return true;
 		},

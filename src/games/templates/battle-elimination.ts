@@ -1432,12 +1432,12 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (this.subRoom) {
 				this.startElimination();
 
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.canReroll = false;
 					this.updateHtmlPages();
 				}, REROLL_START_DELAY);
 			} else {
-				this.timeout = setTimeout(() => this.startElimination(), REROLL_START_DELAY);
+				this.setTimeout(() => this.startElimination(), REROLL_START_DELAY);
 			}
 		} else {
 			this.startElimination();

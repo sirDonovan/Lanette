@@ -69,7 +69,7 @@ class LampentsLabyrinth extends MapGame  {
 		if (!len) {
 			this.say("The Lampent sweep through the labyrinth and find no remaining players!");
 			this.canMove = false;
-			this.timeout = setTimeout(() => this.end(), 5 * 1000);
+			this.setTimeout(() => this.end(), 5 * 1000);
 			return;
 		}
 		this.roundActions.clear();
@@ -86,7 +86,7 @@ class LampentsLabyrinth extends MapGame  {
 				this.displayMapLegend();
 			}
 			this.updateRoundHtml();
-			this.timeout = setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

@@ -110,7 +110,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 			"** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
-			this.timeout = setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
+			this.setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
 		});
 		this.onCommands(['select'], {max: hideCount, remainingPlayersMax: true},
 			() => this.selectCharmedPokemon());
@@ -139,15 +139,15 @@ class DelcattysHideAndSeek extends ScriptedGame {
 			Config.commandCharacter + "charm [Pokemon]``!";
 		this.on(text, () => {
 			this.canCharm = true;
-			this.timeout = setTimeout(() => {
+			this.setTimeout(() => {
 				const roundTimeout = CHARM_ROUND_TIMER - CHARM_WARNING_TIMER;
 				this.charmer.say("You have " + Tools.toDurationString(roundTimeout) + " left to charm a Pokemon!");
 
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.canCharm = false;
 					this.say("**" + this.charmer.name + "** did not charm a Pokemon and has been eliminated from the game!");
 					this.eliminatePlayer(this.charmer);
-					this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => this.nextRound(), 5 * 1000);
 				}, roundTimeout);
 			}, CHARM_WARNING_TIMER);
 		});
@@ -209,6 +209,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 					eliminatedPlayers.push(otherPlayer.name);
 				}
 			}
+
 			if (!eliminatedPlayers.length) {
 				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** but no one chose that Pokemon! " +
 					this.charmer.name + " has been eliminated from the game!");
@@ -217,8 +218,8 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 				this.say("**" + this.charmer.name + "** charmed **" + pokemon.name + "** and eliminated " +
 					Tools.joinList(eliminatedPlayers) + " from the game!");
 			}
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 			return true;
 		},
 		chatOnly: true,

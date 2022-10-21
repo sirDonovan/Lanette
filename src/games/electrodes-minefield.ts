@@ -75,7 +75,7 @@ class ElectrodesMinefield extends MapDamageGame {
 			this.sendPlayerControls(player);
 		}
 
-		this.timeout = setTimeout(() => this.nextRound(), 3 * 1000);
+		this.setTimeout(() => this.nextRound(), 3 * 1000);
 	}
 
 	onMaxRound(): void {

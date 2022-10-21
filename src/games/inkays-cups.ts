@@ -43,14 +43,14 @@ class InkaysCups extends ScriptedGame {
 
 	onSignups(): void {
 		if (this.options.freejoin && !this.isMiniGame) {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		}
 	}
 
 	onStart(): void {
 		const text = "The game will be played in Gen " + gameGen + " (use ``/nds``)!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
@@ -108,8 +108,8 @@ class InkaysCups extends ScriptedGame {
 		this.on(text, () => {
 			this.canGrab = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(Tools.joinList(paramNames), this.answers, true);
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -134,7 +134,7 @@ class InkaysCups extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => void this.generateCups(), 5000);
+			this.setTimeout(() => void this.generateCups(), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -162,8 +162,7 @@ class InkaysCups extends ScriptedGame {
 	botChallengeTurn(botPlayer: Player, newAnswer: boolean): void {
 		if (!newAnswer) return;
 
-		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
-		this.botTurnTimeout = setTimeout(() => {
+		this.setBotTurnTimeout(() => {
 			const command = "grab";
 			const answer = this.sampleOne(this.answers).toLowerCase();
 			const text = Config.commandCharacter + command + " " + answer;

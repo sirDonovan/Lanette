@@ -60,9 +60,9 @@ class OctillerysAmbush extends ScriptedGame {
 			const text = "**FIRE**";
 			this.on(text, () => {
 				this.fireTime = true;
-				this.timeout = setTimeout(() => this.nextRound(), (3 * 1000) + time);
+				this.setTimeout(() => this.nextRound(), (3 * 1000) + time);
 			});
-			this.timeout = setTimeout(() => this.say(text), time);
+			this.setTimeout(() => this.say(text), time);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

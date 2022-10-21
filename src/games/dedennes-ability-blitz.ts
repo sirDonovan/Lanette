@@ -29,7 +29,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 	}
 
 	onSignups(): void {
-		if (this.options.freejoin) this.timeout = setTimeout(() => this.nextRound(), 5000);
+		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5000);
 	}
 
 	generateAbilities(): void {
@@ -41,7 +41,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 		const text = "Randomly generated abilities: **" + abilities.join(", ") + "**!";
 		this.on(text, () => {
 			this.canSelect = true;
-			this.timeout = setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
@@ -87,14 +87,14 @@ class DedennesAbilityBlitz extends ScriptedGame {
 			this.roundSelections.clear();
 			this.roundAbilities.clear();
 			if (highestPoints >= this.maxPoints) {
-				this.timeout = setTimeout(() => this.end(), 3000);
+				this.setTimeout(() => this.end(), 3000);
 				return;
 			}
 			if (this.round > this.roundLimit) {
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					this.say("We've reached the end of the game!");
 					this.maxPoints = highestPoints;
-					this.timeout = setTimeout(() => this.end(), 3000);
+					this.setTimeout(() => this.end(), 3000);
 				}, 3000);
 				return;
 			}
@@ -102,7 +102,7 @@ class DedennesAbilityBlitz extends ScriptedGame {
 		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
-			this.timeout = setTimeout(() => this.generateAbilities(), this.revealTime);
+			this.setTimeout(() => this.generateAbilities(), this.revealTime);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

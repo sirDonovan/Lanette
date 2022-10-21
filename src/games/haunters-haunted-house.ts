@@ -749,7 +749,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 				", " + startingLocation[1] + ") for " + this.name + "!");
 		}
 
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	setCandyLocations(): void {
@@ -796,7 +796,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 					if (this.timeout) clearTimeout(this.timeout);
 					this.moveGhosts();
 				});
-				this.timeout = setTimeout(() => this.moveGhosts(), this.roundTime);
+				this.setTimeout(() => this.moveGhosts(), this.roundTime);
 			});
 			this.sayUhtml(boardUhtmlName, boardHtml);
 		});

@@ -54,7 +54,7 @@ class SableyesTrickHouse extends ScriptedGame {
 
 		const text = "The trap was the **" + trap + " door**!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
@@ -88,8 +88,7 @@ class SableyesTrickHouse extends ScriptedGame {
 		if (remainingPlayerCount === 2) this.roundDoors.pop();
 		this.roundSelections.clear();
 		this.onCommands(['select'], {max: remainingPlayerCount, remainingPlayersMax: true}, () => {
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.revealTrap(), 5 * 1000);
+			this.setTimeout(() => this.revealTrap(), 5 * 1000);
 		});
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -98,9 +97,9 @@ class SableyesTrickHouse extends ScriptedGame {
 			const text = "You enter room #" + this.round + " and see the following doors: **" + Tools.joinList(this.roundDoors) + "**";
 			this.on(text, () => {
 				this.canSelect = true;
-				this.timeout = setTimeout(() => this.revealTrap(), 30 * 1000);
+				this.setTimeout(() => this.revealTrap(), 30 * 1000);
 			});
-			this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+			this.setTimeout(() => this.say(text), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

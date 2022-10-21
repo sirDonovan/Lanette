@@ -243,6 +243,16 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	setBotTurnTimeout(callback: () => void, time: number): void {
+		if (this.botTurnTimeout) clearTimeout(this.botTurnTimeout);
+
+		this.botTurnTimeout = setTimeout(() => {
+			if (this.ended) return;
+
+			callback();
+		}, time);
+	}
+
 	debugLog(log: string): void {
 		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
 	}

@@ -36,7 +36,7 @@ class EmpoleonsEmpires extends ScriptedGame {
 				this.players[i].say("Please select an alias to use with ``" + Config.commandCharacter + "alias [alias]``!");
 			}
 		}
-		this.timeout = setTimeout(() => {
+		this.setTimeout(() => {
 			for (const i in this.players) {
 				if (this.players[i].eliminated) continue;
 				if (!this.playerAliases.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not choose an alias!");
@@ -63,11 +63,11 @@ class EmpoleonsEmpires extends ScriptedGame {
 				Config.commandCharacter + "guess [user], [alias]``";
 			this.on(text, () => {
 				this.canGuess = true;
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					const disqualifyTimeout = SUSPECT_DISQUALIFY_TIMER - SUSPECT_WARNING_TIMER;
 					currentPlayer.say("You have " + Tools.toDurationString(disqualifyTimeout) + " left to suspect another player!");
 
-					this.timeout = setTimeout(() => {
+					this.setTimeout(() => {
 						if (this.currentPlayer === currentPlayer) {
 							this.say("**" + this.currentPlayer.name + "** (AKA " + this.playerAliases.get(this.currentPlayer) + ") " +
 								"did not suspect anyone and was eliminated from the game!");
@@ -142,10 +142,12 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 					break;
 				}
 			}
+
 			if (!validAlias) {
 				this.say("You must specify an alias in the game.");
 				return false;
 			}
+
 			this.canGuess = false;
 			let totalSuspects = this.totalSuspects.get(player) || 0;
 			if (guessedAlias === Tools.toId(this.playerAliases.get(attackedPlayer))) {
@@ -161,8 +163,8 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				this.say("Incorrect.");
 				this.currentPlayer = attackedPlayer;
 			}
-			if (this.timeout) clearTimeout(this.timeout);
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 			return true;
 		},
 		aliases: ['g'],

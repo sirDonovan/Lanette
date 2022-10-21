@@ -137,7 +137,7 @@ class MalamarsBowls extends QuestionAndAnswer {
 	onHintHtml(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 
-		this.timeout = setTimeout(() => {
+		this.setTimeout(() => {
 			if (!this.roundPokemon.length) {
 				this.canGuess = false;
 				const text = "All Pokemon have been revealed!";
@@ -148,7 +148,7 @@ class MalamarsBowls extends QuestionAndAnswer {
 						this.end();
 						return;
 					}
-					this.timeout = setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => this.nextRound(), 5000);
 				});
 				this.say(text);
 			} else {

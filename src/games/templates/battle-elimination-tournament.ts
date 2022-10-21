@@ -184,7 +184,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			},
 		};
 
-		this.timeout = setTimeout(() => {
+		this.setTimeout(() => {
 			if (!this.subRoom.tournament) {
 				this.say("The tournament could not be created.");
 				this.deallocate(true);

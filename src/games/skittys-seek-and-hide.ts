@@ -74,7 +74,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 	}
 
 	onStart(): void {
-		this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => this.nextRound(), 5 * 1000);
 	}
 
 	onNextRound(): void {
@@ -95,7 +95,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 			const text = "Select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
 			this.on(text, () => {
 				this.canSelect = true;
-				this.timeout = setTimeout(() => {
+				this.setTimeout(() => {
 					const roundTimeout = SELECT_ROUND_TIMER - SELECT_WARNING_TIMER;
 					const timeoutString = Tools.toDurationString(roundTimeout);
 					for (const i in this.players) {
@@ -105,14 +105,14 @@ class SkittysSeekAndHide extends ScriptedGame {
 						}
 					}
 
-					this.timeout = setTimeout(() => this.tallySelectedPokemon(), roundTimeout);
+					this.setTimeout(() => this.tallySelectedPokemon(), roundTimeout);
 				}, SELECT_WARNING_TIMER);
 			});
 
 			this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
 				() => this.tallySelectedPokemon());
 
-			this.timeout = setTimeout(() => this.say(text), 5 * 1000);
+			this.setTimeout(() => this.say(text), 5 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -162,7 +162,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 		const text = "**" + Tools.joinList(mostSelected) + "** " + (mostSelected.length > 1 ? "were" : "was") +
 			" hiding the most players (" + Tools.joinList(damaged) + ")!";
 		this.on(text, () => {
-			this.timeout = setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
 	}
