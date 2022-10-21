@@ -23,7 +23,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen8pu': {
 		info: 'https://www.smogon.com/dex/ss/formats/pu',
-		teams: 'https://www.smogon.com/forums/threads/3662279/#post-8421075',
+		teams: 'https://www.smogon.com/forums/threads/3709244/',
 	},
 	'gen8lc': {
 		info: 'https://www.smogon.com/dex/ss/formats/lc',
