@@ -48,6 +48,7 @@ export abstract class BoardGame extends ScriptedGame {
 	dice: number[] = [];
 	doubleRolls: number = 0;
 	maxPlayers: number = 25;
+	lettersList: string[] = Tools.letters.toUpperCase().split("");
 	playerLocations = new Map<Player, IBoardLocation>();
 	playerList: Player[] = [];
 	playerLetters = new Map<Player, string>();
@@ -106,15 +107,18 @@ export abstract class BoardGame extends ScriptedGame {
 		this.sayUhtml(this.uhtmlBaseName + '-board', html);
 	}
 
+	placePlayerOnStart(player: Player): void {
+		this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSideSpace});
+		const playerLetter = this.lettersList[0];
+		this.lettersList.shift();
+		this.playerLetters.set(player, playerLetter);
+		player.say("You will play as **" + playerLetter + "** for " + this.name + "!");
+	}
+
 	onStart(): void {
-		const letters = Tools.letters.toUpperCase().split("");
 		this.playerOrder = this.shufflePlayers();
 		for (const player of this.playerOrder) {
-			this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSideSpace});
-			const playerLetter = letters[0];
-			letters.shift();
-			this.playerLetters.set(player, playerLetter);
-			player.say("You will play as **" + playerLetter + "** for " + this.name + "!");
+			this.placePlayerOnStart(player);
 		}
 
 		this.setTimeout(() => this.nextRound(), 5 * 1000);
@@ -128,6 +132,8 @@ export abstract class BoardGame extends ScriptedGame {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		if (!this.playerList.length) {
 			this.boardRound++;
+			if (this.canLateJoin && this.boardRound > 1) this.canLateJoin = false;
+
 			this.playerList = this.playerOrder.slice();
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder));

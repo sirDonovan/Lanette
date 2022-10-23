@@ -202,7 +202,9 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
 	canRollOrEscapeJail: boolean = false;
 	canAcquire: boolean = false;
+	canLateJoin: boolean = true;
 	escapeFromJailCards = new Map<Player, number>();
+	hasAssistActions: boolean = true;
 	maxPlayers: number = 25;
 	numberOfDice: number = 2;
 	playersInJail: Player[] = [];
@@ -230,6 +232,20 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	abstract onAcquirePropertySpace(property: BoardPropertySpace, player: Player, cost: number): void;
 	abstract onPassOnPropertySpace(player: Player): void;
 	abstract onInsufficientCurrencyToAcquire(property: BoardPropertySpace, player: Player): void;
+
+	onAddPlayer(player: Player, lateJoin?: boolean | undefined): boolean | undefined {
+		if (lateJoin) {
+			if (!this.lettersList.length) return false;
+
+			this.playerCurrency.set(player, this.startingCurrency);
+			this.properties.set(player, []);
+			this.placePlayerOnStart(player);
+			this.playerOrder.push(player);
+			this.playerList.push(player);
+		}
+
+		return true;
+	}
 
 	onStart(): void {
 		super.onStart();
@@ -369,6 +385,13 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 						(this.currencyToEscapeJail > 1 ? this.currencyPluralName : this.currencyName)) + " to escape (with ``" +
 						Config.commandCharacter + "escape``)!";
 					this.on(text, () => {
+						let html = "<center>";
+						html += this.getMsgRoomButton("rolldice", "Roll dice");
+						html += " | ";
+						html += this.getMsgRoomButton("escape", "Escape");
+						html += "</center>";
+						this.sendPlayerAssistActions(player, this.getCustomBoxDiv(html), this.actionsUhtmlName);
+
 						this.setTimeout(() => {
 							this.canRollOrEscapeJail = false;
 							this.rollDice(player);
@@ -474,6 +497,14 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 						Config.commandCharacter + this.acquirePropertyAction + "`` if so or ``" + Config.commandCharacter + "pass`` to " +
 						"leave it " + this.availablePropertyState + ".";
 					this.on(text, () => {
+						let html = "<center>";
+						html += this.getMsgRoomButton(this.acquirePropertyAction,
+							this.acquirePropertyAction.charAt(0).toUpperCase() + this.acquirePropertyAction.substr(1));
+						html += " | ";
+						html += this.getMsgRoomButton("pass", "Pass");
+						html += "</center>";
+						this.sendPlayerAssistActions(player, this.getCustomBoxDiv(html), this.actionsUhtmlName);
+
 						this.canAcquire = true;
 						this.propertyToAcquire = space;
 						this.setTimeout(() => this.passOnPropertySpace(player), 15 * 1000);
@@ -685,6 +716,9 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
+
+			this.clearPlayerAssistActions(this.currentPlayer, this.actionsUhtmlName);
+
 			this.canRollOrEscapeJail = false;
 			this.rollDice(this.players[user.id]);
 			return true;
@@ -693,9 +727,12 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	unlock: {
 		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
+			if (this.timeout) clearTimeout(this.timeout);
+
+			this.clearPlayerAssistActions(this.currentPlayer, this.actionsUhtmlName);
 			this.acquirePropertySpace(this.propertyToAcquire, this.currentPlayer, this.propertyToAcquire.cost);
 			this.canAcquire = false;
-			if (this.timeout) clearTimeout(this.timeout);
+
 			const text = "They " + this.acquirePropertyActionPast + " **" + this.propertyToAcquire.name + "**!";
 			this.on(text, () => {
 				this.setTimeout(() => this.beforeNextRound(), this.roundTime);
@@ -708,8 +745,10 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	pass: {
 		command(target, room, user) {
 			if (!this.propertyToAcquire || !this.canAcquire || this.players[user.id] !== this.currentPlayer) return false;
-			this.canAcquire = false;
 			if (this.timeout) clearTimeout(this.timeout);
+
+			this.clearPlayerAssistActions(this.currentPlayer, this.actionsUhtmlName);
+			this.canAcquire = false;
 			this.passOnPropertySpace(this.players[user.id]);
 			return true;
 		},
@@ -718,6 +757,9 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 		command(target, room, user) {
 			if (!this.canRollOrEscapeJail || this.players[user.id] !== this.currentPlayer) return false;
 			if (this.timeout) clearTimeout(this.timeout);
+
+			this.clearPlayerAssistActions(this.currentPlayer, this.actionsUhtmlName);
+
 			const player = this.players[user.id];
 			this.canRollOrEscapeJail = false;
 			const escapeFromJailCards = this.escapeFromJailCards.get(player);

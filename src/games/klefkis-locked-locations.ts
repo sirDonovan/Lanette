@@ -152,15 +152,6 @@ class KlefkisLockedLocations extends BoardPropertyGame<IBoardSpaces> {
 		];
 	}
 
-	onStart(): void {
-		super.onStart();
-
-		for (const player of this.playerOrder) {
-			this.playerCurrency.set(player, this.startingCurrency);
-			this.properties.set(player, []);
-		}
-	}
-
 	getActionCards(): BoardActionCard<BoardPropertyGame<IBoardSpaces>>[] {
 		// @ts-expect-error
 		return this.sharedActionCards.concat(this.baseActionCards);
