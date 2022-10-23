@@ -997,6 +997,43 @@ export const commands: BaseCommandDefinitions = {
 		},
 		description: ["removes you from the current game's player list"],
 	},
+	canvotegame: {
+		command(target, room) {
+			if (!this.isPm(room)) return;
+
+			const targets = target.split(",");
+			const targetRoom = Rooms.search(targets[0]);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+			targets.shift();
+
+			const format = Games.getFormat(targets.join(","), true);
+			if (Array.isArray(format)) {
+				this.say(CommandParser.getErrorText(format));
+				return;
+			}
+
+			if (format.searchChallenge) {
+				this.say("Search challenge formats cannot be voted.");
+				return;
+			}
+
+			if (format.tournamentGame) {
+				this.say("Tournament formats cannot be voted.");
+				return;
+			}
+
+			const canCreateGame = Games.canCreateGame(targetRoom, format);
+			if (canCreateGame !== true) {
+				this.say(canCreateGame);
+				return;
+			}
+
+			this.say(format.nameWithOptions + " can be voted next in " + targetRoom.title + "!");
+		},
+		pmOnly: true,
+		aliases: ['canvg'],
+		description: ["checks whether the specified game can be voted next"],
+	},
 	tournamentgameban: {
 		command(target, room, user) {
 			const targets = target.split(',');
