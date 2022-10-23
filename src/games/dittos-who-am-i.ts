@@ -453,6 +453,11 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 		command(target, room, user) {
 			if (this.players[user.id] !== this.currentPlayer) return false;
 
+			if (!Tools.toId(target)) {
+				this.say("You must include a parameter or Pokemon.");
+				return false;
+			}
+
 			const player = this.players[user.id];
 			const questions = target.split("|");
 			if (questions.length > MAX_ROUND_PARAMETERS) {
