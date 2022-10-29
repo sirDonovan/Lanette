@@ -16,34 +16,23 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [16.x, 18.x]
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: npm
-
+        cache: 'npm'
     - name: Cache ESLint
       id: cache-eslint
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .eslintcache
         key: ${{ matrix.node-version }}-eslint
-
-    - name: Install dependencies
-      run: npm ci
-
-    - name: Lint project
-      run: npm run lint
-
-    - name: Create default config
-      run: cp src/config-example.ts src/config.ts
-
-    - name: Build project
-      run: npm run tsc
-
-    - name: Run test suite
-      run: npm run citest
+    - run: npm ci
+    - run: npm run lint
+    - run: cp src/config-example.ts src/config.ts
+    - run: npm run tsc
+    - run: npm citest
