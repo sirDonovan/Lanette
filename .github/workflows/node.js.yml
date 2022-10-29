@@ -35,4 +35,4 @@ jobs:
     - run: npm run lint
     - run: cp src/config-example.ts src/config.ts
     - run: npm run tsc
-    - run: npm citest
+    - run: npm run citest
