@@ -415,8 +415,11 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		}
 
+		const firstRoundByeNames: string[] = [];
 		this.firstRoundByes.forEach(player => {
 			if (this.additionsPerRound || this.dropsPerRound || this.evolutionsPerRound) {
+				firstRoundByeNames.push(player.name);
+
 				const requirements = this.getRoundTeamRequirements(player.round!);
 
 				const pokemon: string[] = [];
@@ -458,6 +461,10 @@ export abstract class BattleElimination extends ScriptedGame {
 		});
 
 		this.updateMatches(true);
+
+		if (firstRoundByeNames.length) {
+			this.say("**First round byes** (check your tournament pages): " + firstRoundByeNames.join(", "));
+		}
 	}
 
 	updateBracketHtml(): void {
