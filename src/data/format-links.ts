@@ -539,7 +539,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen11v1': {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen11v1',
-	},	
+	},
 	// 'gen1lc': {
 	// 	info: 'https://www.smogon.com/dex/rb/formats/lc',
 	// },
