@@ -27,6 +27,7 @@ const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
 const TRUSTED_MESSAGE_THROTTLE = 100;
+const PUBLIC_BOT_MESSAGE_THROTTLE = 25;
 const SERVER_CHAT_QUEUE_LIMIT = 6;
 const STANDARD_MESSAGE_THROTTLE = REGULAR_MESSAGE_THROTTLE * SERVER_CHAT_QUEUE_LIMIT;
 const SLOWER_COMMAND_MESSAGE_THROTTLE = STANDARD_MESSAGE_THROTTLE * 2;
@@ -305,7 +306,8 @@ export class Client {
 		errorListener = (event: ws.ErrorEvent) => this.onConnectionError(event);
 		closeListener = (event: ws.CloseEvent) => this.onConnectionClose(event);
 
-		this.setSendThrottle(Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE : REGULAR_MESSAGE_THROTTLE);
+		this.setSendThrottle(Config.publicBot ? PUBLIC_BOT_MESSAGE_THROTTLE : Config.trustedUser ? TRUSTED_MESSAGE_THROTTLE :
+			REGULAR_MESSAGE_THROTTLE);
 
 		if (this.server.startsWith('https://')) {
 			this.server = this.server.substr(8);
@@ -1431,8 +1433,12 @@ export class Client {
 			room.onUserJoin(user, messageArguments.rank);
 			user.updateStatus(status);
 
-			if (user === Users.self && this.publicChatRooms.includes(room.id) && Users.self.hasRank(room, 'driver')) {
-				this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
+			if (user === Users.self && this.publicChatRooms.includes(room.id)) {
+				if (Users.self.rooms.get(room)!.rank === this.groupSymbols.bot) {
+					this.setSendThrottle(PUBLIC_BOT_MESSAGE_THROTTLE);
+				} else if (Users.self.hasRank(room, 'driver')) {
+					this.setSendThrottle(TRUSTED_MESSAGE_THROTTLE);
+				}
 			}
 
 			if (room.publicRoom) Storage.updateLastSeen(user, now);

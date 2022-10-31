@@ -34,6 +34,11 @@ export let password = '';
 export let trustedUser = false;
 
 /**
+ * Whether the configured username should always be considered to have the 'public bot' status on PS
+ */
+export let publicBot = false;
+
+/**
  * The server address used to connect to PS (must end in .psim.us)
  *
  * Leave blank to connect to the main server
