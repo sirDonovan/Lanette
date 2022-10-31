@@ -463,7 +463,12 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.updateMatches(true);
 
 		if (firstRoundByeNames.length) {
-			this.say("**First round byes** (check your tournament pages): " + firstRoundByeNames.join(", "));
+			const text = "**First round byes** (check your tournament pages): " + firstRoundByeNames.join(", ");
+			if (this.subRoom) {
+				this.subRoom.say(text);
+			} else {
+				this.say(text);
+			}
 		}
 	}
 
