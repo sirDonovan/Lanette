@@ -5,7 +5,7 @@ import { game as searchChallengeTournamentGame, SearchChallengeTournament } from
 
 class ChallengeCupChase extends SearchChallengeTournament {
 	pokemon: string = "";
-	tournamentRules: string[] = ["maxteamsize=24"];
+	tournamentRules: string[] = ["maxteamsize=24", "blitz"];
 
 	onTournamentStart(players: Dict<Player>): void {
 		super.onTournamentStart(players);

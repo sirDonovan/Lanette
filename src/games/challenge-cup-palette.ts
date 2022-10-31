@@ -11,7 +11,7 @@ class ChallengeCupPalette extends SearchChallengeTournament {
 	playerCounts = new Map<Player, string[]>();
 	lastAnnouncedCounts = new Map<Player, number>();
 	color: string = '';
-	tournamentRules: string[] = ["maxteamsize=24"];
+	tournamentRules: string[] = ["maxteamsize=24", "blitz"];
 
 	onTournamentStart(players: Dict<Player>): void {
 		super.onTournamentStart(players);

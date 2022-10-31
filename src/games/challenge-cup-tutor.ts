@@ -5,7 +5,7 @@ import { game as searchChallengeTournamentGame, SearchChallengeTournament } from
 
 class ChallengeCupTutor extends SearchChallengeTournament {
 	move: string = "";
-	tournamentRules: string[] = ["maxteamsize=12"];
+	tournamentRules: string[] = ["maxteamsize=12", "blitz"];
 
 	onTournamentStart(players: Dict<Player>): void {
 		super.onTournamentStart(players);
