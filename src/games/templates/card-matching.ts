@@ -24,7 +24,7 @@ interface ITurnCards {
 
 const PLAY_COMMAND = "play";
 
-export abstract class CardMatching<ActionCardsType = Dict<IActionCardData>> extends CardGame<ActionCardsType> {
+export abstract class CardMatching<ActionCardsType extends object = Dict<IActionCardData>> extends CardGame<ActionCardsType> {
 	actionCardAmount: number = 5;
 	autoFillHands: boolean = false;
 	canPlay: boolean = false;
