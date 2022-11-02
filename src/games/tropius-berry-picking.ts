@@ -197,7 +197,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		let effect = move.type;
 		let effectType = 'type';
 		const randnum = this.random(22);
-		if (move.secondary && move.secondary !== true) {
+		if (move.secondary) {
 			let moveEffect = move.secondary.status || move.secondary.volatileStatus;
 			if (moveEffect) {
 				if (moveEffect === 'tox') moveEffect = 'psn';
