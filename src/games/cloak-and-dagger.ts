@@ -18,7 +18,7 @@ class CloakAndDagger extends BattleEliminationTournament {
 	banlist = ['Zorua', 'Zoroark'];
 
 	getGameCustomRules(): string[] {
-		return ['-Zorua', '-Zoroark', '-Illusion'];
+		return ['-Zorua-Base', '-Zorua-Hisui', '-Zoroark-Base', '-Zoroark-Hisui', '-Illusion'];
 	}
 
 }
