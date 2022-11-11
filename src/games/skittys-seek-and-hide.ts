@@ -6,6 +6,7 @@ import type { IPokemon } from "../types/pokemon-showdown";
 
 const SELECT_WARNING_TIMER = 45 * 1000;
 const SELECT_ROUND_TIMER = 60 * 1000;
+const SELECT_COMMAND = "select";
 
 const data: {'parameters': Dict<string[]>; 'pokemon': string[]} = {
 	"parameters": {},
@@ -89,12 +90,25 @@ class SkittysSeekAndHide extends ScriptedGame {
 		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameters[x].length === requiredPokemon));
 		this.categories = param.split(", ");
 
+		const pokemonButtons: string[] = [];
+		for (const id of data.parameters[param]) {
+			const pokemon = Dex.getExistingPokemon(id);
+			pokemonButtons.push(this.getQuietPmButton(SELECT_COMMAND + " " + pokemon.name, Dex.getPokemonIcon(pokemon) + pokemon.name));
+		}
+
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		this.onUhtml(uhtmlName, html, () => {
-			const text = "Select a **" + param + "** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
+			const text = "Select a Pokemon that fits the parameters**" + param + "** with ``" +
+				Config.commandCharacter + SELECT_COMMAND + " [Pokemon]`` in PMs!";
 			this.on(text, () => {
 				this.canSelect = true;
+
+				const playerHtml = pokemonButtons.join("&nbsp;");
+				for (const i in this.players) {
+					if (!this.players[i].eliminated) this.sendPlayerActions(this.players[i], playerHtml);
+				}
+
 				this.setTimeout(() => {
 					const roundTimeout = SELECT_ROUND_TIMER - SELECT_WARNING_TIMER;
 					const timeoutString = Tools.toDurationString(roundTimeout);
@@ -109,7 +123,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 				}, SELECT_WARNING_TIMER);
 			});
 
-			this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+			this.onCommands([SELECT_COMMAND], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
 				() => this.tallySelectedPokemon());
 
 			this.setTimeout(() => this.say(text), 5 * 1000);
@@ -189,7 +203,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<SkittysSeekAndHide> = {
-	select: {
+	[SELECT_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canSelect) return false;
 			const player = this.players[user.id];
