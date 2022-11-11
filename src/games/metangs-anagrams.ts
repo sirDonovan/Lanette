@@ -56,32 +56,32 @@ export const game: IGameFile<MetangsAnagrams> = Games.copyTemplateProperties(que
 	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{
-			name: "Metangs's Ability Anagrams",
+			name: "Metang's Ability Anagrams",
 			roundCategory: "Pokemon Abilities",
 			variantAliases: ['ability', 'abilities', 'pokemon abilities'],
 		},
 		{
-			name: "Metangs's Character Anagrams",
+			name: "Metang's Character Anagrams",
 			roundCategory: "Characters",
 			variantAliases: ['character', 'characters'],
 		},
 		{
-			name: "Metangs's Item Anagrams",
+			name: "Metang's Item Anagrams",
 			roundCategory: "Pokemon Items",
 			variantAliases: ['item', 'items', 'pokemon items'],
 		},
 		{
-			name: "Metangs's Location Anagrams",
+			name: "Metang's Location Anagrams",
 			roundCategory: "Locations",
 			variantAliases: ['location', 'locations'],
 		},
 		{
-			name: "Metangs's Move Anagrams",
+			name: "Metang's Move Anagrams",
 			roundCategory: "Pokemon Moves",
 			variantAliases: ['move', 'moves', 'pokemon moves'],
 		},
 		{
-			name: "Metangs's Pokemon Anagrams",
+			name: "Metang's Pokemon Anagrams",
 			roundCategory: "Pokemon",
 			variantAliases: ['pokemon'],
 		},
