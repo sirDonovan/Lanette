@@ -298,7 +298,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		return true;
 	}
 
-	createPokedex(): string[] {
+	createBasePokedex(): string[] {
 		const teamPreviewHiddenFormes = Dex.getTeamPreviewHiddenFormes();
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
@@ -1281,13 +1281,13 @@ export abstract class BattleElimination extends ScriptedGame {
 			const colorKeys = this.shuffle(Object.keys(colors));
 			this.color = colors[colorKeys[0]];
 			colorKeys.shift();
-			pokedex = this.createPokedex();
+			pokedex = this.createBasePokedex();
 
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!colorKeys.length) throw new Error("No color has at least " + minimumPokemon + " Pokemon");
 				this.color = colors[colorKeys[0]];
 				colorKeys.shift();
-				pokedex = this.createPokedex();
+				pokedex = this.createBasePokedex();
 			}
 
 			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
@@ -1295,13 +1295,13 @@ export abstract class BattleElimination extends ScriptedGame {
 			const types = this.shuffle(Dex.getData().typeKeys);
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
-			pokedex = this.createPokedex();
+			pokedex = this.createBasePokedex();
 
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!types.length) throw new Error("No type has at least " + minimumPokemon + " Pokemon");
 				this.type = Dex.getExistingType(types[0]).name;
 				types.shift();
-				pokedex = this.createPokedex();
+				pokedex = this.createBasePokedex();
 			}
 
 			this.htmlPageGameName = "Mono-" + this.type + " " + this.baseHtmlPageGameName;
@@ -1315,13 +1315,13 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			this.gen = gens[0];
 			gens.shift();
-			pokedex = this.createPokedex();
+			pokedex = this.createBasePokedex();
 
 			while (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				if (!gens.length) throw new Error("No gen has at least " + minimumPokemon + " Pokemon");
 				this.gen = gens[0];
 				gens.shift();
-				pokedex = this.createPokedex();
+				pokedex = this.createBasePokedex();
 			}
 
 			let region;
@@ -1345,7 +1345,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			this.htmlPageGameName = "Mono-" + region + " " + this.baseHtmlPageGameName;
 		} else {
-			pokedex = this.createPokedex();
+			pokedex = this.createBasePokedex();
 			if (this.getMaxPlayers(pokedex.length) < minimumPlayers) {
 				throw new Error(this.battleFormat.name + " does not have at least " + minimumPokemon + " Pokemon");
 			}

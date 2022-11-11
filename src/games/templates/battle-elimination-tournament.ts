@@ -58,81 +58,83 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	getCustomRules(): string[] {
 		const customRules = this.battleFormat.customRules ? this.battleFormat.customRules.slice() : [];
-		const allPokemon: string[] = [];
-		const checkedPokemon: Dict<boolean> = {};
+		if (!this.usesCloakedPokemon) {
+			const allPokemon: string[] = [];
+			const checkedPokemon: Dict<boolean> = {};
 
-		for (const name of this.pokedex) {
-			const pokemon = Dex.getExistingPokemon(name);
+			for (const name of this.pokedex) {
+				const pokemon = Dex.getExistingPokemon(name);
 
-			const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [pokemon.name];
-			const usableFormes: string[] = [];
-			for (const forme of formes) {
-				if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
-			}
+				const formes = this.allowsFormes ? Dex.getFormes(pokemon, true) : [pokemon.name];
+				const usableFormes: string[] = [];
+				for (const forme of formes) {
+					if (this.battleFormat.usablePokemon!.includes(forme)) usableFormes.push(forme);
+				}
 
-			if (this.evolutionsPerRound) {
-				const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
-				for (const line of evolutionLines) {
-					for (const stage of line) {
-						if (stage in checkedPokemon) continue;
+				if (this.evolutionsPerRound) {
+					const evolutionLines = Dex.getEvolutionLines(pokemon, usableFormes);
+					for (const line of evolutionLines) {
+						for (const stage of line) {
+							if (stage in checkedPokemon) continue;
 
-						const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
-						const usableStageFormes: string[] = [];
-						for (const stageForme of stageFormes) {
-							if (this.battleFormat.usablePokemon!.includes(stageForme)) usableStageFormes.push(stageForme);
-						}
+							const stageFormes = this.allowsFormes ? Dex.getFormes(Dex.getExistingPokemon(stage), true) : [stage];
+							const usableStageFormes: string[] = [];
+							for (const stageForme of stageFormes) {
+								if (this.battleFormat.usablePokemon!.includes(stageForme)) usableStageFormes.push(stageForme);
+							}
 
-						let addBaseModifier = false;
-						if (!Dex.getExistingPokemon(stage).forme && usableStageFormes.length !== stageFormes.length) {
-							for (const usableStageForme of usableStageFormes) {
-								if (!Dex.getExistingPokemon(usableStageForme).forme) {
-									addBaseModifier = true;
-									break;
+							let addBaseModifier = false;
+							if (!Dex.getExistingPokemon(stage).forme && usableStageFormes.length !== stageFormes.length) {
+								for (const usableStageForme of usableStageFormes) {
+									if (!Dex.getExistingPokemon(usableStageForme).forme) {
+										addBaseModifier = true;
+										break;
+									}
 								}
 							}
-						}
 
-						if (addBaseModifier) {
-							const baseModifier = stage + "-Base";
-							if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
-						}
+							if (addBaseModifier) {
+								const baseModifier = stage + "-Base";
+								if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+							}
 
-						for (const usableStageForme of usableStageFormes) {
-							if (addBaseModifier && usableStageForme === stage) continue;
+							for (const usableStageForme of usableStageFormes) {
+								if (addBaseModifier && usableStageForme === stage) continue;
 
-							if (!allPokemon.includes(usableStageForme)) allPokemon.push(usableStageForme);
-						}
+								if (!allPokemon.includes(usableStageForme)) allPokemon.push(usableStageForme);
+							}
 
-						checkedPokemon[stage] = true;
-					}
-				}
-			} else {
-				let addBaseModifier = false;
-				if (!pokemon.forme && usableFormes.length !== formes.length) {
-					for (const forme of usableFormes) {
-						if (!Dex.getExistingPokemon(forme).forme) {
-							addBaseModifier = true;
-							break;
+							checkedPokemon[stage] = true;
 						}
 					}
-				}
+				} else {
+					let addBaseModifier = false;
+					if (!pokemon.forme && usableFormes.length !== formes.length) {
+						for (const forme of usableFormes) {
+							if (!Dex.getExistingPokemon(forme).forme) {
+								addBaseModifier = true;
+								break;
+							}
+						}
+					}
 
-				if (addBaseModifier) {
-					const baseModifier = pokemon.name + "-Base";
-					if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
-				}
+					if (addBaseModifier) {
+						const baseModifier = pokemon.name + "-Base";
+						if (!allPokemon.includes(baseModifier)) allPokemon.push(baseModifier);
+					}
 
-				for (const usableForme of usableFormes) {
-					if (addBaseModifier && usableForme === pokemon.name) continue;
+					for (const usableForme of usableFormes) {
+						if (addBaseModifier && usableForme === pokemon.name) continue;
 
-					if (!allPokemon.includes(usableForme)) allPokemon.push(usableForme);
+						if (!allPokemon.includes(usableForme)) allPokemon.push(usableForme);
+					}
 				}
 			}
-		}
 
-		const pokemonListRules = Dex.getCustomRulesForPokemonList(allPokemon);
-		for (const rule of pokemonListRules) {
-			if (!customRules.includes(rule)) customRules.push(rule);
+			const pokemonListRules = Dex.getCustomRulesForPokemonList(allPokemon);
+			for (const rule of pokemonListRules) {
+				if (!customRules.includes(rule)) customRules.push(rule);
+			}
 		}
 
 		if (this.getGameCustomRules) {
@@ -199,16 +201,18 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		this.debugLog("Original Pokedex size: " + this.pokedex.length);
 
-		// limit pokedex size for custom rules
-		const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
-			this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
+		if (!this.usesCloakedPokemon) {
+			// limit pokedex size for custom rules
+			const maxPokemon = Math.max(this.getMinimumPokedexSizeForPlayers(this.maxPlayers - 1),
+				this.getMinimumPokedexSizeForPlayers(this.maxPlayers));
 
-		this.debugLog("Max Pokemon: " + maxPokemon + " (for " + this.maxPlayers + " max players)");
+			this.debugLog("Max Pokemon: " + maxPokemon + " (for " + this.maxPlayers + " max players)");
 
-		if (this.pokedex.length > maxPokemon) {
-			this.pokedex = this.pokedex.slice(0, maxPokemon);
+			if (this.pokedex.length > maxPokemon) {
+				this.pokedex = this.pokedex.slice(0, maxPokemon);
 
-			this.debugLog("Reduced Pokedex size: " + this.pokedex.length);
+				this.debugLog("Reduced Pokedex size: " + this.pokedex.length);
+			}
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
