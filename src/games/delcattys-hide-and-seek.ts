@@ -13,6 +13,8 @@ const data: {'parameters': Dict<string[]>; 'parameterLengths': Dict<number>; 'po
 const MINIMUM_PARAMETERS = 2;
 const CHARM_WARNING_TIMER = 45 * 1000;
 const CHARM_ROUND_TIMER = 60 * 1000;
+const SELECT_COMMAND = "select";
+const CHARM_COMMAND = "charm";
 
 class DelcattysHideAndSeek extends ScriptedGame {
 	canCharm: boolean = false;
@@ -20,6 +22,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 	categories: string[] = [];
 	maxPlayers: number = 15;
 	pokemonChoices = new Map<Player, string>();
+	roundPokemon: string[] = [];
 
 	charmer!: Player;
 
@@ -98,28 +101,42 @@ class DelcattysHideAndSeek extends ScriptedGame {
 		if (requiredPokemon > MINIMUM_PARAMETERS) requiredPokemon += this.random(3) - 1;
 
 		const param = this.sampleOne(Object.keys(data.parameters).filter(x => data.parameterLengths[x] === requiredPokemon));
+		this.roundPokemon = data.parameters[param];
 		this.categories = param.split(", ");
 
-		const otherPlayers: string[] = [];
-		for (const i in this.players) {
-			if (this.players[i].eliminated || this.charmer === this.players[i]) continue;
-			otherPlayers.push(this.players[i].name);
+		const pokemonButtons: string[] = [];
+		for (const id of this.roundPokemon) {
+			const pokemon = Dex.getExistingPokemon(id);
+			pokemonButtons.push(this.getQuietPmButton(SELECT_COMMAND + " " + pokemon.name, Dex.getPokemonIcon(pokemon) + pokemon.name));
 		}
 
-		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers) + ", select a **" + param +
-			"** Pokemon with ``" + Config.commandCharacter + "select [Pokemon]`` in PMs!";
+		const otherPlayers: Player[] = [];
+		for (const i in this.players) {
+			if (this.players[i].eliminated || this.charmer === this.players[i]) continue;
+			otherPlayers.push(this.players[i]);
+		}
+
+		const text = "**" + this.charmer.name + "** is the charmer! " + Tools.joinList(otherPlayers.map(x => x.name)) + ", select a " +
+			"Pokemon that fits the parameters **" + param + "** with ``" + Config.commandCharacter + SELECT_COMMAND + " [Pokemon]`` " +
+			"in PMs!";
 		this.on(text, () => {
 			this.canSelect = true;
+
+			const playerHtml = pokemonButtons.join("&nbsp;");
+			for (const player of otherPlayers) {
+				this.sendPlayerActions(player, playerHtml);
+			}
+
 			this.setTimeout(() => this.selectCharmedPokemon(), 60 * 1000);
 		});
-		this.onCommands(['select'], {max: hideCount, remainingPlayersMax: true},
-			() => this.selectCharmedPokemon());
+
+		this.onCommands([SELECT_COMMAND], {max: hideCount, remainingPlayersMax: true}, () => this.selectCharmedPokemon());
 		this.say(text);
 	}
 
 	selectCharmedPokemon(): void {
 		if (this.timeout) clearTimeout(this.timeout);
-		this.offCommands(['select']);
+		this.offCommands([SELECT_COMMAND]);
 
 		this.canSelect = false;
 		for (const id in this.players) {
@@ -129,16 +146,25 @@ class DelcattysHideAndSeek extends ScriptedGame {
 				this.eliminatePlayer(player, "You did not select a Pokemon!");
 			}
 		}
+
 		if (this.getRemainingPlayerCount() === 1) {
 			this.say("No one chose a valid Pokemon!");
 			this.end();
 			return;
 		}
 
-		const text = this.charmer.name + " please select a **" + this.categories.join(", ") + "** Pokemon to charm with ``" +
-			Config.commandCharacter + "charm [Pokemon]``!";
+		const text = this.charmer.name + " please select a Pokemon that fits the parameters **" + this.categories.join(", ") + "** " +
+			"to charm with ``" + Config.commandCharacter + CHARM_COMMAND + " [Pokemon]``!";
 		this.on(text, () => {
 			this.canCharm = true;
+
+			const pokemonButtons: string[] = [];
+			for (const id of this.roundPokemon) {
+				const pokemon = Dex.getExistingPokemon(id);
+				pokemonButtons.push(this.getMsgRoomButton(CHARM_COMMAND + " " + pokemon.name, Dex.getPokemonIcon(pokemon) + pokemon.name));
+			}
+			this.sendPlayerActions(this.charmer, pokemonButtons.join("&nbsp;"));
+
 			this.setTimeout(() => {
 				const roundTimeout = CHARM_ROUND_TIMER - CHARM_WARNING_TIMER;
 				this.charmer.say("You have " + Tools.toDurationString(roundTimeout) + " left to charm a Pokemon!");
@@ -175,7 +201,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
-	charm: {
+	[CHARM_COMMAND]: {
 		command(target, room, user) {
 			if (this.players[user.id] !== this.charmer || !this.canCharm) return false;
 			const player = this.players[user.id];
@@ -224,7 +250,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 		},
 		chatOnly: true,
 	},
-	select: {
+	[SELECT_COMMAND]: {
 		command(target, room, user) {
 			if (!this.canSelect) return false;
 			const player = this.players[user.id];
