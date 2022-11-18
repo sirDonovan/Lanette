@@ -72,15 +72,15 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8nfe': {
 		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
 	},
-	'gen8lcuu': {
-		teams: 'https://www.smogon.com/forums/threads/3660866/post-8384273',
-	},
-	'gen8nationaldexag': {
-		teams: 'https://www.smogon.com/forums/threads/3672423/',
-	},
-	'gen8doubleslc': {
-		teams: 'https://www.smogon.com/forums/threads/3658672/post-8332571',
-	},
+	// 'gen8lcuu': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3660866/post-8384273',
+	// },
+	// 'gen8nationaldexag': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3672423/',
+	// },
+	// 'gen8doubleslc': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3658672/post-8332571',
+	// },
 	'gen8pokebilities': {
 		teams: 'https://www.smogon.com/forums/threads/3679692/post-8777785',
 	},
@@ -108,9 +108,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8bdspou': {
 		teams: 'https://www.smogon.com/forums/threads/3693721/',
 	},
-	'gen8bdsplc': {
-		teams: 'https://www.smogon.com/forums/threads/3696004/#post-9078385',
-	},
+	// 'gen8bdsplc': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3696004/#post-9078385',
+	// },
 	// 'gen8revelationmons': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3692297/#post-9005095',
 	// },
