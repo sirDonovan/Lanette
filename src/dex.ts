@@ -1404,7 +1404,7 @@ export class Dex {
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
 			(border ? 'border: ' + border + ';' : '') + 'image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v6) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v9) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
@@ -1421,7 +1421,7 @@ export class Dex {
 		const top = Math.floor(num / 16) * height;
 		const left = (num % 16) * width;
 		return '<span style="display: inline-block;height: ' + height + 'px;width: ' + width + 'px;image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/itemicons-sheet.png?g8) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/itemicons-sheet.png?g9) no-repeat scroll -' + left +
 			'px -' + top + 'px;"></span>';
 	}
 
