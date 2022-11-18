@@ -209,6 +209,7 @@ export interface IGameOptions {
 	teams?: number;
 	format?: string;
 	rules?: string;
+	board?: string;
 }
 
 export type GameNumberOptions = keyof FilterByType<IGameOptions, number | undefined>;

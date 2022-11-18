@@ -49,6 +49,8 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 				region = 'Alola';
 			} else if (pokemon.gen === 8) {
 				region = 'Galar';
+			} else if (pokemon.gen === 9) {
+				region = 'Paldea';
 			}
 
 			if (region) pokemonHints.push("<b>Region</b>: " + region);

@@ -53,7 +53,7 @@ class DittosWhoAmI extends ScriptedGame {
 			}
 
 			if (x.forme && !(x.forme === 'Mega' || x.forme === 'Totem' || x.forme === 'Gmax' || x.forme === 'Alola' ||
-				x.forme === 'Galar' || x.forme === 'Hisui')) return false;
+				x.forme === 'Galar' || x.forme === 'Hisui' || x.forme === 'Paldea')) return false;
 			return true;
 		}));
 
@@ -216,6 +216,8 @@ class DittosWhoAmI extends ScriptedGame {
 			correctGuess = playerPokemon.forme.startsWith("Galar");
 		} else if (id === "hisui" || id === "hisuian") {
 			correctGuess = playerPokemon.forme.startsWith("Hisui");
+		} else if (id === "paldea" || id === "paldean") {
+			correctGuess = playerPokemon.forme.startsWith("Paldea");
 		} else if (id === "totem") {
 			correctGuess = playerPokemon.forme.includes("Totem");
 		} else if (id === "gmax" || id === "gigantamax") {

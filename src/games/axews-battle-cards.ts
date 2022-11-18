@@ -1003,5 +1003,11 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			requiredGen: 8,
 			maxPlayers: 18,
 		},
+		{
+			name: "Axew's Paldea Battle Cards",
+			variantAliases: ["paldea", "gen9"],
+			requiredGen: 9,
+			maxPlayers: 18,
+		},
 	],
 });

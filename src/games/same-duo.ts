@@ -12,7 +12,7 @@ class SameDuo extends SameBattleEliminationTournament {
 	startingTeamsLength = 2;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
-	battleFormatId = '2v2 Doubles';
+	battleFormatId = 'gen82v2doubles';
 	battleFormatType: GameType = 'doubles';
 	banlist: string[] = ['Calyrex-Ice', 'Calyrex-Shadow', 'Cottonee', 'Dialga', 'Eternatus', 'Giratina', 'Giratina-Origin', 'Groudon',
 		'Ho-Oh', 'Jirachi', 'Kyogre', 'Kyurem-White', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',

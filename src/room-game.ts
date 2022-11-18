@@ -300,7 +300,7 @@ export abstract class Game extends Activity {
 			}
 
 			if (this.hasAssistActions) {
-				html += "<br /><br />Your assist actions will be " + (assistActions ? "displayed " : "hidden") + "!&nbsp;" +
+				html += "<br /><br />Your assist actions will be " + (assistActions ? "displayed" : "hidden") + "!&nbsp;" +
 					Client.getQuietPmButton(this.room as Room, Config.commandCharacter + "setscriptedgameoption " + this.room.id +
 					", assistactions," + (assistActions ? "off" : "on"), (assistActions ? "Hide" : "Display") + " assist actions",
 					false, buttonStyle);

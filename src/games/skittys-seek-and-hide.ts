@@ -99,7 +99,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		const html = this.getRoundHtml(players => this.getPlayerLives(players));
 		this.onUhtml(uhtmlName, html, () => {
-			const text = "Select a Pokemon that fits the parameters**" + param + "** with ``" +
+			const text = "Select a Pokemon that fits the parameters **" + param + "** with ``" +
 				Config.commandCharacter + SELECT_COMMAND + " [Pokemon]`` in PMs!";
 			this.on(text, () => {
 				this.canSelect = true;

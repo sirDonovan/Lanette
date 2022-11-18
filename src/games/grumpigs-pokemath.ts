@@ -165,6 +165,7 @@ export const game: IGameFile<GrumpigsPokemath> = Games.copyTemplateProperties(qu
 	},
 	defaultOptions: ['points'],
 	description: "Players guess Pokemon whose dex numbers match the answers to the given math problems!",
+	disabled: true,
 	freejoin: true,
 	name: "Grumpig's Pokemath",
 	mascot: "Grumpig",

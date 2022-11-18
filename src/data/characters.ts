@@ -438,4 +438,15 @@ export const characters: CharacterData = {
 			"Sabi",
 		],
 	},
+	paldea: {
+		player: [],
+		rival: [],
+		gymleader: [],
+		elitefour: [],
+		champion: [],
+		frontierbrain: [],
+		professor: [],
+		antagonist: [],
+		other: [],
+	},
 };

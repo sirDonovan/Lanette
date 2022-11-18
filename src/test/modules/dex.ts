@@ -75,7 +75,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 770);
+		assertStrictEqual(allPossibleMoves.length, 842);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -375,20 +375,20 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+		assertStrictEqual(format.id, 'gen8uu');
 
 		format = Dex.getExistingFormat("UUBL");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+		assertStrictEqual(format.id, 'gen8uu');
 
 		format = Dex.getExistingFormat("uubl@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], '+Lunala');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+		assertStrictEqual(format.id, 'gen8uu');
 
 		format = Dex.getExistingFormat("gen7uubl");
 		assert(format.customRules);
@@ -407,14 +407,14 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
-		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+		assertStrictEqual(format.id, 'gen8uu');
 
 		format = Dex.getExistingFormat("monotype uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen' + gen + 'uu');
+		assertStrictEqual(format.id, 'gen8uu');
 
 		format = Dex.getExistingFormat("monotype gen7uu");
 		assert(format.customRules);
@@ -569,7 +569,7 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, Dex.getExistingPokemon('Spiritomb')), 0);
 	});
 	it('should return proper values from getMoveAvailability()', () => {
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 404);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 460);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
 		// bypass gen 8 Sketch check
@@ -703,7 +703,7 @@ describe("Dex", () => {
 		assert(Dex.includesPokemonFormes(['Vulpix-Alola'], [['Vulpix'], ['Vulpix-Alola']]));
 	});
 	it('should return proper values from getUsablePokemon()', () => {
-		let usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou"));
+		let usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8ou"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu-Sinnoh').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Gastrodon').name));
@@ -717,7 +717,7 @@ describe("Dex", () => {
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ubers"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8ubers"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Giratina').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Giratina-Origin').name));
@@ -726,23 +726,23 @@ describe("Dex", () => {
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("ou@@@+Lunala"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8ou@@@+Lunala"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Lunala').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));
 
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("lc"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8lc"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pawniard').name));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Pichu').name));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Pikachu').name));
 
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("nationaldexag"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8nationaldexag"));
 		assert(usablePokemon.includes(Dex.getExistingPokemon('Arceus-Bug').name));
 
 		// all abilities banned
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("aaa"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8aaa"));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Komala').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
@@ -1395,10 +1395,11 @@ describe("Dex", () => {
 			"Bulbasaur needed to be evolved 2 more stages and Charmander needed to be evolved 2 more stages.");
 	});
 	it('should return proper values from getList methods', () => {
-		const abilities = Dex.getAbilitiesList().map(x => x.name);
-		const items = Dex.getItemsList().map(x => x.name);
-		const moves = Dex.getMovesList().map(x => x.name);
-		const pokemon = Dex.getPokemonList().map(x => x.name);
+		let dex = Dex.getDex("gen8");
+		const abilities = dex.getAbilitiesList().map(x => x.name);
+		const items = dex.getItemsList().map(x => x.name);
+		const moves = dex.getMovesList().map(x => x.name);
+		const pokemon = dex.getPokemonList().map(x => x.name);
 
 		assert(abilities.length);
 		assert(items.length);
@@ -1433,7 +1434,7 @@ describe("Dex", () => {
 
 		// past gen
 
-		const dex = Dex.getDex("gen1");
+		dex = Dex.getDex("gen1");
 		assert(!dex.getPokemonList().map(x => x.name).includes(dex.getExistingPokemon('Missingno.').name));
 	});
 	it('should have hex colors for all relevant Pokemon and move data', () => {

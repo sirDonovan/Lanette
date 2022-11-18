@@ -1,4 +1,3 @@
-import { PRNG } from '../../lib/prng';
 import type { IParametersIntersectOptions, ParamType } from '../../workers/parameters';
 import { assert, assertStrictEqual } from './../test-tools';
 
@@ -80,6 +79,7 @@ describe("Parameters Worker", () => {
 			"rayquaza,regice,salamence,scolipede,sealeo,shuckle,spheal,torkoal,tropius,turtonator,typhlosion,volcanion,walrein");
 
 		// resistance
+		/*
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
 			{params: [paramTypePools.move.psychocut, paramTypePools.resistance.resistsfighting]}));
 		assert(intersection);
@@ -87,6 +87,7 @@ describe("Parameters Worker", () => {
 			"decidueye,doublade,drowzee,exeggutor,gallade,hatterene,honedge,hypno,kadabra,latias,latios,lunala,medicham,meditite," +
 			"mesprit,mew,mewtwo,necrozma,orbeetle,rapidashgalar,scyther,sigilyph,sneaselhisui,spectrier,starmie,swoobat,tapulele," +
 			"uxie,woobat,zacian");
+		*/
 
 		// gmax with no tier
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
@@ -175,6 +176,7 @@ describe("Portmanteaus Worker", () => {
 			assert(!tier.startsWith('('));
 		}
 	});
+	/*
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	it('should properly list portmanteaus', async() => {
 		const workers = Games.getWorkers();
@@ -213,4 +215,5 @@ describe("Portmanteaus Worker", () => {
 		assert(result.answers.includes('teddiursandaconda'));
 		assert(!result.answers.includes('teddiursandacondagmax'));
 	});
+	*/
 });

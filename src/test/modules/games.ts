@@ -20,7 +20,9 @@ if (testOptions.games) {
 	}
 } else {
 	for (const i in Games.getFormats()) {
-		formatsToTest.push(Games.getExistingFormat(i));
+		const format = Games.getExistingFormat(i);
+		if (format.disabled) continue;
+		formatsToTest.push(format);
 	}
 }
 
@@ -647,10 +649,10 @@ describe("Games", () => {
 		Rooms.remove(room);
 	});
 	it('should return proper values from getList methods', () => {
-		const abilities = Games.getAbilitiesList().map(x => x.name);
-		const items = Games.getItemsList().map(x => x.name);
-		const moves = Games.getMovesList().map(x => x.name);
-		const pokemon = Games.getPokemonList().map(x => x.name);
+		const abilities = Games.getAbilitiesList(undefined, 8).map(x => x.name);
+		const items = Games.getItemsList(undefined, 8).map(x => x.name);
+		const moves = Games.getMovesList(undefined, 8).map(x => x.name);
+		const pokemon = Games.getPokemonList(undefined, 8).map(x => x.name);
 
 		assert(abilities.length);
 		assert(items.length);

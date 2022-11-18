@@ -10,7 +10,7 @@ class SameSolo extends SameBattleEliminationTournament {
 	startingTeamsLength = 1;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
-	battleFormatId = '1v1';
+	battleFormatId = 'gen81v1';
 	banlist: string[] = ['Calyrex-Ice', 'Calyrex-Shadow', 'Cinderace', 'Dialga', 'Dragonite', 'Eternatus', 'Genesect', 'Giratina',
 		'Giratina-Origin', 'Groudon', 'Ho-Oh', 'Jirachi', 'Kyogre', 'Kyurem-Black', 'Kyurem-White', 'Lugia', 'Lunala', 'Magearna',
 		'Marshadow', 'Melmetal', 'Mew', 'Mewtwo', 'Mimikyu', 'Necrozma', 'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Rayquaza',

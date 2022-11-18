@@ -626,8 +626,8 @@ export class Tools {
 			const filtered: string[] = [];
 			for (const slice of intersection) {
 				const id = this.toId(slice);
-				const isRegionalForm = (parametersData.formes[id] === 'Galar' || parametersData.formes[id] === 'Alola') &&
-					slice !== "Pikachu-Alola";
+				const isRegionalForm = (parametersData.formes[id] === 'Galar' || parametersData.formes[id] === 'Alola' ||
+					parametersData.formes[id] === 'Paldea') && slice !== "Pikachu-Alola";
 				if (!isRegionalForm && id in parametersData.otherFormes &&
 					intersection.includes(parametersData.otherFormes[id])) continue;
 				if (parametersData.gigantamax.includes(slice) && !tierSearch) continue;

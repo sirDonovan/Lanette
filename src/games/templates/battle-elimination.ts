@@ -51,7 +51,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	allowsSingleStage: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
-	battleFormatId: string = 'ou';
+	battleFormatId: string = 'gen8ou';
 	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
@@ -299,6 +299,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	createBasePokedex(): string[] {
+		const dex = Dex.getDex(this.battleFormat.mod);
 		const teamPreviewHiddenFormes = Dex.getTeamPreviewHiddenFormes();
 		const fullyEvolved = this.fullyEvolved || (this.evolutionsPerRound < 1 && !this.usesCloakedPokemon);
 		const checkEvolutions = this.evolutionsPerRound !== 0;
@@ -307,8 +308,8 @@ export abstract class BattleElimination extends ScriptedGame {
 		const pokedex: IPokemon[] = [];
 
 		outer:
-		for (const name of Dex.getData().pokemonKeys) {
-			const pokemon = Dex.getExistingPokemon(name);
+		for (const name of dex.getData().pokemonKeys) {
+			const pokemon = dex.getExistingPokemon(name);
 			if (!this.meetsPokemonCriteria(pokemon, 'starter', teamPreviewHiddenFormes)) continue;
 
 			if (this.gen && pokemon.gen !== this.gen) continue;
@@ -325,18 +326,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (checkEvolutions) {
 				// filter out formes such as battleOnly that don't have a prevo and give an advantage
 				if (deEvolution && pokemon.prevo) {
-					const formes = Dex.getFormes(pokemon, true);
+					const formes = dex.getFormes(pokemon, true);
 					for (const forme of formes) {
-						if (!Dex.getExistingPokemon(forme).prevo) continue outer;
+						if (!dex.getExistingPokemon(forme).prevo) continue outer;
 					}
 				}
 
-				const evolutionLines = Dex.getEvolutionLines(pokemon);
+				const evolutionLines = dex.getEvolutionLines(pokemon);
 				let validEvolutionLines = evolutionLines.length;
 				for (const line of evolutionLines) {
 					let validLine = true;
 					for (const stage of line) {
-						const evolution = Dex.getExistingPokemon(stage);
+						const evolution = dex.getExistingPokemon(stage);
 						if (evolution === pokemon) continue;
 						if (!this.meetsPokemonCriteria(evolution, 'evolution', teamPreviewHiddenFormes)) {
 							validEvolutionLines--;
@@ -355,7 +356,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		const pokedexNames = pokedex.map(x => x.name);
-		return pokedex.filter(x => !(x.forme && pokedexNames.includes(Dex.getExistingPokemon(x.baseSpecies).name))).map(x => x.name);
+		return pokedex.filter(x => !(x.forme && pokedexNames.includes(dex.getExistingPokemon(x.baseSpecies).name))).map(x => x.name);
 	}
 
 	generateBracket(players?: Player[]): void {
@@ -1341,6 +1342,8 @@ export abstract class BattleElimination extends ScriptedGame {
 				region = 'Alola';
 			} else if (this.gen === 8) {
 				region = 'Galar';
+			} else if (this.gen === 9) {
+				region = 'Paldea';
 			}
 
 			this.htmlPageGameName = "Mono-" + region + " " + this.baseHtmlPageGameName;

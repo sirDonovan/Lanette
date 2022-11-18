@@ -19,7 +19,7 @@ import type { IParsedSmogonLink } from './types/tools';
 
 const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
-const CURRENT_GEN = 8;
+const CURRENT_GEN = 9;
 const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
 const POKEMON_ICON_HEIGHT = 30;
 const POKEMON_ICON_WIDTH = 40;
@@ -136,7 +136,7 @@ const gen2Items: string[] = ['berserkgene', 'berry', 'bitterberry', 'burntberry'
 	'mysteryberry', 'pinkbow', 'polkadotbow', 'przcureberry', 'psncureberry'];
 
 type CustomRuleFormats = Dict<{banlist: string, format: string}>;
-const customRuleFormats: CustomRuleFormats = {
+const baseCustomRuleFormats: CustomRuleFormats = {
 	oubl: {banlist: '+Uber', format: 'OU'},
 	uubl: {banlist: '+UUBL', format: 'UU'},
 	rubl: {banlist: '+RUBL', format: 'RU'},
@@ -145,6 +145,7 @@ const customRuleFormats: CustomRuleFormats = {
 	doubl: {banlist: '+DUber', format: 'Doubles OU'},
 	duubl: {banlist: '+DBL', format: 'Doubles UU'},
 };
+const customRuleFormats: CustomRuleFormats = {};
 
 const nonClauseCustomRuleAliases: Dict<string> = {
 	uber: "Uber",
@@ -268,6 +269,7 @@ const regionNames: RegionNames = {
 	alola: "Alola",
 	galar: "Galar",
 	hisui: "Hisui",
+	paldea: "Paldea",
 };
 
 export class Dex {
@@ -1548,18 +1550,27 @@ export class Dex {
 					customRuleFormats[formatId].banlist);
 				name = customRuleSplit[0];
 				allCustomRules = allCustomRules.concat(customRuleSplit[1]);
+			} else if (formatId.startsWith(OM_OF_THE_MONTH_PREFIX)) {
+				const index = parseInt(formatId.substr(OM_OF_THE_MONTH_PREFIX.length) || '1');
+				if (!isNaN(index)) {
+					const omotm = omotms[index - 1];
+					if (omotm) name = omotm;
+				}
+			} else if (formatId.startsWith(ROA_SPOTLIGHT_PREFIX)) {
+				const index = parseInt(formatId.substr(ROA_SPOTLIGHT_PREFIX.length) || '1');
+				if (!isNaN(index)) {
+					const roas = roaSpotlights[index - 1];
+					if (roas) name = roas;
+				}
 			} else {
-				if (formatId.startsWith(OM_OF_THE_MONTH_PREFIX)) {
-					const index = parseInt(formatId.substr(OM_OF_THE_MONTH_PREFIX.length) || '1');
-					if (!isNaN(index)) {
-						const omotm = omotms[index - 1];
-						if (omotm) name = omotm;
-					}
-				} else if (formatId.startsWith(ROA_SPOTLIGHT_PREFIX)) {
-					const index = parseInt(formatId.substr(ROA_SPOTLIGHT_PREFIX.length) || '1');
-					if (!isNaN(index)) {
-						const roas = roaSpotlights[index - 1];
-						if (roas) name = roas;
+				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
+					const genFormatId = 'gen' + i + formatId;
+					if (genFormatId in customRuleFormats) {
+						const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[genFormatId].format + '@@@' +
+							customRuleFormats[genFormatId].banlist);
+						name = customRuleSplit[0];
+						allCustomRules = allCustomRules.concat(customRuleSplit[1]);
+						break;
 					}
 				}
 			}
@@ -2791,15 +2802,15 @@ export class Dex {
 			this.pokemonShowdownDex.includeMods();
 			this.pokemonShowdownDex.includeModData();
 
-			const baseCustomRuleFormats = Object.keys(customRuleFormats);
+			const baseCustomRuleFormatKeys = Object.keys(baseCustomRuleFormats);
 			for (let i = CURRENT_GEN; i > 0; i--) {
 				const gen = 'gen' + i;
-				for (const name of baseCustomRuleFormats) {
-					const format = gen + customRuleFormats[name].format;
+				for (const name of baseCustomRuleFormatKeys) {
+					const format = gen + baseCustomRuleFormats[name].format;
 					if (!this.pokemonShowdownDex.formats.get(format).exists) continue;
 
 					customRuleFormats[gen + name] = {
-						banlist: customRuleFormats[name].banlist,
+						banlist: baseCustomRuleFormats[name].banlist,
 						format,
 					};
 				}
@@ -2857,8 +2868,8 @@ export class Dex {
 			filteredTypeKeys.push(key);
 		}
 
-		const validator = new this.pokemonShowdownValidator(this.gen === 8 ? "gen8nationaldex" : "gen" + this.gen + "ou",
-			this.dexes.base.pokemonShowdownDex);
+		const validator = new this.pokemonShowdownValidator(this.gen === 9 ? "gen9nationaldex" : this.gen === 8 ? "gen8nationaldex" :
+			"gen" + this.gen + "ou", this.dexes.base.pokemonShowdownDex);
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
 
 		const pokemonKeys = this.pokemonShowdownDex.species.all().map(x => x.id);

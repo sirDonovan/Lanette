@@ -408,4 +408,12 @@ export const locations: LocationData = {
 		mountain: [],
 		other: [],
 	},
+	paldea: {
+		city: [],
+		town: [],
+		cave: [],
+		forest: [],
+		mountain: [],
+		other: [],
+	},
 };

@@ -36,6 +36,7 @@ export const game: IGameFile<PorygonsMovesearchMatch> = Games.copyTemplateProper
 	class: PorygonsMovesearchMatch,
 	defaultOptions: ['points'],
 	description: "Players guess Pokemon based on the given movesets!",
+	disabled: true,
 	freejoin: true,
 	name: "Porygon's Movesearch Match",
 	mascot: "Porygon",

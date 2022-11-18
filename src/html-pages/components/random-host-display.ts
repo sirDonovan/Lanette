@@ -4,7 +4,7 @@ import { HostDisplayBase } from "./host-display-base";
 import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
 import {
-	defaultTrainers, genEightTrainers, genFiveTrainers, genFourTrainers, genOneTrainers, genSevenTrainers, genSixTrainers,
+	defaultTrainers, genEightTrainers, genFiveTrainers, genFourTrainers, genNineTrainers, genOneTrainers, genSevenTrainers, genSixTrainers,
 	genThreeTrainers, genTwoTrainers, trainerGens
 } from "./trainer-picker";
 import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
@@ -485,6 +485,7 @@ export class RandomHostDisplay extends HostDisplayBase {
 				const currentGenSixTrainers = this.currentTrainerGeneration === genSixTrainers;
 				const currentGenSevenTrainers = this.currentTrainerGeneration === genSevenTrainers;
 				const currentGenEightTrainers = this.currentTrainerGeneration === genEightTrainers;
+				const currentGenNineTrainers = this.currentTrainerGeneration === genNineTrainers;
 
 				html += this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + randomTrainerGen,
 					"Random", {selectedAndDisabled: this.currentTrainerGeneration === undefined});
@@ -506,6 +507,8 @@ export class RandomHostDisplay extends HostDisplayBase {
 					"Gen 7", {selectedAndDisabled: currentGenSevenTrainers});
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genEightTrainers,
 					"Gen 8", {selectedAndDisabled: currentGenEightTrainers});
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setTrainerGenCommand + ", " + genNineTrainers,
+					"Gen 9", {selectedAndDisabled: currentGenNineTrainers});
 			} else {
 				html += this.trainerPickers[this.trainerPickerIndex].render();
 			}

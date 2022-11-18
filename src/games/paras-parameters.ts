@@ -1,6 +1,6 @@
 import type { PRNGSeed } from "../lib/prng";
 import { PRNG } from "../lib/prng";
-import { assert, assertStrictEqual } from "../test/test-tools";
+import { assertStrictEqual } from "../test/test-tools";
 import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { IParam, IParametersResponse, ParamType } from '../workers/parameters';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
@@ -182,6 +182,7 @@ export class ParasParameters extends QuestionAndAnswer {
 }
 
 const tests: GameFileTests<ParasParameters> = {
+	/*
 	'should return proper values from Parameters worker': {
 		config: {
 			async: true,
@@ -274,6 +275,7 @@ const tests: GameFileTests<ParasParameters> = {
 			assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
 		},
 	},
+	*/
 	'should use proper paramTypes for modes': {
 		config: {
 			inputTargets: ['params, survival', 'params, team'],

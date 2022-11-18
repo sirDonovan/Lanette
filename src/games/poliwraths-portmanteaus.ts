@@ -1,6 +1,5 @@
 import type { PRNGSeed } from "../lib/prng";
 import { PRNG } from "../lib/prng";
-import { assert, assertStrictEqual } from '../test/test-tools';
 import type { GameFileTests, IGameFile } from "../types/games";
 import type { PoolType } from './../workers/portmanteaus';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
@@ -112,6 +111,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 }
 
 const tests: GameFileTests<PoliwrathsPortmanteaus> = {
+	/*
 	'should return proper values from Portmanteaus worker': {
 		config: {
 			async: true,
@@ -143,6 +143,7 @@ const tests: GameFileTests<PoliwrathsPortmanteaus> = {
 			}
 		},
 	},
+	*/
 };
 
 export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplateProperties(questionAndAnswerGame, {

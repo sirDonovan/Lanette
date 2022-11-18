@@ -645,5 +645,11 @@ export const game: IGameFile<BulbasaursUno> = Games.copyTemplateProperties(cardG
 			requiredGen: 8,
 			maxPlayers: 18,
 		},
+		{
+			name: "Bulbasaur's Paldea Uno",
+			variantAliases: ["paldea", "gen9"],
+			requiredGen: 9,
+			maxPlayers: 18,
+		},
 	],
 });
