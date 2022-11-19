@@ -153,6 +153,11 @@ export let unrankedTournamentFormats: Dict<string[]> = {};
 export let randomTournamentCustomRules: Dict<string[]> = {};
 
 /**
+ * A list of rooms (roomids) where randomly selected tournaments will use saved custom formats
+ */
+export let customFormatRandomTournaments: string[] = [];
+
+/**
  * The default player caps to use when creating tournaments
  */
 export let defaultTournamentPlayerCaps: Dict<number> = {};

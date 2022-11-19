@@ -27,6 +27,7 @@ const customRulesInputCommand = 'selectcustomrules';
 const valueRulesInputCommand = 'selectvaluerules';
 const addCustomRuleCommand = 'addcustomrule';
 const removeCustomRuleCommand = 'removecustomrule';
+const customFormatPageCommand = 'selectcustomformatpage';
 const banPageCommand = 'selectbanpage';
 const unbanPageCommand = 'selectunbanpage';
 const addRulePageCommand = 'selectaddrulepage';
@@ -109,7 +110,7 @@ class CustomFormatManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.customFormatsPagination = new Pagination(this, this.commandPrefix, banPageCommand, {
+		this.customFormatsPagination = new Pagination(this, this.commandPrefix, customFormatPageCommand, {
 			elements: this.getCustomFormatPageElements(),
 			elementsPerRow: 5,
 			rowsPerPage: 8,

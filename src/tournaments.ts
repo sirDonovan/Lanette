@@ -761,11 +761,22 @@ export class Tournaments {
 			}
 		}
 
+		const customFormats: string[] = [];
+		if (Config.customFormatRandomTournaments && Config.customFormatRandomTournaments.includes(room.id) && database.customFormats) {
+			for (const i in database.customFormats) {
+				const format = this.getFormat(database.customFormats[i].name, room);
+				if (!format) continue;
+
+				customFormats.push(database.customFormats[i].name);
+			}
+		}
+
+		const fromDatabase = customFormats.length || (database.randomTournamentFormats && database.randomTournamentFormats.length);
+		const formatsPool: readonly string[] = customFormats.length ? customFormats : fromDatabase ? database.randomTournamentFormats! :
+			Dex.getData().formatKeys;
 		const currentGen = Dex.getCurrentGenString();
-		const formats: IFormat[] = [];
-		const fromDatabase = database.randomTournamentFormats && database.randomTournamentFormats.length;
-		const possibleFormats: readonly string[] = fromDatabase ? database.randomTournamentFormats! : Dex.getData().formatKeys;
-		for (const i of possibleFormats) {
+		const validFormats: IFormat[] = [];
+		for (const i of formatsPool) {
 			const format = this.getFormat(i, room);
 			if (!format || !format.tournamentPlayable || (officialFormat && officialFormat.id === format.id) ||
 				(!fromDatabase && (format.unranked || format.mod !== currentGen))) continue;
@@ -776,12 +787,12 @@ export class Tournaments {
 				if (format.quickFormat || pastTournamentIds.includes(format.id)) continue;
 			}
 
-			formats.push(format);
+			validFormats.push(format);
 		}
 
-		if (!formats.length) return;
+		if (!validFormats.length) return;
 
-		let format = Tools.sampleOne(formats);
+		let format = Tools.sampleOne(validFormats);
 		if (Config.randomTournamentCustomRules && room.id in Config.randomTournamentCustomRules) {
 			const rules = Tools.shuffle(Config.randomTournamentCustomRules[room.id]);
 			for (const rule of rules) {
