@@ -773,9 +773,11 @@ export class Tournaments {
 
 		let allowPastGen = false;
 		let allowUnranked = false;
+		let canAddCustomRules = true;
 		let formatsPool: readonly string[];
 		if (customFormats.length) {
 			allowPastGen = true;
+			canAddCustomRules = false;
 			formatsPool = customFormats;
 		} else if (database.randomTournamentFormats && database.randomTournamentFormats.length) {
 			allowPastGen = true;
@@ -804,7 +806,7 @@ export class Tournaments {
 		if (!validFormats.length) return;
 
 		let format = Tools.sampleOne(validFormats);
-		if (Config.randomTournamentCustomRules && room.id in Config.randomTournamentCustomRules) {
+		if (canAddCustomRules && Config.randomTournamentCustomRules && room.id in Config.randomTournamentCustomRules) {
 			const rules = Tools.shuffle(Config.randomTournamentCustomRules[room.id]);
 			for (const rule of rules) {
 				const customRuleFormat = this.getFormat(format.id + "@@@" + rule, room);
