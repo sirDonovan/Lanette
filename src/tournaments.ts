@@ -771,15 +771,26 @@ export class Tournaments {
 			}
 		}
 
-		const fromDatabase = customFormats.length || (database.randomTournamentFormats && database.randomTournamentFormats.length);
-		const formatsPool: readonly string[] = customFormats.length ? customFormats : fromDatabase ? database.randomTournamentFormats! :
-			Dex.getData().formatKeys;
-		const currentGen = Dex.getCurrentGenString();
+		let allowPastGen = false;
+		let allowUnranked = false;
+		let formatsPool: readonly string[];
+		if (customFormats.length) {
+			allowPastGen = true;
+			formatsPool = customFormats;
+		} else if (database.randomTournamentFormats && database.randomTournamentFormats.length) {
+			allowPastGen = true;
+			allowUnranked = true;
+			formatsPool = database.randomTournamentFormats;
+		} else {
+			formatsPool = Dex.getData().formatKeys;
+		}
+
+		const currentGenMod = Dex.getCurrentGenMod();
 		const validFormats: IFormat[] = [];
 		for (const i of formatsPool) {
 			const format = this.getFormat(i, room);
 			if (!format || !format.tournamentPlayable || (officialFormat && officialFormat.id === format.id) ||
-				(!fromDatabase && (format.unranked || format.mod !== currentGen))) continue;
+				(format.unranked && !allowUnranked) || (format.mod !== currentGenMod && !allowPastGen)) continue;
 
 			if (quickFormat) {
 				if (!format.quickFormat) continue;

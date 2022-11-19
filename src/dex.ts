@@ -20,7 +20,7 @@ import type { IParsedSmogonLink } from './types/tools';
 const MAX_CUSTOM_NAME_LENGTH = 100;
 const DEFAULT_CUSTOM_RULES_NAME = " (with custom rules)";
 const CURRENT_GEN = 9;
-const CURRENT_GEN_STRING = 'gen' + CURRENT_GEN;
+const CURRENT_GEN_MOD = 'gen' + CURRENT_GEN;
 const POKEMON_ICON_HEIGHT = 30;
 const POKEMON_ICON_WIDTH = 40;
 const TRAINER_SPRITE_DIMENSIONS = 80;
@@ -330,7 +330,7 @@ export class Dex {
 		const isBase = mod === 'base';
 		if (isBase) {
 			this.dexes.base = this;
-			this.dexes[CURRENT_GEN_STRING] = this;
+			this.dexes[CURRENT_GEN_MOD] = this;
 
 			const dataDist = ".data-dist";
 			const simDist = ".sim-dist";
@@ -422,8 +422,8 @@ export class Dex {
 		return regionNames;
 	}
 
-	getCurrentGenString(): string {
-		return CURRENT_GEN_STRING;
+	getCurrentGenMod(): string {
+		return CURRENT_GEN_MOD;
 	}
 
 	getCustomRuleAliases(): Readonly<Dict<string[]>> {
@@ -463,7 +463,7 @@ export class Dex {
 	}
 
 	getDex(mod?: string): Dex {
-		if (!mod) mod = CURRENT_GEN_STRING;
+		if (!mod) mod = CURRENT_GEN_MOD;
 		return this.dexes[mod];
 	}
 
