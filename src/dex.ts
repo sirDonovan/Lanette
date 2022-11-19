@@ -305,6 +305,7 @@ export class Dex {
 	private movesList: readonly IMove[] | null = null;
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
 	private readonly moveAvailbilityPokemonCache: Dict<string[]> = Object.create(null);
+	private nationalDexPokemonList: readonly IPokemon[] | null = null;
 	private readonly natureCache: Dict<INature> = Object.create(null);
 	private readonly pokemonCache: Dict<IPokemon> = Object.create(null);
 	private pokemonList: readonly IPokemon[] | null = null;
@@ -780,19 +781,40 @@ export class Dex {
 		return Tools.deepClone(typeof name === 'string' ? this.getExistingPokemon(name) : name) as IPokemonCopy;
 	}
 
-	/** Returns a list of existing Pokemon */
-	getPokemonList(): readonly IPokemon[] {
-		if (this.pokemonList) return this.pokemonList;
+	/** Returns a list of Pokemon that can be found in /ds or /nds */
+	getPokemonList(nationalDex?: boolean): readonly IPokemon[] {
+		if (nationalDex) {
+			if (this.nationalDexPokemonList) return this.nationalDexPokemonList;
+		} else {
+			if (this.pokemonList) return this.pokemonList;
+		}
 
 		const pokedex: IPokemon[] = [];
 		for (const i of this.getData().pokemonKeys) {
-			const pokemon = this.getExistingPokemon(i);
-			if (pokemon.isNonstandard === 'CAP' || pokemon.isNonstandard === 'LGPE' || pokemon.isNonstandard === 'Custom' ||
-				pokemon.isNonstandard === 'Unobtainable') continue;
-			pokedex.push(pokemon);
+			const species = this.getExistingPokemon(i);
+			if (species.tier.startsWith("CAP")) continue;
+
+			if (
+				species.gen <= this.gen &&
+				(
+					(
+						nationalDex &&
+						species.isNonstandard &&
+						!["Custom", "Glitch", "Pokestar", "Future"].includes(species.isNonstandard)
+					) ||
+					(species.tier !== 'Unreleased' && species.tier !== 'Illegal')
+				)
+			) {
+				pokedex.push(species);
+			}
 		}
 
-		this.pokemonList = pokedex;
+		if (nationalDex) {
+			this.nationalDexPokemonList = pokedex;
+		} else {
+			this.pokemonList = pokedex;
+		}
+
 		return pokedex;
 	}
 
