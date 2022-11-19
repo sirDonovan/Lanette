@@ -40,7 +40,7 @@ class DittosWhoAmI extends ScriptedGame {
 	}
 
 	onStart(): void {
-		this.pokemonList = this.shuffle(Games.getPokemonList(x => {
+		this.pokemonList = this.shuffle(Games.getPokemonList({filter: x => {
 			const color = Tools.toId(x.color);
 			if (!this.colors.includes(color)) this.colors.push(color);
 
@@ -55,7 +55,7 @@ class DittosWhoAmI extends ScriptedGame {
 			if (x.forme && !(x.forme === 'Mega' || x.forme === 'Totem' || x.forme === 'Gmax' || x.forme === 'Alola' ||
 				x.forme === 'Galar' || x.forme === 'Hisui' || x.forme === 'Paldea')) return false;
 			return true;
-		}));
+		}}));
 
 		this.includedPokemon = this.pokemonList.map(x => x.name);
 

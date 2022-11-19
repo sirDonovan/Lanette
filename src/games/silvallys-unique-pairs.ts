@@ -8,7 +8,7 @@ class SilvallysUniquePairs extends QuestionAndAnswer {
 
 	static loadData(): void {
 		const allPossibleMovesCache: Dict<readonly string[]> = {};
-		const pokemonList = Games.getPokemonList(x => {
+		const pokemonList = Games.getPokemonList({filter: x => {
 			if (x.id === 'smeargle') return false;
 
 			const allPossibleMoves = Dex.getAllPossibleMoves(x);
@@ -16,7 +16,7 @@ class SilvallysUniquePairs extends QuestionAndAnswer {
 
 			allPossibleMovesCache[x.name] = allPossibleMoves;
 			return true;
-		}).slice();
+		}}).slice();
 
 		pokemonList.sort((a, b) => allPossibleMovesCache[b.name].length - allPossibleMovesCache[a.name].length);
 

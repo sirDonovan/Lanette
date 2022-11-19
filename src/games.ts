@@ -32,6 +32,12 @@ type Modes = Dict<IGameMode>;
 type UserHostedFormats = Dict<IUserHostedComputed>;
 type GameCategoryNames = Readonly<KeyedDict<GameCategory, string>>;
 
+interface IPokemonListOptions {
+	filter?: (pokemon: IPokemon) => boolean;
+	gen?: number;
+	obtainable?: boolean;
+}
+
 interface ICreateGameOptions {
 	minigame?: boolean;
 	official?: boolean;
@@ -164,6 +170,7 @@ export class Games {
 	private abilitiesLists: Dict<readonly IAbility[]> = Object.create(null);
 	private itemsLists: Dict<readonly IItem[]> = Object.create(null);
 	private movesLists: Dict<readonly IMove[]> = Object.create(null);
+	private nationalDexPokemonLists: Dict<readonly IPokemon[]> = Object.create(null);
 	private pokemonLists: Dict<readonly IPokemon[]> = Object.create(null);
 	/* eslint-enable */
 
@@ -1611,24 +1618,35 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonList(filter?: (pokemon: IPokemon) => boolean, gen?: number): readonly IPokemon[] {
-		if (!gen) gen = Dex.getGen();
-		const mod = 'gen' + gen;
-		if (!Object.prototype.hasOwnProperty.call(this.pokemonLists, mod)) {
-			const baseList = Dex.getDex(mod).getPokemonList();
+	getPokemonList(options?: IPokemonListOptions): readonly IPokemon[] {
+		if (!options) options = {};
+
+		const currentGen = Dex.getGen();
+		if (!options.gen) options.gen = currentGen;
+
+		const mod = 'gen' + options.gen;
+		if ((options.obtainable && !Object.prototype.hasOwnProperty.call(this.pokemonLists, mod)) ||
+			(!options.obtainable && !Object.prototype.hasOwnProperty.call(this.nationalDexPokemonLists, mod))) {
+			const baseList = Dex.getDex(mod).getPokemonList(!options.obtainable && options.gen === currentGen);
 			const list: IPokemon[] = [];
 			for (const pokemon of baseList) {
 				if (!pokemon.name) continue;
 				list.push(pokemon);
 			}
-			this.pokemonLists[mod] = list;
+
+			if (options.obtainable) {
+				this.pokemonLists[mod] = list;
+			} else {
+				this.nationalDexPokemonLists[mod] = list;
+			}
 		}
 
-		if (!filter) return this.pokemonLists[mod];
+		const list = options.obtainable ? this.pokemonLists[mod] : this.nationalDexPokemonLists[mod];
+		if (!options.filter) return list;
 
 		const filteredList: IPokemon[] = [];
-		for (const pokemon of this.pokemonLists[mod]) {
-			if (!filter(pokemon)) continue;
+		for (const pokemon of list) {
+			if (!options.filter(pokemon)) continue;
 			filteredList.push(pokemon);
 		}
 
@@ -1639,10 +1657,11 @@ export class Games {
 	 *
 	 * filterItem: Return `false` to filter `pokemon` out of the list
 	 */
-	getPokemonCopyList(filter?: (pokemon: IPokemon) => boolean, gen?: number): IPokemonCopy[] {
-		if (!gen) gen = Dex.getGen();
-		const dex = Dex.getDex('gen' + gen);
-		return this.getPokemonList(filter, gen).map(x => dex.getPokemonCopy(x));
+	getPokemonCopyList(options?: IPokemonListOptions): IPokemonCopy[] {
+		if (!options) options = {};
+		if (!options.gen) options.gen = Dex.getGen();
+		const dex = Dex.getDex('gen' + options.gen);
+		return this.getPokemonList(options).map(x => dex.getPokemonCopy(x));
 	}
 
 	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon, inverseTypes?: boolean): number {

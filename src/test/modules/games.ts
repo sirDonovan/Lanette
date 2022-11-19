@@ -652,7 +652,7 @@ describe("Games", () => {
 		const abilities = Games.getAbilitiesList(undefined, 8).map(x => x.name);
 		const items = Games.getItemsList(undefined, 8).map(x => x.name);
 		const moves = Games.getMovesList(undefined, 8).map(x => x.name);
-		const pokemon = Games.getPokemonList(undefined, 8).map(x => x.name);
+		const pokemon = Games.getPokemonList({gen: 8}).map(x => x.name);
 
 		assert(abilities.length);
 		assert(items.length);
@@ -661,12 +661,11 @@ describe("Games", () => {
 
 		assert(!abilities.includes(Dex.getExistingAbility('No Ability').name));
 
-		// LGPE/CAP/Glitch/Pokestar
+		// CAP/Glitch/Pokestar
 		assert(!abilities.includes(Dex.getExistingAbility('Mountaineer').name));
 		assert(!items.includes(Dex.getExistingItem('Crucibellite').name));
 		assert(!moves.includes(Dex.getExistingMove('Baddy Bad').name));
 		assert(!moves.includes(Dex.getExistingMove('Paleo Wave').name));
-		assert(!pokemon.includes(Dex.getExistingPokemon('Pikachu-Starter').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Voodoom').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Missingno.').name));
 		assert(!pokemon.includes(Dex.getExistingPokemon('Pokestar Smeargle').name));

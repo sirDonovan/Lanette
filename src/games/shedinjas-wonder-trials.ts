@@ -30,7 +30,7 @@ class ShedinjasWonderTrials extends ScriptedGame {
 
 	static loadData(): void {
 		data.moves = Games.getMovesList(x => !x.id.startsWith('hiddenpower') && x.category !== 'Status' && !x.isMax).map(x => x.id);
-		data.pokedex = Games.getPokemonList(x => x.baseSpecies === x.name).map(x => x.name);
+		data.pokedex = Games.getPokemonList({filter: x => x.baseSpecies === x.name}).map(x => x.name);
 	}
 
 	onSignups(): void {

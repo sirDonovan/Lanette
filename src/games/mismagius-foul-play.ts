@@ -39,7 +39,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 	roundGuesses = new Map<Player, boolean>();
 
 	static loadData(): void {
-		const pokemonList = Games.getPokemonList(x => x.baseSpecies === x.name);
+		const pokemonList = Games.getPokemonList({filter: x => x.baseSpecies === x.name});
 		for (const pokemon of pokemonList) {
 			const learnsetData = Dex.getLearnsetData(pokemon.id);
 			if (!learnsetData || !learnsetData.learnset) continue;

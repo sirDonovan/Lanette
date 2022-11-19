@@ -110,7 +110,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			}
 
 			const allPossibleMoves: Dict<readonly string[]> = {};
-			const pokedex = Games.getPokemonList(undefined, gen);
+			const pokedex = Games.getPokemonList({gen});
 			for (const pokemon of pokedex) {
 				allPossibleMoves[pokemon.id] = dex.getAllPossibleMoves(pokemon);
 

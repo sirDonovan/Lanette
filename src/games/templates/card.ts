@@ -212,7 +212,7 @@ export abstract class CardGame<ActionCardsType extends object = Dict<IActionCard
 			}
 			pokemonList = list;
 		} else {
-			pokemonList = Games.getPokemonList(pokemon => this.filterPokemonList(dex, pokemon), this.requiredGen);
+			pokemonList = Games.getPokemonList({filter: pokemon => this.filterPokemonList(dex, pokemon), gen: this.requiredGen});
 		}
 
 		for (const pokemon of pokemonList) {
