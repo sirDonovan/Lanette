@@ -224,5 +224,10 @@ export const game: IGameFile<JellicentsPhantomFinances> = Games.copyTemplateProp
 			variantAliases: ['Auction-only', 'Auctions-only', 'auction', 'auctions'],
 			acquireProperties: false,
 		},
+		{
+			name: "Jellicent's Phantom Finances: Loop",
+			variantAliases: ['loop', 'circle'],
+			boardType: 'circle',
+		},
 	],
 });

@@ -61,6 +61,7 @@ export abstract class BoardGame extends ScriptedGame {
 	abstract startingSpace: BoardSpace;
 
 	boardRound: number = 0;
+	boardType: BoardType = 'square';
 	currentPlayer: Player | null = null;
 	dice: number[] = [];
 	doubleRolls: number = 0;
@@ -251,7 +252,7 @@ export abstract class BoardGame extends ScriptedGame {
 const tests: GameFileTests<BoardGame> = {
 	'it should properly determine space order in getLocationAfterMovement': {
 		test(game): void {
-			if (game.reverseDirections) return;
+			if (game.reverseDirections || game.boardType !== 'square') return;
 
 			const rows = game.board.length - 1;
 			const columns = game.board[0].length - 1;
@@ -367,10 +368,12 @@ const tests: GameFileTests<BoardGame> = {
 	},
 	'it should have properly initialized board spaces': {
 		test(game): void {
+			if (game.boardType !== 'square') return;
+
 			addPlayers(game, 4);
 			if (!game.started) game.start();
 
-			let location: IMovedBoardLocation = {x: 0, y: 0, passedSpaces: []};
+			let location: IMovedBoardLocation = {x: game.startingBoardLocation.x, y: game.startingBoardLocation.x, passedSpaces: []};
 			let spaceId = location.x + ", " + location.y;
 			let space = game.board[location.y][location.x];
 			const totalSpaces = (game.board.length * 2) + (game.board[0].length * 2);

@@ -5,7 +5,7 @@ import type {
 import type { NamedHexCode } from "../../types/tools";
 import { data as circleData } from "./../data/board-maps/circle";
 import { data as squareData, MOUNTAIN_PREFIX } from "./../data/board-maps/square";
-import type { BoardActionCard, BoardData, BoardSpaceDirection, BoardType, IBoardLocation, IMovedBoardLocation } from "./board";
+import type { BoardActionCard, BoardData, BoardSpaceDirection, IBoardLocation, IMovedBoardLocation } from "./board";
 import { BoardGame, BoardSpace, game as boardGame } from "./board";
 
 type BoardEliminationType = 'random' | number;
@@ -212,7 +212,6 @@ export abstract class BoardPropertyGame extends BoardGame {
 
 	acquireProperties: boolean = true;
 	actionCards: BoardActionCard<BoardPropertyGame>[] = [];
-	boardType: BoardType = 'square';
 	canRollOrEscapeJail: boolean = false;
 	canAcquire: boolean = false;
 	canLateJoin: boolean = true;
@@ -253,11 +252,6 @@ export abstract class BoardPropertyGame extends BoardGame {
 	abstract onInsufficientCurrencyToAcquire(property: BoardPropertySpace, player: Player): void;
 
 	afterInitialize(): void {
-		if (this.format.inputOptions.board === 'circle') {
-			this.boardType = 'circle';
-			this.reverseDirections = true;
-		}
-
 		let boardData: BoardData[];
 		if (this.boardType === 'circle') {
 			boardData = circleData;
