@@ -1,10 +1,11 @@
 import type { Player } from "../../room-activity";
-import { addPlayers, assertStrictEqual } from "../../test/test-tools";
 import type {
 	GameCommandDefinitions, GameFileTests, IGameAchievement, IGameTemplateFile
 } from "../../types/games";
 import type { NamedHexCode } from "../../types/tools";
-import type { BoardActionCard, BoardSide, IBoard, IMovedBoardLocation } from "./board";
+import { data as circleData } from "./../data/board-maps/circle";
+import { data as squareData, MOUNTAIN_PREFIX } from "./../data/board-maps/square";
+import type { BoardActionCard, BoardData, BoardSpaceDirection, BoardType, IBoardLocation, IMovedBoardLocation } from "./board";
 import { BoardGame, BoardSpace, game as boardGame } from "./board";
 
 type BoardEliminationType = 'random' | number;
@@ -13,15 +14,14 @@ type BoardRentType = 'random' | number;
 const RANDOM_ELIMINATION_CHANCE = 35;
 const RANDOM_RENT = 7;
 
-export const mountainPrefix = "Mt.";
-
 export class BoardPropertySpace extends BoardSpace {
 	owner: Player | null = null;
 
 	cost: number;
 
-	constructor(name: string, color: NamedHexCode, cost: number) {
-		super(name, color);
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection,
+		cost: number) {
+		super(name, color, forwardDirection, backwardDirection);
 
 		this.cost = cost;
 	}
@@ -30,8 +30,9 @@ export class BoardPropertySpace extends BoardSpace {
 export class BoardPropertyEliminationSpace extends BoardPropertySpace {
 	eliminationChance: number;
 
-	constructor(name: string, color: NamedHexCode, cost: number, eliminationChance: number) {
-		super(name, color, cost);
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection,
+		cost: number, eliminationChance: number) {
+		super(name, color, forwardDirection, backwardDirection, cost);
 
 		this.eliminationChance = eliminationChance;
 	}
@@ -40,8 +41,9 @@ export class BoardPropertyEliminationSpace extends BoardPropertySpace {
 export class BoardPropertyRentSpace extends BoardPropertySpace {
 	rent: number;
 
-	constructor(name: string, color: NamedHexCode, cost: number) {
-		super(name, color, cost);
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection,
+		cost: number) {
+		super(name, color, forwardDirection, backwardDirection, cost);
 
 		this.rent = cost;
 	}
@@ -50,8 +52,9 @@ export class BoardPropertyRentSpace extends BoardPropertySpace {
 export class BoardEliminationSpace extends BoardSpace {
 	eliminationChance: BoardEliminationType;
 
-	constructor(name: string, color: NamedHexCode, eliminationChance: BoardEliminationType) {
-		super(name, color);
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection,
+		eliminationChance: BoardEliminationType) {
+		super(name, color, forwardDirection, backwardDirection);
 
 		this.eliminationChance = eliminationChance;
 	}
@@ -60,10 +63,23 @@ export class BoardEliminationSpace extends BoardSpace {
 export class BoardRentSpace extends BoardSpace {
 	rent: BoardRentType;
 
-	constructor(name: string, color: NamedHexCode, rent: BoardRentType) {
-		super(name, color);
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection,
+		rent: BoardRentType) {
+		super(name, color, forwardDirection, backwardDirection);
 
 		this.rent = rent;
+	}
+}
+
+export class BoardRandomCostSpace extends BoardRentSpace {
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection) {
+		super(name, color, forwardDirection, backwardDirection, "random");
+	}
+}
+
+export class BoardRandomEliminationSpace extends BoardEliminationSpace {
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection) {
+		super(name, color, forwardDirection, backwardDirection, 'random');
 	}
 }
 
@@ -91,10 +107,10 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const location = this.playerLocations.get(player)!;
 		const spaces = -1 * (this.random(3) + 1);
 		const locationAfterMovement = this.getLocationAfterMovement(location, spaces);
-		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
+		this.playerLocations.set(player, {x: locationAfterMovement.x, y: locationAfterMovement.y});
 
 		const text = "They slip on an Inkay and go back **" + (-1 * spaces) + "** space" + (spaces < -1 ? "s" : "") + " to **" +
-			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
+			this.board[locationAfterMovement.y][locationAfterMovement.x]!.name + "**!";
 		this.on(text, () => {
 			this.setTimeout(() => this.onSpaceLanding(player, spaces, locationAfterMovement, true), this.roundTime);
 		});
@@ -104,8 +120,8 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		const location = this.playerLocations.get(player)!;
 		let locationAfterMovement = this.getLocationAfterMovement(location, 1);
 		let passedSpaces = locationAfterMovement.passedSpaces.slice();
-		while (!this.board[locationAfterMovement.side][locationAfterMovement.space].name.startsWith(mountainPrefix)) {
-			locationAfterMovement = this.getLocationAfterMovement({side: locationAfterMovement.side, space: locationAfterMovement.space},
+		while (!this.board[locationAfterMovement.y][locationAfterMovement.x]!.name.startsWith(MOUNTAIN_PREFIX)) {
+			locationAfterMovement = this.getLocationAfterMovement({x: locationAfterMovement.x, y: locationAfterMovement.y},
 				1);
 			passedSpaces = passedSpaces.concat(locationAfterMovement.passedSpaces);
 		}
@@ -119,9 +135,9 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 			this.playerCurrency.set(player, currency);
 			if (this.maxCurrency && currency >= this.maxCurrency) reachedMaxCurrency = true;
 		}
-		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
+		this.playerLocations.set(player, {x: locationAfterMovement.x, y: locationAfterMovement.y});
 
-		let text = "They go hiking at the nearest mountain, **" + this.board[locationAfterMovement.side][locationAfterMovement.space].name +
+		let text = "They go hiking at the nearest mountain, **" + this.board[locationAfterMovement.y][locationAfterMovement.x]!.name +
 			"**";
 		if (passedGo) {
 			text += " (and collect **" + this.passingGoCurrency + " " + (this.passingGoCurrency > 1 ? this.currencyPluralName :
@@ -154,15 +170,14 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 		this.say(text);
 	},
 	function(this: BoardPropertyGame, player): void {
-		const totalSpaces = this.board.leftColumn.length + this.board.topRow.length + this.board.rightColumn.length +
-			this.board.bottomRow.length;
+		const totalSpaces = (this.board.length * 2) + (this.board[0].length * 2);
 		const spacesMoved = this.random(totalSpaces - 1) + 1;
 		const location = this.playerLocations.get(player)!;
 		const locationAfterMovement = this.getLocationAfterMovement(location, spacesMoved);
-		this.playerLocations.set(player, {side: locationAfterMovement.side, space: locationAfterMovement.space});
+		this.playerLocations.set(player, {x: locationAfterMovement.x, y: locationAfterMovement.y});
 
 		const text = "An Abra appeared and teleported them to **" +
-			this.board[locationAfterMovement.side][locationAfterMovement.space].name + "**!";
+			this.board[locationAfterMovement.y][locationAfterMovement.x]!.name + "**!";
 		this.on(text, () => {
 			this.setTimeout(() => this.onSpaceLanding(player, spacesMoved, locationAfterMovement, true), this.roundTime);
 		});
@@ -181,28 +196,27 @@ const sharedActionCards: BoardActionCard<BoardPropertyGame>[] = [
 	},
 ];
 
-export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends BoardGame {
+export abstract class BoardPropertyGame extends BoardGame {
 	abstract acquirePropertyAction: string;
 	abstract acquirePropertyActionPast: string;
 	abstract availablePropertyState: string;
-	abstract board: IBoard;
 	abstract currencyName: string;
 	abstract currencyPluralName: string;
 	abstract currencyToEscapeJail: number;
 	abstract escapeFromJailCard: string;
-	abstract jailSpace: BoardSpace;
 	abstract passingGoCurrency: number;
 	abstract rafflePrize: number;
 	abstract raffleRunner: string;
-	abstract spaces: BoardSpaces;
 	abstract startingCurrency: number;
 	abstract winCondition: 'currency' | 'property';
 
 	acquireProperties: boolean = true;
-	actionCards: BoardActionCard<BoardPropertyGame<BoardSpaces>>[] = [];
+	actionCards: BoardActionCard<BoardPropertyGame>[] = [];
+	boardType: BoardType = 'square';
 	canRollOrEscapeJail: boolean = false;
 	canAcquire: boolean = false;
 	canLateJoin: boolean = true;
+	chanceUnlockCost: number = 1;
 	escapeFromJailCards = new Map<Player, number>();
 	hasAssistActions: boolean = true;
 	maxPlayers: number = 25;
@@ -213,25 +227,94 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	propertyToAcquire: BoardPropertyEliminationSpace | BoardPropertyRentSpace | null = null;
 	roundTime: number = 3 * 1000;
 	sharedActionCards: BoardActionCard<BoardPropertyGame>[] = sharedActionCards;
-	startingBoardSide: BoardSide = 'leftColumn';
 	startingBoardSideSpace: number = 0;
 	turnsInJail = new Map<Player, number>();
+	useCost: boolean = false;
+	useChance: boolean = false;
+
+	// loaded in afterInitialize()
+	board: (BoardSpace | null)[][] = [];
+	jailSpace!: BoardSpace;
+	startingBoardLocation!: IBoardLocation;
+	startingSpace!: BoardSpace;
 
 	acquireAllPropertiesAchievement?: IGameAchievement;
 	acquireAllMountainsAchievement?: IGameAchievement;
 	doublesRollsAchievement?: IGameAchievement;
 	doublesRollsAchievementAmount?: number;
 	maxCurrency?: number;
+	randomEffectName?: string;
 
-	// set once the game starts
-	startingSpace!: BoardSpace;
-
-	abstract getActionCards(): BoardActionCard<BoardPropertyGame<BoardSpaces>>[];
+	abstract getActionCards(): BoardActionCard<BoardPropertyGame>[];
 	abstract getPlayerPropertiesHtml(player: Player): string;
 	abstract onOwnedPropertySpace(space: BoardPropertySpace, player: Player): void;
 	abstract onAcquirePropertySpace(property: BoardPropertySpace, player: Player, cost: number): void;
 	abstract onPassOnPropertySpace(player: Player): void;
 	abstract onInsufficientCurrencyToAcquire(property: BoardPropertySpace, player: Player): void;
+
+	afterInitialize(): void {
+		if (this.format.inputOptions.board === 'circle') {
+			this.boardType = 'circle';
+			this.reverseDirections = true;
+		}
+
+		let boardData: BoardData[];
+		if (this.boardType === 'circle') {
+			boardData = circleData;
+		} else {
+			boardData = squareData;
+		}
+
+		let row = 0;
+		this.board = [[]];
+
+		for (const entry of boardData) {
+			if (entry === null) {
+				this.board[row].push(null);
+				continue;
+			}
+
+			if ('row' in entry) {
+				if (entry.row > 1) {
+					row++;
+					this.board.push([]);
+				}
+
+				continue;
+			}
+
+			let space: BoardSpace;
+			if (entry.effect === 'action') {
+				space = new BoardActionSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection);
+			} else if (entry.effect === 'random' && (this.useCost || this.useChance)) {
+				if (this.useCost) {
+					space = new BoardRandomCostSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection);
+				} else {
+					space = new BoardRandomEliminationSpace(this.randomEffectName || entry.name, entry.color, entry.forwardDirection,
+						entry.backwardDirection);
+				}
+			} else if (entry.effect === 'jail') {
+				space = new BoardSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection);
+				this.jailSpace = space;
+			} else if (entry.cost && this.useCost) {
+				space = new BoardPropertyRentSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection,
+					entry.cost);
+			} else if (entry.chance && this.useChance) {
+				space = new BoardPropertyEliminationSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection,
+					this.chanceUnlockCost, entry.chance);
+			} else {
+				space = new BoardSpace(entry.name, entry.color, entry.forwardDirection, entry.backwardDirection);
+			}
+
+			if (entry.icon) space.icon = entry.icon;
+			this.board[row].push(space);
+
+			if (entry.startSpace) {
+				this.startingBoardLocation = {x: this.board[row].length - 1, y: row};
+				this.startingSpace = space;
+			}
+		}
+	}
 
 	onAddPlayer(player: Player, lateJoin?: boolean | undefined): boolean | undefined {
 		if (lateJoin) {
@@ -240,8 +323,11 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 			this.playerCurrency.set(player, this.startingCurrency);
 			this.properties.set(player, []);
 			this.placePlayerOnStart(player);
-			this.playerOrder.push(player);
-			this.playerList.push(player);
+
+			if (this.playerList.length) {
+				this.playerOrder.push(player);
+				this.playerList.push(player);
+			}
 		}
 
 		return true;
@@ -250,7 +336,6 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	onStart(): void {
 		super.onStart();
 
-		this.startingSpace = this.board[this.startingBoardSide][this.startingBoardSideSpace];
 		for (const player of this.playerOrder) {
 			this.playerCurrency.set(player, this.startingCurrency);
 			this.properties.set(player, []);
@@ -260,10 +345,10 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	destroyPlayers(): void {
 		super.destroyPlayers();
 
-		const spaceKeys = Object.keys(this.spaces as Dict<BoardSpace>) as (keyof BoardSpaces)[];
-		for (const key of spaceKeys) {
-			const space = this.spaces[key];
-			if (space instanceof BoardPropertySpace) space.owner = null;
+		for (const row of this.board) {
+			for (const space of row) {
+				if (space instanceof BoardPropertySpace) space.owner = null;
+			}
 		}
 
 		this.escapeFromJailCards.clear();
@@ -297,13 +382,17 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 		this.properties.set(player, []);
 	}
 
-	getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string {
-		const boardSpace = this.board[side][space];
+	getSpaceHtml(x: number, y: number, playerLocations: Player[][][]): string {
+		const boardSpace = this.board[y][x];
+		if (boardSpace === null) return "<td>&nbsp;</td>";
+
 		let html = "<td style='background: " + Tools.getNamedHexCode(boardSpace.color).gradient + "'>";
-		if (space in playerLocations[side]) {
-			html += playerLocations[side][space].length > 1 ? "*" : this.playerLetters.get(playerLocations[side][space][0]);
+		if (playerLocations[y] && playerLocations[y][x]) {
+			html += playerLocations[y][x].length > 1 ? "*" : this.playerLetters.get(playerLocations[y][x][0]);
 		} else if (boardSpace instanceof BoardPropertySpace && boardSpace.owner) {
 			html += this.playerLetters.get(boardSpace.owner)!.toLowerCase();
+		} else if (boardSpace.icon) {
+			html += boardSpace.icon;
 		}
 		html += "</td>";
 
@@ -442,7 +531,7 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	}
 
 	onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void {
-		const space = this.board[location.side][location.space];
+		const space = this.board[location.y][location.x]!;
 
 		let rollText: string | undefined;
 		let reachedMaxCurrency = false;
@@ -688,18 +777,21 @@ export abstract class BoardPropertyGame<BoardSpaces = Dict<BoardSpace>> extends 
 	checkPropertyAchievements(player: Player): void {
 		if (this.getRemainingPlayerCount() <= 1) return;
 		if (!this.acquireAllMountainsAchievement && !this.acquireAllPropertiesAchievement) return;
+
 		let acquiredAllMountains = true;
 		let acquiredAllProperties = true;
-		const spaceKeys = Object.keys(this.spaces as Dict<BoardSpace>) as (keyof BoardSpaces)[];
-		for (const key of spaceKeys) {
-			const space = this.spaces[key];
-			if (space instanceof BoardPropertySpace) {
-				if (space.owner !== player) {
-					if (acquiredAllMountains && space.name.startsWith(mountainPrefix)) acquiredAllMountains = false;
-					if (acquiredAllProperties) acquiredAllProperties = false;
+
+		outer:
+		for (const row of this.board) {
+			for (const space of row) {
+				if (space instanceof BoardPropertySpace) {
+					if (space.owner !== player) {
+						if (acquiredAllMountains && space.name.startsWith(MOUNTAIN_PREFIX)) acquiredAllMountains = false;
+						if (acquiredAllProperties) acquiredAllProperties = false;
+					}
 				}
+				if (!acquiredAllMountains && !acquiredAllProperties) break outer;
 			}
-			if (!acquiredAllMountains && !acquiredAllProperties) break;
 		}
 
 		if (this.acquireAllMountainsAchievement && acquiredAllMountains) {
@@ -782,27 +874,9 @@ const commands: GameCommandDefinitions<BoardPropertyGame> = {
 	},
 };
 
-const tests: GameFileTests<BoardPropertyGame> = {
-	'it should clear property owners once the game ends': {
-		test(game): void {
-			const players = addPlayers(game);
-			game.start();
-			for (const i in game.spaces) {
-				const space = game.spaces[i];
-				if (space instanceof BoardPropertySpace) space.owner = players[0];
-			}
-			game.forceEnd(Users.self);
-			for (const i in game.spaces) {
-				const space = game.spaces[i];
-				if (space instanceof BoardPropertySpace) assertStrictEqual(space.owner, null);
-			}
-		},
-	},
-};
-
 export const game: IGameTemplateFile<BoardPropertyGame> = Object.assign(Tools.deepClone(boardGame), {
 	commands,
 	modeProperties: undefined,
-	tests: Object.assign({}, boardGame.tests, tests),
+	tests: (Object.assign({}, boardGame.tests) as unknown) as GameFileTests<BoardPropertyGame>,
 	variants: undefined,
 });

@@ -1,31 +1,51 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
-import { assert, assertStrictEqual } from "../../test/test-tools";
+import { addPlayers, assert, assertStrictEqual } from "../../test/test-tools";
 import type { GameFileTests, IGameTemplateFile, PlayerList } from "../../types/games";
 import type { NamedHexCode } from "../../types/tools";
 
+// Board designs
+export type BoardType = 'square' | 'circle';
+
+export type BoardSpaceDirection = 'left' | 'right' | 'up' | 'down';
+
+interface ISpace {
+	name: string;
+	color: NamedHexCode;
+	forwardDirection: BoardSpaceDirection;
+	backwardDirection: BoardSpaceDirection;
+	cost?: number;
+	chance?: number;
+	icon?: string;
+	startSpace?: boolean;
+	effect?: 'action' | 'random' | 'jail';
+}
+
+interface IRow {
+	row: number;
+}
+
+export type BoardData = IRow | ISpace | null;
+
+// In-game board types
 export class BoardSpace {
 	name: string;
 	color: NamedHexCode;
+	forwardDirection: BoardSpaceDirection;
+	backwardDirection: BoardSpaceDirection;
+	icon?: string;
 
-	constructor(name: string, color: NamedHexCode) {
+	constructor(name: string, color: NamedHexCode, forwardDirection: BoardSpaceDirection, backwardDirection: BoardSpaceDirection) {
 		this.name = name;
 		this.color = color;
+		this.forwardDirection = forwardDirection;
+		this.backwardDirection = backwardDirection;
 	}
 }
 
-export interface IBoard {
-	leftColumn: readonly BoardSpace[];
-	rightColumn: readonly BoardSpace[];
-	topRow: readonly BoardSpace[];
-	bottomRow: readonly BoardSpace[];
-}
-
-export type BoardSide = keyof IBoard;
-
 export interface IBoardLocation {
-	side: BoardSide;
-	space: number;
+	x: number;
+	y: number;
 }
 
 export interface IMovedBoardLocation extends IBoardLocation {
@@ -34,14 +54,11 @@ export interface IMovedBoardLocation extends IBoardLocation {
 
 export type BoardActionCard<T extends BoardGame = BoardGame> = (this: T, player: Player) => void;
 
-// needs to be in order for getLocationAfterMovement
-const boardSides: readonly BoardSide[] = ['leftColumn', 'topRow', 'rightColumn', 'bottomRow'];
-
 export abstract class BoardGame extends ScriptedGame {
-	abstract board: IBoard;
+	abstract board: (BoardSpace | null)[][];
 	abstract numberOfDice: number;
-	abstract startingBoardSide: BoardSide;
-	abstract startingBoardSideSpace: number;
+	abstract startingBoardLocation: IBoardLocation;
+	abstract startingSpace: BoardSpace;
 
 	boardRound: number = 0;
 	currentPlayer: Player | null = null;
@@ -54,52 +71,33 @@ export abstract class BoardGame extends ScriptedGame {
 	playerLetters = new Map<Player, string>();
 	playerOrder: Player[] = [];
 	currentPlayerReRoll: boolean = false;
+	reverseDirections: boolean = false;
 
-	abstract getSpaceHtml(side: BoardSide, space: number, playerLocations: KeyedDict<BoardSide, Dict<Player[]>>): string;
+	abstract getSpaceHtml(x: number, y: number, playerLocations: Player[][][]): string;
 	abstract onNextPlayer(player: Player): void;
 	abstract onSpaceLanding(player: Player, spacesMoved: number, location: IMovedBoardLocation, teleported?: boolean): void;
 
 	displayBoard(): void {
-		const playerLocations: KeyedDict<BoardSide, Dict<Player[]>> = {
-			leftColumn: {},
-			rightColumn: {},
-			topRow: {},
-			bottomRow: {},
-		};
+		const playerLocations: Player[][][] = [];
 
 		for (const id in this.players) {
 			const player = this.players[id];
 			if (!player.eliminated) {
 				const location = this.playerLocations.get(player)!;
-				if (!(location.space in playerLocations[location.side])) playerLocations[location.side][location.space] = [];
-				playerLocations[location.side][location.space].push(player);
+				if (!playerLocations[location.y]) playerLocations[location.y] = [];
+				if (!playerLocations[location.y][location.x]) playerLocations[location.y][location.x] = [];
+				playerLocations[location.y][location.x].push(player);
 			}
 		}
 
-		const topCorner = this.board.leftColumn.length - 1;
-		const rightColumnOffset = this.board.rightColumn.length - 1;
-
 		let html = '<div class="infobox"><table align="center" border="2" ' +
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;width: ' +
-			(25 * (this.board.topRow.length + 2)) + 'px">';
-		for (let i = this.board.leftColumn.length - 1; i >= 0; i--) {
+			(25 * (this.board.length + 2)) + 'px">';
+		for (let i = 0; i < this.board.length; i++) {
 			html += "<tr style='height:25px'>";
-			html += this.getSpaceHtml('leftColumn', i, playerLocations);
-			if (i === topCorner) {
-				for (let j = 0; j < this.board.topRow.length; j++) {
-					html += this.getSpaceHtml('topRow', j, playerLocations);
-				}
-			} else if (i === 0) {
-				for (let j = this.board.bottomRow.length - 1; j >= 0; j--) {
-					html += this.getSpaceHtml('bottomRow', j, playerLocations);
-				}
-			} else {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				for (const space of this.board.bottomRow) {
-					html += "<td>&nbsp;</td>";
-				}
+			for (let j = 0; j < this.board[i].length; j++) {
+				html += this.getSpaceHtml(j, i, playerLocations);
 			}
-			html += this.getSpaceHtml('rightColumn', rightColumnOffset - i, playerLocations);
 			html += "</tr>";
 		}
 		html += "</table></div>";
@@ -108,7 +106,7 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	placePlayerOnStart(player: Player): void {
-		this.playerLocations.set(player, {side: this.startingBoardSide, space: this.startingBoardSideSpace});
+		this.playerLocations.set(player, {x: this.startingBoardLocation.x, y: this.startingBoardLocation.y});
 		const playerLetter = this.lettersList[0];
 		this.lettersList.shift();
 		this.playerLetters.set(player, playerLetter);
@@ -177,9 +175,9 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	getSpaceLocation(space: BoardSpace): IBoardLocation | null {
-		for (const side of boardSides) {
-			for (let i = 0; i < this.board[side].length; i++) {
-				if (this.board[side][i] === space) return {side, space: i};
+		for (let i = 0; i < this.board.length; i++) {
+			for (let j = 0; j < this.board[i].length; j++) {
+				if (this.board[i][j] === space) return {x: j, y: i};
 			}
 		}
 
@@ -187,42 +185,33 @@ export abstract class BoardGame extends ScriptedGame {
 	}
 
 	getLocationAfterMovement(startingLocation: IBoardLocation, spacesMoved: number): IMovedBoardLocation {
-		let side: BoardSide = startingLocation.side;
-		let space: number = startingLocation.space;
-		const forward = spacesMoved > 0;
+		const forward = this.reverseDirections ? spacesMoved < 0 : spacesMoved > 0;
 		if (spacesMoved < 0) spacesMoved *= -1;
+		let x = startingLocation.x;
+		let y = startingLocation.y;
+
 		const passedSpaces: BoardSpace[] = [];
 		for (let i = 0; i < spacesMoved; i++) {
-			passedSpaces.push(this.board[side][space]);
-
-			let changeSides = false;
-			if (forward) {
-				space++;
-				changeSides = space >= this.board[side].length;
-			} else {
-				space--;
-				changeSides = space < 0;
+			if (!this.board[y][x]) {
+				throw new Error("Landed in the void moving " + spacesMoved + " spaces from (" + startingLocation.x + ", " +
+					startingLocation.y + ") ");
 			}
 
-			if (changeSides) {
-				const sideIndex = boardSides.indexOf(side);
-				let nextSideIndex = forward ? sideIndex + 1 : sideIndex - 1;
-				if (nextSideIndex === boardSides.length) {
-					nextSideIndex = 0;
-				} else if (nextSideIndex < 0) {
-					nextSideIndex = boardSides.length - 1;
-				}
+			passedSpaces.push(this.board[y][x]!);
 
-				side = boardSides[nextSideIndex];
-				if (forward) {
-					space = 0;
-				} else {
-					space = this.board[side].length - 1;
-				}
+			const direction = forward ? 'forwardDirection' : 'backwardDirection';
+			if (this.board[y][x]![direction] === 'up') {
+				y--;
+			} else if (this.board[y][x]![direction] === 'down') {
+				y++;
+			} else if (this.board[y][x]![direction] === 'left') {
+				x--;
+			} else if (this.board[y][x]![direction] === 'right') {
+				x++;
 			}
 		}
 
-		return {side, space, passedSpaces};
+		return {x, y, passedSpaces};
 	}
 
 	rollDice(player: Player): void {
@@ -243,8 +232,8 @@ export abstract class BoardGame extends ScriptedGame {
 
 		const location = this.playerLocations.get(player)!;
 		const locationAfterMovement = this.getLocationAfterMovement(location, rollAmount);
-		location.side = locationAfterMovement.side;
-		location.space = locationAfterMovement.space;
+		location.x = locationAfterMovement.x;
+		location.y = locationAfterMovement.y;
 
 		this.displayBoard();
 
@@ -260,107 +249,135 @@ export abstract class BoardGame extends ScriptedGame {
 }
 
 const tests: GameFileTests<BoardGame> = {
-	'it should have equal size columns and rows': {
-		test(game): void {
-			assertStrictEqual(game.board.leftColumn.length, game.board.rightColumn.length);
-			assertStrictEqual(game.board.topRow.length, game.board.bottomRow.length);
-		},
-	},
 	'it should properly determine space order in getLocationAfterMovement': {
 		test(game): void {
+			if (game.reverseDirections) return;
+
+			const rows = game.board.length - 1;
+			const columns = game.board[0].length - 1;
+
 			// forward movement
-			let locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 1);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, 2);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 2);
+			// top left
+			let locationAfterMovement = game.getLocationAfterMovement({x: 0, y: 0}, 1);
+			assertStrictEqual(locationAfterMovement.x, 1);
+			assertStrictEqual(locationAfterMovement.y, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: game.board['leftColumn'].length - 1}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'topRow');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: 0}, 2);
+			assertStrictEqual(locationAfterMovement.x, 2);
+			assertStrictEqual(locationAfterMovement.y, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: game.board['leftColumn'].length - 1},
-				game.board['topRow'].length + 1);
-			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: 1}, 3);
+			assertStrictEqual(locationAfterMovement.x, 2);
+			assertStrictEqual(locationAfterMovement.y, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: 0}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'topRow');
-			assertStrictEqual(locationAfterMovement.space, 1);
+			// bottom left
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: rows}, 1);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, rows - 1);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: game.board['topRow'].length - 1}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: rows}, 2);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, rows - 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: game.board['topRow'].length - 1},
-				game.board['rightColumn'].length + 1);
-			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: 1, y: rows}, 3);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, rows - 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: 0}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
-			assertStrictEqual(locationAfterMovement.space, 1);
+			// top right
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: 0}, 1);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, 1);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: game.board['rightColumn'].length - 1}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: 0}, 2);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: game.board['rightColumn'].length - 1},
-				game.board['bottomRow'].length + 1);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: columns - 1, y: 0}, 3);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: 0}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
-			assertStrictEqual(locationAfterMovement.space, 1);
+			// bottom right
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: rows}, 1);
+			assertStrictEqual(locationAfterMovement.x, columns - 1);
+			assertStrictEqual(locationAfterMovement.y, rows);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: game.board['bottomRow'].length - 1}, 1);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: rows}, 2);
+			assertStrictEqual(locationAfterMovement.x, columns - 2);
+			assertStrictEqual(locationAfterMovement.y, rows);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: game.board['bottomRow'].length - 1},
-				game.board['leftColumn'].length + 1);
-			assertStrictEqual(locationAfterMovement.side, 'topRow');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: rows - 1}, 3);
+			assertStrictEqual(locationAfterMovement.x, columns - 2);
+			assertStrictEqual(locationAfterMovement.y, rows);
 
 			// backward movement
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 1}, -1);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 2}, -2);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, 0);
+			// top left
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: 0}, -1);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, 1);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'topRow', space: 0}, -1);
-			assertStrictEqual(locationAfterMovement.side, 'leftColumn');
-			assertStrictEqual(locationAfterMovement.space, game.board['leftColumn'].length - 1);
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: 0}, -2);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'rightColumn', space: 0}, -1);
-			assertStrictEqual(locationAfterMovement.side, 'topRow');
-			assertStrictEqual(locationAfterMovement.space, game.board['topRow'].length - 1);
+			locationAfterMovement = game.getLocationAfterMovement({x: 1, y: 0}, -3);
+			assertStrictEqual(locationAfterMovement.x, 0);
+			assertStrictEqual(locationAfterMovement.y, 2);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'bottomRow', space: 0}, -1);
-			assertStrictEqual(locationAfterMovement.side, 'rightColumn');
-			assertStrictEqual(locationAfterMovement.space, game.board['rightColumn'].length - 1);
+			// bottom left
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: rows}, -1);
+			assertStrictEqual(locationAfterMovement.x, 1);
+			assertStrictEqual(locationAfterMovement.y, rows);
 
-			locationAfterMovement = game.getLocationAfterMovement({side: 'leftColumn', space: 0}, -1);
-			assertStrictEqual(locationAfterMovement.side, 'bottomRow');
-			assertStrictEqual(locationAfterMovement.space, game.board['bottomRow'].length - 1);
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: rows}, -2);
+			assertStrictEqual(locationAfterMovement.x, 2);
+			assertStrictEqual(locationAfterMovement.y, rows);
+
+			locationAfterMovement = game.getLocationAfterMovement({x: 0, y: rows - 1}, -3);
+			assertStrictEqual(locationAfterMovement.x, 2);
+			assertStrictEqual(locationAfterMovement.y, rows);
+
+			// top right
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: 0}, -1);
+			assertStrictEqual(locationAfterMovement.x, columns - 1);
+			assertStrictEqual(locationAfterMovement.y, 0);
+
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: 0}, -2);
+			assertStrictEqual(locationAfterMovement.x, columns - 2);
+			assertStrictEqual(locationAfterMovement.y, 0);
+
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: 1}, -3);
+			assertStrictEqual(locationAfterMovement.x, columns - 2);
+			assertStrictEqual(locationAfterMovement.y, 0);
+
+			// bottom right
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: rows}, -1);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, rows - 1);
+
+			locationAfterMovement = game.getLocationAfterMovement({x: columns, y: rows}, -2);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, rows - 2);
+
+			locationAfterMovement = game.getLocationAfterMovement({x: columns - 1, y: rows}, -3);
+			assertStrictEqual(locationAfterMovement.x, columns);
+			assertStrictEqual(locationAfterMovement.y, rows - 2);
 		},
 	},
 	'it should have properly initialized board spaces': {
 		test(game): void {
-			let location: IMovedBoardLocation = {side: 'leftColumn', space: 0, passedSpaces: []};
-			let spaceId = location.side + ": " + location.space;
-			let space = game.board[location.side][location.space];
-			const totalSpaces = (game.board.leftColumn.length * 2) + (game.board.topRow.length * 2);
+			addPlayers(game, 4);
+			if (!game.started) game.start();
+
+			let location: IMovedBoardLocation = {x: 0, y: 0, passedSpaces: []};
+			let spaceId = location.x + ", " + location.y;
+			let space = game.board[location.y][location.x];
+			const totalSpaces = (game.board.length * 2) + (game.board[0].length * 2);
 			for (let i = 0; i < totalSpaces; i++) {
 				location = game.getLocationAfterMovement(location, 1);
-				spaceId = location.side + ": " + location.space;
-				space = game.board[location.side][location.space];
+				spaceId = location.x + ", " + location.y;
+				space = game.board[location.y][location.x];
 				assert(space, spaceId);
 				assert(space.name, spaceId);
 				assert(space.color, spaceId);
