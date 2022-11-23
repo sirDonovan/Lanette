@@ -124,6 +124,7 @@ export const game: IGameFile<KlefkisLockedLocations> = Games.copyTemplatePropert
 			name: "Klefki's Locked Locations: Loop",
 			variantAliases: ['loop', 'circle'],
 			boardType: 'circle',
+			reverseDirections: true,
 		},
 	],
 });
