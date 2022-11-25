@@ -318,7 +318,8 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
 			} else if (fullyEvolved) {
-				if ((!pokemon.prevo && !this.allowsSingleStage) || pokemon.nfe) continue;
+				if ((!pokemon.prevo && !this.allowsSingleStage) || pokemon.nfe ||
+					(pokemon.forme && dex.getExistingPokemon(pokemon.baseSpecies).nfe)) continue;
 			} else {
 				if (pokemon.prevo || !pokemon.nfe) continue;
 			}
