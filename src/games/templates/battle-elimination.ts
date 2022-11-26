@@ -32,6 +32,7 @@ export interface IRoundTeamRequirements {
 }
 
 const REROLL_COMMAND = "reroll";
+const TOUR_PAGE_COMMAND = "tourpage";
 const HTML_PAGE_COMMAND = "battleeliminationhtmlpage";
 const REROLL_START_DELAY = 30 * 1000;
 const CHECK_CHALLENGES_INACTIVE_DELAY = 30 * 1000;
@@ -1474,6 +1475,9 @@ export abstract class BattleElimination extends ScriptedGame {
 			"the link, type <code>/invite " + Users.self.name + "</code> into the battle chat.";
 		}
 
+		html += "<br /><br />If you accidentally close your tournament page, PM " + Users.self.name + " with the command <code>" +
+			Config.commandCharacter + TOUR_PAGE_COMMAND + "</code> to re-open it!";
+
 		if (this.subRoom) {
 			this.subRoom.sayHtml(html);
 		} else {
@@ -2208,7 +2212,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 		signupsGameCommand: true,
 		aliases: ['team'],
 	},
-	tournamentpage: {
+	[TOUR_PAGE_COMMAND]: {
 		command(target, room, user) {
 			const id = Tools.toId(target);
 			if (id) {
@@ -2243,7 +2247,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 			}
 			return true;
 		},
-		aliases: ['tourpage', 'tournamenttab', 'tourtab'],
+		aliases: ['tournamentpage', 'tournamenttab', 'tourtab'],
 		pmOnly: true,
 		eliminatedGameCommand: true,
 		spectatorGameCommand: true,
