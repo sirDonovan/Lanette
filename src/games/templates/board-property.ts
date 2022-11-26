@@ -318,8 +318,8 @@ export abstract class BoardPropertyGame extends BoardGame {
 			this.properties.set(player, []);
 			this.placePlayerOnStart(player);
 
+			this.playerOrder.push(player);
 			if (this.playerList.length) {
-				this.playerOrder.push(player);
 				this.playerList.push(player);
 			}
 		}
