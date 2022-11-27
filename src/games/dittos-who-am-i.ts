@@ -3,6 +3,11 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IPokemon, ITypeData } from "../types/pokemon-showdown";
 
+interface IPreviousGuess {
+	parameters: string;
+	correct: boolean;
+}
+
 const MAX_ROUND_PARAMETERS = 5;
 
 const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "spa", "spatk", "specialattack", "spc", "special", "spd",
@@ -20,6 +25,7 @@ class DittosWhoAmI extends ScriptedGame {
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
 	pokemonList: IPokemon[] = [];
+	playerGuesses = new Map<Player, IPreviousGuess[]>();
 	playerPokemon = new Map<Player, IPokemon>();
 	playerWeaknesses = new Map<Player, string[]>();
 	playerResistances = new Map<Player, string[]>();
@@ -74,6 +80,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 	givePokemon(player: Player, pokemon: IPokemon): void {
 		this.playerPokemon.set(player, pokemon);
+		this.playerGuesses.set(player, []);
 
 		const resistances: string[] = [];
 		const weaknesses: string[] = [];
@@ -430,6 +437,20 @@ class DittosWhoAmI extends ScriptedGame {
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
+
+			const previousGuesses = this.playerGuesses.get(currentPlayer)!;
+			if (previousGuesses.length) {
+				let html = "<b>Your previous guesses</b>:<br /><br />";
+				const guessesHtml: string[] = [];
+				for (const previousGuess of previousGuesses) {
+					guessesHtml.push("<code>" + previousGuess.parameters + "</code> -> <b>" +
+						(previousGuess.correct ? "Yes" : "No") + "</b>");
+				}
+				html += Tools.escapeHTML(guessesHtml.join(", "));
+
+				currentPlayer.sayPrivateUhtml(html, this.actionsUhtmlName);
+			}
+
 			this.setTimeout(() => this.nextRound(), this.roundTime);
 		});
 		this.say(text);
@@ -473,9 +494,12 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 			}
 
 			let atLeastOneCorrect = false;
+			const formattedQuestions: string[] = [];
 			for (const question of questions) {
 				const trimmed = question.trim();
 				if (!trimmed) continue;
+
+				formattedQuestions.push(trimmed.toLowerCase());
 
 				const result = this.checkGuess(trimmed, player);
 				if (typeof result === 'string') {
@@ -486,8 +510,18 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 				if (result) atLeastOneCorrect = true;
 			}
 
-			this.currentPlayer = null;
+			const formattedGuess = formattedQuestions.slice().sort().join("|");
+			const previousGuesses = this.playerGuesses.get(player)!;
+			for (const previousGuess of previousGuesses) {
+				if (previousGuess.parameters === formattedGuess) {
+					this.say("You have already guessed " + (formattedQuestions.length > 1 ? "those parameters" : "that parameter") + "!");
+					return false;
+				}
+			}
 
+			previousGuesses.push({parameters: formattedGuess, correct: atLeastOneCorrect});
+
+			this.currentPlayer = null;
 			if (!player.eliminated && !this.points.get(player)) {
 				if (atLeastOneCorrect) {
 					this.say("**Yes!**");
