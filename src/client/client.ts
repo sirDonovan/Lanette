@@ -1619,13 +1619,11 @@ export class Client {
 			if (!room.tournament && !(room.id in Tournaments.createListeners) &&
 				(!Config.allowTournaments || !Config.allowTournaments.includes(room.id))) return;
 
-			const type = message.parts[0] as keyof ITournamentMessageTypes;
-			message.parts.shift();
-
-			switch (type) {
+			const subMessage = Tools.getSubIncomingMessage<ITournamentMessageTypes>(message);
+			switch (subMessage.type) {
 			case 'create': {
 				const messageArguments: ITournamentMessageTypes['create'] = {
-					formatid: message.parts[0],
+					formatid: subMessage.parts[0],
 				};
 
 				const format = Dex.getFormat(messageArguments.formatid);
@@ -1642,7 +1640,7 @@ export class Client {
 
 			case 'update': {
 				const messageArguments: ITournamentMessageTypes['update'] = {
-					json: JSON.parse(message.whole) as ITournamentUpdateJson,
+					json: JSON.parse(subMessage.whole) as ITournamentUpdateJson,
 				};
 
 				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
@@ -1673,7 +1671,7 @@ export class Client {
 
 			case 'end': {
 				const messageArguments: ITournamentMessageTypes['end'] = {
-					json: JSON.parse(message.whole) as ITournamentEndJson,
+					json: JSON.parse(subMessage.whole) as ITournamentEndJson,
 				};
 
 				room.addHtmlChatLog("tournament|end");
@@ -1712,8 +1710,8 @@ export class Client {
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['autodq'] = {
-					status: message.parts[0],
-					time: parseInt(message.parts[1]),
+					status: subMessage.parts[0],
+					time: parseInt(subMessage.parts[1]),
 				};
 
 				if (Tools.toId(messageArguments.status) === "on" && !isNaN(messageArguments.time)) {
@@ -1757,7 +1755,7 @@ export class Client {
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['join'] = {
-					username: message.parts[0],
+					username: subMessage.parts[0],
 				};
 				room.tournament.addPlayer(messageArguments.username);
 				break;
@@ -1766,10 +1764,10 @@ export class Client {
 			case 'leave':
 			case 'disqualify': {
 				const messageArguments: ITournamentMessageTypes['leave'] = {
-					username: message.parts[0],
+					username: subMessage.parts[0],
 				};
 
-				if (type === 'disqualify' && lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
+				if (subMessage.type === 'disqualify' && lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
 					lastOutgoingMessage.type === 'tournament-disqualify' &&
 					Tools.toId(messageArguments.username) === lastOutgoingMessage.disqualifiedUserid) {
 					this.websocket.clearLastOutgoingMessage(now);
@@ -1789,9 +1787,9 @@ export class Client {
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['battlestart'] = {
-					usernameA: message.parts[0],
-					usernameB: message.parts[1],
-					roomid: message.parts[2],
+					usernameA: subMessage.parts[0],
+					usernameB: subMessage.parts[1],
+					roomid: subMessage.parts[2],
 				};
 
 				room.tournament.onBattleStart(messageArguments.usernameA, messageArguments.usernameB, messageArguments.roomid);
@@ -1804,12 +1802,12 @@ export class Client {
 				if (!room.tournament) return;
 
 				const messageArguments: ITournamentMessageTypes['battleend'] = {
-					usernameA: message.parts[0],
-					usernameB: message.parts[1],
-					result: message.parts[2] as 'win' | 'loss' | 'draw',
-					score: message.parts[3].split(',') as [string, string],
-					recorded: message.parts[4] as 'success' | 'fail',
-					roomid: message.parts[5],
+					usernameA: subMessage.parts[0],
+					usernameB: subMessage.parts[1],
+					result: subMessage.parts[2] as 'win' | 'loss' | 'draw',
+					score: subMessage.parts[3].split(',') as [string, string],
+					recorded: subMessage.parts[4] as 'success' | 'fail',
+					roomid: subMessage.parts[5],
 				};
 
 				room.tournament.onBattleEnd(messageArguments.usernameA, messageArguments.usernameB, messageArguments.score,
@@ -1819,8 +1817,8 @@ export class Client {
 
 			case 'error': {
 				const messageArguments: ITournamentMessageTypes['error'] = {
-					errorType: message.parts[0],
-					errorMessage: message.parts[1],
+					errorType: subMessage.parts[0],
+					errorMessage: subMessage.parts[1],
 				};
 
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&

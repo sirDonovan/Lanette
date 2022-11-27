@@ -147,20 +147,20 @@ export class Tools {
 		this.unrefProperties(previous);
 	}
 
-	parseIncomingMessage(incomingMessage: string): IParsedIncomingMessage {
+	parseIncomingMessage<T = IClientMessageTypes>(incomingMessage: string): IParsedIncomingMessage<T> {
 		let message: string;
-		let messageType: keyof IClientMessageTypes;
-		if (!incomingMessage.startsWith("|")) {
+		let messageType: keyof T;
+		if (incomingMessage.charAt(0) !== "|") {
 			message = incomingMessage;
-			messageType = '';
+			messageType = '' as keyof T;
 		} else {
 			message = incomingMessage.substr(1);
 			const pipeIndex = message.indexOf("|");
 			if (pipeIndex !== -1) {
-				messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
+				messageType = message.substr(0, pipeIndex) as keyof T;
 				message = message.substr(pipeIndex + 1);
 			} else {
-				messageType = message as keyof IClientMessageTypes;
+				messageType = message as keyof T;
 				message = '';
 			}
 		}
@@ -171,6 +171,10 @@ export class Tools {
 			whole: message,
 			parts: message.split("|"),
 		};
+	}
+
+	getSubIncomingMessage<T>(parsedIncomingMessage: IParsedIncomingMessage): IParsedIncomingMessage<T> {
+		return this.parseIncomingMessage<T>((parsedIncomingMessage.whole.charAt(0) === "|" ? "" : "|") + parsedIncomingMessage.whole);
 	}
 
 	checkHtml(room: Room, htmlContent: string): boolean {

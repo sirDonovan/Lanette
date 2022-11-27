@@ -14,11 +14,11 @@ export interface IMessageParserFile {
 	priority: number;
 }
 
-export interface IParsedIncomingMessage {
+export interface IParsedIncomingMessage<T = IClientMessageTypes> {
 	incomingMessage: string;
 	whole: string;
-	type: keyof IClientMessageTypes;
-	parts: string[];
+	type: keyof T;
+	parts: readonly string[];
 }
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'private-html' | 'pm' | 'pm-html' | 'pm-uhtml' |
