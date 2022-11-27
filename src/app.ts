@@ -11,7 +11,7 @@ import * as users from './users';
 
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments', 'games'];
 const moduleFilenames: KeyedDict<ReloadableModule, string> = {
-	client: 'client',
+	client: 'client/client',
 	commandparser: 'command-parser',
 	config: 'config',
 	dex: 'dex',
@@ -24,7 +24,7 @@ const configLoaderFilename = 'config-loader';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-let client = require('./' + moduleFilenames.client) as typeof import('./client');
+let client = require('./' + moduleFilenames.client) as typeof import('./client/client');
 let commandParser = require('./' + moduleFilenames.commandparser) as typeof import('./command-parser');
 let dex = require('./' + moduleFilenames.dex) as typeof import('./dex');
 let games = require('./' + moduleFilenames.games) as typeof import('./games');
@@ -143,7 +143,7 @@ module.exports = (): void => {
 				if (moduleId === 'client') {
 					global.Tools.unrefProperties(client);
 
-					client = require(modulePath) as typeof import('./client');
+					client = require(modulePath) as typeof import('./client/client');
 					client.instantiate();
 				} else if (moduleId === 'commandparser') {
 					global.Tools.unrefProperties(commandParser);

@@ -4,14 +4,13 @@ import { assert, assertStrictEqual, createTestRoom } from './../test-tools';
 
 /* eslint-env mocha */
 
-const parseMessage = function(room: Room, rawMessage: string, now: number): void {
-	// @ts-expect-error
-	Client.parseMessage(room, rawMessage, now);
+const parseMessage = function(room: Room, incomingMessage: string, now: number): void {
+	Client.parseMessage(room, Tools.parseIncomingMessage(incomingMessage), now);
 };
 
 const setLastOutgoingMessage = function(outgoingMessage: IOutgoingMessage): void {
 	// @ts-expect-error
-	Client.lastOutgoingMessage = outgoingMessage;
+	Client.websocket.lastOutgoingMessage = outgoingMessage;
 };
 
 describe("Client", () => {
@@ -332,7 +331,7 @@ describe("Client", () => {
 	});
 	it('should properly extract battle ids', () => {
 		const replayServerAddress = Client.getReplayServerAddress();
-		const server = Client.getServer();
+		const server = Client.getServerAddress();
 		const format = "gen8ou";
 		const battleId = Tools.battleRoomPrefix + format + "-12345";
 		const password = 'password';

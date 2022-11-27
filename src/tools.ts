@@ -7,6 +7,7 @@ import type { IColorPick } from './html-pages/components/color-picker';
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
+import type { IClientMessageTypes, IParsedIncomingMessage } from './types/client';
 import type {
 	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
 } from './types/tools';
@@ -99,6 +100,7 @@ export class Tools {
 	readonly hexCodes: typeof hexCodes = hexCodes;
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = 'play.pokemonshowdown.com';
+	readonly mainReplayServer: string = 'replay.pokemonshowdown.com';
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
 	readonly minRoomHeight: number = 500;
@@ -143,6 +145,32 @@ export class Tools {
 		this.unrefProperties(previous.moveCategoryHexCodes);
 		this.unrefProperties(previous.typeHexCodes);
 		this.unrefProperties(previous);
+	}
+
+	parseIncomingMessage(incomingMessage: string): IParsedIncomingMessage {
+		let message: string;
+		let messageType: keyof IClientMessageTypes;
+		if (!incomingMessage.startsWith("|")) {
+			message = incomingMessage;
+			messageType = '';
+		} else {
+			message = incomingMessage.substr(1);
+			const pipeIndex = message.indexOf("|");
+			if (pipeIndex !== -1) {
+				messageType = message.substr(0, pipeIndex) as keyof IClientMessageTypes;
+				message = message.substr(pipeIndex + 1);
+			} else {
+				messageType = message as keyof IClientMessageTypes;
+				message = '';
+			}
+		}
+
+		return {
+			incomingMessage,
+			type: messageType,
+			whole: message,
+			parts: message.split("|"),
+		};
 	}
 
 	checkHtml(room: Room, htmlContent: string): boolean {

@@ -1,6 +1,6 @@
 /* eslint-disable no-var, @typescript-eslint/naming-convention */
 declare var BaseCommands: import('./types/command-parser').BaseLoadedCommands;
-declare var Client: import('./client').Client;
+declare var Client: import('./client/client').Client;
 declare var CommandParser: import('./command-parser').CommandParser;
 declare var Commands: import('./types/command-parser').BaseLoadedCommands;
 declare var Config: Partial<typeof import('./config-example')>;

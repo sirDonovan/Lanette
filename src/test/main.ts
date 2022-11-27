@@ -41,9 +41,9 @@ module.exports = (inputOptions: Dict<string>): void => {
 
 		// allow tests to assert on Client's outgoingMessageQueue
 		// @ts-expect-error
-		Client.webSocket = {};
+		Client.websocket.ws = {};
 		// @ts-expect-error
-		Client.pauseOutgoingMessages = true;
+		Client.websocket.pauseOutgoingMessages();
 
 		// @ts-expect-error
 		Client.publicChatRooms = ['mocha'];

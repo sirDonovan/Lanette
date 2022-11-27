@@ -14,6 +14,13 @@ export interface IMessageParserFile {
 	priority: number;
 }
 
+export interface IParsedIncomingMessage {
+	incomingMessage: string;
+	whole: string;
+	type: keyof IClientMessageTypes;
+	parts: string[];
+}
+
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'private-html' | 'pm' | 'pm-html' | 'pm-uhtml' |
 	'code' | 'join-room' | 'leave-room' | 'modchat' | 'filters-view' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' |
 	'hangman-start' | 'hangman-end' | 'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' |
