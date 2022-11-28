@@ -443,10 +443,10 @@ class DittosWhoAmI extends ScriptedGame {
 				let html = "<b>Your previous guesses</b>:<br /><br />";
 				const guessesHtml: string[] = [];
 				for (const previousGuess of previousGuesses) {
-					guessesHtml.push("<code>" + previousGuess.parameters + "</code> -> <b>" +
+					guessesHtml.push("<code>" + Tools.escapeHTML(previousGuess.parameters) + "</code> -> <b>" +
 						(previousGuess.correct ? "Yes" : "No") + "</b>");
 				}
-				html += Tools.escapeHTML(guessesHtml.join(", "));
+				html += guessesHtml.join(", ");
 
 				currentPlayer.sayPrivateUhtml(html, this.actionsUhtmlName);
 			}
