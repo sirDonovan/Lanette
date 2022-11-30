@@ -6,6 +6,8 @@ import type {
 	GameCommandDefinitions, GameCommandReturnType, GameFileTests, IGameAchievement, IGameFormat, IGameTemplateFile, IRandomGameAnswer
 } from '../../types/games';
 
+const TEST_TIMEOUT = 30000;
+
 export abstract class QuestionAndAnswer extends ScriptedGame {
 	additionalHintHeader: string = '';
 	allowRepeatCorrectAnswers: boolean = false;
@@ -654,7 +656,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			assert(!game.canGuess);
 			const name = getBasePlayerName() + " 1";
@@ -676,7 +678,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			await game.onNextRound();
 			const previousAnswers = game.answers;
@@ -698,7 +700,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			if (game.roundTime) {
 				const name = getBasePlayerName() + " 1";
@@ -718,7 +720,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			if (game.roundTime) {
 				await game.onNextRound();
@@ -733,7 +735,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			if (game.roundTime) {
 				await game.onNextRound();
@@ -750,7 +752,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		async test(game): Promise<void> {
 			if (game.usesWorkers) return;
 
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
@@ -778,7 +780,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		},
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 			const room = game.room;
 			game.deallocate(true);
 
@@ -799,7 +801,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 		},
 		async test(game, format): Promise<void> {
 			if (!format.minigameCommand) return;
-			this.timeout(20000);
+			this.timeout(TEST_TIMEOUT);
 			const room = game.room;
 			game.deallocate(true);
 
