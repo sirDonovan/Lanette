@@ -842,7 +842,7 @@ export class ScriptedGame extends Game {
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
 
-			if (this.updatedBits || this.updatedDatabase) Storage.tryExportDatabase(this.room.id);
+			if (!this.isMiniGame && (this.updatedBits || this.updatedDatabase)) Storage.tryExportDatabase(this.room.id);
 		}
 
 		Tools.unrefProperties(this, ["ended", "id", "name"]);
