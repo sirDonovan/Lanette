@@ -77,7 +77,7 @@ module.exports = {
         '@typescript-eslint/func-call-spacing': 'error',
 
         'keyword-spacing': 'off',
-        '@typescript-eslint/keyword-spacing': 'error',
+        '@typescript-eslint/keyword-spacing': ["error", {"before": true, "after": true}],
 
         'lines-between-class-members': 'off',
         '@typescript-eslint/lines-between-class-members': ['error', {
@@ -93,7 +93,6 @@ module.exports = {
                     // Fields
                     'public-abstract-field',
                     'protected-abstract-field',
-                    'private-abstract-field',
                     'public-static-field',
                     'protected-static-field',
                     'private-static-field',
@@ -109,7 +108,6 @@ module.exports = {
                     // Methods
                     'public-abstract-method',
                     'protected-abstract-method',
-                    'private-abstract-method',
                     'public-static-method',
                     'protected-static-method',
                     'private-static-method',
