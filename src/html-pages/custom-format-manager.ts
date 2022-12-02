@@ -34,6 +34,7 @@ const addRulePageCommand = 'selectaddrulepage';
 const removeRulePageCommand = 'selectremoverulepage';
 const setForceMonotypeCommand = 'setforcemonotype';
 const setNextTournamentCommand = 'setnexttournament';
+const createTournamentCommand = 'createtournament';
 const saveCustomFormatCommand = 'saveroomcustomformat';
 const deleteCustomFormatCommand = 'deleteroomcustomformat';
 const loadNextTournamentCommand = 'loadnexttournament';
@@ -991,7 +992,7 @@ class CustomFormatManager extends HtmlPageBase {
 		return formatId;
 	}
 
-	setNextTournamentCommand(): void {
+	getCommandFormatId(): string | undefined {
 		if (!this.format || !this.canCreateTournament) return;
 
 		let formatId: string | undefined;
@@ -1001,11 +1002,26 @@ class CustomFormatManager extends HtmlPageBase {
 			formatId = this.getCustomFormatId(true);
 		}
 
+		return formatId;
+	}
+
+	setNextTournament(): void {
+		const formatId = this.getCommandFormatId();
 		if (!formatId) return;
 
 		const user = Users.get(this.userName);
 		if (user) {
 			CommandParser.parse(this.room, user, Config.commandCharacter + "forcenexttour " + formatId, Date.now());
+		}
+	}
+
+	createTournament(): void {
+		const formatId = this.getCommandFormatId();
+		if (!formatId) return;
+
+		const user = Users.get(this.userName);
+		if (user) {
+			CommandParser.parse(this.room, user, Config.commandCharacter + "createtour " + formatId, Date.now());
 		}
 	}
 
@@ -1032,7 +1048,7 @@ class CustomFormatManager extends HtmlPageBase {
 		return elements;
 	}
 
-	loadCustomFormatCommand(customId: string): void {
+	loadCustomFormat(customId: string): void {
 		customId = customId.trim();
 		const database = Storage.getDatabase(this.room);
 		if (!database.customFormats || !(customId in database.customFormats)) return;
@@ -1103,14 +1119,14 @@ class CustomFormatManager extends HtmlPageBase {
 		}
 	}
 
-	loadNextTournamentCommand(): void {
+	loadNextTournament(): void {
 		const database = Storage.getDatabase(this.room);
 		if (database.queuedTournament) {
 			this.loadFormat(database.queuedTournament.formatid);
 		}
 	}
 
-	loadPastTournamentCommand(formatid: string): void {
+	loadPastTournament(formatid: string): void {
 		this.loadFormat(formatid);
 	}
 
@@ -1163,6 +1179,8 @@ class CustomFormatManager extends HtmlPageBase {
 
 				html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + setNextTournamentCommand,
 					"Set as " + Config.commandCharacter + "nexttour", {disabled: !validatedFormat});
+				html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + createTournamentCommand,
+					"Create tournament", {disabled: !validatedFormat});
 				html += "<br /><br />";
 				html += this.customFormatNameInput.render();
 
@@ -1357,13 +1375,15 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === removeCustomRuleCommand) {
 				pages[user.id].removeCustomRule(targets[0]);
 			} else if (cmd === setNextTournamentCommand) {
-				pages[user.id].setNextTournamentCommand();
+				pages[user.id].setNextTournament();
+			} else if (cmd === createTournamentCommand) {
+				pages[user.id].createTournament();
 			} else if (cmd === loadNextTournamentCommand) {
-				pages[user.id].loadNextTournamentCommand();
+				pages[user.id].loadNextTournament();
 			} else if (cmd === loadPastTournamentCommand) {
-				pages[user.id].loadPastTournamentCommand(targets.join(","));
+				pages[user.id].loadPastTournament(targets.join(","));
 			} else if (cmd === loadCustomFormatCommand) {
-				pages[user.id].loadCustomFormatCommand(targets[0]);
+				pages[user.id].loadCustomFormat(targets[0]);
 			} else if (cmd === saveCustomFormatCommand) {
 				pages[user.id].saveCustomFormat();
 			} else if (cmd === deleteCustomFormatCommand) {
