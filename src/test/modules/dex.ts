@@ -378,20 +378,20 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
-		assertStrictEqual(format.id, 'gen8uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("UUBL");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], '+UUBL');
-		assertStrictEqual(format.id, 'gen8uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("uubl@@@+Lunala");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], '+Lunala');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen8uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("gen7uubl");
 		assert(format.customRules);
@@ -410,14 +410,14 @@ describe("Dex", () => {
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 1);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
-		assertStrictEqual(format.id, 'gen8uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype uubl");
 		assert(format.customRules);
 		assertStrictEqual(format.customRules.length, 2);
 		assertStrictEqual(format.customRules[0], 'Same Type Clause');
 		assertStrictEqual(format.customRules[1], '+UUBL');
-		assertStrictEqual(format.id, 'gen8uu');
+		assertStrictEqual(format.id, 'gen' + gen + 'uu');
 
 		format = Dex.getExistingFormat("monotype gen7uu");
 		assert(format.customRules);

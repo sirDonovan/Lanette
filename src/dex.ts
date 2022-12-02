@@ -40,6 +40,7 @@ const smogonDexGenPaths: Dict<string> = {
 	6: 'xy',
 	7: 'sm',
 	8: 'ss',
+	9: 'sv',
 };
 
 const mechanicsDifferences: Dict<string> = {
@@ -1585,7 +1586,7 @@ export class Dex {
 					if (roas) name = roas;
 				}
 			} else {
-				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
+				for (let i = CURRENT_GEN; i >= 1; i--) {
 					const genFormatId = 'gen' + i + formatId;
 					if (genFormatId in customRuleFormats) {
 						const customRuleSplit = this.splitNameAndCustomRules(customRuleFormats[genFormatId].format + '@@@' +
@@ -1599,7 +1600,7 @@ export class Dex {
 
 			let baseFormat = this.pokemonShowdownDex.formats.get(name);
 			if (!baseFormat.exists) {
-				for (let i = CURRENT_GEN - 1; i >= 1; i--) {
+				for (let i = CURRENT_GEN; i >= 1; i--) {
 					baseFormat = this.pokemonShowdownDex.formats.get('gen' + i + name);
 					if (baseFormat.exists) break;
 				}
