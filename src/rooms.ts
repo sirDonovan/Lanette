@@ -1004,10 +1004,14 @@ export class Rooms {
 		return room;
 	}
 
-	search(input: string): Room | undefined {
+	getTargetId(input: string): string {
 		let id = Tools.toRoomId(input);
 		if (Config.roomAliases && !(id in this.rooms) && Config.roomAliases[id]) id = Config.roomAliases[id];
-		return this.get(id);
+		return id;
+	}
+
+	search(input: string): Room | undefined {
+		return this.get(this.getTargetId(input));
 	}
 
 	updateConfigSettings(): void {
