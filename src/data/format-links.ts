@@ -235,9 +235,11 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3648521',
 		viability: 'https://www.smogon.com/forums/threads/3626018',
 	},
+	/*
 	'gen7balancedhackmons': {
 		teams: 'https://www.smogon.com/forums/threads/3661782/post-8407209',
 	},
+	*/
 	'gen7mixandmega': {
 		teams: 'https://www.smogon.com/forums/threads/3679730/post-8778656',
 	},
