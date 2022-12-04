@@ -191,7 +191,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.say("The tournament could not be created.");
 				this.deallocate(true);
 			}
-		}, 15 * 1000);
+		}, 30 * 1000);
 
 		this.subRoom.createTournament(this.battleFormat, 'elimination', this.playerCap);
 	}
