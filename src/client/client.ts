@@ -187,6 +187,7 @@ export class Client {
 		this.websocket = new Websocket({
 			serverAddress: this.serverAddress,
 			defaultMessageRoom: this.defaultMessageRoom,
+			onConnect: () => this.onConnect(),
 			onFailedPing: () => this.prepareReconnect(),
 			onIncomingMessage: (room, message, now) => this.parseMessage(room, message, now),
 		});
@@ -429,7 +430,7 @@ export class Client {
 					return;
 				}
 
-				this.websocket.onLogin();
+				this.websocket.afterLogin();
 
 				console.log('Successfully logged in');
 				this.loggedIn = true;
@@ -2011,9 +2012,11 @@ export class Client {
 		}
 	}
 
-	prepareReconnect(): void {
-		this.websocket.prepareReconnect();
+	onConnect(): void {
+		this.loggedIn = false;
+	}
 
+	prepareReconnect(): void {
 		Tools.logMessage("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();

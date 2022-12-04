@@ -12,6 +12,7 @@ type IncomingMessageHandler = (room: Room, message: IParsedIncomingMessage, now:
 interface IWebsocketOptions {
 	serverAddress: string;
 	defaultMessageRoom: string
+	onConnect: () => void;
 	onFailedPing: () => void;
 	onIncomingMessage: IncomingMessageHandler;
 }
@@ -39,6 +40,7 @@ let pongListener: (() => void) | null;
 export class Websocket {
     defaultMessageRoom: string;
 	serverAddress: string;
+	onConnect: () => void;
 	onFailedPing: () => void;
 	onIncomingMessage: IncomingMessageHandler;
 
@@ -75,10 +77,11 @@ export class Websocket {
 	constructor(options: IWebsocketOptions) {
 		this.serverAddress = options.serverAddress;
         this.defaultMessageRoom = options.defaultMessageRoom;
+		this.onConnect = options.onConnect;
 		this.onFailedPing = options.onFailedPing;
 		this.onIncomingMessage = options.onIncomingMessage;
 
-		openListener = () => this.onConnect();
+		openListener = () => this.onConnectionOpen();
 		messageListener = (event: ws.MessageEvent) => this.onMessage(event, Date.now());
 		errorListener = (event: ws.ErrorEvent) => this.onConnectionError(event);
 		closeListener = (event: ws.CloseEvent) => this.onConnectionClose(event);
@@ -206,10 +209,12 @@ export class Websocket {
 
 		this.lastOutgoingMessage = null;
 		this.connectionAttempts = 0;
+
+		this.terminate();
 		this.connect();
 	}
 
-    onLogin(): void {
+    afterLogin(): void {
         if (this.loginTimeout) clearTimeout(this.loginTimeout);
     }
 
@@ -268,10 +273,6 @@ export class Websocket {
     pauseIncomingMessages(): void {
         this.pausedIncomingMessages = true;
     }
-
-	prepareReconnect(): void {
-		this.terminate();
-	}
 
 	beforeReload(): void {
 		this.pauseIncomingMessages();
@@ -536,10 +537,12 @@ export class Websocket {
 		this.connectionTimeout = setTimeout(() => this.reconnect(), SERVER_RESTART_CONNECTION_TIME);
 	}
 
-	private onConnect(): void {
+	private onConnectionOpen(): void {
 		this.clearConnectionTimeouts();
 
-		console.log('Successfully connected');
+		console.log('Connection successfully opened');
+
+		this.onConnect();
 
 		this.challstrTimeout = setTimeout(() => {
 			console.log("Did not receive a challstr! Reconnecting in " + this.connectionAttemptTime / 1000 + " seconds");
