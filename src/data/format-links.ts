@@ -58,9 +58,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8balancedhackmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656408/post-8286447',
 	},
-	'gen8camomons': {
-		teams: 'https://www.smogon.com/forums/threads/3656413/post-8286472',
-	},
+	// 'gen8camomons': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656413/post-8286472',
+	// },
 	'gen8stabmons': {
 		teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
 	},
@@ -120,9 +120,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen8godlygift': {
 		teams: 'https://www.smogon.com/forums/threads/3660461/#post-8376501',
 	},
-	'gen8crossevolution': {
-		teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
-	},
+	// 'gen8crossevolution': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
+	// },
 	/*
 	'gen8pokebilitiesaaa': {
 		teams: 'https://www.smogon.com/forums/threads/3657159/page-22#post-8821047',

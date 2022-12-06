@@ -189,7 +189,7 @@ const customRuleAliases: Dict<string[]> = {
 	duubl: ['+DBL'],
 	monotype: ['Same Type Clause'],
 	stabmons: ['STABmons Move Legality'],
-	camomons: ['[Gen 8] Camomons'],
+	camomons: ['Camomons Mod'],
 	'350cup': ['350 Cup Mod'],
 	flipped: ['Flipped Mod'],
 	scalemons: ['Scalemons Mod'],
