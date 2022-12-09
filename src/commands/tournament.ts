@@ -65,13 +65,13 @@ export const commands: BaseCommandDefinitions = {
 			}
 			if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'tournament']);
 			if (room.tournament) return this.say("There is already a tournament in progress in this room.");
-			const format = Tournaments.getFormat(target, room);
-			if (!format || !format.tournamentPlayable) return this.sayError(['invalidTournamentFormat', format ? format.name : target]);
-			let playerCap: number = Tournaments.maxPlayerCap;
-			if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-				playerCap = Config.defaultTournamentPlayerCaps[room.id];
-			}
-			room.createTournament(format, 'elimination', playerCap);
+
+			const resolvedFormat = Tournaments.resolveFormatFromInput(target.split(","), room);
+			if (typeof resolvedFormat === 'string') return this.say(resolvedFormat);
+
+			if (!resolvedFormat.tournamentPlayable) return this.sayError(['invalidTournamentFormat', resolvedFormat.name]);
+
+			Tournaments.createTournament(room, {format: resolvedFormat, cap: Tournaments.getDefaultPlayerCap(room)});
 		},
 		chatOnly: true,
 		aliases: ['ct', 'createtour'],

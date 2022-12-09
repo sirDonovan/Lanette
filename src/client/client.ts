@@ -1644,7 +1644,7 @@ export class Client {
 					json: JSON.parse(subMessage.whole) as ITournamentUpdateJson,
 				};
 
-				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
+				if (!room.tournament) Tournaments.onNewTournament(room, messageArguments.json);
 
 				if (room.tournament) {
 					room.tournament.update(messageArguments.json);
@@ -1677,7 +1677,7 @@ export class Client {
 
 				room.addHtmlChatLog("tournament|end");
 
-				if (!room.tournament) Tournaments.createTournament(room, messageArguments.json);
+				if (!room.tournament) Tournaments.onNewTournament(room, messageArguments.json);
 				if (room.tournament) {
 					room.tournament.update(messageArguments.json);
 					room.tournament.updateEnd();

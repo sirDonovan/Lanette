@@ -28,7 +28,8 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 			game: this,
 		};
 
-		this.room.createTournament(this.battleFormat, 'roundrobin', PLAYER_CAP);
+		Tournaments.createTournament(this.room, {format: this.battleFormat, type: 'roundrobin', cap: PLAYER_CAP});
+
 		if (this.tournamentRules.length) this.room.setTournamentRules(this.tournamentRules.join(", "));
 		this.room.setTournamentAutoDq(AUTO_DQ_MINUTES);
 		this.room.forceTimerTournament();

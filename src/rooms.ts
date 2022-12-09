@@ -8,7 +8,7 @@ import type {
 } from "./types/client";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IRepeatedMessage, IRoomMessageOptions, RoomType } from "./types/rooms";
-import type { IUserHostedTournament } from "./types/tournaments";
+import type { IUserHostedTournament, TournamentType } from "./types/tournaments";
 import type { User } from "./users";
 
 type RoomCreateListener = (room: Room) => void;
@@ -727,10 +727,10 @@ export class Room {
 		});
 	}
 
-	createTournament(format: IFormat, type: 'elimination' | 'roundrobin', cap: number, tournamentName?: string): void {
+	createTournament(format: IFormat, type: TournamentType, cap: number, name?: string): void {
 		if (this.tournament) return;
 
-		this.say("/tour new " + format.id + ", " + type + "," + cap + (tournamentName ? ",1," + tournamentName : ""), {
+		this.say("/tour new " + format.id + ", " + type + "," + cap + (name ? ",1," + name : ""), {
 			filterSend: () => !this.tournament,
 			dontCheckFilter: true,
 			dontPrepare: true,

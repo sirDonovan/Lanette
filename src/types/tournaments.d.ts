@@ -1,6 +1,17 @@
 import type { Player } from "../room-activity";
+import type { IFormat } from "./pokemon-showdown";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
+
+export type TournamentType = 'elimination' | 'roundrobin';
+
+export interface ICreateTournamentOptions {
+	format: IFormat;
+	cap: number;
+	official?: boolean;
+	name?: string;
+	type?: TournamentType;
+}
 
 export interface ITreeRootPlaces<T> {
 	winner: T | null;
@@ -116,5 +127,5 @@ export interface ITournamentTimerData {
 	formatid: string;
 	startTime: number;
 	official?: boolean;
-	tournamentName?: string;
+	name?: string;
 }

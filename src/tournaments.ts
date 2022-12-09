@@ -8,7 +8,7 @@ import type { TrainerSpriteId } from "./types/dex";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IPastTournament, LeaderboardType } from "./types/storage";
 import type {
-	IClientTournamentNode, IOfficialTournament, ITournamentCreateJson, ITournamentTimerData, ITreeRootPlaces,
+	IClientTournamentNode, ICreateTournamentOptions, IOfficialTournament, ITournamentCreateJson, ITournamentTimerData, ITreeRootPlaces,
 	TournamentPlace
 } from "./types/tournaments";
 import type { User } from "./users";
@@ -236,7 +236,7 @@ export class Tournaments {
 		return user.hasRank(room, 'driver');
 	}
 
-	createTournament(room: Room, json: ITournamentCreateJson): Tournament | undefined {
+	onNewTournament(room: Room, json: ITournamentCreateJson): Tournament | undefined {
 		const format = json.teambuilderFormat ? Dex.getFormat(json.teambuilderFormat) : Dex.getFormat(json.format);
 		if (!format || format.effectType !== 'Format') return;
 
@@ -283,8 +283,6 @@ export class Tournaments {
 						updatedDatabase = true;
 					}
 				}
-
-				delete this.createListeners[room.id];
 			}
 
 			room.forcePublicTournament();
@@ -345,6 +343,8 @@ export class Tournaments {
 
 			if (updatedDatabase) Storage.tryExportDatabase(room.id);
 		}
+
+		delete this.createListeners[room.id];
 
 		return tournament;
 	}
@@ -817,27 +817,37 @@ export class Tournaments {
 			}
 		}
 
-		let playerCap: number = 0;
-		if (Config.defaultTournamentPlayerCaps && room.id in Config.defaultTournamentPlayerCaps) {
-			playerCap = Config.defaultTournamentPlayerCaps[room.id];
-		}
-
-		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, format, playerCap);
+		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, format,
+			this.getDefaultPlayerCap(room));
 	}
 
-	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, official?: boolean, tournamentName?: string): void {
+	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, official?: boolean, name?: string): void {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedOfficialTournamentTime;
 
-		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, official: official, tournamentName};
+		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, official: official, name};
 		this.tournamentTimers[room.id] = setTimeout(() => {
-			if (room.tournament) return;
-			this.createListeners[room.id] = {format, official: official || false};
-			room.createTournament(format, 'elimination', cap, tournamentName);
-			delete this.tournamentTimers[room.id];
+			this.createTournament(room, {format, cap, official, name});
 		}, timer);
+	}
+
+	createTournament(room: Room, options: ICreateTournamentOptions): void {
+		if (room.tournament) return;
+
+		// may be set by a scripted game
+		if (!(room.id in this.createListeners)) {
+			this.createListeners[room.id] = {format: options.format, official: options.official};
+		}
+
+		room.createTournament(options.format, options.type || 'elimination', options.cap, options.name);
+
+		if (room.id in this.tournamentTimers) {
+			clearTimeout(this.tournamentTimers[room.id]);
+			delete this.tournamentTimers[room.id];
+			delete this.tournamentTimerData[room.id];
+		}
 	}
 
 	onTournamentEnd(room: Room, now: number): void {
@@ -1290,7 +1300,7 @@ export class Tournaments {
 					const data = previous.tournamentTimerData[i];
 					const format = this.getFormat(data.formatid, room);
 					if (format && format.effectType === 'Format') {
-						this.setTournamentTimer(room, data.startTime, format, data.cap, data.official, data.tournamentName);
+						this.setTournamentTimer(room, data.startTime, format, data.cap, data.official, data.name);
 					}
 				}
 			}
