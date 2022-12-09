@@ -648,28 +648,46 @@ class CustomFormatManager extends HtmlPageBase {
 			let tag = "";
 			for (const part of parts) {
 				if (part.startsWith(abilityTag)) {
-					const ability = Dex.getAbility(part.split(":")[1]);
-					if (!ability) continue;
+					let abilityName = part.split(":")[1];
+					let abilityId = Tools.toId(abilityName);
+					if (abilityId === 'noability') {
+						abilityName = "No Ability";
+					} else {
+						const ability = Dex.getAbility(abilityName);
+						if (!ability) continue;
+
+						abilityName = ability.name;
+						abilityId = ability.id;
+					}
 
 					if (complexBanSymbol) {
 						if (formattedName) formattedName += " " + complexBanSymbol + " ";
 					} else {
-						tag = abilityTag + ability.id;
+						tag = abilityTag + abilityId;
 					}
 
-					formattedName += ability.name;
+					formattedName += abilityName;
 					changedAbilities = true;
 				} else if (part.startsWith(itemTag)) {
-					const item = Dex.getItem(part.split(":")[1]);
-					if (!item) continue;
+					let itemName = part.split(":")[1];
+					let itemId = Tools.toId(itemName);
+					if (itemId === 'noitem') {
+						itemName = "No Item";
+					} else {
+						const item = Dex.getItem(itemName);
+						if (!item) continue;
+
+						itemName = item.name;
+						itemId = item.id;
+					}
 
 					if (complexBanSymbol) {
 						if (formattedName) formattedName += " " + complexBanSymbol + " ";
 					} else {
-						tag = itemTag + item.id;
+						tag = itemTag + itemId;
 					}
 
-					formattedName += item.name;
+					formattedName += itemName;
 					changedItems = true;
 				} else if (part.startsWith(moveTag)) {
 					const move = Dex.getMove(part.split(":")[1]);

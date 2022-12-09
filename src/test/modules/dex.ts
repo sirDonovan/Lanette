@@ -484,7 +484,11 @@ describe("Dex", () => {
 
 		separatedCustomRules = Dex.separateCustomRules(["-no item"]);
 		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
-		assertStrictEqual(separatedCustomRules.addedbans[0], "No Item");
+		assertStrictEqual(separatedCustomRules.addedbans[0], "Empty Item");
+
+		separatedCustomRules = Dex.separateCustomRules(["-no ability"]);
+		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
+		assertStrictEqual(separatedCustomRules.addedbans[0], "Empty Ability");
 	});
 	it('should return proper values from isImmune()', () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');
