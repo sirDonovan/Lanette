@@ -196,8 +196,15 @@ export const commands: BaseCommandDefinitions = {
 	},
 	addsemifinalistpoints: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !Config.allowTournaments || !Config.allowTournaments.includes(room.id) ||
-				!user.hasRank(room, 'driver')) return;
+			if (this.isPm(room) || !user.hasRank(room, 'driver')) return;
+
+			const game = cmd.endsWith('bits');
+			if (game) {
+				if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) return;
+			} else {
+				if (!Config.allowTournaments || !Config.allowTournaments.includes(room.id)) return;
+			}
+
 			const semiFinalist = cmd.includes('semi');
 			const runnerUp = !semiFinalist && cmd.includes('runner');
 			let placeName: TournamentPlace;
@@ -211,13 +218,11 @@ export const commands: BaseCommandDefinitions = {
 
 			const targets = target.split(',');
 			if (targets.length !== 3 && targets.length !== 4) {
-				return this.say("Usage: ``" + Config.commandCharacter + cmd + " " + "[" + placeName + "], [format], [players], " +
-					"[official]``");
+				return this.say("Usage: ``" + Config.commandCharacter + cmd + " " + "[" + placeName + "], [format], [players]" +
+					(!game ? ", [official]" : "") + "``");
 			}
 
 			if (!Tools.isUsernameLength(targets[0])) return this.say("Please specify a valid username.");
-			const format = Tournaments.getFormat(targets[1], room);
-			if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
 
 			const players = parseInt(targets[2]);
 			if (isNaN(players) || players <= 0) return this.say("Please specify a valid number of players in the tournament.");
@@ -226,31 +231,60 @@ export const commands: BaseCommandDefinitions = {
 					Tournaments.maxPlayerCap + " players.");
 			}
 
-			const officialOption = Tools.toId(targets[3]);
-			const official = officialOption === 'official' || officialOption === 'scheduled';
+			let official = false;
+			let points = 0;
+			let sourceName = "";
+			let sourceId = "";
+			if (game) {
+				const format = Games.getFormat(targets[1]);
+				if (Array.isArray(format) || !format.tournamentGame) return this.sayError(['invalidGameFormat', targets[1].trim()]);
 
-			const points = Tournaments.getPlacePoints(placeName, format, players, official);
-			const pointsString = points + " point" + (points > 1 ? "s" : "");
+				sourceName = format.name + " tournament game";
+				sourceId = format.id;
+
+				const multiplier = Tournaments.getPlayersPointMultiplier(players);
+				if (placeName === 'semifinalist') {
+					points = Tournaments.getSemiFinalistPoints(multiplier);
+				} else if (placeName === 'runnerup') {
+					points = Tournaments.getRunnerUpPoints(multiplier);
+				} else {
+					points = Tournaments.getWinnerPoints(multiplier);
+				}
+			} else {
+				const format = Tournaments.getFormat(targets[1], room);
+				if (!format || format.effectType !== 'Format') return this.sayError(['invalidFormat', targets[1].trim()]);
+
+				sourceName = format.name + " tournament";
+				sourceId = format.id;
+
+				const officialOption = Tools.toId(targets[3]);
+				official = officialOption === 'official' || officialOption === 'scheduled';
+
+				points = Tournaments.getPlacePoints(placeName, format, players, official);
+			}
 
 			let targetUserName = targets[0].trim();
 			const targetUser = Users.get(targetUserName);
 			if (targetUser) targetUserName = targetUser.name;
 
-			Storage.addPoints(room, Storage.tournamentLeaderboard, targetUserName, points, format.id);
+			Storage.addPoints(room, game ? Storage.gameLeaderboard : Storage.tournamentLeaderboard, targetUserName, points, sourceId);
+
+			const pointsString = points + " " + (game ? "bit" : "point") + (points > 1 ? "s" : "");
 			this.say("Added " + pointsString + " for " + targetUserName + ".");
 			if (targetUser && targetUser.rooms.has(room)) {
 				targetUser.say("You were awarded " + pointsString + " for being " + (placeName === "semifinalist" ? "a" : "the") + " " +
-					placeName + " in " + (official ? "an official " : "a ") + format.name + " tournament! To see your total amount, use " +
-					"this command: ``" + Config.commandCharacter + "rank " + room.title + "``.");
+					placeName + " in " + (official ? "an official " : "a ") + sourceName + "! To see your total amount, use " +
+					"this command: ``" + Config.commandCharacter + (game ? "bits" : "rank") + " " + room.title + "``.");
 			}
 
 			room.modnote(user.name + " awarded " + targetUserName + " " + placeName + " points (" + points + ") for " +
-				(official ? "an official " : "a ") + players + "-player " + format.name + " tournament");
+				(official ? "an official " : "a ") + players + "-player " + sourceName);
 
 			Storage.tryExportDatabase(room.id);
 		},
 		chatOnly: true,
-		aliases: ['addsemipoints', 'addsemispoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints'],
+		aliases: ['addsemipoints', 'addsemispoints', 'addsemifinalpoints', 'addrunneruppoints', 'addrunnerpoints', 'addwinnerpoints',
+		'addsemifinalistbits', 'addsemibits', 'addsemisbits', 'addsemifinalbits', 'addrunnerupbits', 'addrunnerbits', 'addwinnerbits'],
 		syntax: ["[user], [format], [players], {official}"],
 		description: ["adds missing points for the given user based on the given number of players and optional official status"],
 	},
