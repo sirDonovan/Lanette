@@ -303,13 +303,13 @@ export abstract class CardGame<ActionCardsType extends object = Dict<IActionCard
 		const eggGroups = [];
 		for (const eggGroup of card.eggGroups) {
 			const colorData = Tools.getEggGroupHexCode(eggGroup)!;
-			eggGroups.push(Tools.getHexLabel(colorData, eggGroup, this.detailLabelWidth));
+			eggGroups.push(Tools.getTypeOrColorLabel(colorData, eggGroup, this.detailLabelWidth));
 		}
 		return eggGroups.join("&nbsp;/&nbsp;");
 	}
 
 	getChatColorLabel(card: IPokemonCard): string {
-		return Tools.getHexLabel(Tools.getPokemonColorHexCode(card.color)!, card.color, this.detailLabelWidth);
+		return Tools.getTypeOrColorLabel(Tools.getPokemonColorHexCode(card.color)!, card.color, this.detailLabelWidth);
 	}
 
 	getCardChatHtml(cards: ICard | ICard[]): string {

@@ -22,7 +22,7 @@ class JirachisColoringAdventure extends QuestionAndAnswer {
 
 	// eslint-disable-next-line @typescript-eslint/require-await
 	async onSetGeneratedHint(hintKey: string): Promise<void> {
-		this.hint = "<b>Randomly generated color</b>: " + Tools.getHexLabel(Tools.getPokemonColorHexCode(hintKey)!, hintKey);
+		this.hint = "<b>Randomly generated color</b>: " + Tools.getTypeOrColorLabel(Tools.getPokemonColorHexCode(hintKey)!, hintKey);
 	}
 }
 

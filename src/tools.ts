@@ -9,7 +9,7 @@ import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
 import type { IClientMessageTypes, IParsedIncomingMessage } from './types/client';
 import type {
-	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TimeZone
+	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TextColorHex, TimeZone
 } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
 
@@ -346,6 +346,19 @@ export class Tools {
 		} : colorPick.hexCode;
 	}
 
+	getBlackTextCode(): TextColorHex {
+		return '#000000';
+	}
+
+	getWhiteTextCode(): TextColorHex {
+		return '#ffffff';
+	}
+
+	getDynamicTextHexCode(color: TextColorHex, background?: HexCode): TextColorHex {
+		if (Config.getDynamicTextHexCode) return Config.getDynamicTextHexCode(color, background);
+		return color;
+	}
+
 	getHexCodeGradient(topHex: HexCode, bottomHex?: HexCode): string {
 		return "linear-gradient(" + topHex + "," + (bottomHex || topHex) + ")";
 	}
@@ -354,7 +367,7 @@ export class Tools {
 		return ['solid', 'dotted', 'dashed', 'double', 'inset', 'outset'];
 	}
 
-	getHexLabel(color: IHexCodeData, label: string, width?: 'auto' | number): string {
+	getTypeOrColorLabel(color: IHexCodeData, label: string, width?: 'auto' | number): string {
 		return '<div style="display: inline-block;background: ' + color.gradient + ';border: 1px solid #68a;border-radius: 5px;' +
 			'width: ' + (width || 75) + 'px;padding: 1px;color: #ffffff;text-shadow: 1px 1px 1px #333;' +
 			'text-align: center"><b>' + label + '</b></div>';
@@ -414,15 +427,12 @@ export class Tools {
 		if (backgroundColor) {
 			if (typeof backgroundColor === 'string') {
 				if (backgroundColor in this.hexCodes) {
-					if (this.hexCodes[backgroundColor]!.textColor) {
-						textColor = 'color: ' + this.hexCodes[backgroundColor]!.textColor + ';';
-					} else {
-						textColor = 'color: #000000;';
-					}
+					textColor = 'color: ' + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor || '#000000',
+						this.hexCodes[backgroundColor]!.color) + ';';
 					background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
 				}
 			} else {
-				textColor = 'color: ' + (backgroundColor.textColor || '#000000') + ';';
+				textColor = 'color: ' + this.getDynamicTextHexCode(backgroundColor.textColor || '#000000', backgroundColor.color) + ';';
 				background = "background: " + backgroundColor.gradient + ";";
 			}
 		}
@@ -437,7 +447,8 @@ export class Tools {
 			if (typeof backgroundColor === 'string') {
 				if (backgroundColor in this.hexCodes) {
 					if (this.hexCodes[backgroundColor]!.textColor) {
-						buttonStyle += "color: " + this.hexCodes[backgroundColor]!.textColor + ";";
+						buttonStyle += "color: " + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor!,
+							this.hexCodes[backgroundColor]!.color) + ";";
 					} else {
 						buttonStyle += "color: #000000;";
 					}
@@ -445,7 +456,8 @@ export class Tools {
 					buttonStyle += "text-shadow: none;";
 				}
 			} else {
-				buttonStyle += "color: " + (backgroundColor.textColor || "#000000") + ";";
+				buttonStyle += "color: " + this.getDynamicTextHexCode(backgroundColor.textColor || "#000000",
+					backgroundColor.color) + ";";
 				buttonStyle += "background: " + backgroundColor.gradient + ";";
 				buttonStyle += "text-shadow: none;";
 			}

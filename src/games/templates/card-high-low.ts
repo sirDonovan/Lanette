@@ -66,7 +66,7 @@ export abstract class CardHighLow extends CardGame {
 	}
 
 	getCardChatDetails(card: ICard): string {
-		return Tools.getHexLabel(Tools.getNamedHexCode('Black'), this.getCardDetail(card, this.currentCategory) + '<br />' +
+		return Tools.getTypeOrColorLabel(Tools.getNamedHexCode('Black'), this.getCardDetail(card, this.currentCategory) + '<br />' +
 			this.categoryAbbreviations[this.currentCategory], this.detailLabelWidth);
 	}
 

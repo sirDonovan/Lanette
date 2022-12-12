@@ -3,6 +3,7 @@ import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
 import type { IGameHostBoxPokemon, IGameTrainerCardPokemon, ITournamentPointsShopItem } from "./types/config";
 import type { GameDifficulty, IGameFormat, IUserHostedFormat } from "./types/games";
+import type { HexCode, TextColorHex } from "./types/tools";
 
 /* eslint-disable prefer-const*/
 
@@ -480,6 +481,8 @@ export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, players
 	points: Map<Player, number> | undefined) => void) | undefined = undefined;
 
 export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
+
+export let getDynamicTextHexCode: ((color: TextColorHex, background?: HexCode) => TextColorHex) | undefined = undefined;
 
 export let afd = false;
 

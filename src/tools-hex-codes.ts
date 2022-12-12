@@ -1,6 +1,6 @@
 import type { IHexCodeData, NamedHexCode } from "./types/tools";
 
-export const hexCodes: Dict<IHexCodeData | undefined> = {
+const untypedHexCodes = {
 	"#c68353": {'color': '#c68353', 'gradient': 'linear-gradient(#c68353,#995e33)', 'textColor': '#000000', 'category': 'brown'},
 	"#e6e6e6": {'color': '#e6e6e6', 'gradient': 'linear-gradient(#e6e6e6,#d9d9d9)', 'textColor': '#000000', 'category': 'white'},
 	"#999999": {'color': '#999999', 'gradient': 'linear-gradient(#999999,#666666)', 'textColor': '#ffffff', 'category': 'gray'},
@@ -2193,6 +2193,8 @@ export const hexCodes: Dict<IHexCodeData | undefined> = {
 	"#532d2f": {'color': '#532d2f', 'gradient': 'linear-gradient(#532d2f,#402628)', 'textColor': '#ffffff', 'category': 'shade'},
 	"#532d2e": {'color': '#532d2e', 'gradient': 'linear-gradient(#532d2e,#402627)', 'textColor': '#ffffff', 'category': 'shade'},
 };
+
+export const hexCodes: Dict<IHexCodeData | undefined> = (untypedHexCodes as unknown) as Dict<IHexCodeData | undefined>;
 
 export const namedHexCodes: KeyedDict<NamedHexCode, string> = {
 	"Brown": "#c68353",

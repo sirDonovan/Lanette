@@ -105,8 +105,9 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		ColorPicker.loadData();
 
 		if (this.props.currentPickObject) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this.props.currentPickObject.color) {
-				this.customPrimaryColor = this.props.currentPickObject.color as HexCode;
+				this.customPrimaryColor = this.props.currentPickObject.color;
 			}
 
 			if (this.props.currentPickObject.secondaryColor) {
@@ -116,6 +117,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			if (this.props.currentPickObject.textColor) {
 				this.customTextColor = this.props.currentPickObject.textColor;
 			}
+
+			this.updateCustomColors();
 		}
 
 		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {

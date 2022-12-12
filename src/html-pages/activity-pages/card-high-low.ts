@@ -66,7 +66,7 @@ export class CardHighLowPage extends CardMatchingPage {
 			}
 
 			if (this.activity.currentCategory) {
-				cardHtml += '&nbsp;|&nbsp;<b>Current category</b>:&nbsp;' + Tools.getHexLabel(currentHex, info.detail +
+				cardHtml += '&nbsp;|&nbsp;<b>Current category</b>:&nbsp;' + Tools.getTypeOrColorLabel(currentHex, info.detail +
 					'<br /><span title="' + this.activity.categoryNames[this.activity.currentCategory] + '">' +
 					this.activity.categoryAbbreviations[this.activity.currentCategory] + '</span>', this.detailLabelWidth);
 
@@ -76,7 +76,7 @@ export class CardHighLowPage extends CardMatchingPage {
 				for (const category of this.activity.detailCategories) {
 					if (category === this.activity.currentCategory) continue;
 					const detail = '' + this.activity.getCardDetail(card, category);
-					otherCategories.push(Tools.getHexLabel(otherCategoryHex, detail +
+					otherCategories.push(Tools.getTypeOrColorLabel(otherCategoryHex, detail +
 						'<br /><span title="' + this.activity.categoryNames[category] + '">' +
 						this.activity.categoryAbbreviations[category] + '</span>', this.detailLabelWidth));
 				}

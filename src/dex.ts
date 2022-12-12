@@ -1484,7 +1484,7 @@ export class Dex {
 	}
 
 	getTypeHtml(type: ITypeData, width?: number): string {
-		return Tools.getHexLabel(Tools.getTypeHexCode(type.name)!, type.name, width);
+		return Tools.getTypeOrColorLabel(Tools.getTypeHexCode(type.name)!, type.name, width);
 	}
 
 	/*
