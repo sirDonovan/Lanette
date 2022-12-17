@@ -566,10 +566,11 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 	guess: {
 		command(target, room, user, cmd, timestamp): GameCommandReturnType {
 			if (this.answerCommands && !this.answerCommands.includes(cmd)) return false;
+
 			if (this.pmGuessing) {
 				if (!this.isPm(room, user)) return false;
 			} else {
-				if (this.isPm(room, user) && !this.isMiniGame) return false;
+				if (this.isPm(room, user) && !this.pm) return false;
 			}
 
 			const player = this.createPlayer(user) || this.players[user.id];
@@ -793,6 +794,31 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			minigame.canGuess = true;
 			runCommand('guess', minigame.answers[0], minigame.room, getBasePlayerName());
 			assert(minigame.ended);
+		},
+	},
+	'it should not accept answers in PMs as a room minigame': {
+		config: {
+			async: true,
+		},
+		async test(game, format): Promise<void> {
+			if (!format.minigameCommand) return;
+			this.timeout(TEST_TIMEOUT);
+			const room = game.room as Room;
+			game.deallocate(true);
+
+			const minigame = Games.createGame(room, (format as unknown) as IGameFormat,
+				{pmRoom: room, minigame: true}) as QuestionAndAnswer;
+			minigame.signups();
+			if (minigame.timeout) clearTimeout(minigame.timeout);
+			await minigame.onNextRound();
+			assert(minigame.answers.length);
+			minigame.canGuess = true;
+
+			const name = getBasePlayerName();
+			const user = Users.add(name, Tools.toId(name));
+			room.onUserJoin(user, " ");
+			runCommand('guess', minigame.answers[0], user, user);
+			assert(!minigame.ended);
 		},
 	},
 	'it should properly work in PMs as a minigame': {
