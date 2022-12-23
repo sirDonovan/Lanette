@@ -7,18 +7,18 @@ const buildFolder = path.join(__dirname, "build");
 const srcFolder = path.join(__dirname, "src");
 const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
-const removeFromBuild = ["require('better-sqlite3')", 'require("better-sqlite3")'];
 const removeFromPackageJson = [
 	// dependencies
 	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
-		"sql-template-strings", "sqlite",
+		"sql-template-strings", "sqlite", "sucrase",
 	// secretDependencies
 	"node-oom-heapdump",
 	// devDependencies
 	"@types/better-sqlite3", "@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/pg", "@types/sockjs", 
 		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
+		"typescript"
 ];
 
 const exec = util.promisify(child_process.exec);
@@ -116,27 +116,6 @@ function rewritePokemonShowdownPackageJson() {
 	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson));
 }
 
-function rewritePokemonShowdownBuild() {
-	const buildFilePath = path.join(pokemonShowdown, "build");
-	const buildFile = fs.readFileSync(buildFilePath).toString().split("\n");
-
-	const newBuildFile = [];
-	for (const line of buildFile) {
-		let remove = false;
-		for (const lineToRemove of removeFromBuild) {
-			if (line.includes(lineToRemove)) {
-				remove = true;
-				break;
-			}
-		}
-
-		if (remove) continue;
-		newBuildFile.push(line);
-	}
-
-	fs.writeFileSync(buildFilePath, newBuildFile.join("\n"));
-}
-
 async function setToSha(sha) {
 	return await exec('git reset --hard ' + sha).catch(e => console.log(e));
 }
@@ -208,9 +187,7 @@ module.exports = async (options) => {
 			throw new Error("git rev-parse error");
 		}
 
-		const pokemonShowdownDist = [path.join(pokemonShowdown, ".config-dist"), path.join(pokemonShowdown, ".data-dist"),
-			path.join(pokemonShowdown, ".lib-dist"), path.join(pokemonShowdown, ".server-dist"), path.join(pokemonShowdown, ".sim-dist"),
-			path.join(pokemonShowdown, ".translations-dist")];
+		const pokemonShowdownDist = [path.join(pokemonShowdown, "dist")];
 
 		const currentSha = revParseOutput.stdout.replace("\n", "");
 		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString().trim();
@@ -254,7 +231,6 @@ module.exports = async (options) => {
 			deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
 
 			rewritePokemonShowdownPackageJson();
-			rewritePokemonShowdownBuild();
 
 			const npmInstallOutput = await exec('npm install --ignore-scripts').catch(e => console.log(e));
 			if (!npmInstallOutput || npmInstallOutput.Error) {
@@ -269,7 +245,7 @@ module.exports = async (options) => {
 			deleteFolderRecursive(dist);
 		}
 
-		const nodeBuildOutput = await exec('node build --force').catch(e => console.log(e));
+		const nodeBuildOutput = await exec('node build').catch(e => console.log(e));
 		if (!nodeBuildOutput || nodeBuildOutput.Error) {
 			if (differentSha) await setToSha(currentSha);
 			throw new Error("pokemon-showdown build script error");

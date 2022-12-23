@@ -333,8 +333,8 @@ export class Dex {
 			this.dexes.base = this;
 			this.dexes[CURRENT_GEN_MOD] = this;
 
-			const dataDist = ".data-dist";
-			const simDist = ".sim-dist";
+			const dataDist = "dist/data";
+			const simDist = "dist/sim";
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
 			this.pokemonShowdownDexModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")) as IPokemonShowdownDexModule;
