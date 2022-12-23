@@ -80,7 +80,9 @@ const SMOGON_PERMALINK_POST_PREFIX = "post-";
 const maxMessageLength = 1000;
 const maxUsernameLength = 18;
 const githubApiThrottle = 2 * 1000;
-const rootFolder = path.resolve(__dirname, '..');
+
+// __dirname will be [..]/build/src
+const rootFolder = path.resolve(__dirname, '..', '..');
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 let timeout = setTimeout(() => {}, 1000);
@@ -93,7 +95,8 @@ timeout = undefined;
 export class Tools {
 	// exported constants
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
-	readonly buildFolder: string = path.join(rootFolder, 'build');
+	readonly rootBuildFolder: string = path.join(rootFolder, 'build');
+	readonly srcBuildFolder: string = path.join(rootFolder, 'build', 'src');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly guestUserPrefix: string = GUEST_USER_PREFIX;

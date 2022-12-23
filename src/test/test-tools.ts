@@ -3,11 +3,12 @@ import nodeAssert = require('assert');
 import type { Player } from '../room-activity';
 import type { ScriptedGame } from '../room-game-scripted';
 import type { Room } from '../rooms';
+import type { RunOptions } from '../types/root';
 import type { User } from '../users';
 
 const basePlayerName = 'Mocha Player';
 
-export const testOptions: Dict<string> = {};
+export const testOptions: RunOptions = {};
 
 export function getBasePlayerName(): string {
 	return basePlayerName;

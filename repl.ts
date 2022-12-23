@@ -1,4 +1,4 @@
-const net = require("net");
+import net = require("net");
 
 const args = process.argv.slice(2);
 if (args.length < 1) {

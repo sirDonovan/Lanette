@@ -7,6 +7,7 @@ import * as ConfigLoader from './config-loader';
 import * as rooms from './rooms';
 import type { ReloadableModule } from './types/app';
 import type { IGamesWorkers } from './types/games';
+import type { RunOptions } from './types/root';
 import * as users from './users';
 
 const moduleOrder: ReloadableModule[] = ['tools', 'config', 'dex', 'client', 'commandparser', 'storage', 'tournaments', 'games'];
@@ -32,7 +33,7 @@ let storage = require('./' + moduleFilenames.storage) as typeof import('./storag
 let tools = require('./' + moduleFilenames.tools) as typeof import('./tools');
 let tournaments = require('./' + moduleFilenames.tournaments) as typeof import('./tournaments');
 
-module.exports = (): void => {
+export function instantiate() {
 	console.log("Instantiating modules...");
 
 	tools.instantiate();
@@ -114,31 +115,27 @@ module.exports = (): void => {
 
 		if (modules.includes('dex') || modules.includes('games')) Games.setReloadInProgress(true);
 
-		const buildOptions: Dict<boolean> = {
-			incrementalBuild: true,
-			noRemote: true,
-			noSha: !modules.includes('dex'),
+		const buildOptions: RunOptions = {
+			incrementalBuild: "true",
+			noRemote: "true",
+			noSha: !modules.includes('dex') ? "true" : "",
 		};
 
 		if (user) user.say("Running ``esbuild``...");
 
 		for (const moduleId of modules) {
-			Tools.uncacheTree(path.join(Tools.buildFolder, moduleFilenames[moduleId] + '.js'));
+			Tools.uncacheTree(path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js'));
 		}
 
-		if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.buildFolder, configLoaderFilename + '.js'));
+		if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.srcBuildFolder, configLoaderFilename + '.js'));
 		if (modules.includes('games') || modules.includes('tournaments')) {
-			Tools.uncacheTree(path.join(Tools.buildFolder, 'room-activity.js'));
+			Tools.uncacheTree(path.join(Tools.srcBuildFolder, 'room-activity.js'));
 		}
 
-		const buildScript = path.join(Tools.rootFolder, 'build.js');
-		Tools.uncacheTree(buildScript);
-		Tools.uncacheTree(path.join(Tools.rootFolder, 'get-options.js'));
-
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
-		return (require(buildScript)(buildOptions) as Promise<void>).then(() => {
+		const buildScript = path.join(Tools.rootBuildFolder, 'build-src.js');
+		return (require(buildScript) as typeof import('../build-src')).buildSrc(buildOptions).then(() => {
 			for (const moduleId of modules) {
-				const modulePath = path.join(Tools.buildFolder, moduleFilenames[moduleId] + '.js');
+				const modulePath = path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js');
 
 				if (moduleId === 'client') {
 					global.Tools.unrefProperties(client);
@@ -154,7 +151,7 @@ module.exports = (): void => {
 					if (!modules.includes('games')) global.Games.loadFormatCommands();
 				} else if (moduleId === 'config') {
 					let oldConfig = global.Config;
-					const configLoader = require(path.join(Tools.buildFolder,
+					const configLoader = require(path.join(Tools.srcBuildFolder,
 						configLoaderFilename + '.js')) as typeof import('./config-loader');
 					const newConfig = configLoader.load(Tools.deepClone(require(modulePath) as typeof import('./config-example')));
 					global.Config = newConfig;
@@ -212,6 +209,6 @@ module.exports = (): void => {
 			if (user) user.say((e as Error).message);
 		});
 	};
-};
+}
 
 /* eslint-enable @typescript-eslint/no-var-requires */

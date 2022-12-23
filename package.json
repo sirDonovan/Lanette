@@ -2,13 +2,15 @@
   "name": "lanette",
   "version": "0.0.1",
   "description": "A bot for Pokemon Showdown",
-  "main": "app.js",
+  "main": "build/app.js",
   "scripts": {
-    "lint": "eslint \"src/**/*.ts\" --cache",
-    "localboot": "node --enable-source-maps tempConfig.js -- --offline",
-    "localtest": "npm run lint && npm run tsc && node --enable-source-maps mocha.js -- --ci --offline",
-    "start": "node app.js",
-    "test": "npm run lint && npm run tsc && node --enable-source-maps mocha.js -- --ci",
+    "build": "node build.js",
+    "lint": "eslint \"**/*.ts\" --cache",
+    "localboot": "npm run build && node --enable-source-maps build/temp-config.js -- --offline",
+    "localtest": "npm run lint && npm run tsc && npm run build && npm run mocha -- --offline",
+    "mocha": "node --enable-source-maps build/mocha.js -- --ci",
+    "start": "npm run build && node build/app.js",
+    "test": "npm run lint && npm run tsc && npm run build && npm run mocha",
     "tsc": "tsc"
   },
   "repository": {
@@ -22,6 +24,7 @@
   },
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
+    "@types/eslint": "^8.4.10",
     "@types/mocha": "10.0.1",
     "@types/node": "18.11.17",
     "@types/ws": "8.5.3",

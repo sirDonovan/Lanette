@@ -132,7 +132,7 @@ export class CommandParser {
 	private commandModules: ICommandFile[] = [];
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
 	private htmlPageModules: Dict<IHtmlPageFile> = {};
-	private htmlPagesDir: string = path.join(Tools.buildFolder, 'html-pages');
+	private htmlPagesDir: string = path.join(Tools.srcBuildFolder, 'html-pages');
 	private readonly gameHtmlPages: IGameHtmlPages = {
 		cardMatching: CardMatchingPage,
 		cardHighLow: CardHighLowPage,
@@ -144,7 +144,7 @@ export class CommandParser {
 	private privateCommandsDir: string;
 
 	constructor() {
-		this.commandsDir = path.join(Tools.buildFolder, 'commands');
+		this.commandsDir = path.join(Tools.srcBuildFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
 	}
 

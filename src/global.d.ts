@@ -14,4 +14,17 @@ declare var tempConfig: boolean;
 declare var Tools: import('./tools').Tools;
 declare var Tournaments: import('./tournaments').Tournaments;
 declare var Users: import('./users').Users;
+
+declare var _esbuildResults: Dict<import('esbuild').BuildIncremental> | undefined;
+declare var _lastPokemonShowdownSha: string | undefined;
+declare var _runOptions: import('./types/root').RunOptions | undefined;
+declare var _rootFolder: string | undefined;
+declare var _rootBuildFolder: string | undefined;
+declare var _srcFolder: string | undefined;
+declare var _srcBuildFolder: string | undefined;
+
+// avoid esbuild type error
+declare namespace WebAssembly {
+    interface Module {} // eslint-disable-line @typescript-eslint/no-empty-interface
+}
 /* eslint-enable */
