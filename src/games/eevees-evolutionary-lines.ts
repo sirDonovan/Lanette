@@ -25,7 +25,6 @@ class EeveesEvolutionaryLines extends QuestionAndAnswer {
 		this.cachedData.hintKeys = hintKeys;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const evolutionLines = hintKey.split("|").map(x => x.split(","));
 		let hiddenLine = this.sampleOne(evolutionLines);

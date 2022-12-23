@@ -76,7 +76,6 @@ class MiltanksMoves extends QuestionAndAnswer {
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async onSetGeneratedHint(hintKey: string): Promise<void> {
 		const hintKeyGif = this.getHintKeyGif(this.currentCategory!);
 		if (this.pokemonGifHints && !hintKeyGif) {

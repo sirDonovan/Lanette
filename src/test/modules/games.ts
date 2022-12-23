@@ -71,7 +71,6 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			const attributes: IGameTestAttributes = {};
 			if (commands) attributes.commands = commands[i];
 			if (testConfig.async) {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
 				it(test, async function(this: Mocha.Context) {
 					const game = createIndividualTestGame(testFormat);
 					const roomid = game.room.id;

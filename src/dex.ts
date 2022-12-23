@@ -337,15 +337,15 @@ export class Dex {
 			const dataDist = "dist/data";
 			const simDist = "dist/sim";
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			this.pokemonShowdownDexModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")) as IPokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.pokemonShowdownDexModule.Dex;
 
-			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires
 			this.pokemonShowdownValidatorModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js")) as IPokemonShowdownValidatorModule;
 			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
 
-			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires
 			this.pokemonShowdownTagsModule = require(path.join(Tools.pokemonShowdownFolder, dataDist, "tags.js")) as IPokemonShowdownTagsModule;
 			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
 		} else {

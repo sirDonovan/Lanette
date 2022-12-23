@@ -31,7 +31,6 @@ class MagnetonsMashups extends QuestionAndAnswer {
 		return "";
 	}
 
-	// eslint-disable-next-line @typescript-eslint/require-await
 	async onSetGeneratedHint(): Promise<void> {
 		let numberOfElements: number;
 		if (this.format.inputOptions.names) {

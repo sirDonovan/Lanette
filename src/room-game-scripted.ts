@@ -792,11 +792,11 @@ export class ScriptedGame extends Game {
 
 		if (!this.isPmActivity(this.room)) {
 			if (this.room.tournament && this.room.tournament.battleRoomGame === this) {
-				this.room.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+				this.room.tournament.battleRoomGame = undefined;
 			}
 
 			if (this.subRoom && this.subRoom.tournament && this.subRoom.tournament.battleRoomGame === this) {
-				this.subRoom.tournament.battleRoomGame = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+				this.subRoom.tournament.battleRoomGame = undefined;
 			}
 
 			// @ts-expect-error

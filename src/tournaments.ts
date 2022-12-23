@@ -145,7 +145,6 @@ export class Tournaments {
 
 		const rolloverDay = (): void => {
 			scheduleDay++;
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!scheduleDays[scheduleDay]) {
 				if (monthsAndYears.length) {
 					scheduleDays = schedule.months[monthsAndYears[0].month].days;
@@ -518,7 +517,6 @@ export class Tournaments {
 	}
 
 	bracketToStringEliminationNode(clientNode: IClientTournamentNode): EliminationNode<string> {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const eliminationNode = new EliminationNode({user: clientNode.team ? Tools.stripHtmlCharacters(clientNode.team) : ""});
 
 		if (clientNode.children) {

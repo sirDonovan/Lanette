@@ -12,7 +12,7 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking',
     ],
-    // reportUnusedDisableDirectives: true,
+    reportUnusedDisableDirectives: true,
     parserOptions: {
         sourceType: 'module',
         project: [

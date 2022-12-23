@@ -4,7 +4,6 @@ import type { IGameCustomBox } from "../../types/storage";
 import type { IQuietPMButtonOptions } from "../html-page-base";
 import { ActivityPageBase, type IActivityPageOptions } from "./activity-page-base";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface IGamePageOptions extends IActivityPageOptions {
     customBox?: IGameCustomBox;
     pageName?: string;

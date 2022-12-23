@@ -77,7 +77,6 @@ export class Filters {
 		this.updateConfigSettings();
 	}
 
-	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	onReload(previous: Filters): void {
 		if (previous.battleFilterRegularExpressions) this.battleFilterRegularExpressions = previous.battleFilterRegularExpressions.slice();
 		if (previous.chatFilterRegularExpressions) this.chatFilterRegularExpressions = previous.chatFilterRegularExpressions.slice();
@@ -87,7 +86,6 @@ export class Filters {
 
 		Tools.unrefProperties(previous);
 	}
-	/* eslint-enable */
 
     update(html: string): void {
         let battleFilterRegularExpressions: RegExp[] | null = null;

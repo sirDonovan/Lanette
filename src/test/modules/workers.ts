@@ -179,7 +179,6 @@ describe("Portmanteaus Worker", () => {
 		}
 	});
 	// TODO: update to gen 9
-	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	it.skip('should properly list portmanteaus', async() => {
 		const workers = Games.getWorkers();
 

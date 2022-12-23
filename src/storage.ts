@@ -277,7 +277,7 @@ export class Storage {
 		if (!leaderboardTypes || !leaderboardTypes.length) leaderboardTypes = this.allLeaderboardTypes;
 
 		return this.saveDatabaseSnapshot(roomid)
-			.then(() => { // eslint-disable-line @typescript-eslint/promise-function-async
+			.then(() => {
 				const database = this.databases[roomid];
 				const cycleTime = this.formatCycleTime(Date.now());
 				const previousCycle: IPreviousCycle = {

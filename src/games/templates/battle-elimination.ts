@@ -1943,7 +1943,6 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.debugLog(winner.name + " won their battle against " + loser.name);
 		const teamChanges = this.setMatchResult(node, winner, loserTeam);
 
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (!this.ended) {
 			this.teamChanges.set(winner, (this.teamChanges.get(winner) || []).concat(teamChanges));
 			this.updateTeamChangesHtml(winner);

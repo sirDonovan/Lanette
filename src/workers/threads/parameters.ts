@@ -162,7 +162,7 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	const message = parts.slice(2).join("|");
 	let response: IParametersResponse | null = null;
 	try {
-		if (id === 'memory-usage') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		if (id === 'memory-usage') {
 			const memUsage = process.memoryUsage();
 			// @ts-expect-error
 			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
