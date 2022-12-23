@@ -1,4 +1,4 @@
-const optionNames = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed', 'noBuild', 'mochaRuns', 'script', 'grep'];
+const optionNames = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed', 'noBuild', 'mochaRuns', 'script', 'grep', 'ci'];
 const optionAliases = {
 	'local': 'offline',
 	'incremental': 'incrementalBuild',

@@ -230,7 +230,10 @@ describe("Games", () => {
 		}
 	});
 
-	it('should create games properly', () => {
+	it('should create games properly', function() {
+		// eslint-disable-next-line @typescript-eslint/no-invalid-this
+		this.timeout(5000);
+
 		for (const format of formatsToTest) {
 			const room = createTestRoom();
 			try {

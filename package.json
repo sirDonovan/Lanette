@@ -4,12 +4,11 @@
   "description": "A bot for Pokemon Showdown",
   "main": "app.js",
   "scripts": {
-    "citest": "node --enable-source-maps mocha.js -- --noBuild",
     "lint": "eslint \"src/**/*.ts\" --cache",
-    "localboot": "node --enable-source-maps tempConfig.js -- --offline --incrementalBuild",
-    "localtest": "npm run lint && node --enable-source-maps mocha.js -- --offline --incrementalBuild",
+    "localboot": "node --enable-source-maps tempConfig.js -- --offline",
+    "localtest": "npm run lint && npm run tsc && node --enable-source-maps mocha.js -- --ci --offline",
     "start": "node app.js",
-    "test": "npm run lint && node --enable-source-maps mocha.js",
+    "test": "npm run lint && npm run tsc && node --enable-source-maps mocha.js -- --ci",
     "tsc": "tsc"
   },
   "repository": {
@@ -24,17 +23,18 @@
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
     "@types/mocha": "10.0.1",
-    "@types/node": "18.11.12",
+    "@types/node": "18.11.17",
     "@types/ws": "8.5.3",
     "bufferutil": "4.0.7",
+    "esbuild": "0.16.10",
     "typescript": "4.9.4",
     "utf-8-validate": "5.0.10",
     "ws": "8.11.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.46.0",
-    "@typescript-eslint/parser": "5.46.0",
-    "eslint": "8.29.0",
-    "mocha": "10.1.0"
+    "@typescript-eslint/eslint-plugin": "5.47.0",
+    "@typescript-eslint/parser": "5.47.0",
+    "eslint": "8.30.0",
+    "mocha": "10.2.0"
   }
 }

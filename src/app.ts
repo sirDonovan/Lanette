@@ -37,7 +37,7 @@ module.exports = (): void => {
 
 	tools.instantiate();
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-	global.Config = ConfigLoader.load(config);
+	global.Config = ConfigLoader.load(Tools.deepClone(config));
 	dex.instantiate();
 	users.instantiate();
 	client.instantiate();
@@ -117,10 +117,11 @@ module.exports = (): void => {
 
 		const buildOptions: Dict<boolean> = {
 			incrementalBuild: true,
-			offline: !modules.includes('dex'),
+			noRemote: true,
+			noSha: !modules.includes('dex'),
 		};
 
-		if (user) user.say("Running ``tsc``...");
+		if (user) user.say("Running ``esbuild``...");
 
 		for (const moduleId of modules) {
 			Tools.uncacheTree(path.join(Tools.buildFolder, moduleFilenames[moduleId] + '.js'));
@@ -156,7 +157,7 @@ module.exports = (): void => {
 					let oldConfig = global.Config;
 					const configLoader = require(path.join(Tools.buildFolder,
 						configLoaderFilename + '.js')) as typeof import('./config-loader');
-					const newConfig = configLoader.load(require(modulePath) as typeof import('./config-example'));
+					const newConfig = configLoader.load(Tools.deepClone(require(modulePath) as typeof import('./config-example')));
 					global.Config = newConfig;
 					global.Client.updateConfigSettings();
 					global.Rooms.updateConfigSettings();

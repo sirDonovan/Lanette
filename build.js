@@ -3,8 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 
-const buildFolder = path.join(__dirname, "build");
-const srcFolder = path.join(__dirname, "src");
+const buildTools = require(path.join(__dirname, 'build-tools'));
+
 const pokemonShowdown = path.join(__dirname, 'pokemon-showdown');
 
 const removeFromPackageJson = [
@@ -22,79 +22,6 @@ const removeFromPackageJson = [
 ];
 
 const exec = util.promisify(child_process.exec);
-
-// Modified from https://stackoverflow.com/a/32197381
-function deleteFolderRecursive(folder) {
-	folder = folder.trim();
-	if (!folder || folder === '/' || folder === '.') return;
-	let exists = false;
-	try {
-		fs.accessSync(folder);
-		exists = true;
-	} catch (e) {}
-	if (exists) {
-		const contents = fs.readdirSync(folder);
-		for (let i = 0; i < contents.length; i++) {
-			const curPath = path.join(folder, contents[i]);
-			if (fs.lstatSync(curPath).isDirectory()) {
-				deleteFolderRecursive(curPath);
-			} else {
-				fs.unlinkSync(curPath);
-			}
-		}
-
-		if (folder !== buildFolder) fs.rmdirSync(folder);
-	}
-}
-
-function listFilesRecursive(folder) {
-	folder = folder.trim();
-	if (!folder || folder === '/' || folder === '.') return [];
-	let fileList = [];
-	let exists = false;
-	try {
-		fs.accessSync(folder);
-		exists = true;
-	} catch (e) {}
-	if (exists) {
-		const contents = fs.readdirSync(folder);
-		for (let i = 0; i < contents.length; i++) {
-			const curPath = path.join(folder, contents[i]);
-			if (fs.lstatSync(curPath).isDirectory()) {
-				fileList = fileList.concat(listFilesRecursive(curPath));
-			}
-			fileList.push(curPath);
-		}
-	}
-	return fileList;
-}
-
-function pruneBuiltFiles() {
-	const builtFiles = listFilesRecursive(buildFolder);
-	const srcFiles = listFilesRecursive(srcFolder);
-	for (let i = 0; i < builtFiles.length; i++) {
-		if (!builtFiles[i].endsWith('.js') && !builtFiles[i].endsWith('.js.map')) {
-			if (fs.lstatSync(builtFiles[i]).isDirectory()) {
-				if (!srcFiles.includes(path.join(srcFolder, builtFiles[i].substr(buildFolder.length + 1)))) {
-					fs.rmdirSync(builtFiles[i]);
-				}
-			}
-			continue;
-		}
-
-		const filepath = builtFiles[i].substr(buildFolder.length + 1);
-		let filename;
-		if (filepath.endsWith('.js.map')) {
-			filename = filepath.substr(0, filepath.length - 7);
-		} else {
-			filename = filepath.substr(0, filepath.length - 3);
-		}
-
-		if (!srcFiles.includes(path.join(srcFolder, filename + '.ts'))) {
-			fs.unlinkSync(builtFiles[i]);
-		}
-	}
-}
 
 function rewritePokemonShowdownPackageJson() {
 	const packageJsonPath = path.join(pokemonShowdown, "package.json");
@@ -125,16 +52,13 @@ module.exports = async (options) => {
 
 	if (!options.noBuild) {
 		console.log("Preparing to build files...");
-		if (options.incrementalBuild) {
-			pruneBuiltFiles();
-			console.log("Pruned built folder")
-		} else {
-			deleteFolderRecursive(buildFolder);
-			console.log("Deleted old built folder");
+		if (!options.incrementalBuild) {
+			buildTools.deleteFolderRecursive(buildTools.buildFolder);
+			console.log("Deleted old build folder");
 		}
 	}
 
-	if (!options.offline) {
+	if (!options.offline && !options.noRemote) {
 		console.log("Checking pokemon-showdown remote...");
 		const remoteDirectories = [path.join(__dirname, 'Pokemon-Showdown'), pokemonShowdown];
 		const lanetteRemote = fs.readFileSync(path.join(__dirname, "pokemon-showdown-remote.txt")).toString().trim();
@@ -163,7 +87,7 @@ module.exports = async (options) => {
 				needsClone = false;
 			} else {
 				for (let i = 0; i < remoteDirectories.length; i++) {
-					deleteFolderRecursive(remoteDirectories[i]);
+					buildTools.deleteFolderRecursive(remoteDirectories[i]);
 				}
 				console.log("Deleted old remote " + currentRemote);
 			}
@@ -178,7 +102,10 @@ module.exports = async (options) => {
 
 			console.log("Cloned into pokemon-showdown");
 		}
+	}
 
+	const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString().trim();
+	if (!options.offline && !options.noSha && lanetteSha !== global._lastPokemonShowdownSha) {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
 
@@ -190,7 +117,6 @@ module.exports = async (options) => {
 		const pokemonShowdownDist = [path.join(pokemonShowdown, "dist")];
 
 		const currentSha = revParseOutput.stdout.replace("\n", "");
-		const lanetteSha = fs.readFileSync(path.join(__dirname, "pokemon-showdown-sha.txt")).toString().trim();
 		const differentSha = currentSha !== lanetteSha;
 
 		let installPokemonShowdownDependencies = false;
@@ -225,10 +151,12 @@ module.exports = async (options) => {
 			}
 		}
 
+		global._lastPokemonShowdownSha = lanetteSha;
+
 		if (installPokemonShowdownDependencies) {
 			console.log("Installing pokemon-showdown dependencies...");
 
-			deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
+			buildTools.deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
 
 			rewritePokemonShowdownPackageJson();
 
@@ -242,7 +170,7 @@ module.exports = async (options) => {
 		console.log("Running pokemon-showdown build script...");
 
 		for (const dist of pokemonShowdownDist) {
-			deleteFolderRecursive(dist);
+			buildTools.deleteFolderRecursive(dist);
 		}
 
 		const nodeBuildOutput = await exec('node build').catch(e => console.log(e));
@@ -255,11 +183,9 @@ module.exports = async (options) => {
 	}
 
 	if (!options.noBuild) {
-		console.log("Running tsc...");
-		const cmd = await exec('npm run tsc').catch(e => console.log(e));
-		if (!cmd || cmd.Error) {
-			throw new Error("tsc error");
-		}
+		console.log("Running esbuild...");
+
+		await buildTools.transpile({ci: options.ci});
 
 		console.log("Successfully built files");
 	}
