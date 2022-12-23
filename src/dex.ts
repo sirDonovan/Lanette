@@ -302,6 +302,7 @@ export class Dex {
 	private itemsList: readonly IItem[] | null = null;
 	private readonly isEvolutionFamilyCache: Dict<boolean> = Object.create(null);
 	private readonly learnsetDataCache: Dict<ILearnsetData> = Object.create(null);
+	private loadedMods: boolean = false;
 	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
 	private readonly moveAvailbilityCache: Dict<number> = Object.create(null);
@@ -465,6 +466,11 @@ export class Dex {
 
 	getDex(mod?: string): Dex {
 		if (!mod) mod = CURRENT_GEN_MOD;
+
+		if (mod !== CURRENT_GEN_MOD && !this.dexes.base.loadedMods) {
+			this.dexes.base.loadMods();
+		}
+
 		return this.dexes[mod];
 	}
 
@@ -2819,13 +2825,28 @@ export class Dex {
 		this.dataCache!.gifDataBW = gifDataBW;
 	}
 
+	private loadMods(): void {
+		if (this.isBase && !this.loadedMods) {
+			this.loadData();
+
+			this.pokemonShowdownDex.includeMods();
+			this.pokemonShowdownDex.includeModData();
+
+			for (const key of this.dataCache!.formatKeys) {
+				const format = this.getExistingFormat(key);
+				if (format.mod && !(format.mod in this.dexes)) {
+					this.dexes[format.mod] = new Dex(this.dexes, this.pokemonShowdownDex.forFormat(format).gen, format.mod);
+				}
+			}
+
+			this.loadedMods = true;
+		}
+	}
+
 	private loadData(): void {
 		if (this.dataCache) return;
 
 		if (this.isBase) {
-			this.pokemonShowdownDex.includeMods();
-			this.pokemonShowdownDex.includeModData();
-
 			const baseCustomRuleFormatKeys = Object.keys(baseCustomRuleFormats);
 			for (let i = CURRENT_GEN; i > 0; i--) {
 				const gen = 'gen' + i;
@@ -3015,9 +3036,6 @@ export class Dex {
 		if (this.isBase) {
 			for (const key of data.formatKeys) {
 				const format = this.getExistingFormat(key);
-				if (format.mod && !(format.mod in this.dexes)) {
-					this.dexes[format.mod] = new Dex(this.dexes, this.pokemonShowdownDex.forFormat(format).gen, format.mod);
-				}
 
 				if (format.section === OM_OF_THE_MONTH) {
 					omotms.push(format.id);
