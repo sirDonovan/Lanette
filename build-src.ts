@@ -3,7 +3,7 @@ import path = require('path');
 
 import type { RunOptions } from './src/types/root';
 import {
-	createUntrackedFiles, deleteFolderRecursive, exec, getRootFolder, getRunOptions, getSrcBuildFolder, setToSha, transpile
+	createUntrackedFiles, deleteFolderRecursive, deleteBuildFolders, exec, getInputFolders, getRunOptions, setToSha, transpile
 } from './tools';
 
 interface IPackageJson {
@@ -14,7 +14,7 @@ interface IPackageJson {
 }
 
 function getPokemonShowdownFolder() {
-	return path.join(getRootFolder(), 'pokemon-showdown');
+	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
 }
 
 const removeFromPackageJson = [
@@ -54,7 +54,7 @@ function rewritePokemonShowdownPackageJson(): void {
 export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (options === undefined) options = getRunOptions();
 
-	const rootFolder = getRootFolder();
+	const rootFolder = getInputFolders().root;
 	const pokemonShowdown = getPokemonShowdownFolder();
 
 	createUntrackedFiles();
@@ -62,15 +62,15 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (!options.noBuild) {
 		console.log("Preparing to build files...");
 		if (!options.incrementalBuild) {
-			deleteFolderRecursive(getSrcBuildFolder());
+			deleteBuildFolders();
 			console.log("Deleted old build folder");
 		}
 	}
 
 	if (!options.offline && !options.noRemote) {
 		console.log("Checking pokemon-showdown remote...");
-		const remoteDirectories = [path.join(rootFolder, 'Pokemon-Showdown'), pokemonShowdown];
-		const lanetteRemote = fs.readFileSync(path.join(rootFolder, "pokemon-showdown-remote.txt")).toString().trim();
+		const remoteDirectories = [path.join(rootFolder.inputPath, 'Pokemon-Showdown'), pokemonShowdown];
+		const lanetteRemote = fs.readFileSync(path.join(rootFolder.inputPath, "pokemon-showdown-remote.txt")).toString().trim();
 		let needsClone = true;
 		for (const remoteDirectory of remoteDirectories) {
 			if (!fs.existsSync(remoteDirectory)) continue;
@@ -90,7 +90,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 					break;
 				}
 			}
-			process.chdir(rootFolder);
+			process.chdir(rootFolder.inputPath);
 
 			if (currentRemote === lanetteRemote) {
 				needsClone = false;
@@ -111,7 +111,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 		}
 	}
 
-	const lanetteSha = fs.readFileSync(path.join(rootFolder, "pokemon-showdown-sha.txt")).toString().trim();
+	const lanetteSha = fs.readFileSync(path.join(rootFolder.inputPath, "pokemon-showdown-sha.txt")).toString().trim();
 	if (!options.offline && !options.noSha && lanetteSha !== global._lastPokemonShowdownSha) {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
@@ -186,7 +186,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			throw new Error("pokemon-showdown build script error");
 		}
 
-		process.chdir(rootFolder);
+		process.chdir(rootFolder.inputPath);
 	}
 
 	if (!options.noBuild) {

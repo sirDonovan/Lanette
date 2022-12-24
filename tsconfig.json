@@ -22,6 +22,7 @@
 	},
 	"include": [
 		"*.ts",
+		"private/**/*.ts",
 		"src/**/*.ts"
 	]
 }

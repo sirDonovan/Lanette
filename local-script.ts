@@ -1,6 +1,6 @@
 import path = require('path');
 
-import { getRunOptions, getSrcBuildFolder, initializeSrc } from './tools';
+import { getInputFolders, getRunOptions, initializeSrc } from './tools';
 
 const options = getRunOptions(__filename);
 
@@ -12,7 +12,7 @@ if (!options.script) {
 module.exports = (async() => {
 	await initializeSrc();
 
-	require(path.join(getSrcBuildFolder(), "local-scripts", options.script + ".js"));
+	require(path.join(getInputFolders().src.buildPath, "local-scripts", options.script + ".js"));
 })().catch((error) => {
 	console.error(error);
 	process.exit(1);

@@ -1,13 +1,13 @@
 import path = require('path');
 
-import { getRootBuildFolder, getRunOptions } from './tools';
+import { getInputFolders, getRunOptions } from './tools';
 
 getRunOptions(__filename);
 
 module.exports = (async() => {
-	const rootBuildFolder = getRootBuildFolder();
-	await require(path.join(rootBuildFolder, 'lint.js'));
-	await require(path.join(rootBuildFolder, 'mocha.js'));
+	const rootFolder = getInputFolders().root;
+	await require(path.join(rootFolder.buildPath, 'lint.js'));
+	await require(path.join(rootFolder.buildPath, 'mocha.js'));
 })().catch((error) => {
 	console.error(error);
 	process.exit(1);

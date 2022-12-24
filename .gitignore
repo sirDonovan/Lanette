@@ -91,6 +91,7 @@ game-debug-logs/*
 local-utils/
 notes.txt
 pokemon-showdown/
+private/
 private-data/
 src/commands/private/*
 !src/commands/private/README.md
