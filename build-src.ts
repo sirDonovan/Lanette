@@ -71,6 +71,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 		console.log("Checking pokemon-showdown remote...");
 		const remoteDirectories = [path.join(rootFolder.inputPath, 'Pokemon-Showdown'), pokemonShowdown];
 		const lanetteRemote = fs.readFileSync(path.join(rootFolder.inputPath, "pokemon-showdown-remote.txt")).toString().trim();
+
 		let needsClone = true;
 		for (const remoteDirectory of remoteDirectories) {
 			if (!fs.existsSync(remoteDirectory)) continue;
@@ -84,7 +85,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			let currentRemote;
 			const remotes = remoteOutput.split("\n");
 			for (const remote of remotes) {
-				const formattedRemote = remote.replace("\t", " ");
+				const formattedRemote = remote.replace("\t", " ").trim();
 				if (formattedRemote.startsWith('origin ') && formattedRemote.endsWith(' (fetch)')) {
 					currentRemote = formattedRemote.split('origin ')[1].split(' (fetch)')[0].trim();
 					break;
@@ -92,7 +93,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			}
 			process.chdir(rootFolder.inputPath);
 
-			if (currentRemote === lanetteRemote) {
+			if (currentRemote === lanetteRemote || currentRemote + ".git" === lanetteRemote) {
 				needsClone = false;
 			} else {
 				deleteFolderRecursive(remoteDirectory);
