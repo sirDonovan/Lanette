@@ -201,6 +201,7 @@ export function instantiate() {
 			if (user) user.say("Successfully reloaded " + Tools.joinList(modules) + ".");
 		}).catch(e => {
 			console.log(e);
+			Tools.logError(e as Error, "__reloadModules(): " + Tools.joinList(modules));
 
 			global.__reloadInProgress = false;
 			if (global.Games.isReloadInProgress()) global.Games.setReloadInProgress(false);
