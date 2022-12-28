@@ -900,6 +900,7 @@ export class Tournaments {
 		const schedule = database.officialTournamentSchedule.years[year].months[month];
 		const daysOfTheWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		const date = new Date();
+		date.setFullYear(year);
 		date.setMonth(parseInt(month) - 1, 1);
 		date.setDate(1);
 		const firstDay = date.getDay();

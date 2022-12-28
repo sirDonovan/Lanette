@@ -33,6 +33,7 @@ describe("Tournaments", () => {
 
 		const year = 2022;
 		const date = new Date();
+		date.setFullYear(year);
 
 		const month = 0;
 		date.setMonth(month);
