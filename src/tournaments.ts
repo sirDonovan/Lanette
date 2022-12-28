@@ -143,10 +143,13 @@ export class Tournaments {
 		date.setFullYear(monthAndYear.year);
 		let lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
-		const rolloverDay = (): void => {
+		const rolloverDay = (): boolean => {
 			scheduleDay++;
 			if (!scheduleDays[scheduleDay]) {
 				if (monthsAndYears.length) {
+					// incomplete schedule
+					if (!(monthsAndYears[0].month in schedule.months)) return false;
+
 					scheduleDays = schedule.months[monthsAndYears[0].month].days;
 					scheduleDay = 1;
 				} else {
@@ -176,16 +179,18 @@ export class Tournaments {
 			}
 
 			date.setDate(day);
+			return true;
 		};
 
 		// month is eventually undefined due to rolloverDay()
+		outer:
 		while (month) {
 			const format = !scheduleDays[scheduleDay]!.format || scheduleDays[scheduleDay]!.invalidFormat ? DEFAULT_OFFICIAL_TOURNAMENT :
 				scheduleDays[scheduleDay]!.format;
 			let rolledOverDay = false;
 			for (let i = 0; i < scheduleDays[scheduleDay]!.times.length; i++) {
 				if (i > 0 && scheduleDays[scheduleDay]!.times[i][0] < scheduleDays[scheduleDay]!.times[i - 1][0]) {
-					rolloverDay();
+					if (!rolloverDay()) break outer;
 					rolledOverDay = true;
 				}
 
@@ -193,7 +198,9 @@ export class Tournaments {
 				this.officialTournaments[room].push({format, time: date.getTime(), official: true});
 			}
 
-			if (!rolledOverDay) rolloverDay();
+			if (!rolledOverDay) {
+				if (!rolloverDay()) break outer;
+			}
 		}
 
 		this.officialTournaments[room].sort((a, b) => a.time - b.time);
