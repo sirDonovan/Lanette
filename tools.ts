@@ -206,7 +206,7 @@ export async function transpile(options?: RunOptions): Promise<void> {
 
 				let outDirectory = inputFolder.buildPath;
 				const relativeFilepath = filepath.substr(inputFolder.inputPath.length + 1);
-				const index = relativeFilepath.lastIndexOf('/');
+				const index = relativeFilepath.lastIndexOf(path.sep);
 				if (index !== -1) {
 					outDirectory = path.join(outDirectory, relativeFilepath.substr(0, index));
 				}
