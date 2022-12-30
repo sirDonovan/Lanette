@@ -104,6 +104,10 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 
 		this.hint = hint;
 	}
+
+    filterGuess(guess: string): boolean {
+        return !Dex.getType(Tools.toId(guess));
+    }
 }
 
 export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(questionAndAnswerGame, {
