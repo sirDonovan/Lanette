@@ -1,5 +1,6 @@
 import type { Room } from "../rooms";
 import type { BaseCommandDefinitions } from "../types/command-parser";
+import type { ITournamentPointsShopItem } from "../types/config";
 import type { User } from "../users";
 import { CLOSE_COMMAND } from "./html-page-base";
 import { TournamentTrainerCard } from "./tournament-trainer-card";
@@ -21,9 +22,40 @@ class TournamentPointsShop extends TournamentTrainerCard {
 		this.setCloseButton();
 	}
 
+	getAnnualPoints(): number {
+		return Storage.getAnnualPoints(this.room, Storage.tournamentLeaderboard, this.userName);
+	}
+
+	getAnnualBits(): number {
+		return Storage.getAnnualPoints(this.room, Storage.gameLeaderboard, this.userName);
+	}
+
+	getPointsCost(item: ITournamentPointsShopItem): number {
+		return item.pointsOverride && this.room.id in item.pointsOverride ? item.pointsOverride[this.room.id] : item.points;
+	}
+
+	getBitsCost(item: ITournamentPointsShopItem): number {
+		return item.bitsOverride && this.room.id in item.bitsOverride ? item.bitsOverride[this.room.id] : item.bits;
+	}
+
+	canUnlockRibbon(ribbon: ITournamentPointsShopItem, annualPoints: number, annualBits: number): boolean {
+		const pointsCost = this.getPointsCost(ribbon);
+		const bitsCost = this.getBitsCost(ribbon);
+		if (!pointsCost && !bitsCost) {
+			return this.isRoomStaff;
+		}
+
+		if (pointsCost && annualPoints >= pointsCost) return true;
+		if (bitsCost && annualBits >= bitsCost) return true;
+		return false;
+	}
+
 	unlockRibbon(id: string): void {
 		if (!Config.tournamentPointsShopRibbons || !(this.trainerCardRoom.id in Config.tournamentPointsShopRibbons) ||
 			!(id in Config.tournamentPointsShopRibbons[this.trainerCardRoom.id])) return;
+
+		if (!this.canUnlockRibbon(Config.tournamentPointsShopRibbons[this.trainerCardRoom.id][id], this.getAnnualPoints(),
+			this.getAnnualBits())) return;
 
 		const database = this.getDatabase();
 		Storage.createTournamentTrainerCard(database, this.userId);
@@ -54,29 +86,25 @@ class TournamentPointsShop extends TournamentTrainerCard {
 
 		if (Config.tournamentPointsShopRibbons && this.trainerCardRoom.id in Config.tournamentPointsShopRibbons) {
 			const database = this.getDatabase();
-			const points = Storage.getAnnualPoints(this.room, 'tournamentLeaderboard', this.userName);
-			const bits = Storage.getAnnualPoints(this.room, 'gameLeaderboard', this.userName);
+			const points = this.getAnnualPoints();
+			const bits = this.getAnnualBits();
 
 			let ribbonsHtml = "";
 			for (const id in Config.tournamentPointsShopRibbons[this.trainerCardRoom.id]) {
 				const ribbon = Config.tournamentPointsShopRibbons[this.trainerCardRoom.id][id];
-				const pointsCost = ribbon.pointsOverride && this.room.id in ribbon.pointsOverride ? ribbon.pointsOverride[this.room.id] :
-					ribbon.points;
-				const bitsCost = ribbon.bitsOverride && this.room.id in ribbon.bitsOverride ? ribbon.bitsOverride[this.room.id] :
-					ribbon.bits;
-
 				const unlocked = database.unlockedTournamentPointsShopRibbons &&
 					this.userId in database.unlockedTournamentPointsShopRibbons &&
 					database.unlockedTournamentPointsShopRibbons[this.userId].includes(id);
-				const staffOnly = !pointsCost && !bitsCost;
 
 				ribbonsHtml += this.getQuietPmButton(this.commandPrefix + ", " + unlockRibbonCommand + ", " + id,
 					"<img src='" + ribbon.source + "' width=" + ribbon.width + "px height=" + ribbon.height + "px /><br />" +
-					ribbon.name, {disabled: unlocked || (pointsCost > points && bitsCost > bits) || (staffOnly && !this.isRoomStaff),
-					selected: unlocked});
+					ribbon.name, {disabled: unlocked || !this.canUnlockRibbon(ribbon, points, bits), selected: unlocked});
 
 				ribbonsHtml += "&nbsp;-&nbsp;";
-				if (staffOnly) {
+
+				const pointsCost = this.getPointsCost(ribbon);
+				const bitsCost = this.getBitsCost(ribbon);
+				if (!pointsCost && !bitsCost) {
 					ribbonsHtml += "Staff-only";
 				} else {
 					if (pointsCost && bitsCost) {
