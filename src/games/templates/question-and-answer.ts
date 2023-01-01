@@ -674,7 +674,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(!game.answers.length);
 		},
 	},
-    'it should properly set answers and guessable after guessing with typo': {
+    'it should properly set answers and be guessable after guessing with typo': {
 		config: {
 			async: true,
 		},
