@@ -31,6 +31,10 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getPokemon(guess);
+    }
 }
 
 export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(questionAndAnswerGame, {

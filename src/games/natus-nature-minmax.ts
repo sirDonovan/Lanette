@@ -80,6 +80,10 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getNature(guess);
+    }
 }
 
 export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(questionAndAnswerGame, {

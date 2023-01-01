@@ -78,6 +78,10 @@ class XatusNatureClusters extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getPokemon(guess);
+    }
 }
 
 export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties(questionAndAnswerGame, {

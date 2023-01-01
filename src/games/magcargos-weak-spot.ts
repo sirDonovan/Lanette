@@ -106,7 +106,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 	}
 
     filterGuess(guess: string): boolean {
-        return !Dex.getType(Tools.toId(guess));
+        return !Dex.getType(guess);
     }
 }
 
