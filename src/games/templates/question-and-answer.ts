@@ -692,7 +692,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(game.hint);
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
 			game.canGuess = true;
-			runCommand('guess', game.answers[0].slice(1), game.room, name);
+			runCommand('guess', 'a', game.room, name);
             assert(game.canGuess);
             runCommand('guess', game.answers[0], game.room, name);
             assert(id in game.players);
@@ -712,7 +712,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const previousHint = game.hint;
 			game.canGuess = true;
 			const name = getBasePlayerName() + " 1";
-			runCommand('guess', "a", game.room, name);
+			runCommand('guess', 'a', game.room, name);
 
 			await game.onNextRound();
 			assertStrictEqual(game.answers, previousAnswers);
