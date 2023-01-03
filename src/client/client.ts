@@ -311,12 +311,12 @@ export class Client {
 
 	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="' + command + '">' + label + '</button>';
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="' + command + '">' + label + '</button>';
 	}
 
 	getMsgRoomButton(room: Room, message: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
-			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + 'name="send" value="/msg ' + Users.self.id + ', ' + '/msgroom ' +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="/msg ' + Users.self.id + ', ' + '/msgroom ' +
 			room.id + ', ' + message + '">' + label + '</button>';
 	}
 
@@ -868,7 +868,8 @@ export class Client {
 						const uhtmlId = Tools.toId(uhtmlName);
 						const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 						const htmlId = Tools.toId(html);
-						if (lastOutgoingMessage && lastOutgoingMessage.type === 'chat-uhtml' &&
+						if (lastOutgoingMessage &&
+							(lastOutgoingMessage.type === 'chat-uhtml' || lastOutgoingMessage.type === 'chat-uhtml-change') &&
 							Tools.toId(lastOutgoingMessage.uhtmlName) === uhtmlId &&
 							Tools.toId(lastOutgoingMessage.html) === htmlId) {
 							this.websocket.clearLastOutgoingMessage(now);
@@ -1054,10 +1055,12 @@ export class Client {
 					messageArguments.message.endsWith('is locked and cannot be PMed.'))) {
 					if (lastOutgoingMessage && lastOutgoingMessage.userid === recipientId &&
 						(lastOutgoingMessage.type === 'pm' || lastOutgoingMessage.type === 'pm-html' ||
-						lastOutgoingMessage.type === 'pm-uhtml' || lastOutgoingMessage.type === 'htmlpage' ||
-						lastOutgoingMessage.type === 'htmlpageselector' || lastOutgoingMessage.type === 'closehtmlpage' ||
-						lastOutgoingMessage.type === 'highlight-htmlpage' || lastOutgoingMessage.type === 'notifyuser' ||
-						lastOutgoingMessage.type === 'notifyoffuser' || lastOutgoingMessage.type === 'private-html')) {
+						lastOutgoingMessage.type === 'pm-uhtml' || lastOutgoingMessage.type === 'pm-uhtml-change' ||
+						lastOutgoingMessage.type === 'htmlpage' || lastOutgoingMessage.type === 'htmlpageselector' ||
+						lastOutgoingMessage.type === 'closehtmlpage' || lastOutgoingMessage.type === 'highlight-htmlpage' ||
+						lastOutgoingMessage.type === 'notifyuser' || lastOutgoingMessage.type === 'notifyoffuser' ||
+						lastOutgoingMessage.type === 'private-html' || lastOutgoingMessage.type === 'private-uhtml' ||
+						lastOutgoingMessage.type === 'private-uhtml-change')) {
 						this.websocket.clearLastOutgoingMessage(now);
 					}
 
@@ -1090,8 +1093,9 @@ export class Client {
 					const html = Tools.unescapeHTML(uhtml.substr(commaIndex + 1));
 					const htmlId = Tools.toId(html);
 
-					if (lastOutgoingMessage && lastOutgoingMessage.type === 'pm-uhtml' &&
-						lastOutgoingMessage.userid === recipient.id && Tools.toId(lastOutgoingMessage.uhtmlName) === uhtmlId &&
+					if (lastOutgoingMessage && (lastOutgoingMessage.type === 'pm-uhtml' ||
+						lastOutgoingMessage.type === 'pm-uhtml-change') && lastOutgoingMessage.userid === recipient.id &&
+						Tools.toId(lastOutgoingMessage.uhtmlName) === uhtmlId &&
 						Tools.toId(lastOutgoingMessage.html) === htmlId) {
 						this.websocket.clearLastOutgoingMessage(now);
 					}
@@ -1289,8 +1293,9 @@ export class Client {
 				}
 			} else if (messageArguments.message.startsWith(PRIVATE_HTML_MESSAGE)) {
 				const recipient = messageArguments.message.substr(PRIVATE_HTML_MESSAGE.length);
-				if (lastOutgoingMessage && lastOutgoingMessage.type === 'private-html' &&
-					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === Tools.toId(recipient)) {
+				if (lastOutgoingMessage && (lastOutgoingMessage.type === 'private-html' || lastOutgoingMessage.type === 'private-uhtml' ||
+					lastOutgoingMessage.type === 'private-uhtml-change') && lastOutgoingMessage.roomid === room.id &&
+					lastOutgoingMessage.userid === Tools.toId(recipient)) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith("/dice ")) {
@@ -1419,8 +1424,9 @@ export class Client {
 				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
 					(lastOutgoingMessage.type === 'pm-html' || lastOutgoingMessage.type === 'pm-uhtml' ||
-					lastOutgoingMessage.type === 'htmlpage' || lastOutgoingMessage.type === 'htmlpageselector' ||
-					lastOutgoingMessage.type === 'highlight-htmlpage' || lastOutgoingMessage.type === 'closehtmlpage')) {
+					lastOutgoingMessage.type === 'pm-uhtml-change' || lastOutgoingMessage.type === 'htmlpage' ||
+					lastOutgoingMessage.type === 'htmlpageselector' || lastOutgoingMessage.type === 'highlight-htmlpage' ||
+					lastOutgoingMessage.type === 'closehtmlpage')) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.error.startsWith('A group chat named ')) {
@@ -1564,7 +1570,7 @@ export class Client {
 
 			const uhtmlId = Tools.toId(messageArguments.name);
 			const htmlId = Tools.toId(messageArguments.html);
-			if (lastOutgoingMessage && lastOutgoingMessage.type === 'chat-uhtml' &&
+			if (lastOutgoingMessage && (lastOutgoingMessage.type === 'chat-uhtml' || lastOutgoingMessage.type === 'chat-uhtml-change') &&
 				Tools.toId(lastOutgoingMessage.uhtmlName) === uhtmlId &&
 				Tools.toId(lastOutgoingMessage.html) === htmlId) {
 				this.websocket.clearLastOutgoingMessage(now);

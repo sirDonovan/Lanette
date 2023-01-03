@@ -12,4 +12,5 @@
 /roomlogs/**
 /src/config.ts
 /src/local-scripts/**
+/web/**
 *.js

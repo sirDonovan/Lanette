@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<title>Game Server</title>
+<link rel="shortcut icon" href="https://play.pokemonshowdown.com/favicon.ico">
+<link rel=stylesheet href="https://play.pokemonshowdown.com/style/client.css">
+<link rel=stylesheet href="https://play.pokemonshowdown.com/style/sim-types.css">
+<link rel=stylesheet href="https://play.pokemonshowdown.com/style/battle.css">
+<link rel=stylesheet href="https://play.pokemonshowdown.com/style/utilichart.css">
+<link rel=stylesheet href="https://play.pokemonshowdown.com/style/font-awesome.css">
+<style>
+#header h1 {
+	color: black;
+	padding-left: 0.5em;
+	text-shadow: 2px 2px 1px #888;
+}
+#game-server-controls, #game-server-output {
+	display: block;
+}
+#game-server-controls {
+	left: 0;
+	right: auto;
+	width: 500px;
+}
+#game-server-output {
+	width: auto;
+	right: 0;
+	left: 501px;
+}
+</style>
+<script>
+window.Config = {
+    whitelist: [],
+    routes: {},
+    customcolors: {}
+}
+window.global = window
+</script>
+<div id="header" class="header">
+	<h1>Game Server</h1>
+	<div class="maintabbarbottom"></div>
+	<div class="userbar">
+		<button class="button" id="dark">Toggle Dark Mode</button>
+	</div>
+</div>
+<div class="ps-room ps-room-light scrollable" id="game-server-controls" style="display: block; left: 0px; width: 628px; right: auto;">
+    <div class="chat" style="margin-top: 4px;margin-left: 4px">
+        <input name="input-reload-modules" id="input-reload-modules" type="text" />
+        <button class="button" id="reload-modules">Reload module(s)</button> | <button class="button" id="reload-all">Reload all modules</button>
+        <br />
+        <button class="button" id="reload-game-server">Reload only game server</button> (reloading modules also reloads the game server)
+        <div id="reload-messages"></div>
+
+        <br />
+        Choose a game format:
+        <input name="input-game-format" id="input-game-format" type="text" />
+        <button class="button" id="create-game">Create game</button>
+        <div id="game-format"></div>
+
+        <br />
+        <br />
+
+        Enter a number of players:
+        <input name="input-players" id="input-players" type="text" />
+        <button class="button disabled" id="submit-players" disabled="true">Create players</button>
+        <br />
+        <div id="players"></div>
+
+        <br />
+
+        <button class="button disabled" id="start-game" disabled="true">Start game</button> | <button class="button disabled" id="restart-game" disabled="true">Restart game</button> | <button class="button disabled" id="end-game" disabled="true">End game</button>
+
+        <br />
+        <div id="error-messages"></div>
+
+        <hr />
+        Manually send a message:
+        <br />
+        <span id="manual-message-player"></span>
+        <input name="player-command" id="input-command" type="text" />
+        <button class="button disabled" id="submit-chat-command" disabled="true">Chat</button>
+        <button class="button disabled" id="submit-pm-command" disabled="true">PM</button>
+
+        <br />
+        <div class="pmbox">
+            <div class="pm-window pm-window-ladymonita" data-userid="ladymonita" data-name=" Lady Monita ❄">
+                <h3>
+                    <button class="closebutton" aria-label="Close"><i class="fa fa-times-circle"></i></button>
+                    <button class="minimizebutton" aria-label="Minimize"><i class="fa fa-minus-circle"></i></button>
+                    <span id="pm-bot-name"></span>
+                </h3>
+                <div class="pm-log">
+                    <div class="pm-buttonbar">
+                        <button class="pm-challenge">Challenge</button>
+                        <button class="pm-userOptions">...</button>
+                    </div>
+                    <div class="inner" role="log" id="pm-log"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="player-messages"></div>
+        <br />
+    </div>
+</div>
+<div class="ps-room ps-room-light scrollable" id="game-server-output" style="left: 629px; width: auto; right: 0px; display: block;">
+	<div class="chat-log hasuserlist" id="chat-log">
+		<div class="inner" id="chat-messages">
+			<div class="notice"></div>
+		</div>
+
+	</div>
+	<ul class="userlist" id="userlist">
+		<li class="userlist-count" id="userlist-users" style="text-align:center;padding:2px 0"><small><span id="usercount-users">0</span> users</small></li>
+	</ul>
+	<div class="chat-log-add hasuserlist"></div>
+</div>
+<script src="https://play.pokemonshowdown.com/js/lib/jquery-2.1.4.min.js"></script>
+<script src="https://play.pokemonshowdown.com/js/lib/html-css-sanitizer-minified.js"></script>
+<script src="https://play.pokemonshowdown.com/js/battledata.js"></script>
+<script>
+$('#dark').on('click', function () {
+	var $html = $('html')
+	if ($html.hasClass('dark')) {
+		$html.removeClass('dark')
+	} else {
+		$html.addClass('dark')
+	}
+})
+</script>
+<script src="../build/web/game-server-frontend.js" type="text/javascript"></script>

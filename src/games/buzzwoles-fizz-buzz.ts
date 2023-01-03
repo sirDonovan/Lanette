@@ -15,7 +15,6 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	playerList: Player[] = [];
 	timeLimit: number = 20 * 60 * 1000;
 	quizRound: number = 0;
-	currentPlayer: Player | null = null;
 	currentNumber: number = 0;
 	firstMultiple: number = 0;
 	maxNumber: number = 100;

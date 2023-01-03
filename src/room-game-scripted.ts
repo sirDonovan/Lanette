@@ -29,6 +29,7 @@ const defaultOptionValues: KeyedDict<DefaultGameOption, IGameNumberOptionValues>
 export class ScriptedGame extends Game {
 	readonly commands = Object.assign(Object.create(null), Games.getSharedCommands()) as LoadedGameCommands;
 	readonly commandsListeners: IGameCommandCountListener[] = [];
+	currentPlayer: Player | null = null;
 	debugLogs: string[] = [];
 	debugLogWriteCount: number = 0;
 	enabledAssistActions = new Map<Player, boolean>();

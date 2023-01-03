@@ -69,6 +69,8 @@ const BUTTON_VALUE_REGEX = / value ?= ?"([^"]*)"/i;
 const MSG_COMMAND_REGEX = /^\/(?:msg|pm|w|whisper|botmsg) /;
 const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
+const MAIN_SERVER = 'play.pokemonshowdown.com';
+const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const GUEST_USER_PREFIX = 'Guest ';
@@ -102,8 +104,8 @@ export class Tools {
 	readonly guestUserPrefix: string = GUEST_USER_PREFIX;
 	readonly hexCodes: typeof hexCodes = hexCodes;
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
-	readonly mainServer: string = 'play.pokemonshowdown.com';
-	readonly mainReplayServer: string = 'replay.pokemonshowdown.com';
+	readonly mainServer: string = MAIN_SERVER;
+	readonly mainReplayServer: string = MAIN_REPLAY_SERVER;
 	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
 	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
 	readonly minRoomHeight: number = 500;
@@ -118,6 +120,7 @@ export class Tools {
 	readonly smogonPermalinkPostPrefix: string = SMOGON_PERMALINK_POST_PREFIX;
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
+	readonly spritePrefix: string = '//' + MAIN_SERVER + '/sprites';
 	readonly timezones: TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
 		'GMT-06:00', 'GMT-05:00', 'GMT-04:00', 'GMT-03:30', 'GMT-03:00', 'GMT-02:00', 'GMT-01:00', 'GMT+00:00', 'GMT+01:00', 'GMT+02:00',
 		'GMT+03:00', 'GMT+03:30', 'GMT+04:00', 'GMT+04:30', 'GMT+05:00', 'GMT+05:30', 'GMT+05:45', 'GMT+06:00', 'GMT+06:30', 'GMT+07:00',

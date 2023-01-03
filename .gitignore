@@ -100,10 +100,11 @@ src/local-scripts/*
 src/message-parsers/private/*
 !src/message-parsers/private/README.md
 src/plugins/private.ts
+web/private/
 tsconfig.tsbuildinfo
 
-*.out
-*.sh
-*.json
-*.service
-*.heapsnapshot
+/*.out
+/*.sh
+/*.json
+/*.service
+/*.heapsnapshot

@@ -337,6 +337,7 @@ export class Room {
 
 		const options: IRoomMessageOptions = {
 			html: Client.getListenerHtml(html),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'chat-html',
@@ -353,6 +354,7 @@ export class Room {
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'chat-uhtml',
@@ -369,9 +371,10 @@ export class Room {
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'chat-uhtml',
+			type: 'chat-uhtml-change',
 		};
 
 		if (additionalAttributes) Object.assign(options, additionalAttributes);
@@ -385,6 +388,7 @@ export class Room {
 		this.say("/addrankuhtml +, " + uhtmlName + ", " + html, {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'chat-uhtml',
@@ -397,9 +401,10 @@ export class Room {
 		this.say("/changerankuhtml +, " + uhtmlName + ", " + html, {
 			uhtmlName,
 			html: Client.getListenerUhtml(html),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'chat-uhtml',
+			type: 'chat-uhtml-change',
 		});
 	}
 
@@ -407,6 +412,8 @@ export class Room {
 		if (!Tools.checkHtml(this, html)) return;
 
 		this.say("/addrankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
+			uhtmlName,
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			dontMeasure: true,
@@ -418,6 +425,8 @@ export class Room {
 		if (!Tools.checkHtml(this, html)) return;
 
 		this.say("/changerankuhtml " + Client.getGroupSymbols()[rank] + ", " + uhtmlName + ", " + html, {
+			uhtmlName,
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			dontMeasure: true,
@@ -433,6 +442,7 @@ export class Room {
 
 		const options: IRoomMessageOptions = {
 			userid: user.id,
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'private-html',
@@ -451,9 +461,11 @@ export class Room {
 
 		const options: IRoomMessageOptions = {
 			userid: user.id,
+			uhtmlName,
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'private-html',
+			type: 'private-uhtml',
 		};
 
 		if (additionalAttributes) Object.assign(options, additionalAttributes);
@@ -470,9 +482,11 @@ export class Room {
 
 		const options: IRoomMessageOptions = {
 			userid: user.id,
+			uhtmlName,
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'private-html',
+			type: 'private-uhtml-change',
 		};
 
 		if (additionalAttributes) Object.assign(options, additionalAttributes);
@@ -488,6 +502,7 @@ export class Room {
 
 		const options: IRoomMessageOptions = {
 			html: Client.getListenerHtml(html, true),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'pm-html',
@@ -508,6 +523,7 @@ export class Room {
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html, true),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
 			type: 'pm-uhtml',
@@ -528,9 +544,10 @@ export class Room {
 		const options: IRoomMessageOptions = {
 			uhtmlName,
 			html: Client.getListenerUhtml(html, true),
+			rawHtml: html,
 			dontCheckFilter: true,
 			dontPrepare: true,
-			type: 'pm-uhtml',
+			type: 'pm-uhtml-change',
 			userid: user.id,
 		};
 
@@ -633,6 +650,7 @@ export class Room {
 			type: 'htmlpage',
 			userid: user.id,
 			pageId: Users.self.id + "-" + pageId,
+			rawHtml: html,
 		};
 
 		if (additionalAttributes) Object.assign(options, additionalAttributes);
@@ -653,6 +671,7 @@ export class Room {
 			type: 'htmlpageselector',
 			userid: user.id,
 			pageId: Users.self.id + "-" + pageId,
+			rawHtml: html,
 			selector,
 		};
 

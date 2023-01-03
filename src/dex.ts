@@ -1342,7 +1342,7 @@ export class Dex {
 	}
 
 	getPlaceholderSprite(): string {
-		return '<img src="//' + Tools.mainServer + '/sprites/gen5/0.png" width="96" height="96" />';
+		return '<img src="' + Tools.spritePrefix + '/gen5/0.png" width="96" height="96" />';
 	}
 
 	getPokemonModel(pokemon: IPokemon, generation?: ModelGeneration, direction?: 'front' | 'back', shiny?: boolean): string {
@@ -1351,7 +1351,7 @@ export class Dex {
 		const bw = generation === 'bw';
 		const xy = generation === 'xy';
 
-		let prefix = '//' + Tools.mainServer + '/sprites/';
+		let prefix = Tools.spritePrefix + '/';
 		let suffix = '.png';
 		if (generation === 'rb') {
 			prefix += 'gen1';
@@ -1385,7 +1385,7 @@ export class Dex {
 			if (Object.prototype.hasOwnProperty.call(gifDataBW, pokemon.id)) pokemonGifData = gifDataBW[pokemon.id];
 		} else if (xy) {
 			if (Config.afd) {
-				prefix = '//' + Tools.mainServer + '/sprites/afd';
+				prefix = Tools.spritePrefix + '/afd';
 				suffix = '.png';
 				if (shiny) {
 					prefix += '-shiny';
@@ -1459,7 +1459,7 @@ export class Dex {
 	}
 
 	getMoveCategoryIcon(move: IMove): string {
-		return '<img src="//' + Tools.mainServer + '/sprites/categories/' + move.category + '.png" width="32" height="14" />';
+		return '<img src="' + Tools.spritePrefix + '/categories/' + move.category + '.png" width="32" height="14" />';
 	}
 
 	getTrainerSpriteId(name: string): string | undefined {
@@ -1478,14 +1478,14 @@ export class Dex {
 	}
 
 	getTrainerSprite(id: string): string {
-		return '<img src="//' + Tools.mainServer + '/sprites/trainers/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+		return '<img src="' + Tools.spritePrefix + '/trainers/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
 	getCustomTrainerSprite(id: string): string {
 		if (id.charAt(0) === '#') id = id.substr(1);
 
-		return '<img src="//' + Tools.mainServer + '/sprites/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
+		return '<img src="' + Tools.spritePrefix + '/trainers-custom/' + id + '.png" width=' + TRAINER_SPRITE_DIMENSIONS + 'px ' +
 			'height=' + TRAINER_SPRITE_DIMENSIONS + 'px />';
 	}
 
