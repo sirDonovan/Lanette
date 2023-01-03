@@ -409,11 +409,45 @@ export const locations: LocationData = {
 		other: [],
 	},
 	paldea: {
-		city: [],
-		town: [],
-		cave: [],
-		forest: [],
-		mountain: [],
-		other: [],
+		city: [
+			"Mesagoza",
+			"Levincia",
+			"Cascarrafa",
+		],
+		town: [
+			"Cabo Poco",
+			"Los Platos",
+			"Cortondo",
+			"Artazon",
+			"Alfornada",
+			"Porto Marinada",
+			"Medali",
+			"Zapapico",
+			"Montenevera",
+
+		],
+		cave: [
+			"Inlet Grotto",
+			"Alfornada Cavern",
+		],
+		forest: [
+			"Tagtree Thicket",
+			"Socarrat Trail",
+		],
+		mountain: [
+			"Glaseado Mountain",
+		],
+		other: [
+			"Naranja Academy",
+			"Uva Academy",
+			"Asado Desert",
+			"Casseroya Lake",
+			"Zero Lab",
+			"Navi Squad Base",
+			"Ruchbah Squad Base",
+			"Caph Squad Base",
+			"Schedar Squad Base",
+			"Segin Squad Base",
+		],
 	},
 };
