@@ -14,7 +14,6 @@ const removedOptions: string[] = ['points', 'freejoin'];
 type SurvivalThis = QuestionAndAnswer & Survival;
 
 class Survival {
-	currentPlayer: Player | null = null;
 	readonly maxPlayers: number = 20;
 	maxSurvivalRound: number = 10;
 	playerList: Player[] = [];

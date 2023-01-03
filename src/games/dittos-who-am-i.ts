@@ -18,7 +18,6 @@ class DittosWhoAmI extends ScriptedGame {
 	tiers: string[] = [];
 	colors: string[] = [];
 	eggGroups: string[] = [];
-	currentPlayer: Player | null = null;
 	dittoRound: number = 0;
 	includedPokemon: string[] = [];
 	playerInactiveRoundLimit = 2;

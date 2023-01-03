@@ -62,7 +62,6 @@ export abstract class BoardGame extends ScriptedGame {
 
 	boardRound: number = 0;
 	boardType: BoardType = 'square';
-	currentPlayer: Player | null = null;
 	dice: number[] = [];
 	doubleRolls: number = 0;
 	maxPlayers: number = 25;

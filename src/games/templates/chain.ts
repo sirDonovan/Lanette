@@ -8,7 +8,6 @@ export type Link = IPokemon | IMove | IItem | IAbility;
 export abstract class Chain extends ScriptedGame {
 	acceptsFormes: boolean = false;
 	canReverseLinks: boolean = false;
-	currentPlayer: Player | null = null;
 	keys: string[] = [];
 	letterBased: boolean = true;
 	linkEndCounts: Dict<number> = {};

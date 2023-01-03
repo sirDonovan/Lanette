@@ -62,7 +62,6 @@ export abstract class CardGame<ActionCardsType extends object = Dict<IActionCard
 	canLateJoin: boolean = true;
 	cardRound: number = 0;
 	colors: Dict<string> = {};
-	currentPlayer: Player | null = null;
 	deltaTypes: boolean = false;
 	deck: ICard[] = [];
 	deckPool: (IMoveCard | IPokemonCard)[] = [];

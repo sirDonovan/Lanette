@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+		"target": "esnext",
+		"strict": true,
+		"incremental": true,
+		"noEmit": true,
+		"module": "ESNext",
+		"importsNotUsedAsValues": "error",
+		"lib": [
+            "dom",
+		    "esnext"
+		]
+	},
+	"include": [
+		"*.ts",
+        "private/*.ts",
+		"../src/types/type-utils.d.ts"
+	]
+}

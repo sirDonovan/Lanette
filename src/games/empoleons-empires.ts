@@ -16,7 +16,6 @@ class EmpoleonsEmpires extends ScriptedGame {
 	canGuess: boolean = false;
 	playerAliases = new Map<Player, string>();
 	aliasIds: string[] = [];
-	currentPlayer: Player | null = null;
 	maxPlayers: number = 15;
 	minPlayers: number = 4;
 	points = new Map<Player, number>();

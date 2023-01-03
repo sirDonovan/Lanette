@@ -34,7 +34,6 @@ const maximumMoveAvailability = 500;
 
 class SpindasExcludedPokemon extends ScriptedGame {
 	canLateJoin = true;
-	currentPlayer: Player | null = null;
 	excludedHint: string = '';
 	excludedRound: number = 0;
 	guessedPokemon: string[] = [];

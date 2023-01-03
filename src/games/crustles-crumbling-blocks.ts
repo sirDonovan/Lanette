@@ -8,7 +8,6 @@ const REMOVE_COMMAND = "remove";
 
 class CrustlesCrumblingBlocks extends ScriptedGame {
 	blocks: number = 0;
-	currentPlayer: Player | null = null;
 	hasAssistActions: boolean = true;
 	minPlayers: number = 4;
 	order: Player[] = [];
