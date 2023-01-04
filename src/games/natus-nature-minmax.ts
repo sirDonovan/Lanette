@@ -10,6 +10,7 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 	oneGuessPerHint = true;
 	roundTime: number = 30 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const hints: Dict<string[]> = {};
@@ -80,6 +81,10 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getNature(guess);
+    }
 }
 
 export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(questionAndAnswerGame, {

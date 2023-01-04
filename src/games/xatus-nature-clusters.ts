@@ -12,6 +12,7 @@ class XatusNatureClusters extends QuestionAndAnswer {
 	oneGuessPerHint = true;
 	roundTime: number = 20 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const hints: Dict<string[]> = {};
@@ -78,6 +79,10 @@ class XatusNatureClusters extends QuestionAndAnswer {
 		this.cachedData.hintAnswers = hints;
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getPokemon(guess);
+    }
 }
 
 export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties(questionAndAnswerGame, {

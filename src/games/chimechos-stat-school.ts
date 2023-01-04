@@ -8,6 +8,7 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 	hintPrefix: string = "Randomly generated base stats";
 	oneGuessPerHint = true;
 	readonly roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const statSpreads: Dict<string[]> = {};
@@ -31,6 +32,10 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 
 		this.cachedData.hintKeys = hintKeys;
 	}
+
+    filterGuess(guess: string) {
+        return !Dex.getPokemon(guess);
+    }
 }
 
 export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties(questionAndAnswerGame, {
