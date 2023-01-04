@@ -8,6 +8,7 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 	hintPrefix: string = "Randomly generated base stats";
 	oneGuessPerHint = true;
 	readonly roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const statSpreads: Dict<string[]> = {};

@@ -54,6 +54,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	readonly roundGuesses?: Map<Player, boolean>;
 	shortestAnswersOnly?: boolean;
 	updateHintTime?: number;
+    allowMisType?: boolean;
 
 	afterInitialize(): void {
 		if (!this.isMiniGame && !this.options.points && !(this.format.mode && this.format.mode.removedOptions &&
@@ -679,7 +680,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-            if (typeof game.filterGuess !== "function") return;
+            if (!game.allowMisType || !game.filterGuess) return;
 			this.timeout(TEST_TIMEOUT);
 
 			assert(!game.canGuess);

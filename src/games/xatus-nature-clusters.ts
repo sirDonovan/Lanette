@@ -12,6 +12,7 @@ class XatusNatureClusters extends QuestionAndAnswer {
 	oneGuessPerHint = true;
 	roundTime: number = 20 * 1000;
 	readonly roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const hints: Dict<string[]> = {};
