@@ -147,13 +147,17 @@ export function listFilesRecursive(folder: string): string[] {
 	return fileList;
 }
 
-export function deleteBuildFolders(): void {
+export function deletePreviousBuild(): void {
 	const inputFolders = getInputFolders();
 	for (const folderName of folderNames) {
 		if (folderName === 'root') continue;
 
 		deleteFolderRecursive(inputFolders[folderName].buildPath);
 	}
+
+	try {
+		fs.unlinkSync(path.join(inputFolders.root.inputPath, 'tsconfig.tsbuildinfo'));
+	} catch (e) {} // eslint-disable-line no-empty
 }
 
 export function exec(command: string): string | false {
