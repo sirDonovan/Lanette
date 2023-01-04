@@ -10,7 +10,7 @@ on:
     branches: [ master ]
 
 env:
-  NODE_OPTIONS: --max-old-space-size=4096
+  NODE_OPTIONS: --max-old-space-size=2048
 
 jobs:
   build:
