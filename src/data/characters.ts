@@ -445,8 +445,6 @@ export const characters: CharacterData = {
 		],
 		rival: [
 			"Nemona",
-			"Arven",
-			"Penny",
 		],
 		gymleader: [
 			"Katy",
@@ -461,7 +459,6 @@ export const characters: CharacterData = {
 		elitefour: [
 			"Rika",
 			"Poppy",
-			"Larry",
 			"Hassel",
 		],
 		champion: [
@@ -487,8 +484,9 @@ export const characters: CharacterData = {
 			"Raifort",
 			"Salvatore",
 			"Dendra",
-			"Hassel",
 			"Saguaro",
+			"Arven",
+			"Penny",
 		],
 	},
 };
