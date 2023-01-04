@@ -12,7 +12,6 @@ const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'a
 
 class PluslesAdditiveParameters extends ScriptedGame {
 	canAdd: boolean = false;
-	currentPlayer: Player | null = null;
 	maxPlayers: number = 20;
 	minimumResults: number = 30;
 	maximumResults: number = 50;

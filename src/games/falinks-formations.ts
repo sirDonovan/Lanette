@@ -11,7 +11,6 @@ class FalinksFormations extends ScriptedGame {
 	hasAssistActions: boolean = true;
 	points = new Map<Player, number>();
 	playerList: Player[] = [];
-	currentPlayer: Player | null = null;
 	canGuess: boolean = false;
 	formationsRound: number = 0;
 

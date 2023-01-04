@@ -8,7 +8,7 @@ import type { IInputMetadata, InputFolderNames, InputFolders, RunOptionNames, Ru
 
 if (!global._esbuildResults) global._esbuildResults = {};
 
-const folderNames: InputFolderNames[] = ['private', 'src'];
+const folderNames: InputFolderNames[] = ['private', 'src', 'web'];
 const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed', 'noBuild', 'mochaRuns', 'script',
     'grep', 'ci'];
 const optionAliases: Dict<RunOptionNames> = {
@@ -33,12 +33,17 @@ export function getInputFolders(): InputFolders {
 			buildPath: path.join(rootFolder.buildPath, folderName),
 			inputPath: path.join(rootFolder.inputPath, folderName),
 		};
+
+		if (folderName === 'web') {
+			inputFolders[folderName]!.tsConfig = path.join(inputFolders[folderName]!.inputPath, "tsconfig.json");
+		}
 	}
 
 	global._inputFolders = {
 		root: rootFolder,
 		private: inputFolders.private!,
 		src: inputFolders.src!,
+		web: inputFolders.web!,
 	};
 
 	return global._inputFolders;
@@ -73,8 +78,8 @@ export function getRunOptions(filename?: string): RunOptions {
 	return global._runOptions;
 }
 
-export async function initializeSrc() {
-    await buildSrc().catch(e => {
+export async function initializeSrc(options?: RunOptions) {
+    await buildSrc(options).catch(e => {
 		console.log(e);
 		process.exit(1);
 	});
@@ -206,7 +211,7 @@ export async function transpile(options?: RunOptions): Promise<void> {
 
 				let outDirectory = inputFolder.buildPath;
 				const relativeFilepath = filepath.substr(inputFolder.inputPath.length + 1);
-				const index = relativeFilepath.lastIndexOf('/');
+				const index = relativeFilepath.lastIndexOf(path.sep);
 				if (index !== -1) {
 					outDirectory = path.join(outDirectory, relativeFilepath.substr(0, index));
 				}
@@ -217,7 +222,7 @@ export async function transpile(options?: RunOptions): Promise<void> {
 					platform: 'node',
 					sourcemap: true,
 					incremental: true,
-					tsconfig: tsConfig,
+					tsconfig: inputFolder.tsConfig || tsConfig,
 					outdir: outDirectory,
 				}).catch((e: Error) =>  {
 					console.log("Error building file " + filepath + ": " + e.message);

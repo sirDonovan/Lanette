@@ -24,7 +24,6 @@ class DragapultsDangerZone extends ScriptedGame {
 	canHide: boolean = false;
 	canSelect: boolean = false;
 	columnLetters: string[] = letters;
-	currentPlayer: Player | null = null;
 	currentTeam: TeamIds = 'red';
 	gridSize: number = 3;
 	lastFiredLocation: string = '';

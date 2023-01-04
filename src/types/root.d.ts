@@ -2,11 +2,12 @@ export type RunOptionNames = 'offline' | 'incrementalBuild' | 'modules' | 'games
     'grep' | 'ci' | 'noBuild' | 'noRemote' | 'noSha';
 export type RunOptions = PartialKeyedDict<RunOptionNames, string>;
 
-export type InputFolderNames = 'root' | 'private' | 'src';
+export type InputFolderNames = 'root' | 'private' | 'src' | 'web';
 
 export type InputFolders = KeyedDict<InputFolderNames, IInputMetadata>;
 
 export interface IInputMetadata {
     buildPath: string;
     inputPath: string;
+    tsConfig?: string;
 }

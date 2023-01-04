@@ -5,6 +5,7 @@
   "main": "build/app.js",
   "scripts": {
     "build": "node build.js",
+    "gameserver": "npm run build && node --enable-source-maps build/src/game-server/server.js",
     "lint": "eslint \"**/*.ts\" --cache",
     "localboot": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/temp-config.js -- --offline",
     "localtest": "npm run lint && npm run tsc && npm run build && npm run mocha -- --offline",
