@@ -135,7 +135,6 @@ export const categories: CategoryData = {
 	Magmar: 'Spitfire',
 	Pinsir: 'Stag Beetle',
 	Tauros: 'Wild Bull',
-	TaurosPaldea:'Wild Bull',
 	Magikarp: 'Fish',
 	Gyarados: 'Atrocious',
 	Lapras: 'Transport',
