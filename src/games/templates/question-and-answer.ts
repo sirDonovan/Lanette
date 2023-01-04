@@ -679,8 +679,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			async: true,
 		},
 		async test(game): Promise<void> {
-            if (!game.filterGuess) return;
-
+            if (typeof game.filterGuess !== "function") return;
 			this.timeout(TEST_TIMEOUT);
 
 			assert(!game.canGuess);
@@ -692,10 +691,10 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(game.hint);
 			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
 			game.canGuess = true;
-			runCommand('guess', 'a', game.room, name);
+            runCommand('guess', 'a', game.room, name);
             assert(game.canGuess);
-            runCommand('guess', game.answers[0], game.room, name);
-            assert(id in game.players);
+			runCommand('guess', game.answers[0], game.room, name);
+			assert(id in game.players);
 			assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
 			assert(!game.answers.length);
 		},
