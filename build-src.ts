@@ -3,7 +3,7 @@ import path = require('path');
 
 import type { RunOptions } from './src/types/root';
 import {
-	createUntrackedFiles, deleteFolderRecursive, deleteBuildFolders, exec, getInputFolders, getRunOptions, setToSha, transpile
+	createUntrackedFiles, deleteFolderRecursive, deletePreviousBuild, exec, getInputFolders, getRunOptions, setToSha, transpile
 } from './tools';
 
 interface IPackageJson {
@@ -62,7 +62,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (!options.noBuild) {
 		console.log("Preparing to build files...");
 		if (!options.incrementalBuild) {
-			deleteBuildFolders();
+			deletePreviousBuild();
 			console.log("Deleted old build folder");
 		}
 	}
