@@ -49,29 +49,27 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3671157',
 		viability: 'https://www.smogon.com/forums/threads/3658514',
 	},
-	'gen8almostanyability': {
-		teams: 'https://www.smogon.com/forums/threads/3656414/#post-8286473',
-	},
-	'gen8mixandmega': {
-		teams: 'https://www.smogon.com/forums/threads/3656469/post-8287517',
-	},
-	'gen8balancedhackmons': {
-		teams: 'https://www.smogon.com/forums/threads/3656408/post-8286447',
-	},
+	// 'gen8almostanyability': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656414/#post-8286473',
+	// },
+	// 'gen8mixandmega': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656469/post-8287517',
+	// },
+	// 'gen8balancedhackmons': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656408/post-8286447',
+	// },
 	// 'gen8camomons': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3656413/post-8286472',
 	// },
-	'gen8stabmons': {
-		teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
-	},
-	/*
-	'gen8purehackmons': {
-		teams: 'https://www.smogon.com/forums/threads/3656851/post-8293471',
-	},
-	*/
-	'gen8nfe': {
-		teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
-	},
+	// 'gen8stabmons': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656429/post-8285038',
+	// },
+	// 'gen8purehackmons': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656851/post-8293471',
+	// },
+	// 'gen8nfe': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656332/post-8285452',
+	// },
 	// 'gen8lcuu': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3660866/post-8384273',
 	// },
@@ -84,9 +82,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	// 'gen8pokebilities': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3679692/post-8777785',
 	// },
-	'gen82v2doubles': {
-		teams: 'https://www.smogon.com/forums/threads/3656321/post-8285355',
-	},
+	// 'gen82v2doubles': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3656321/post-8285355',
+	// },
 	'gen8doublesuu': {
 		teams: 'https://www.smogon.com/forums/threads/3658504/post-8327969',
 	},
@@ -117,9 +115,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	// 'gen8inheritance': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3656811/#post-8292871',
 	// },
-	'gen8godlygift': {
-		teams: 'https://www.smogon.com/forums/threads/3660461/#post-8376501',
-	},
+	// 'gen8godlygift': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3660461/#post-8376501',
+	// },
 	// 'gen8crossevolution': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3657562/#post-8308365',
 	// },

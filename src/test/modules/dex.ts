@@ -749,7 +749,7 @@ describe("Dex", () => {
 		// assert(usablePokemon.includes(Dex.getExistingPokemon('Arceus-Bug').name));
 
 		// all abilities banned
-		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen8aaa"));
+		usablePokemon = Dex.getUsablePokemon(Dex.getExistingFormat("gen9almostanyability"));
 		assert(!usablePokemon.includes(Dex.getExistingPokemon('Komala').name));
 	});
 	it('should return proper values from isPossibleTeam()', () => {
