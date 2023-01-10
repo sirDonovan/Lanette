@@ -52,7 +52,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	allowsSingleStage: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
-	battleFormatId: string = 'gen8ou';
+	battleFormatId: string = 'gen9ou';
 	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
@@ -2725,7 +2725,9 @@ const tests: GameFileTests<BattleElimination> = {
 			assert(!matchesByRound['3'][0].children[1].user);
 		},
 	},
+
 	// enable to test core changes or new formats
+
 	// 'should give team changes until players have a full team - additionsPerRound': {
 	// 	test(game) {
 	// 		this.timeout(15000);

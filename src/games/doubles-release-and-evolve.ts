@@ -17,7 +17,7 @@ class DoublesReleaseAndEvolve extends BattleEliminationTournament {
 	startingTeamsLength = 6;
 	maxPlayers = 64;
 	minTeamSize = 2;
-	battleFormatId = 'gen8doublesou';
+	battleFormatId = 'gen9doublesou';
 	battleFormatType: GameType = 'doubles';
 	requiredDrop = true;
 	requiredEvolution = true;
@@ -37,13 +37,13 @@ export const game: IGameFile<DoublesReleaseAndEvolve> = Games.copyTemplateProper
 		{
 			name: "Doubles Release and Evolve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8doublesubers",
+			battleFormatId: "gen9doublesubers",
 			variantAliases: ["ubers", "uber", "doublesubers"],
 		},
 		{
 			name: "Doubles Release and Evolve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8doublesuu",
+			battleFormatId: "gen9doublesuu",
 			variantAliases: ["uu", "doublesuu"],
 		},
 	],

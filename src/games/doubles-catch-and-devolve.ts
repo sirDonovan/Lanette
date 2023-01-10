@@ -16,7 +16,7 @@ class DoublesCatchAndEvolve extends BattleEliminationTournament {
 	evolutionsPerRound = -2;
 	startingTeamsLength = 2;
 	maxPlayers = 64;
-	battleFormatId = 'gen8doublesou';
+	battleFormatId = 'gen9doublesou';
 	battleFormatType: GameType = 'doubles';
 	requiredAddition = true;
 	requiredEvolution = true;
@@ -39,22 +39,22 @@ export const game: IGameFile<DoublesCatchAndEvolve> = Games.copyTemplateProperti
 	description,
 	name,
 	variants: [
-		{
-			name: "Monoregion Doubles Catch and De-volve",
-			canChangeFormat: false,
-			monoRegion: true,
-			variantAliases: ["monoregion", "monogen"],
-		},
+		// {
+		// 	name: "Monoregion Doubles Catch and De-volve",
+		// 	canChangeFormat: false,
+		// 	monoRegion: true,
+		// 	variantAliases: ["monoregion", "monogen"],
+		// },
 		{
 			name: "Doubles Catch and De-volve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8doublesubers",
+			battleFormatId: "gen9doublesubers",
 			variantAliases: ["ubers", "uber", "doublesubers"],
 		},
 		{
 			name: "Doubles Catch and De-volve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8doublesuu",
+			battleFormatId: "gen9doublesuu",
 			variantAliases: ["uu", "doublesuu"],
 		},
 	],

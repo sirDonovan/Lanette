@@ -35,12 +35,12 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 	description,
 	name,
 	variants: [
-		{
-			name: "Monotype Catch and De-volve",
-			canChangeFormat: false,
-			monoType: true,
-			variantAliases: ["monotype"],
-		},
+		// {
+		// 	name: "Monotype Catch and De-volve",
+		// 	canChangeFormat: false,
+		// 	monoType: true,
+		// 	variantAliases: ["monotype"],
+		// },
 		{
 			name: "Monoregion Catch and De-volve",
 			canChangeFormat: false,
@@ -50,38 +50,38 @@ export const game: IGameFile<CatchAndDevolve> = Games.copyTemplateProperties(eli
 		{
 			name: "Catch and De-volve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8ubers",
+			battleFormatId: "gen9ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Catch and De-volve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8uu",
+			battleFormatId: "gen9uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and De-volve RU",
 			canChangeFormat: false,
-			battleFormatId: "gen8ru",
+			battleFormatId: "gen9ru",
 			variantAliases: ["ru"],
 		},
-		{
-			name: "Catch and De-volve NU",
-			canChangeFormat: false,
-			battleFormatId: "gen8nu",
-			variantAliases: ["nu"],
-		},
-		{
-			name: "Catch and De-volve PU",
-			canChangeFormat: false,
-			battleFormatId: "gen8pu",
-			variantAliases: ["pu"],
-		},
-		{
-			name: "Catch and De-volve ZU",
-			canChangeFormat: false,
-			battleFormatId: "gen8zu",
-			variantAliases: ["zu"],
-		},
+		// {
+		// 	name: "Catch and De-volve NU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9nu",
+		// 	variantAliases: ["nu"],
+		// },
+		// {
+		// 	name: "Catch and De-volve PU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9pu",
+		// 	variantAliases: ["pu"],
+		// },
+		// {
+		// 	name: "Catch and De-volve ZU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9zu",
+		// 	variantAliases: ["zu"],
+		// },
 	],
 });

@@ -34,12 +34,12 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 	description,
 	name,
 	variants: [
-		{
-			name: "Monotype Catch and Evolve",
-			canChangeFormat: false,
-			monoType: true,
-			variantAliases: ["monotype"],
-		},
+		// {
+		// 	name: "Monotype Catch and Evolve",
+		// 	canChangeFormat: false,
+		// 	monoType: true,
+		// 	variantAliases: ["monotype"],
+		// },
 		{
 			name: "Monoregion Catch and Evolve",
 			canChangeFormat: false,
@@ -49,38 +49,38 @@ export const game: IGameFile<CatchAndEvolve> = Games.copyTemplateProperties(elim
 		{
 			name: "Catch and Evolve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8ubers",
+			battleFormatId: "gen9ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Catch and Evolve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8uu",
+			battleFormatId: "gen9uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Catch and Evolve RU",
 			canChangeFormat: false,
-			battleFormatId: "gen8ru",
+			battleFormatId: "gen9ru",
 			variantAliases: ["ru"],
 		},
-		{
-			name: "Catch and Evolve NU",
-			canChangeFormat: false,
-			battleFormatId: "gen8nu",
-			variantAliases: ["nu"],
-		},
-		{
-			name: "Catch and Evolve PU",
-			canChangeFormat: false,
-			battleFormatId: "gen8pu",
-			variantAliases: ["pu"],
-		},
-		{
-			name: "Catch and Evolve ZU",
-			canChangeFormat: false,
-			battleFormatId: "gen8zu",
-			variantAliases: ["zu"],
-		},
+		// {
+		// 	name: "Catch and Evolve NU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9nu",
+		// 	variantAliases: ["nu"],
+		// },
+		// {
+		// 	name: "Catch and Evolve PU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9pu",
+		// 	variantAliases: ["pu"],
+		// },
+		// {
+		// 	name: "Catch and Evolve ZU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9zu",
+		// 	variantAliases: ["zu"],
+		// },
 	],
 });
