@@ -264,6 +264,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 
 		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this, this.commandPrefix, setRibbonsCommand, {
 			currentPicks: trainerCard ? trainerCard.ribbons : undefined,
+			trainerCardRoomId: this.trainerCardRoom.id,
 			maxPicks: 0,
 			onClear: (index, dontRender) => this.clearRibbons(dontRender),
 			onPick: (index, ribbon, dontRender) => this.addRibbon(ribbon, dontRender),
