@@ -8,12 +8,23 @@ export class TrainerCardRibbonPicker extends PickerBase {
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
+		const choices: Dict<string> = {};
 		if (Config.tournamentTrainerCardRibbons) {
 			for (const i in Config.tournamentTrainerCardRibbons) {
-				this.choices[i] = i;
+				choices[i] = i;
 			}
 		}
 
+		if (Config.enabledTournamentTrainerCardRibbons && htmlPage.room.id in Config.enabledTournamentTrainerCardRibbons) {
+			const keys = Object.keys(choices);
+			for (const key of keys) {
+				if (!Config.enabledTournamentTrainerCardRibbons[htmlPage.room.id].includes(key)) {
+					delete choices[key];
+				}
+			}
+		}
+
+		this.choices = choices;
 		this.renderChoices();
 	}
 

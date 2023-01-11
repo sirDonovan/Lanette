@@ -259,6 +259,11 @@ export let tournamentTrainerCardBadges: Dict<{name: string; source: string; widt
 export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
 
 /**
+ * For each room in the object, the ribbons that can be added to tournament trainer cards
+ */
+export let enabledTournamentTrainerCardRibbons: Dict<string[]> = {};
+
+/**
  * A list of rooms (roomids) where the tournament points shop can be accesssed
  */
 export let tournamentPointsShop: string[] = [];
