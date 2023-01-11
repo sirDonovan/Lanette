@@ -272,6 +272,12 @@ export class Tournaments {
 				}
 
 				tournament.format = this.createListeners[room.id].format;
+
+				if (tournament.format.customFormatName) {
+					room.nameTournament(tournament.format.customFormatName);
+					tournament.manuallyNamed = true;
+				}
+
 				if (tournament.format.customRules) {
 					tournament.setCustomFormatName();
 					room.setTournamentRules(tournament.format.customRules.join(","));
