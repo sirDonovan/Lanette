@@ -257,7 +257,7 @@ const locationTypeNames: LocationTypeNames = {
 };
 
 type Regions = readonly RegionName[];
-const regions: Regions = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'hisui'];
+const regions: Regions = ['kanto', 'johto', 'hoenn', 'sinnoh', 'unova', 'kalos', 'alola', 'galar', 'hisui', 'paldea'];
 
 type RegionNames = Readonly<KeyedDict<RegionName, string>>;
 const regionNames: RegionNames = {
