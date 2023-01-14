@@ -205,7 +205,7 @@ export const categories: CategoryData = {
 	Sunflora: 'Sun',
 	Yanma: 'Clear Wing',
 	Wooper: 'Water Fish',
-	WooperPaldea:'Poison Fish',
+	Wooper-Paldea: 'Poison Fish',
 	Quagsire: 'Water Fish',
 	Espeon: 'Sun',
 	Umbreon: 'Moonlight',
