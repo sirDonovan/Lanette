@@ -143,6 +143,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.sharedTournamentTrainerCards) {
 		config.sharedTournamentTrainerCards = objectKeysToRoomId(stringObjectToRoomIds(config.sharedTournamentTrainerCards));
 	}
+	if (config.enabledTournamentTrainerCardRibbons) {
+		config.enabledTournamentTrainerCardRibbons = objectKeysToRoomId(stringArrayObjectToIds(config.enabledTournamentTrainerCardRibbons));
+	}
 	if (config.tournamentTrainerCardBadges) config.tournamentTrainerCardBadges = objectKeysToId(config.tournamentTrainerCardBadges);
 	if (config.tournamentPointsShop) config.tournamentPointsShop = arrayToRoomIds(config.tournamentPointsShop);
 	if (config.tournamentTrainerCardRibbons) config.tournamentTrainerCardRibbons = objectKeysToId(config.tournamentTrainerCardRibbons);

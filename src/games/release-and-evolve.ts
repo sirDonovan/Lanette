@@ -38,26 +38,26 @@ export const game: IGameFile<ReleaseAndEvolve> = Games.copyTemplateProperties(el
 		{
 			name: "Release and Evolve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8ubers",
+			battleFormatId: "gen9ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Release and Evolve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8uu",
+			battleFormatId: "gen9uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Release and Evolve RU",
 			canChangeFormat: false,
-			battleFormatId: "gen8ru",
+			battleFormatId: "gen9ru",
 			variantAliases: ["ru"],
 		},
-		{
-			name: "Release and Evolve NU",
-			canChangeFormat: false,
-			battleFormatId: "gen8nu",
-			variantAliases: ["nu"],
-		},
+		// {
+		// 	name: "Release and Evolve NU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9nu",
+		// 	variantAliases: ["nu"],
+		// },
 	],
 });

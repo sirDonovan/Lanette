@@ -54,6 +54,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	readonly roundGuesses?: Map<Player, boolean>;
 	shortestAnswersOnly?: boolean;
 	updateHintTime?: number;
+    allowMisType?: boolean;
 
 	afterInitialize(): void {
 		if (!this.isMiniGame && !this.options.points && !(this.format.mode && this.format.mode.removedOptions &&
@@ -674,6 +675,31 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			assert(!game.answers.length);
 		},
 	},
+    'it should properly set answers and be guessable after guessing with typo': {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+            if (!game.allowMisType || !game.filterGuess) return;
+			this.timeout(TEST_TIMEOUT);
+
+			assert(!game.canGuess);
+			const name = getBasePlayerName() + " 1";
+			const id = Tools.toId(name);
+
+			await game.onNextRound();
+			assert(game.answers.length);
+			assert(game.hint);
+			const expectedPoints = game.getPointsForAnswer ? game.getPointsForAnswer(game.answers[0], Date.now()) : 1;
+			game.canGuess = true;
+            runCommand('guess', 'a', game.room, name);
+            assert(game.canGuess);
+			runCommand('guess', game.answers[0], game.room, name);
+			assert(id in game.players);
+			assertStrictEqual(game.points.get(game.players[id]), expectedPoints);
+			assert(!game.answers.length);
+		},
+	},
 	'it should give enough time each round for full hints': {
 		config: {
 			async: true,
@@ -686,7 +712,7 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const previousHint = game.hint;
 			game.canGuess = true;
 			const name = getBasePlayerName() + " 1";
-			runCommand('guess', "a", game.room, name);
+			runCommand('guess', 'a', game.room, name);
 
 			await game.onNextRound();
 			assertStrictEqual(game.answers, previousAnswers);

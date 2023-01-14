@@ -6,7 +6,7 @@ import type { IFormat, IMove, IPokemon } from "../../types/pokemon-showdown";
 
 export abstract class SearchChallenge extends ScriptedGame {
 	readonly battleData = new Map<Room, IBattleGameData>();
-	battleFormatId: string = 'challengecup1v1';
+	battleFormatId: string = 'gen9challengecup1v1';
 	internalGame: boolean = true;
 
 	banlist?: string[];

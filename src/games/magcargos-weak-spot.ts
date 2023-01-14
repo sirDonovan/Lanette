@@ -17,6 +17,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 	lastAnswers: string[] = [];
 	oneGuessPerHint = true;
 	roundGuesses = new Map<Player, boolean>();
+    allowMisType = true;
 
 	static loadData(): void {
 		const types: string[] = [];
@@ -104,6 +105,10 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 
 		this.hint = hint;
 	}
+
+    filterGuess(guess: string): boolean {
+        return !Dex.getType(guess);
+    }
 }
 
 export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(questionAndAnswerGame, {

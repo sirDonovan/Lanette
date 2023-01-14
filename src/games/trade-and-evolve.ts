@@ -42,26 +42,26 @@ export const game: IGameFile<TradeAndEvolve> = Games.copyTemplateProperties(elim
 		{
 			name: "Trade and Evolve Ubers",
 			canChangeFormat: false,
-			battleFormatId: "gen8ubers",
+			battleFormatId: "gen9ubers",
 			variantAliases: ["ubers", "uber"],
 		},
 		{
 			name: "Trade and Evolve UU",
 			canChangeFormat: false,
-			battleFormatId: "gen8uu",
+			battleFormatId: "gen9uu",
 			variantAliases: ["uu"],
 		},
 		{
 			name: "Trade and Evolve RU",
 			canChangeFormat: false,
-			battleFormatId: "gen8ru",
+			battleFormatId: "gen9ru",
 			variantAliases: ["ru"],
 		},
-		{
-			name: "Trade and Evolve NU",
-			canChangeFormat: false,
-			battleFormatId: "gen8nu",
-			variantAliases: ["nu"],
-		},
+		// {
+		// 	name: "Trade and Evolve NU",
+		// 	canChangeFormat: false,
+		// 	battleFormatId: "gen9nu",
+		// 	variantAliases: ["nu"],
+		// },
 	],
 });
