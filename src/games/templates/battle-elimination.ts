@@ -152,14 +152,19 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.format.nameWithOptions += ": " + battleFormat.nameWithoutGen;
 		}
 
+		const customRules = this.getGameCustomRules ? this.getGameCustomRules() : [];
 		if (inputProperties.options.rules) {
 			if (!this.canChangeFormat) {
 				this.say("You cannot change the rules for " + this.format.nameWithOptions + ".");
 				return false;
 			}
 
-			const rules = inputProperties.options.rules.split("|");
-			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, Dex.resolveCustomRuleAliases(rules));
+			const resolved = Dex.resolveCustomRuleAliases(inputProperties.options.rules.split("|"));
+			for (const rule of resolved) {
+				if (!customRules.includes(rule)) customRules.push(rule);
+			}
+
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
 			try {
 				formatid = Dex.validateFormat(formatid);
 			} catch (e) {
@@ -176,6 +181,16 @@ export abstract class BattleElimination extends ScriptedGame {
 					" with custom rules.");
 				return false;
 			}
+		} else if (customRules.length) {
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
+			try {
+				formatid = Dex.validateFormat(formatid);
+			} catch (e) {
+				this.say("Error setting custom rules: " + (e as Error).message);
+				return false;
+			}
+
+			this.battleFormatId = formatid;
 		}
 
 		const format = Dex.getExistingFormat(this.battleFormatId);
@@ -197,13 +212,19 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		const oneVsOne = !this.usesCloakedPokemon && this.startingTeamsLength === 1 && !this.additionsPerRound;
 		const twoVsTwo = !this.usesCloakedPokemon && this.startingTeamsLength === 2 && !this.additionsPerRound;
+		const threeVsThree = !this.usesCloakedPokemon && this.startingTeamsLength === 3 && !this.additionsPerRound;
 
 		if (!this.usesCloakedPokemon && ruleTable.minTeamSize > this.startingTeamsLength) {
 			this.say("You can only change the format to one that allows bringing only " + this.startingTeamsLength + " Pokemon.");
 			return false;
 		}
 
-		if (twoVsTwo) {
+		if (threeVsThree) {
+			if (ruleTable.maxTeamSize < 3) {
+				this.say("You can only change the format to one that allows bringing 3 or more Pokemon.");
+				return false;
+			}
+		} else if (twoVsTwo) {
 			if (ruleTable.maxTeamSize < 2) {
 				this.say("You can only change the format to one that allows bringing 2 or more Pokemon.");
 				return false;
@@ -223,6 +244,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		} else if (twoVsTwo) {
 			if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 2) {
 				this.say("You can only change the format to one that requires battling with 2 Pokemon.");
+				return false;
+			}
+		} else if (threeVsThree) {
+			if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 3) {
+				this.say("You can only change the format to one that requires battling with 3 Pokemon.");
 				return false;
 			}
 		} else {
