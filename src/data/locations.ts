@@ -424,7 +424,6 @@ export const locations: LocationData = {
 			"Medali",
 			"Zapapico",
 			"Montenevera",
-
 		],
 		cave: [
 			"Inlet Grotto",
