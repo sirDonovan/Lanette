@@ -44,7 +44,12 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 
 function createIndividualTestGame(format: IGameFormat): ScriptedGame {
 	const room = createTestRoom();
-	const game = Games.createGame(room, format, {pmRoom: room, initialSeed}) as ScriptedGame;
+	const game = Games.createGame(room, format, {pmRoom: room, initialSeed});
+	if (!game) {
+		console.log(Client.getOutgoingMessageQueue());
+		throw new Error("Game not created for " + format.nameWithOptions);
+	}
+
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
