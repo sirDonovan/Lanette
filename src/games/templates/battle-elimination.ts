@@ -106,6 +106,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	rerolls = new Map<Player, boolean>();
 	rerollStartDelay: number = REROLL_START_DELAY;
 	requiredTier: string | null = null;
+	requiredDoublesTier: string | null = null;
 	rulesHtml: string = "";
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
@@ -194,10 +195,10 @@ export abstract class BattleElimination extends ScriptedGame {
 			return false;
 		}
 
-		const oneVsOne = this.startingTeamsLength === 1 && !this.additionsPerRound;
-		const twoVsTwo = this.startingTeamsLength === 2 && !this.additionsPerRound;
+		const oneVsOne = !this.usesCloakedPokemon && this.startingTeamsLength === 1 && !this.additionsPerRound;
+		const twoVsTwo = !this.usesCloakedPokemon && this.startingTeamsLength === 2 && !this.additionsPerRound;
 
-		if (ruleTable.minTeamSize > this.startingTeamsLength) {
+		if (!this.usesCloakedPokemon && ruleTable.minTeamSize > this.startingTeamsLength) {
 			this.say("You can only change the format to one that allows bringing only " + this.startingTeamsLength + " Pokemon.");
 			return false;
 		}
@@ -318,6 +319,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
+			} else if (this.requiredDoublesTier) {
+				if (pokemon.doublesTier !== this.requiredDoublesTier) continue;
 			} else if (fullyEvolved) {
 				if ((!pokemon.prevo && !this.allowsSingleStage) || pokemon.nfe ||
 					(pokemon.forme && dex.getExistingPokemon(pokemon.baseSpecies).nfe)) continue;
