@@ -495,6 +495,49 @@ describe("Dex", () => {
 		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
 		assertStrictEqual(separatedCustomRules.addedbans[0], "Empty Ability");
 	});
+	it('should return expected custom format names in getCustomFormatName()', () => {
+		let format = Dex.getExistingFormat("ou@@@+Lunala");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala)");
+
+		format = Dex.getExistingFormat("ou@@@+Moody");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Moody)");
+
+		format = Dex.getExistingFormat("ou@@@+King's Rock");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus King's Rock)");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,+Moody,+King's Rock");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala, Moody, and King's Rock)");
+
+		format = Dex.getExistingFormat("ou@@@-Pikachu");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Adaptability");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Adaptability) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Absorb Bulb");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Absorb Bulb) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Pikachu,-Adaptability,-Absorb Bulb");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu, Adaptability, or Absorb Bulb) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@Same Type Clause");
+		assertStrictEqual(Dex.getCustomFormatName(format), "Monotype [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Team Preview) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@Same Type Clause,!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Team Preview) Monotype [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,-Pikachu,Same Type Clause,!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu or Team Preview) Monotype [Gen 9] OU (Plus Lunala)");
+
+		format = Dex.getExistingFormat("ou@@@*Tackle");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Restricted Tackle)");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,*Tackle");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala) (Restricted Tackle)");
+	});
 	it('should return proper values from isImmune()', () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');
 		const ghostTypePokemon = Dex.getExistingPokemon('Duskull');

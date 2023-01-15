@@ -2143,16 +2143,13 @@ export class Dex {
 
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
 
-		const prefixesAdded: string[] = [];
-		let prefixesRemoved: string[] = [];
-		let suffixes: string[] = [];
-
 		const addedBans = format.separatedCustomRules.addedbans.slice();
 		const removedBans = format.separatedCustomRules.removedbans.slice();
 		const addedRestrictions = format.separatedCustomRules.addedrestrictions.slice();
 		const addedRules = format.separatedCustomRules.addedrules.slice();
 		const removedRules = format.separatedCustomRules.removedrules.slice();
 
+		const prefixAddedRules: string[] = [];
 		const baseFormat = this.getExistingFormat(format.name);
 		for (const id of customRuleAliasesByLength) {
 			if (!(id in nonClauseCustomRuleAliases)) continue;
@@ -2192,9 +2189,10 @@ export class Dex {
 				if (index !== -1) removedRules.splice(index, 1);
 			}
 
-			prefixesAdded.push(nonClauseCustomRuleAliases[id]);
+			prefixAddedRules.push(nonClauseCustomRuleAliases[id]);
 		}
 
+		let suffixRules: string[] = [];
 		let onlySuffix = false;
 		if (addedBans.length && removedBans.length && !addedRestrictions.length) {
 			if (addedBans.includes(tagNames.allabilities) && !addedBans.map(x => this.getAbility(x)).filter(x => !!x).length) {
@@ -2202,42 +2200,44 @@ export class Dex {
 				if (abilities.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allabilities), 1);
-					suffixes.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allitems) && !addedBans.map(x => this.getItem(x)).filter(x => !!x).length) {
 				const items = format.separatedCustomRules.removedbans.map(x => this.getItem(x)).filter(x => !!x);
 				if (items.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allitems), 1);
-					suffixes.push("Only " + Tools.joinList(items.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(items.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allmoves) && !addedBans.map(x => this.getMove(x)).filter(x => !!x).length) {
 				const moves = format.separatedCustomRules.removedbans.map(x => this.getMove(x)).filter(x => !!x);
 				if (moves.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allmoves), 1);
-					suffixes.push("Only " + Tools.joinList(moves.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(moves.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allpokemon) && !addedBans.map(x => this.getPokemon(x)).filter(x => !!x).length) {
 				const pokemon = format.separatedCustomRules.removedbans.map(x => this.getPokemon(x)).filter(x => !!x);
 				if (pokemon.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allpokemon), 1);
-					suffixes.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
 				}
 			}
 		}
 
+		let prefixRemovedRules: string[] = [];
+		let suffixAddedRestrictions: string[] = [];
 		if (addedBans.length) {
-			prefixesRemoved = prefixesRemoved.concat(addedBans);
+			prefixRemovedRules = prefixRemovedRules.concat(addedBans);
 		}
 
 		if (removedBans.length && !onlySuffix) {
-			suffixes = suffixes.concat(removedBans);
+			suffixRules = suffixRules.concat(removedBans);
 		}
 
 		if (addedRestrictions.length) {
-			suffixes = suffixes.concat(addedRestrictions);
+			suffixAddedRestrictions = suffixAddedRestrictions.concat(addedRestrictions);
 		}
 
 		if (addedRules.length) {
@@ -2249,19 +2249,22 @@ export class Dex {
 				} else if (rule in clauseNicknames) {
 					rule = clauseNicknames[rule];
 				}
-				prefixesAdded.push(rule);
+				prefixAddedRules.push(rule);
 			}
 		}
 
 		if (removedRules.length) {
-			prefixesRemoved = prefixesRemoved.concat(removedRules.map(x => clauseNicknames[x] || x));
+			prefixRemovedRules = prefixRemovedRules.concat(removedRules.map(x => clauseNicknames[x] || x));
 		}
 
 		let name = '';
-		if (prefixesRemoved.length) name += "(No " + Tools.joinList(prefixesRemoved, null, null, "or") + ") ";
-		if (prefixesAdded.length) name += prefixesAdded.join(" ") + " ";
+		if (prefixRemovedRules.length) name += "(No " + Tools.joinList(prefixRemovedRules, null, null, "or") + ") ";
+		if (prefixAddedRules.length) name += prefixAddedRules.join(" ") + " ";
+
 		name += format.name;
-		if (suffixes.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixes) + ")";
+
+		if (suffixRules.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixRules) + ")";
+		if (suffixAddedRestrictions.length) name += " (Restricted " + Tools.joinList(suffixAddedRestrictions) + ")";
 
 		if (!fullName) {
 			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = format.name + DEFAULT_CUSTOM_RULES_NAME;
