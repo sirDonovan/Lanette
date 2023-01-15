@@ -143,6 +143,9 @@ describe("Dex", () => {
 			assertStrictEqual(dex.getPokemonCategory(dex.getExistingPokemon('Pikachu')), 'Mouse');
 		}
 
+		assertStrictEqual(Dex.getPokemonCategory(Dex.getExistingPokemon('Raichu')), 'Mouse');
+		assertStrictEqual(Dex.getPokemonCategory(Dex.getExistingPokemon('Raichu-Alola')), 'Mouse');
+
 		const categoryKeys = Object.keys(categories);
 		for (let i = 0; i < categoryKeys.length; i++) {
 			assert(Tools.toId(categoryKeys[i]) === categoryKeys[i], categoryKeys[i] + " should be an ID in categories.js");

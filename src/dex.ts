@@ -845,8 +845,14 @@ export class Dex {
 		return true;
 	}
 
-	getPokemonCategory(pokemon: IPokemon): string {
-		return this.getData().categories[pokemon.id] || '';
+	getPokemonCategory(pokemon: IPokemon): string | undefined {
+		const categories = this.getData().categories;
+		if (pokemon.id in categories) return categories[pokemon.id]!;
+
+		if (pokemon.forme) {
+			const id = Tools.toId(pokemon.baseSpecies);
+			if (id in categories) return categories[id]!;
+		}
 	}
 
 	getFormes(pokemon: IPokemon, nonCosmeticOnly?: boolean): string[] {
