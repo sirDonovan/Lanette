@@ -59,11 +59,10 @@ export function initializeTests(inputOptions: RunOptions): void {
 			modulesToTest = moduleTests.concat(pokemonShowdownTestFile);
 		}
 
-		const loadDex = modulesToTest.includes('dex.js');
 		const loadGames = modulesToTest.includes('games.js');
 		const loadWorkers = modulesToTest.includes('workers.js');
 
-		if (loadDex || loadGames || loadWorkers) {
+		if (testOptions.regression) {
 			console.log("Loading dex data for tests...");
 			for (let i = 1; i <= Dex.getGen(); i++) {
 				Dex.getDex('gen' + i).getData();
