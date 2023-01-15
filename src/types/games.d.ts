@@ -98,14 +98,19 @@ interface IGameFileTestConfig {
 	async?: boolean;
 	inputTargets?: string[];
 	commands?: string[][];
+	regressionOnly?: boolean;
 }
 
 export interface IGameTestAttributes {
 	commands?: readonly string[];
 }
 
-type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<{config?: IGameFileTestConfig; test: ((this: Mocha.Context, game: T,
-	format: IGameFormat<T>, attributes: IGameTestAttributes) => Promise<void> | void);}>;
+interface IGameFileTest<T extends ScriptedGame = ScriptedGame> {
+	config?: IGameFileTestConfig;
+	test: ((this: Mocha.Context, game: T, format: IGameFormat<T>, attributes: IGameTestAttributes) => Promise<void> | void);
+}
+
+type GameFileTests<T extends ScriptedGame = ScriptedGame> = Dict<IGameFileTest<T>>;
 
 export interface IRandomGameAnswer {
 	answers: readonly string[];

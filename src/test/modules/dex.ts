@@ -1,6 +1,6 @@
 import { formatLinks } from '../../data/format-links';
 import type { ISeparatedCustomRules } from '../../types/dex';
-import { assert, assertStrictEqual } from './../test-tools';
+import { assert, assertStrictEqual, testOptions } from './../test-tools';
 
 /* eslint-env mocha */
 
@@ -242,6 +242,8 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.isPokemon(fake), false);
 	});
 	it('should run methods for all data types', function() {
+		if (!testOptions.regression) return;
+
 		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(60000);
 
