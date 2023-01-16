@@ -23,8 +23,11 @@ const rootFiles = fs.readdirSync(__dirname);
     }
 
     const options = require(toolsPath).getRunOptions(__filename);
+
     let previousOffline = options.offline;
+    let previousCi = options.ci;
     options.offline = true;
+    options.ci = true;
 
     // building here allows normal TypeScript imports of src files in root level files
     await require(buildSrcPath).buildSrc(options).catch(e => {
@@ -33,6 +36,7 @@ const rootFiles = fs.readdirSync(__dirname);
 	});
 
     options.offline = previousOffline;
+    options.ci = previousCi;
 
     process.exit();
 })();
