@@ -64,7 +64,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			throw new Error(format.name + " must have the same number of test inputTargets and commands");
 		}
 
-		if (testConfig.regressionOnly && !testOptions.regression) return;
+		if (testConfig.regressionOnly && !testOptions.regression) continue;
 
 		const formats = testConfig.inputTargets ? testConfig.inputTargets : [format.inputTarget];
 		const commands = testConfig.commands ? testConfig.commands : null;
