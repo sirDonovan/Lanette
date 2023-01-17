@@ -9,7 +9,7 @@ const AWARDED_BOT_GREETING_DURATION = 60 * 24 * 60 * 60 * 1000;
 
 // aliases
 const tournamentLeaderboardAliases = ['tournamentleaderboard', 'tourleaderboard', 'tourlb', 'tournamenttop', 'tourtop'];
-const gameLeaderboardAliases = ['gameleaderboard', 'gamelb', 'gametop', 'topbits'];
+const gameLeaderboardAliases = ['gameleaderboard', 'gamelb', 'gametop', 'topbits', 'topbitsprivate'];
 const tournamentRankAliases = ['tournamentrank', 'tourrank', 'tournamentpoints', 'tourpoints'];
 const gameRankAliases = ['gamerank', 'gamepoints', 'bits'];
 const addGamePointsAliases = ['addbits', 'addbit', 'abits', 'abit', 'removebits', 'removebit', 'rbits', 'rbit'];
@@ -557,7 +557,7 @@ export const commands: BaseCommandDefinitions = {
 			const html = "<b>" + (annual ? "Annual " : "") + (source ? source.name + " " : "") + "Top " + endPosition + " of " +
 				cachedEntries.length + "</b><hr />" + output.join(", ");
 
-			if (cmd === 'topprivate') {
+			if (cmd === 'topprivate' || cmd === 'topbitsprivate') {
 				leaderboardRoom.sayPrivateHtml(user, html);
 			} else {
 				this.sayHtml(html, leaderboardRoom);

@@ -2140,10 +2140,22 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			const placesHtml = Tournaments.getPlacesHtml('gameLeaderboard', this.name, winners.map(x => x.name),
 				runnersUp.map(x => x.name), places.semifinalists.map(x => x.name), winnerPoints, runnerUpPoints, semiFinalistPoints);
-			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 
 			if (winners.length === 1) {
-				Tournaments.displayTrainerCard(this.room, winners[0].name);
+				const buttonRoom = this.room.alias || this.room.id;
+
+				const tournamentPointsShop = Tournaments.hasTournamentPointsShopItems(this.room) ? Client.getQuietPmButton(this.room,
+					Config.commandCharacter + "tpshop " + buttonRoom, "Visit the points shop") : "";
+
+				Tournaments.displayTrainerCard(this.room, winners[0].name, "<div class='infobox-limited'><center>" + placesHtml +
+				"</center><br />", "<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topbitsprivate " +
+				buttonRoom, this.room.title + " leaderboard") + "&nbsp;" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter + "topbitsprivate " + buttonRoom + "," + this.format.name,
+					this.format.name + " leaderboard") + "&nbsp;" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + buttonRoom,
+					"Customize your profile") + tournamentPointsShop + "</center></div>");
+			} else {
+				this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 			}
 		}
 
