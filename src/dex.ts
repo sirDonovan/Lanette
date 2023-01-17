@@ -2132,13 +2132,13 @@ export class Dex {
 		return true;
 	}
 
-	getCustomFormatName(format: IFormat, fullName?: boolean): string {
+	getCustomFormatName(format: IFormat, fullName?: boolean, formatName?: string): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 
 		if (format.customFormatName) return format.customFormatName;
 
 		const key = this.getCustomFormatNameKey(format);
-		if (!fullName) {
+		if (!fullName && !formatName) {
 			if (key in this.formatNamesByCustomRules) return this.formatNamesByCustomRules[key];
 		}
 
@@ -2262,14 +2262,15 @@ export class Dex {
 		if (prefixRemovedRules.length) name += "(No " + Tools.joinList(prefixRemovedRules, null, null, "or") + ") ";
 		if (prefixAddedRules.length) name += prefixAddedRules.join(" ") + " ";
 
-		name += format.name;
+		name += formatName || format.name;
 
 		if (suffixRules.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixRules) + ")";
 		if (suffixAddedRestrictions.length) name += " (Restricted " + Tools.joinList(suffixAddedRestrictions) + ")";
 
 		if (!fullName) {
-			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = format.name + DEFAULT_CUSTOM_RULES_NAME;
-			this.formatNamesByCustomRules[key] = name;
+			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = (formatName || format.name) + DEFAULT_CUSTOM_RULES_NAME;
+
+			if (!formatName) this.formatNamesByCustomRules[key] = name;
 		}
 
 		return name;

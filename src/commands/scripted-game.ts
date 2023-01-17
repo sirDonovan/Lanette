@@ -1343,8 +1343,7 @@ export const commands: BaseCommandDefinitions = {
 			const displayTimes = option === 'time' || option === 'times';
 			const now = Date.now();
 			for (const pastGame of database.pastTournamentGames) {
-				const format = Games.getFormat(pastGame.inputTarget);
-				let game = Array.isArray(format) ? pastGame.name : format.nameWithOptions;
+				let game = pastGame.name;
 
 				if (displayTimes) {
 					let duration = now - pastGame.time;

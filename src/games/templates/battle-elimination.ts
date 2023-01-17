@@ -148,8 +148,6 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.say("Unable to generate enough valid Pokemon for the format " + battleFormat.name + ".");
 				return false;
 			}
-
-			this.format.nameWithOptions += ": " + battleFormat.nameWithoutGen;
 		}
 
 		const customRules = this.getGameCustomRules ? this.getGameCustomRules() : [];
@@ -193,18 +191,18 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.battleFormatId = formatid;
 		}
 
-		const format = Dex.getExistingFormat(this.battleFormatId);
-		if (format.gameType !== this.battleFormatType) {
+		const battleFormat = Dex.getExistingFormat(this.battleFormatId);
+		if (battleFormat.gameType !== this.battleFormatType) {
 			this.say("You can only change the format to another " + this.battleFormatType + " format.");
 			return false;
 		}
 
-		if (format.team) {
+		if (battleFormat.team) {
 			this.say("You cannot change the format to one that uses generated teams.");
 			return false;
 		}
 
-		const ruleTable = Dex.getRuleTable(format);
+		const ruleTable = Dex.getRuleTable(battleFormat);
 		if (!ruleTable.has("teampreview")) {
 			this.say("You can only change the format to one that has Team Preview.");
 			return false;
@@ -256,6 +254,15 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.say("You can only change the format to one that allows battling with a variable number of Pokemon.");
 				return false;
 			}
+		}
+
+		const baseName = this.format.nameWithOptions + ": " + (battleFormat.gen && battleFormat.gen !== Dex.getGen() ? "Gen " +
+			battleFormat.gen + " " : "") + battleFormat.nameWithoutGen;
+		const customFormatName = Dex.getCustomFormatName(battleFormat, true, baseName);
+		if (customFormatName !== battleFormat.name) {
+			this.format.nameWithOptions = customFormatName;
+		} else {
+			this.format.nameWithOptions = baseName;
 		}
 
 		return true;
@@ -2089,7 +2096,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		if (!database.pastTournamentGames) database.pastTournamentGames = [];
-		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
+		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.format.nameWithOptions, time: now});
 		while (database.pastTournamentGames.length > 8) {
 			database.pastTournamentGames.pop();
 		}
