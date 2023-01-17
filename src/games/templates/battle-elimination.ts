@@ -151,6 +151,9 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		const customRules = this.getGameCustomRules ? this.getGameCustomRules() : [];
+		const inputRules: string[] = [];
+		const battleFormatIdBeforeRules = this.battleFormatId;
+
 		if (inputProperties.options.rules) {
 			if (!this.canChangeFormat) {
 				this.say("You cannot change the rules for " + this.format.nameWithOptions + ".");
@@ -159,7 +162,10 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			const resolved = Dex.resolveCustomRuleAliases(inputProperties.options.rules.split("|"));
 			for (const rule of resolved) {
-				if (!customRules.includes(rule)) customRules.push(rule);
+				if (!customRules.includes(rule)) {
+					customRules.push(rule);
+					inputRules.push(rule);
+				}
 			}
 
 			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
@@ -256,13 +262,16 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 		}
 
-		const baseName = this.format.nameWithOptions + ": " + (battleFormat.gen && battleFormat.gen !== Dex.getGen() ? "Gen " +
-			battleFormat.gen + " " : "") + battleFormat.nameWithoutGen;
-		const customFormatName = Dex.getCustomFormatName(battleFormat, true, baseName);
-		if (customFormatName !== battleFormat.name) {
-			this.format.nameWithOptions = customFormatName;
-		} else {
-			this.format.nameWithOptions = baseName;
+		const inputRulesFormat = Dex.getFormat(Dex.joinNameAndCustomRules(battleFormatIdBeforeRules, inputRules));
+		if (inputRulesFormat) {
+			const baseName = this.format.nameWithOptions + ": " + (inputRulesFormat.gen && inputRulesFormat.gen !== Dex.getGen() ? "Gen " +
+				inputRulesFormat.gen + " " : "") + inputRulesFormat.nameWithoutGen;
+			const customFormatName = Dex.getCustomFormatName(inputRulesFormat, true, baseName);
+			if (customFormatName !== inputRulesFormat.name) {
+				this.format.nameWithOptions = customFormatName;
+			} else {
+				this.format.nameWithOptions = baseName;
+			}
 		}
 
 		return true;
