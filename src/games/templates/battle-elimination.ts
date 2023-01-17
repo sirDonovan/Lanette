@@ -106,6 +106,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	rerolls = new Map<Player, boolean>();
 	rerollStartDelay: number = REROLL_START_DELAY;
 	requiredTier: string | null = null;
+	requiredDoublesTier: string | null = null;
 	rulesHtml: string = "";
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
@@ -147,9 +148,11 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.say("Unable to generate enough valid Pokemon for the format " + battleFormat.name + ".");
 				return false;
 			}
-
-			this.format.nameWithOptions += ": " + battleFormat.nameWithoutGen;
 		}
+
+		const customRules = this.getGameCustomRules ? this.getGameCustomRules() : [];
+		const inputRules: string[] = [];
+		const battleFormatIdBeforeRules = this.battleFormatId;
 
 		if (inputProperties.options.rules) {
 			if (!this.canChangeFormat) {
@@ -157,8 +160,15 @@ export abstract class BattleElimination extends ScriptedGame {
 				return false;
 			}
 
-			const rules = inputProperties.options.rules.split("|");
-			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, Dex.resolveCustomRuleAliases(rules));
+			const resolved = Dex.resolveCustomRuleAliases(inputProperties.options.rules.split("|"));
+			for (const rule of resolved) {
+				if (!customRules.includes(rule)) {
+					customRules.push(rule);
+					inputRules.push(rule);
+				}
+			}
+
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
 			try {
 				formatid = Dex.validateFormat(formatid);
 			} catch (e) {
@@ -175,34 +185,50 @@ export abstract class BattleElimination extends ScriptedGame {
 					" with custom rules.");
 				return false;
 			}
+		} else if (customRules.length) {
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
+			try {
+				formatid = Dex.validateFormat(formatid);
+			} catch (e) {
+				this.say("Error setting custom rules: " + (e as Error).message);
+				return false;
+			}
+
+			this.battleFormatId = formatid;
 		}
 
-		const format = Dex.getExistingFormat(this.battleFormatId);
-		if (format.gameType !== this.battleFormatType) {
+		const battleFormat = Dex.getExistingFormat(this.battleFormatId);
+		if (battleFormat.gameType !== this.battleFormatType) {
 			this.say("You can only change the format to another " + this.battleFormatType + " format.");
 			return false;
 		}
 
-		if (format.team) {
+		if (battleFormat.team) {
 			this.say("You cannot change the format to one that uses generated teams.");
 			return false;
 		}
 
-		const ruleTable = Dex.getRuleTable(format);
+		const ruleTable = Dex.getRuleTable(battleFormat);
 		if (!ruleTable.has("teampreview")) {
 			this.say("You can only change the format to one that has Team Preview.");
 			return false;
 		}
 
-		const oneVsOne = this.startingTeamsLength === 1 && !this.additionsPerRound;
-		const twoVsTwo = this.startingTeamsLength === 2 && !this.additionsPerRound;
+		const oneVsOne = !this.usesCloakedPokemon && this.startingTeamsLength === 1 && !this.additionsPerRound;
+		const twoVsTwo = !this.usesCloakedPokemon && this.startingTeamsLength === 2 && !this.additionsPerRound;
+		const threeVsThree = !this.usesCloakedPokemon && this.startingTeamsLength === 3 && !this.additionsPerRound;
 
-		if (ruleTable.minTeamSize > this.startingTeamsLength) {
+		if (!this.usesCloakedPokemon && ruleTable.minTeamSize > this.startingTeamsLength) {
 			this.say("You can only change the format to one that allows bringing only " + this.startingTeamsLength + " Pokemon.");
 			return false;
 		}
 
-		if (twoVsTwo) {
+		if (threeVsThree) {
+			if (ruleTable.maxTeamSize < 3) {
+				this.say("You can only change the format to one that allows bringing 3 or more Pokemon.");
+				return false;
+			}
+		} else if (twoVsTwo) {
 			if (ruleTable.maxTeamSize < 2) {
 				this.say("You can only change the format to one that allows bringing 2 or more Pokemon.");
 				return false;
@@ -224,10 +250,27 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.say("You can only change the format to one that requires battling with 2 Pokemon.");
 				return false;
 			}
+		} else if (threeVsThree) {
+			if (ruleTable.pickedTeamSize && ruleTable.pickedTeamSize !== 3) {
+				this.say("You can only change the format to one that requires battling with 3 Pokemon.");
+				return false;
+			}
 		} else {
 			if (ruleTable.pickedTeamSize) {
 				this.say("You can only change the format to one that allows battling with a variable number of Pokemon.");
 				return false;
+			}
+		}
+
+		const inputRulesFormat = Dex.getFormat(Dex.joinNameAndCustomRules(battleFormatIdBeforeRules, inputRules));
+		if (inputRulesFormat) {
+			const baseName = this.format.nameWithOptions + ": " + (inputRulesFormat.gen && inputRulesFormat.gen !== Dex.getGen() ? "Gen " +
+				inputRulesFormat.gen + " " : "") + inputRulesFormat.nameWithoutGen;
+			const customFormatName = Dex.getCustomFormatName(inputRulesFormat, true, baseName);
+			if (customFormatName !== inputRulesFormat.name) {
+				this.format.nameWithOptions = customFormatName;
+			} else {
+				this.format.nameWithOptions = baseName;
 			}
 		}
 
@@ -318,6 +361,8 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			if (this.requiredTier) {
 				if (pokemon.tier !== this.requiredTier) continue;
+			} else if (this.requiredDoublesTier) {
+				if (pokemon.doublesTier !== this.requiredDoublesTier) continue;
 			} else if (fullyEvolved) {
 				if ((!pokemon.prevo && !this.allowsSingleStage) || pokemon.nfe ||
 					(pokemon.forme && dex.getExistingPokemon(pokemon.baseSpecies).nfe)) continue;
@@ -2060,7 +2105,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 
 		if (!database.pastTournamentGames) database.pastTournamentGames = [];
-		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.name, time: now});
+		database.pastTournamentGames.unshift({inputTarget: this.format.inputTarget, name: this.format.nameWithOptions, time: now});
 		while (database.pastTournamentGames.length > 8) {
 			database.pastTournamentGames.pop();
 		}
@@ -2104,10 +2149,22 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			const placesHtml = Tournaments.getPlacesHtml('gameLeaderboard', this.name, winners.map(x => x.name),
 				runnersUp.map(x => x.name), places.semifinalists.map(x => x.name), winnerPoints, runnerUpPoints, semiFinalistPoints);
-			this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 
 			if (winners.length === 1) {
-				Tournaments.displayTrainerCard(this.room, winners[0].name);
+				const buttonRoom = this.room.alias || this.room.id;
+
+				const tournamentPointsShop = Tournaments.hasTournamentPointsShopItems(this.room) ? Client.getQuietPmButton(this.room,
+					Config.commandCharacter + "tpshop " + buttonRoom, "Visit the points shop") : "";
+
+				Tournaments.displayTrainerCard(this.room, winners[0].name, "<div class='infobox-limited'><center>" + placesHtml +
+				"</center><br />", "<br /><center>" + Client.getQuietPmButton(this.room, Config.commandCharacter + "topbitsprivate " +
+				buttonRoom, this.room.title + " leaderboard") + "&nbsp;" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter + "topbitsprivate " + buttonRoom + "," + this.format.name,
+					this.format.name + " leaderboard") + "&nbsp;" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter + "ttc " + buttonRoom,
+					"Customize your profile") + tournamentPointsShop + "</center></div>");
+			} else {
+				this.sayHtml("<div class='infobox-limited'>" + placesHtml + "</div>");
 			}
 		}
 
@@ -2352,6 +2409,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 4 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2382,6 +2442,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 5 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2415,6 +2478,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 6 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2451,6 +2517,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 7 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2490,6 +2559,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 8 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2532,6 +2604,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 4 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2560,6 +2635,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 5 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2600,6 +2678,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 6 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2644,6 +2725,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 7 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2688,6 +2772,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 8 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2725,147 +2812,153 @@ const tests: GameFileTests<BattleElimination> = {
 			assert(!matchesByRound['3'][0].children[1].user);
 		},
 	},
+	'should give team changes until players have a full team - additionsPerRound': {
+		config: {
+			regressionOnly: true,
+		},
+		test(game) {
+			this.timeout(15000);
+			if (!game.additionsPerRound || game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
-	// enable to test core changes or new formats
+			disableTournamentProperties(game);
 
-	// 'should give team changes until players have a full team - additionsPerRound': {
-	// 	test(game) {
-	// 		this.timeout(15000);
-	// 		if (!game.additionsPerRound || game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
+			game.canReroll = false;
+			addPlayers(game, game.maxPlayers);
+			if (!game.started) game.start();
+			if (!game.eliminationStarted) game.startElimination();
 
-	// 		disableTournamentProperties(game);
+			assert(!game.firstRoundByes.size);
 
-	// 		game.canReroll = false;
-	// 		addPlayers(game, game.maxPlayers);
-	// 		if (!game.started) game.start();
-	// 		if (!game.eliminationStarted) game.startElimination();
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
+				const round = matchRounds[i - 1];
+				if (!round) break;
 
-	// 		assert(!game.firstRoundByes.size);
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
 
-	// 		let matchesByRound = game.getMatchesByRound();
-	// 		const matchRounds = Object.keys(matchesByRound).sort();
-	// 		const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
-	// 		for (let i = 1; i <= iterations; i++) {
-	// 			const round = matchRounds[i - 1];
-	// 			if (!round) break;
+					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
 
-	// 			const player = matchesByRound[round][0].children![0].user!;
-	// 			for (const match of matchesByRound[round]) {
-	// 				const winner = match.children![0].user!;
-	// 				let teamChanges = game.teamChanges.get(winner) || [];
-	// 				const startIndex = teamChanges.length;
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
+						assert(teamChanges[j].drops === 0);
+					}
 
-	// 				game.removePlayer(match.children![1].user!.name);
-	// 				if (game.ended) break;
+					assert(game.possibleTeams.get(winner)!.length);
+				}
 
-	// 				teamChanges = game.teamChanges.get(winner)!;
-	// 				for (let j = startIndex; j < teamChanges.length; j++) {
-	// 					assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
-	// 					assert(teamChanges[j].drops === 0);
-	// 				}
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
+			}
+		},
+	},
+	'should give team changes until players have a full team - dropsPerRound': {
+		config: {
+			regressionOnly: true,
+		},
+		test(game) {
+			this.timeout(15000);
+			if (!game.dropsPerRound || game.additionsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
-	// 				assert(game.possibleTeams.get(winner)!.length);
-	// 			}
+			disableTournamentProperties(game);
 
-	// 			if (!game.ended) {
-	// 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
-	// 				matchesByRound = game.getMatchesByRound();
-	// 			}
-	// 		}
-	// 	},
-	// },
-	// 'should give team changes until players have a full team - dropsPerRound': {
-	// 	test(game) {
-	// 		this.timeout(15000);
-	// 		if (!game.dropsPerRound || game.additionsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
+			game.canReroll = false;
+			addPlayers(game, game.maxPlayers);
+			if (!game.started) game.start();
+			if (!game.eliminationStarted) game.startElimination();
 
-	// 		disableTournamentProperties(game);
+			assert(!game.firstRoundByes.size);
 
-	// 		game.canReroll = false;
-	// 		addPlayers(game, game.maxPlayers);
-	// 		if (!game.started) game.start();
-	// 		if (!game.eliminationStarted) game.startElimination();
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			const iterations = ((game.startingTeamsLength - 1) / game.dropsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
+				const round = matchRounds[i - 1];
+				if (!round) break;
 
-	// 		assert(!game.firstRoundByes.size);
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
 
-	// 		let matchesByRound = game.getMatchesByRound();
-	// 		const matchRounds = Object.keys(matchesByRound).sort();
-	// 		const iterations = ((game.startingTeamsLength - 1) / game.dropsPerRound) + 1;
-	// 		for (let i = 1; i <= iterations; i++) {
-	// 			const round = matchRounds[i - 1];
-	// 			if (!round) break;
+					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
 
-	// 			const player = matchesByRound[round][0].children![0].user!;
-	// 			for (const match of matchesByRound[round]) {
-	// 				const winner = match.children![0].user!;
-	// 				let teamChanges = game.teamChanges.get(winner) || [];
-	// 				const startIndex = teamChanges.length;
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
+						assert(teamChanges[j].additions === 0);
+					}
 
-	// 				game.removePlayer(match.children![1].user!.name);
-	// 				if (game.ended) break;
+					assert(game.possibleTeams.get(winner)!.length);
+				}
 
-	// 				teamChanges = game.teamChanges.get(winner)!;
-	// 				for (let j = startIndex; j < teamChanges.length; j++) {
-	// 					assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
-	// 					assert(teamChanges[j].additions === 0);
-	// 				}
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
+			}
+		},
+	},
+	'should give team changes until players have a full team - additionsPerRound and dropsPerRound': {
+		config: {
+			regressionOnly: true,
+		},
+		test(game) {
+			this.timeout(15000);
+			if (!game.additionsPerRound || !game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
-	// 				assert(game.possibleTeams.get(winner)!.length);
-	// 			}
+			disableTournamentProperties(game);
 
-	// 			if (!game.ended) {
-	// 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
-	// 				matchesByRound = game.getMatchesByRound();
-	// 			}
-	// 		}
-	// 	},
-	// },
-	// 'should give team changes until players have a full team - additionsPerRound and dropsPerRound': {
-	// 	test(game) {
-	// 		this.timeout(15000);
-	// 		if (!game.additionsPerRound || !game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
+			game.canReroll = false;
+			addPlayers(game, game.maxPlayers);
+			if (!game.started) game.start();
+			if (!game.eliminationStarted) game.startElimination();
 
-	// 		disableTournamentProperties(game);
+			assert(!game.firstRoundByes.size);
 
-	// 		game.canReroll = false;
-	// 		addPlayers(game, game.maxPlayers);
-	// 		if (!game.started) game.start();
-	// 		if (!game.eliminationStarted) game.startElimination();
+			let matchesByRound = game.getMatchesByRound();
+			const matchRounds = Object.keys(matchesByRound).sort();
+			const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
+			for (let i = 1; i <= iterations; i++) {
+				const round = matchRounds[i - 1];
+				if (!round) break;
 
-	// 		assert(!game.firstRoundByes.size);
+				const player = matchesByRound[round][0].children![0].user!;
+				for (const match of matchesByRound[round]) {
+					const winner = match.children![0].user!;
+					let teamChanges = game.teamChanges.get(winner) || [];
+					const startIndex = teamChanges.length;
 
-	// 		let matchesByRound = game.getMatchesByRound();
-	// 		const matchRounds = Object.keys(matchesByRound).sort();
-	// 		const iterations = ((6 - game.startingTeamsLength) / game.additionsPerRound) + 1;
-	// 		for (let i = 1; i <= iterations; i++) {
-	// 			const round = matchRounds[i - 1];
-	// 			if (!round) break;
+					game.removePlayer(match.children![1].user!.name);
+					if (game.ended) break;
 
-	// 			const player = matchesByRound[round][0].children![0].user!;
-	// 			for (const match of matchesByRound[round]) {
-	// 				const winner = match.children![0].user!;
-	// 				let teamChanges = game.teamChanges.get(winner) || [];
-	// 				const startIndex = teamChanges.length;
+					teamChanges = game.teamChanges.get(winner)!;
+					for (let j = startIndex; j < teamChanges.length; j++) {
+						assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
+						assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
+					}
 
-	// 				game.removePlayer(match.children![1].user!.name);
-	// 				if (game.ended) break;
+					assert(game.possibleTeams.get(winner)!.length);
+				}
 
-	// 				teamChanges = game.teamChanges.get(winner)!;
-	// 				for (let j = startIndex; j < teamChanges.length; j++) {
-	// 					assert(teamChanges[j].additions >= 0 && teamChanges[j].additions <= game.additionsPerRound);
-	// 					assert(teamChanges[j].drops >= 0 && teamChanges[j].drops <= game.dropsPerRound);
-	// 				}
-
-	// 				assert(game.possibleTeams.get(winner)!.length);
-	// 			}
-
-	// 			if (!game.ended) {
-	// 				assertStrictEqual(game.teamChanges.get(player)!.length, i);
-	// 				matchesByRound = game.getMatchesByRound();
-	// 			}
-	// 		}
-	// 	},
-	// },
+				if (!game.ended) {
+					assertStrictEqual(game.teamChanges.get(player)!.length, i);
+					matchesByRound = game.getMatchesByRound();
+				}
+			}
+		},
+	},
 };
 
 export const game: IGameTemplateFile<BattleElimination> = {

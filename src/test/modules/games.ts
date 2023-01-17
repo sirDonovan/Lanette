@@ -44,7 +44,12 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 
 function createIndividualTestGame(format: IGameFormat): ScriptedGame {
 	const room = createTestRoom();
-	const game = Games.createGame(room, format, {pmRoom: room, initialSeed}) as ScriptedGame;
+	const game = Games.createGame(room, format, {pmRoom: room, initialSeed});
+	if (!game) {
+		console.log(Client.getOutgoingMessageQueue());
+		throw new Error("Game not created for " + format.nameWithOptions);
+	}
+
 	game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
@@ -58,6 +63,9 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 		if (testConfig.inputTargets && testConfig.commands && testConfig.inputTargets.length !== testConfig.commands.length) {
 			throw new Error(format.name + " must have the same number of test inputTargets and commands");
 		}
+
+		if (testConfig.regressionOnly && !testOptions.regression) continue;
+
 		const formats = testConfig.inputTargets ? testConfig.inputTargets : [format.inputTarget];
 		const commands = testConfig.commands ? testConfig.commands : null;
 		const numberOfTests = Math.max(formats.length, commands ? commands.length : 0);
