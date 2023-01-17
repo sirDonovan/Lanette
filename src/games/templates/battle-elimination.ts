@@ -2381,6 +2381,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 4 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2411,6 +2414,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 5 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2444,6 +2450,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 6 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2480,6 +2489,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 7 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2519,6 +2531,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a bracket - 8 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2561,6 +2576,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 4 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2589,6 +2607,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 5 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2629,6 +2650,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 6 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2673,6 +2697,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 7 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
@@ -2717,6 +2744,9 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should properly list matches by round - 8 players': {
+		config: {
+			regressionOnly: true,
+		},
 		test(game) {
 			disableTournamentProperties(game);
 
