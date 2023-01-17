@@ -193,7 +193,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (!options.noBuild) {
 		console.log("Running esbuild...");
 
-		await transpile({ci: options.ci});
+		transpile();
 
 		console.log("Successfully built files");
 	}

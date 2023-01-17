@@ -9,7 +9,7 @@
     "lint": "eslint \"**/*.ts\" --cache",
     "localboot": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/temp-config.js -- --offline",
     "localtest": "npm run lint && npm run build && npm run tsc && npm run mocha -- --offline",
-    "mocha": "node --enable-source-maps --max-old-space-size=2048 build/mocha.js -- --ci",
+    "mocha": "node --enable-source-maps --max-old-space-size=2048 build/mocha.js",
     "start": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/app.js",
     "test": "npm run lint && npm run build && npm run tsc && npm run mocha",
     "tsc": "tsc"
@@ -30,7 +30,7 @@
     "@types/node": "18.11.18",
     "@types/ws": "8.5.4",
     "bufferutil": "4.0.7",
-    "esbuild": "0.16.13",
+    "esbuild": "0.17.1",
     "typescript": "4.9.4",
     "utf-8-validate": "6.0.0",
     "ws": "8.12.0"

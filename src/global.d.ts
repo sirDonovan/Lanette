@@ -15,8 +15,8 @@ declare var Tools: import('./tools').Tools;
 declare var Tournaments: import('./tournaments').Tournaments;
 declare var Users: import('./users').Users;
 
-declare var _esbuildResults: Dict<import('esbuild').BuildIncremental> | undefined;
 declare var _inputFolders: import('./types/root').InputFolders | undefined;
+declare var _outputFilepaths: string[] | undefined;
 declare var _lastPokemonShowdownSha: string | undefined;
 declare var _runOptions: import('./types/root').RunOptions | undefined;
 
