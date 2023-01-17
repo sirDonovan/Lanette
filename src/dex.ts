@@ -1653,7 +1653,8 @@ export class Dex {
 		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
 		format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
 			format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
-			(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+			(format.team && (format.id.includes('1v1') || format.id.includes('monotype') ||
+			format.id.includes('computergenerated'))) || format.mod === 'seasonal' ||
 			format.mod === 'ssb' ? true : false;
 
 		let info: IParsedSmogonLink | undefined;
