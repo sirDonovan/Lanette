@@ -1798,6 +1798,20 @@ export class Dex {
 			(links.length ? "<br /><br />" + links.join("<br />") : "");
 	}
 
+	getCustomRuleInfoDisplay(customRules: string[]): string {
+		const separatedCustomRules = this.separateCustomRules(customRules);
+		const info: string[] = [];
+
+		for (const addedRule of separatedCustomRules.addedrules) {
+			const rule = this.getFormat(addedRule);
+			if (rule && rule.name && rule.desc) info.push("<b>" + rule.name + "</b>: " + rule.desc);
+		}
+
+		if (!info.length) return "";
+
+		return "<b>Added rule descriptions</b>:<br /><br />" + info.join("<br />");
+	}
+
 	getRuleTable(format: IFormat): RuleTable {
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
 		return format.ruleTable;

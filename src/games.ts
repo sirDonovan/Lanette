@@ -811,8 +811,8 @@ export class Games {
 
 						if (!pmRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
 					} else {
-						if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Config.allowScriptedGames ||
-							!Config.allowScriptedGames.includes(room.id)) return;
+						if (!global.Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame ||
+							!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return;
 						if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
 						if (remainingGameCooldown > 1000) {
@@ -1221,6 +1221,15 @@ export class Games {
 			this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
 			return true;
 		}
+		return false;
+	}
+
+	canUseRestrictedCommand(room: Room, user: User, infoCommand?: boolean): boolean {
+		if (user.hasRank(room, infoCommand ? 'star' : 'voice') || user.isDeveloper()) return true;
+
+		const database = Storage.getDatabase(room);
+		if (database.gameManagers && database.gameManagers.includes(user.id)) return true;
+
 		return false;
 	}
 

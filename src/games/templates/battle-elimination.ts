@@ -108,6 +108,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	requiredTier: string | null = null;
 	requiredDoublesTier: string | null = null;
 	rulesHtml: string = "";
+	sameRoomSubRoom: boolean = false;
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
 	starterPokemon = new Map<Player, readonly string[]>();
@@ -1298,9 +1299,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (this.started) {
 			html += "(the tournament has started)";
 		} else if (this.subRoom) {
-			html += Client.getCommandButton("/join " + this.subRoom.id, "-> Go to the " +
-				(this.subRoom.groupchat ? "groupchat" : "subroom") + " (" + (this.playerCap - this.playerCount) + "/" + this.playerCap +
-				" slots remaining)");
+			if (!this.sameRoomSubRoom) {
+				html += Client.getCommandButton("/join " + this.subRoom.id, "-> Go to the " +
+					(this.subRoom.groupchat ? "groupchat" : "subroom") + " (" + (this.playerCap - this.playerCount) + "/" + this.playerCap +
+					" slots remaining)");
+			}
 		} else {
 			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.title, "Join tournament") +
 				Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.title, "Leave tournament") +
@@ -1312,6 +1315,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	postSignups(): void {
 		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+
 		if (this.subRoom) {
 			this.subRoom.sayUhtml(this.uhtmlBaseName + "-join-tournament", "<b>You must join the tournament in this room to play! Click " +
 				"at the top of the chat or below</b><br /><br />" + Client.getCommandButton("/tour join", "Join tournament"));
@@ -1893,7 +1897,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		if (!this.battleRooms.includes(room.publicId)) this.battleRooms.push(room.publicId);
 
-		if (!room.inviteOnlyBattle && this.getRemainingPlayerCount() === 2) {
+		if (!room.inviteOnlyBattle && this.getRemainingPlayerCount() === 2 && !this.sameRoomSubRoom) {
 			this.say("**Final battle of the " + this.name + " tournament:** <<" + room.id + ">>");
 		}
 

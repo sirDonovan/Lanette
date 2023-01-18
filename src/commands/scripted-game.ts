@@ -664,7 +664,7 @@ export const commands: BaseCommandDefinitions = {
 	createtournamentgame: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
-			if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
+			if (!Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame) return;
 			if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
 				return this.sayError(['disabledTournamentGameFeatures', room.title]);
 			}
@@ -711,7 +711,7 @@ export const commands: BaseCommandDefinitions = {
 	createsearchchallenge: {
 		command(target, room, user, cmd) {
 			if (this.isPm(room)) return;
-			if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame || room.searchChallenge) return;
+			if (!Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame || room.searchChallenge) return;
 			if (!Config.allowSearchChallenges || !Config.allowSearchChallenges.includes(room.id)) {
 				return this.sayError(['disabledSearchChallengeFeatures', room.title]);
 			}
@@ -766,11 +766,12 @@ export const commands: BaseCommandDefinitions = {
 
 				if (!gameRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
 			} else {
-				if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+				if (!Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame) return;
 				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 					return this.sayError(['disabledGameFeatures', room.title]);
 				}
 				if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
+
 				const remainingGameCooldown = Games.getRemainingGameCooldown(room, true);
 				if (remainingGameCooldown > 1000) {
 					const durationString = Tools.toDurationString(remainingGameCooldown);
@@ -816,7 +817,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	creategame: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || (!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game || room.userHostedGame) return;
+			if (this.isPm(room) || !Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -901,7 +902,8 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (this.isPm(room)) return;
 			if (room.game) {
-				if ((!user.hasRank(room, 'voice') && !user.isDeveloper()) || room.game.started) return;
+				if (!Games.canUseRestrictedCommand(room, user) || room.game.started) return;
+
 				if (room.game.usesTournamentStart) {
 					if (!room.game.startTournament) return this.say("You must wait for the tournament to start.");
 					if (!room.game.startTournament()) this.say("Not enough players have joined the tournament.");
@@ -926,7 +928,8 @@ export const commands: BaseCommandDefinitions = {
 					room.game.forceEnd(user, target.trim());
 				}
 			} else {
-				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
+				if (!Games.canUseRestrictedCommand(room, user)) return;
+
 				if (room.game) {
 					room.game.forceEnd(user, target.trim());
 				} else if (room.userHostedGame) {
@@ -1187,7 +1190,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!Games.canUseRestrictedCommand(room, user, true) && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -1284,7 +1287,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 					return this.sayError(['disabledGameFeatures', room.title]);
 				}
@@ -1328,7 +1331,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				if (!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id)) {
 					return this.sayError(['disabledTournamentGameFeatures', room.title]);
 				}
@@ -1376,7 +1379,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				if ((!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) &&
 					(!Config.allowTournamentGames || !Config.allowTournamentGames.includes(room.id))) {
 					return this.sayError(['disabledGameFeatures', room.title]);
@@ -1479,5 +1482,115 @@ export const commands: BaseCommandDefinitions = {
 		},
 		pmOnly: true,
 		aliases: ['scriptedgameoption'],
+	},
+	addgamemanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				gameRoom = targetRoom;
+			} else {
+				gameRoom = room;
+			}
+
+			if (!user.hasRank(gameRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.gameManagers) database.gameManagers = [];
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (database.gameManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is already a game manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			database.gameManagers = database.gameManagers.concat(ids);
+			this.say("The specified user(s) can now use game commands in " + gameRoom.title + ".");
+			Storage.tryExportDatabase(gameRoom.id);
+		},
+		aliases: ['addgamemanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["adds the given user to the room's game managers"],
+	},
+	removegamemanager: {
+		command(target, room, user) {
+			const targets = target.split(",");
+			let gameRoom: Room;
+			if (this.isPm(room)) {
+				const targetRoom = Rooms.search(targets[0]);
+				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
+				targets.shift();
+				gameRoom = targetRoom;
+			} else {
+				gameRoom = room;
+			}
+
+			if (!user.hasRank(gameRoom, 'roomowner')) return;
+
+			const database = Storage.getDatabase(gameRoom);
+			if (!database.gameManagers || !database.gameManagers.length) {
+				return this.say("There are no game managers for " + gameRoom.title + ".");
+			}
+
+			const ids: string[] = [];
+			for (const targetUser of targets) {
+				if (!Tools.isUsernameLength(targetUser)) return this.say("'" + targetUser.trim() + "' is not a valid username.");
+				const id = Tools.toId(targetUser);
+				if (!database.gameManagers.includes(id)) {
+					return this.say("'" + targetUser.trim() + "' is not a game manager.");
+				}
+				if (ids.includes(id)) return this.say("You can only specify each user once.");
+
+				ids.push(id);
+			}
+
+			for (const id of ids) {
+				database.gameManagers.splice(database.gameManagers.indexOf(id), 1);
+			}
+
+			this.say("The specified user(s) can no longer use game commands for " + gameRoom.title + ".");
+			Storage.tryExportDatabase(gameRoom.id);
+		},
+		aliases: ['removegamemanagers'],
+		syntax: ["[user]"],
+		pmSyntax: ["[room], [user]"],
+		description: ["removes the given user from the room's game managers"],
+	},
+	gamemanagers: {
+		command(target, room, user) {
+			if (!this.isPm(room)) return;
+
+			const targetRoom = Rooms.search(target);
+			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
+			if (!user.hasRank(targetRoom, 'voice')) return;
+
+			const database = Storage.getDatabase(targetRoom);
+			if (!database.gameManagers || !database.gameManagers.length) {
+				return this.say("There are no game managers for " + targetRoom.title + ".");
+			}
+
+			const names: string[] = [];
+			for (const id of database.gameManagers) {
+				let name = id;
+				const manager = Users.get(id);
+				if (manager) name = manager.name;
+				names.push(name);
+			}
+
+			this.sayHtml("<b>" + targetRoom.title + "</b> game managers:<br /><br />" + names.join(", "), targetRoom);
+		},
+		pmOnly: true,
+		syntax: ["[room]"],
+		description: ["displays the room's game managers"],
 	},
 };

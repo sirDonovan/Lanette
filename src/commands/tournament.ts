@@ -807,21 +807,21 @@ export const commands: BaseCommandDefinitions = {
 	removetournamentmanager: {
 		command(target, room, user) {
 			const targets = target.split(",");
-			let leaderboardRoom: Room;
+			let tournamentRoom: Room;
 			if (this.isPm(room)) {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				leaderboardRoom = targetRoom;
+				tournamentRoom = targetRoom;
 			} else {
-				leaderboardRoom = room;
+				tournamentRoom = room;
 			}
 
-			if (!user.hasRank(leaderboardRoom, 'roomowner')) return;
+			if (!user.hasRank(tournamentRoom, 'roomowner')) return;
 
-			const database = Storage.getDatabase(leaderboardRoom);
+			const database = Storage.getDatabase(tournamentRoom);
 			if (!database.tournamentManagers || !database.tournamentManagers.length) {
-				return this.say("There are no tournament managers for " + leaderboardRoom.title + ".");
+				return this.say("There are no tournament managers for " + tournamentRoom.title + ".");
 			}
 
 			const ids: string[] = [];
@@ -840,8 +840,8 @@ export const commands: BaseCommandDefinitions = {
 				database.tournamentManagers.splice(database.tournamentManagers.indexOf(id), 1);
 			}
 
-			this.say("The specified user(s) can no longer use tournament commands for " + leaderboardRoom.title + ".");
-			Storage.tryExportDatabase(leaderboardRoom.id);
+			this.say("The specified user(s) can no longer use tournament commands for " + tournamentRoom.title + ".");
+			Storage.tryExportDatabase(tournamentRoom.id);
 		},
 		aliases: ['removetourmanager', 'removetournamentmanagers', 'removetourmanagers'],
 		syntax: ["[user]"],
