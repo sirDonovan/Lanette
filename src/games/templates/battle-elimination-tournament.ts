@@ -22,7 +22,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		this.firstRoundTime = (this.autoDqMinutes * 60 * 1000) + this.firstRoundExtraTime;
 
-		if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
+		if (Config.tournamentGamesSameRoom && Config.tournamentGamesSameRoom.includes(this.room.id)) {
+			this.subRoom = this.room;
+		} else if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
 			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
 			if (!subRoom) {
 				this.say(Users.self.name + " must first join the room '" + Config.tournamentGamesSubRoom[this.room.id] + "'.");

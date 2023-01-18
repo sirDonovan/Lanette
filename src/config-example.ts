@@ -326,7 +326,12 @@ export let allowGameAchievements: string[] = [];
 /**
  * For each room in the object, the subroomid that should be used for tournament games
  */
- export let tournamentGamesSubRoom: Dict<string> = {};
+export let tournamentGamesSubRoom: Dict<string> = {};
+
+/**
+ * A list of rooms (roomids) where tournaments for tournament games are created in the same room
+ */
+export let tournamentGamesSameRoom: string[] = [];
 
 /**
  * A list of rooms (roomids) where game trainer cards are shown for winners
