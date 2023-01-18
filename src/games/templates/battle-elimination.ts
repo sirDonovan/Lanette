@@ -1299,9 +1299,11 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (this.started) {
 			html += "(the tournament has started)";
 		} else if (this.subRoom) {
-			html += Client.getCommandButton("/join " + this.subRoom.id, "-> Go to the " +
-				(this.subRoom.groupchat ? "groupchat" : "subroom") + " (" + (this.playerCap - this.playerCount) + "/" + this.playerCap +
-				" slots remaining)");
+			if (!this.sameRoomSubRoom) {
+				html += Client.getCommandButton("/join " + this.subRoom.id, "-> Go to the " +
+					(this.subRoom.groupchat ? "groupchat" : "subroom") + " (" + (this.playerCap - this.playerCount) + "/" + this.playerCap +
+					" slots remaining)");
+			}
 		} else {
 			html += Client.getPmSelfButton(Config.commandCharacter + "joingame " + this.room.title, "Join tournament") +
 				Client.getPmSelfButton(Config.commandCharacter + "leavegame " + this.room.title, "Leave tournament") +
@@ -1312,7 +1314,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	postSignups(): void {
-		if (!this.sameRoomSubRoom) this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
 
 		if (this.subRoom) {
 			this.subRoom.sayUhtml(this.uhtmlBaseName + "-join-tournament", "<b>You must join the tournament in this room to play! Click " +
