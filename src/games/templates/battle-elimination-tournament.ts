@@ -15,6 +15,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	tournamentStarted: boolean = false;
 	usesTournamentStart = true;
 	usesTournamentJoin = true;
+
 	declare subRoom: Room;
 
 	afterInitialize(): void {
@@ -24,6 +25,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		if (Config.tournamentGamesSameRoom && Config.tournamentGamesSameRoom.includes(this.room.id)) {
 			this.subRoom = this.room;
+			this.sameRoomSubRoom = true;
 		} else if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
 			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
 			if (!subRoom) {
@@ -157,7 +159,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	createTournament(): void {
 		if (this.subRoom.tournament) {
-			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament in " + this.subRoom.title + " to end.");
+			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament" +
+				(!this.sameRoomSubRoom ? " in " + this.subRoom.title : "") + " to end.");
 			this.deallocate(true);
 			return;
 		}

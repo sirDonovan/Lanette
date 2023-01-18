@@ -108,6 +108,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	requiredTier: string | null = null;
 	requiredDoublesTier: string | null = null;
 	rulesHtml: string = "";
+	sameRoomSubRoom: boolean = false;
 	sharedTeams: boolean = false;
 	spectatorPlayers = new Set<Player>();
 	starterPokemon = new Map<Player, readonly string[]>();
@@ -1893,7 +1894,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		if (!this.battleRooms.includes(room.publicId)) this.battleRooms.push(room.publicId);
 
-		if (!room.inviteOnlyBattle && this.getRemainingPlayerCount() === 2) {
+		if (!room.inviteOnlyBattle && this.getRemainingPlayerCount() === 2 && !this.sameRoomSubRoom) {
 			this.say("**Final battle of the " + this.name + " tournament:** <<" + room.id + ">>");
 		}
 
