@@ -1312,7 +1312,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	postSignups(): void {
-		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		if (!this.sameRoomSubRoom) this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+
 		if (this.subRoom) {
 			this.subRoom.sayUhtml(this.uhtmlBaseName + "-join-tournament", "<b>You must join the tournament in this room to play! Click " +
 				"at the top of the chat or below</b><br /><br />" + Client.getCommandButton("/tour join", "Join tournament"));
