@@ -811,8 +811,8 @@ export class Games {
 
 						if (!pmRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
 					} else {
-						if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Config.allowScriptedGames ||
-							!Config.allowScriptedGames.includes(room.id)) return;
+						if (!global.Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame ||
+							!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return;
 						if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
 						if (remainingGameCooldown > 1000) {
