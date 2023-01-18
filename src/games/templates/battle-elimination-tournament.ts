@@ -177,6 +177,9 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				if (customRules.length) {
 					this.subRoom.setTournamentRules(customRules.join(","));
 
+					const customRuleInfo = Dex.getCustomRuleInfoDisplay(customRules);
+					if (customRuleInfo) this.subRoom.sayHtml(customRuleInfo);
+
 					this.pokedex = this.shuffle(this.pokedex);
 				}
 

@@ -344,6 +344,11 @@ export class Tournaments {
 			if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 				const formatInfo = Dex.getFormatInfoDisplay(tournament.format, room.id);
 				if (formatInfo) room.sayHtml(formatInfo);
+
+				if (tournament.format.customRules) {
+					const customRuleInfo = Dex.getCustomRuleInfoDisplay(tournament.format.customRules);
+					if (customRuleInfo) room.sayHtml(customRuleInfo);
+				}
 			}
 
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
