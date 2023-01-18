@@ -1224,6 +1224,15 @@ export class Games {
 		return false;
 	}
 
+	canUseRestrictedCommand(room: Room, user: User, infoCommand?: boolean): boolean {
+		if (user.hasRank(room, infoCommand ? 'star' : 'voice') || user.isDeveloper()) return true;
+
+		const database = Storage.getDatabase(room);
+		if (database.gameManagers && database.gameManagers.includes(user.id)) return true;
+
+		return false;
+	}
+
 	canCreateGame(room: Room, format: IGameFormat): true | string {
 		if (format.disabled) return CommandParser.getErrorText(['disabledGameFormat', format.name]);
 
