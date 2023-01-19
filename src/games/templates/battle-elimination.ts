@@ -31,6 +31,8 @@ export interface IRoundTeamRequirements {
 	evolutionsThisRound: number;
 }
 
+export const DEFAULT_BATTLE_FORMAT_ID = 'gen9ou';
+
 const REROLL_COMMAND = "reroll";
 const TOUR_PAGE_COMMAND = "tourpage";
 const HTML_PAGE_COMMAND = "battleeliminationhtmlpage";
@@ -52,7 +54,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	allowsSingleStage: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
 	banlist: string[] = [];
-	battleFormatId: string = 'gen9ou';
+	battleFormatId: string = DEFAULT_BATTLE_FORMAT_ID;
 	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
@@ -129,6 +131,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	declare readonly room: Room;
 
 	validateInputProperties(inputProperties: IGameInputProperties): boolean {
+		const baseFormat = Dex.getExistingFormat(this.battleFormatId);
+
 		if (inputProperties.options.format) {
 			if (!this.canChangeFormat) {
 				this.say("You cannot change the format for " + this.format.nameWithOptions + ".");
@@ -265,10 +269,14 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		const inputRulesFormat = Dex.getFormat(Dex.joinNameAndCustomRules(battleFormatIdBeforeRules, inputRules));
 		if (inputRulesFormat) {
-			const baseName = this.format.nameWithOptions + ": " + (inputRulesFormat.gen && inputRulesFormat.gen !== Dex.getGen() ? "Gen " +
-				inputRulesFormat.gen + " " : "") + inputRulesFormat.nameWithoutGen;
-			const customFormatName = Dex.getCustomFormatName(inputRulesFormat, true, baseName);
-			if (customFormatName !== inputRulesFormat.name) {
+			let baseName = this.format.nameWithOptions;
+			if (inputRulesFormat.name !== baseFormat.name) {
+				baseName += ": " + (inputRulesFormat.gen && inputRulesFormat.gen !== Dex.getGen() ? "Gen " +
+					inputRulesFormat.gen + " " : "") + inputRulesFormat.nameWithoutGen;
+			}
+
+			const customFormatName = Dex.getCustomFormatName(inputRulesFormat, false, baseName);
+			if (inputRules.length && customFormatName !== inputRulesFormat.name && customFormatName !== inputRulesFormat.customFormatName) {
 				this.format.nameWithOptions = customFormatName;
 			} else {
 				this.format.nameWithOptions = baseName;
