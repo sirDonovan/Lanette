@@ -19,7 +19,7 @@ class SameSolo extends SameBattleEliminationTournament {
 
 	getGameCustomRules(): string[] {
 		return ['-Moody', '-Power Construct', '-Bright Powder', '-Focus Band', '-Focus Sash', '-Lax Incense', '-Quick Claw',
-			'-Acupressure', '-Hypnosis', '-Perish Song', '-Sing'];
+			'-Acupressure', '-Hypnosis', '-Perish Song', '-Sing', 'Terastal Clause'];
 	}
 }
 
