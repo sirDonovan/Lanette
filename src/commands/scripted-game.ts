@@ -19,7 +19,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!Games.canUseRestrictedCommand(room, user, true) && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -46,7 +46,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!Games.canUseRestrictedCommand(room, user, true) && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -80,7 +80,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star') && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
+				if (!Games.canUseRestrictedCommand(room, user, true) && !(room.userHostedGame && room.userHostedGame.isHost(user))) return;
 				gameRoom = room;
 			}
 
@@ -119,7 +119,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	startvote: {
 		command(target, room, user, cmd) {
-			if (this.isPm(room) || !user.hasRank(room, 'voice') || room.game || room.userHostedGame) return;
+			if (this.isPm(room) || !Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -158,7 +158,7 @@ export const commands: BaseCommandDefinitions = {
 				this.run('toss');
 				return;
 			}
-			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
+			if (!Games.canUseRestrictedCommand(room, user) || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -204,7 +204,7 @@ export const commands: BaseCommandDefinitions = {
 				this.run('steal');
 				return;
 			}
-			if (!user.hasRank(room, 'voice') || room.userHostedGame) return;
+			if (!Games.canUseRestrictedCommand(room, user) || room.userHostedGame) return;
 			if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) {
 				return this.sayError(['disabledGameFeatures', room.title]);
 			}
@@ -912,7 +912,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else if (room.userHostedGame) {
 				const isHost = room.userHostedGame.isHost(user);
-				const isAuth = !isHost && user.hasRank(room, 'voice');
+				const isAuth = !isHost && Games.canUseRestrictedCommand(room, user);
 				if ((!isHost && !isAuth) || room.userHostedGame.started) return;
 				if (!room.userHostedGame.start(isAuth)) user.say("Not enough players have joined your game.");
 			}
@@ -1047,7 +1047,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				gameRoom = room;
 			}
 
@@ -1141,7 +1141,7 @@ export const commands: BaseCommandDefinitions = {
 				gameRoom = targetRoom;
 				targets.shift();
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				gameRoom = room;
 			}
 
@@ -1241,7 +1241,7 @@ export const commands: BaseCommandDefinitions = {
 				if (!user.rooms.has(targetRoom)) return this.sayError(['noPmHtmlRoom', targetRoom.title]);
 				gameRoom = targetRoom;
 			} else {
-				if (!user.hasRank(room, 'star')) return;
+				if (!Games.canUseRestrictedCommand(room, user, true)) return;
 				gameRoom = room;
 			}
 
@@ -1572,7 +1572,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const targetRoom = Rooms.search(target);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-			if (!user.hasRank(targetRoom, 'voice')) return;
+			if (!user.hasRank(targetRoom, 'star')) return;
 
 			const database = Storage.getDatabase(targetRoom);
 			if (!database.gameManagers || !database.gameManagers.length) {
