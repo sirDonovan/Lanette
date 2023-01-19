@@ -20,7 +20,8 @@ class SameDuo extends SameBattleEliminationTournament {
 		'Urshifu-Rapid-Strike', 'Whimsicott', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom'];
 
 	getGameCustomRules(): string[] {
-		return ['-Moody', '-Power Construct', '-Focus Sash', '-Ally Switch', '-Final Gambit', '-Perish Song', '-Swagger'];
+		return ['-Moody', '-Power Construct', '-Focus Sash', '-Ally Switch', '-Final Gambit', '-Perish Song', '-Swagger',
+			'Terastal Clause'];
 	}
 }
 

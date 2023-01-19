@@ -189,6 +189,17 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				this.subRoom.announce("You must join the tournament in this room to play!" +
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
 
+				if (Config.tournamentGameRoomAdvertisements && this.room.id in Config.tournamentGameRoomAdvertisements) {
+					for (const roomId of Config.tournamentGameRoomAdvertisements[this.room.id]) {
+						const advertisementRoom = Rooms.get(roomId);
+						if (advertisementRoom) {
+							advertisementRoom.sayHtml('<a href="/' + this.subRoom.id + '" class="ilink"><strong>' +
+								this.format.nameWithOptions + '</strong> tournament created in <strong>' + this.subRoom.title +
+								'</strong>.</a>');
+						}
+					}
+				}
+
 				this.tournamentCreated = true;
 			},
 		};
