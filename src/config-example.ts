@@ -204,6 +204,11 @@ export let disallowQueueingPastTournaments: string[] = [];
 export let tournamentRoomAdvertisements: Dict<string[]> = {};
 
 /**
+ * For each room in the object, a list of rooms (roomids) where created tournament games will be advertised
+ */
+export let tournamentGameRoomAdvertisements: Dict<string[]> = {};
+
+/**
  * The number of minutes to set for the auto DQ timer in tournaments
  */
 export let tournamentAutoDQTimers: Dict<number> = {};
