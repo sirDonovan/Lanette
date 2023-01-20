@@ -735,11 +735,21 @@ class CustomFormatManager extends HtmlPageBase {
 
 						continue;
 					} else {
-						const format = Dex.getFormat(part);
-						if (!format) continue;
+						const id = Tools.toId(part);
+						let ruleName = "";
+						if (id === 'unreleased') {
+							ruleName = 'Unreleased';
+						} else if (id === 'nonexistent') {
+							ruleName = 'Non-existent';
+						} else {
+							const format = Dex.getFormat(part);
+							if (format) ruleName = format.name;
+						}
+
+						if (!ruleName) continue;
 
 						if (complexBanSymbol && formattedName) formattedName += " " + complexBanSymbol + " ";
-						formattedName += format.name;
+						formattedName += ruleName;
 					}
 
 					changedRules = true;
