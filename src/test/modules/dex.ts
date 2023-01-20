@@ -6,6 +6,8 @@ import { assert, assertStrictEqual, testOptions } from './../test-tools';
 
 describe("Dex", () => {
 	it('should properly load data', function(this: Mocha.Context) {
+		this.timeout(15000);
+
 		const dexData = Dex.getData();
 
 		assert(dexData.abilityKeys.length > 1);

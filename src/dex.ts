@@ -1831,9 +1831,6 @@ export class Dex {
 	}
 
 	getValidatedRuleName(input: string): string {
-		if (input === 'unreleased') return 'Unreleased';
-		if (input === 'illegal') return 'Illegal';
-		if (input === 'nonexistent') return 'Non-existent';
 		const type = input.charAt(0);
 		if (type === '+' || type === '-' || type === '*' || type === '!') {
 			input = input.substr(1);
@@ -1864,8 +1861,15 @@ export class Dex {
 		} else if (tag === 'pokemontag') {
 			if (ruleName in tagNames) ruleName = tagNames[ruleName];
 		} else {
-			const format = this.getFormat(ruleName);
-			if (format) ruleName = format.name;
+			const id = Tools.toId(ruleName);
+			if (id === 'unreleased') {
+				ruleName = 'Unreleased';
+			} else if (id === 'nonexistent') {
+				ruleName = 'Non-existent';
+			} else {
+				const format = this.getFormat(ruleName);
+				if (format) ruleName = format.name;
+			}
 		}
 
 		return ruleName + (value ? " = " + value.trim() : "");
