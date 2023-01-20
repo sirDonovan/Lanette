@@ -89,8 +89,10 @@ export interface IDataTable {
 	readonly learnsetDataKeys: DataKeys;
 	readonly locations: Readonly<LocationData>;
 	readonly moveKeys: DataKeys;
+	readonly moveTagRules: Dict<string>;
 	readonly natureKeys: DataKeys;
 	readonly pokemonKeys: DataKeys;
+	readonly pokemonTagRules: Dict<string>;
 	readonly rulesetKeys: DataKeys;
 	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;

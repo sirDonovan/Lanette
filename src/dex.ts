@@ -828,11 +828,10 @@ export class Dex {
 	getPokemonTagsList(): readonly string[] {
 		if (this.pokemonTagsList) return this.pokemonTagsList;
 
+		const pokemonTagRules = this.getData().pokemonTagRules;
 		const pokemonTagsList: string[] = [];
-		for (const i in this.pokemonShowdownTags) {
-			if (!this.pokemonShowdownTags[i].speciesFilter) continue;
-
-			pokemonTagsList.push(this.pokemonShowdownTags[i].name);
+		for (const i in pokemonTagRules) {
+			pokemonTagsList.push(pokemonTagRules[i]);
 		}
 
 		this.pokemonTagsList = pokemonTagsList;
@@ -3030,6 +3029,26 @@ export class Dex {
 			filteredRulesetKeys = this.dexes.base.dataCache!.rulesetKeys.slice();
 		}
 
+		const pokemonTagRules: Dict<string> = {
+			'allabilities': 'All Abilities',
+			'allitems': 'All Items',
+			'allmoves': 'All Moves',
+			'allpokemon': 'All Pokemon',
+		};
+		const moveTagRules: Dict<string> = {};
+		for (const tag in this.pokemonShowdownTags) {
+			try {
+				const validatedRule = this.validateRule("-" + tag);
+				if (typeof validatedRule === 'string') {
+					if (validatedRule.startsWith('-pokemontag:')) {
+						pokemonTagRules[Tools.toId(tag)] = this.pokemonShowdownTags[tag].name;
+					} else if (validatedRule.startsWith('-move:')) {
+						moveTagRules[Tools.toId(tag)] = this.pokemonShowdownTags[tag].name;
+					}
+				}
+			} catch (e) {} // eslint-disable-line no-empty
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys,
@@ -3038,6 +3057,8 @@ export class Dex {
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
+			pokemonTagRules,
+			moveTagRules,
 			rulesetKeys: filteredRulesetKeys,
 			typeKeys: filteredTypeKeys,
 			alternateIconNumbers,
