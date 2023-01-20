@@ -1567,12 +1567,11 @@ export const commands: BaseCommandDefinitions = {
 		description: ["removes the given user from the room's game managers"],
 	},
 	gamemanagers: {
-		command(target, room, user) {
+		command(target, room) {
 			if (!this.isPm(room)) return;
 
 			const targetRoom = Rooms.search(target);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-			if (!user.hasRank(targetRoom, 'star')) return;
 
 			const database = Storage.getDatabase(targetRoom);
 			if (!database.gameManagers || !database.gameManagers.length) {

@@ -849,12 +849,11 @@ export const commands: BaseCommandDefinitions = {
 		description: ["removes the given user from the room's tournament managers"],
 	},
 	tournamentmanagers: {
-		command(target, room, user) {
+		command(target, room) {
 			if (!this.isPm(room)) return;
 
 			const targetRoom = Rooms.search(target);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', target]);
-			if (!user.hasRank(targetRoom, 'voice')) return;
 
 			const database = Storage.getDatabase(targetRoom);
 			if (!database.tournamentManagers || !database.tournamentManagers.length) {
