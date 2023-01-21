@@ -39,6 +39,7 @@ export abstract class HtmlPageBase {
 	staffUserView: boolean = false;
 	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
+	useExpirationTimer: boolean = true;
 
 	baseCommand: string;
 	commandPrefix: string;
@@ -68,7 +69,7 @@ export abstract class HtmlPageBase {
 	setExpirationTimer(): void {
 		if (this.expirationTimer) clearTimeout(this.expirationTimer);
 
-		this.expirationTimer = setTimeout(() => this.expire(), EXPIRATION_TIMEOUT_SECONDS);
+		if (this.useExpirationTimer) this.expirationTimer = setTimeout(() => this.expire(), EXPIRATION_TIMEOUT_SECONDS);
 	}
 
 	expire(): void {
