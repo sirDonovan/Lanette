@@ -40,5 +40,8 @@
     "@typescript-eslint/parser": "5.48.2",
     "eslint": "8.32.0",
     "mocha": "10.2.0"
+  },
+  "optionalDependencies": {
+    "heapdump": "0.3.15"
   }
 }
