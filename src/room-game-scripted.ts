@@ -1327,7 +1327,7 @@ export class ScriptedGame extends Game {
 	}
 
 	sendHtmlPage(player: Player, forceSend?: boolean): void {
-		if (this.getHtmlPage) this.getHtmlPage(player).send(false, forceSend);
+		if (this.getHtmlPage) this.getHtmlPage(player).send({forceSend});
 	}
 
 	sendChatHtmlPage(player: Player): void {
