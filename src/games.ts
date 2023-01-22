@@ -1673,6 +1673,22 @@ export class Games {
 		return this.getPokemonList(options).map(x => dex.getPokemonCopy(x));
 	}
 
+	unrefDex(): void {
+		Tools.unrefProperties(this.abilitiesLists);
+		Tools.unrefProperties(this.itemsLists);
+		Tools.unrefProperties(this.movesLists);
+		Tools.unrefProperties(this.nationalDexPokemonLists);
+		Tools.unrefProperties(this.pokemonLists);
+
+		/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+		this.abilitiesLists = Object.create(null);
+		this.itemsLists = Object.create(null);
+		this.movesLists = Object.create(null);
+		this.nationalDexPokemonLists = Object.create(null);
+		this.pokemonLists = Object.create(null);
+		/* eslint-enable */
+	}
+
 	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon, inverseTypes?: boolean): number {
 		if (Dex.isImmune(source, target)) {
 			if (inverseTypes) return 2;
