@@ -1,5 +1,6 @@
 import fs = require('fs/promises');
 import https = require('https');
+import Module = require('module');
 import path = require('path');
 import url = require('url');
 import type { IColorPick } from './html-pages/components/color-picker';
@@ -1010,12 +1011,29 @@ export class Tools {
 				}
 			}
 
+			// @ts-expect-error
+			const cacheKeys = Object.keys(Module.Module._cache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// @ts-expect-error
+			const pathCacheKeys = Object.keys(Module.Module._pathCache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+
 			for (const cachedModule of cachedModules) {
 				delete require.cache[cachedModule.filename];
 
-				cachedModule.parent = undefined;
-				cachedModule.children = [];
-				cachedModule.exports = undefined;
+				for (const cacheKey of cacheKeys) {
+					if (cacheKey.includes(cachedModule.filename)) {
+						// @ts-expect-error
+						delete Module.Module._cache[cacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+					}
+				}
+
+				for (const pathCacheKey of pathCacheKeys) {
+					if (pathCacheKey.includes(cachedModule.filename)) {
+						// @ts-expect-error
+						delete Module.Module._pathCache[pathCacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+					}
+				}
+
+				this.unrefProperties(cachedModule);
 			}
 		} catch (e) {
 			console.log(e);
