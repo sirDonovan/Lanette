@@ -468,6 +468,15 @@ class DittosWhoAmI extends ScriptedGame {
 
 		this.announceWinners();
 	}
+
+	destroyPlayers(): void {
+		super.destroyPlayers();
+
+		this.playerGuesses.clear();
+		this.playerPokemon.clear();
+		this.playerWeaknesses.clear();
+		this.playerResistances.clear();
+	}
 }
 
 const commands: GameCommandDefinitions<DittosWhoAmI> = {
