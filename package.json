@@ -7,10 +7,11 @@
     "build": "node build.js",
     "gameserver": "npm run build && node --enable-source-maps build/src/game-server/server.js",
     "lint": "eslint \"**/*.ts\" --cache",
-    "localboot": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/temp-config.js -- --offline",
+    "localstart": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror --expose-gc build/app.js -- --offline",
     "localtest": "npm run lint && npm run build && npm run tsc && npm run mocha -- --offline",
     "mocha": "node --enable-source-maps --max-old-space-size=2048 build/mocha.js",
     "start": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/app.js",
+    "tempconfig": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror --expose-gc build/temp-config.js",
     "test": "npm run lint && npm run build && npm run tsc && npm run mocha",
     "tsc": "tsc"
   },

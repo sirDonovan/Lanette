@@ -122,7 +122,8 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			throw new Error("git rev-parse error");
 		}
 
-		const pokemonShowdownDist = [path.join(pokemonShowdown, "dist")];
+		const pokemonShowdownBaseDist = path.join(pokemonShowdown, "dist");
+		const pokemonShowdownDistFolders = [path.join(pokemonShowdownBaseDist, "data"), path.join(pokemonShowdownBaseDist, "sim")];
 
 		const currentSha = revParseOutput.replace("\n", "");
 		const differentSha = currentSha !== lanetteSha;
@@ -151,7 +152,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 
 			console.log("Updated pokemon-showdown to latest compatible commit (" + lanetteSha.substr(0, 7) + ")");
 		} else {
-			for (const dist of pokemonShowdownDist) {
+			for (const dist of pokemonShowdownDistFolders) {
 				if (!fs.existsSync(dist)) {
 					installPokemonShowdownDependencies = true;
 					break;
@@ -177,9 +178,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 
 		console.log("Running pokemon-showdown build script...");
 
-		for (const dist of pokemonShowdownDist) {
-			deleteFolderRecursive(dist);
-		}
+		deleteFolderRecursive(pokemonShowdownBaseDist);
 
 		const nodeBuildOutput = exec('node build');
 		if (nodeBuildOutput === false) {
