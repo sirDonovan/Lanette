@@ -369,7 +369,7 @@ export class CommandParser {
 
 		for (const i in previous.htmlPages) {
 			for (const user in previous.htmlPages[i]) {
-				previous.htmlPages[i][user].destroy();
+				previous.htmlPages[i][user].expire();
 			}
 
 			Tools.unrefProperties(previous.htmlPages[i]);
