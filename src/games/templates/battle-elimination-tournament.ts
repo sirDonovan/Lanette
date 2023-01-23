@@ -190,13 +190,15 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
 
 				if (Config.tournamentGameRoomAdvertisements && this.room.id in Config.tournamentGameRoomAdvertisements) {
+					let html = "<div class='infobox'><b>" + Users.self.name + " is hosting a " + this.format.nameWithOptions +
+						" tournament!</b>";
+					if (this.htmlPageGameDescription) html += "<br />" + this.htmlPageGameDescription;
+					html += "<br /><br />" + Client.getCommandButton("/join " + this.subRoom.id, "-> Join " +
+						(this.subRoom.groupchat ? "the groupchat" : this.subRoom.title) + " to play!") + "</div>";
+
 					for (const roomId of Config.tournamentGameRoomAdvertisements[this.room.id]) {
 						const advertisementRoom = Rooms.get(roomId);
-						if (advertisementRoom) {
-							advertisementRoom.sayHtml('<a href="/' + this.subRoom.id + '" class="ilink"><strong>' +
-								this.format.nameWithOptions + '</strong> tournament created in <strong>' + this.subRoom.title +
-								'</strong>.</a>');
-						}
+						if (advertisementRoom) advertisementRoom.sayHtml(html);
 					}
 				}
 
