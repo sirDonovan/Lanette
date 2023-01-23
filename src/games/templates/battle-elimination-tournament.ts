@@ -376,7 +376,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		} else {
 			this.playerCap = 0;
 			for (const i in players) {
-				if (!(players[i].id in this.players)) {
+				// ignore users logging out before the tournament starts
+				if (!(players[i].id in this.players) && this.playerCount < this.maxPlayers) {
 					this.addTournamentPlayer(players[i]);
 				}
 			}
