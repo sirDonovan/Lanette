@@ -1750,6 +1750,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	onUserJoinRoom(room: Room, user: User): void {
+		super.onUserJoinRoom(room, user);
+
 		if (this.allowsScouting || !(user.id in this.players) || this.players[user.id].eliminated) return;
 
 		const players = this.getPlayersFromBattleData(room);

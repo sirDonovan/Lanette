@@ -275,7 +275,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	onTournamentPlayerLeave(name: string): void {
 		if (this.started) {
-			const player = this.players[Tools.toId(name)];
+			let player = this.players[Tools.toId(name)];
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (!player && name.startsWith(Tools.guestUserPrefix)) {
+				const offlinePlayers = this.getOfflinePlayers();
+				if (offlinePlayers.length === 1) player = offlinePlayers[0];
+			}
+
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
 				this.debugLog(player.name + " left the tournament");

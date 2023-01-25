@@ -239,10 +239,10 @@ export class Room {
 		this.users.add(user);
 		user.setRoomRank(this, rank);
 
-		if (this.game && this.game.onUserJoinRoom) this.game.onUserJoinRoom(this, user);
-		if (this.searchChallenge && this.searchChallenge.onUserJoinRoom) this.searchChallenge.onUserJoinRoom(this, user);
-		if (this.tournament && this.tournament.onUserJoinRoom) this.tournament.onUserJoinRoom(this, user);
-		if (this.userHostedGame && this.userHostedGame.onUserJoinRoom) this.userHostedGame.onUserJoinRoom(this, user);
+		if (this.game) this.game.onUserJoinRoom(this, user);
+		if (this.searchChallenge) this.searchChallenge.onUserJoinRoom(this, user);
+		if (this.tournament) this.tournament.onUserJoinRoom(this, user);
+		if (this.userHostedGame) this.userHostedGame.onUserJoinRoom(this, user);
 	}
 
 	onUserLeave(user: User): void {
@@ -254,10 +254,10 @@ export class Room {
 			user.timers[this.id] = undefined;
 		}
 
-		if (this.game && this.game.onUserLeaveRoom) this.game.onUserLeaveRoom(this, user);
-		if (this.searchChallenge && this.searchChallenge.onUserLeaveRoom) this.searchChallenge.onUserLeaveRoom(this, user);
-		if (this.tournament && this.tournament.onUserLeaveRoom) this.tournament.onUserLeaveRoom(this, user);
-		if (this.userHostedGame && this.userHostedGame.onUserLeaveRoom) this.userHostedGame.onUserLeaveRoom(this, user);
+		if (this.game) this.game.onUserLeaveRoom(this, user);
+		if (this.searchChallenge) this.searchChallenge.onUserLeaveRoom(this, user);
+		if (this.tournament) this.tournament.onUserLeaveRoom(this, user);
+		if (this.userHostedGame) this.userHostedGame.onUserLeaveRoom(this, user);
 	}
 
 	onUserRename(user: User, rank: string): void {
