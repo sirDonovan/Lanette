@@ -70,6 +70,7 @@ export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(elim
 	aliases: ['cloakdagger', 'cd'],
 	class: CloakAndDagger,
 	description,
+	disabled: true,
 	name,
 	tests: Object.assign({}, eliminationTournamentGame.tests, tests),
 	variants: [
