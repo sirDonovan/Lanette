@@ -756,6 +756,9 @@ export class ScriptedGame extends Game {
 
 		if (this.htmlPages.size) {
 			this.htmlPages.forEach(htmlPage => {
+				// already destroyed in CommandParser.onDestroyUser()
+				if (htmlPage.destroyed) return;
+
 				if (this.dontAutoCloseHtmlPages) {
 					htmlPage.sendClosingSnapshot();
 				} else {
