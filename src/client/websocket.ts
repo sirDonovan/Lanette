@@ -49,6 +49,7 @@ export class Websocket {
 	private connectionAttempts: number = 0;
 	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
 	private connectionTimeout: NodeJS.Timer | undefined = undefined;
+	private firstFormatsList: boolean = true;
 	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
 	private lastSendTimeoutAfterMeasure: number = 0;
@@ -329,6 +330,8 @@ export class Websocket {
 
 		if (previous.serverAddress) this.serverAddress = previous.serverAddress;
 		if (previous.serverId) this.serverId = previous.serverId;
+
+		this.firstFormatsList = previous.firstFormatsList;
 
 		Tools.unrefProperties(previous);
 	}
@@ -636,7 +639,14 @@ export class Websocket {
 
 				this.checkLoginSession();
 			}
-        } else {
+        } else if (parsedMessage.type === 'formats') {
+			if (this.firstFormatsList) {
+				this.firstFormatsList = false;
+				return;
+			}
+
+			Tools.updatePokemonShowdown();
+		} else {
             this.onIncomingMessage(room, parsedMessage, now);
         }
     }

@@ -3,8 +3,8 @@ import https = require('https');
 import Module = require('module');
 import path = require('path');
 import url = require('url');
-import type { IColorPick } from './html-pages/components/color-picker';
 
+import type { IColorPick } from './html-pages/components/color-picker';
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
@@ -13,6 +13,7 @@ import type {
 	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TextColorHex, TimeZone
 } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
+import { buildPokemonShowdown, pullLatestPokemonShowdownSha } from './../build-src';
 
 const TABLE_PADDING_SIZE = 2;
 const TABLE_TEXT_SIZE = 18;
@@ -1335,6 +1336,21 @@ export class Tools {
 		request.end();
 
 		this.lastGithubApiCall = Date.now();
+	}
+
+	updatePokemonShowdown(): void {
+		process.chdir(this.pokemonShowdownFolder);
+
+		let result = pullLatestPokemonShowdownSha();
+		if (result !== false) result = buildPokemonShowdown();
+
+		process.chdir(this.rootFolder);
+
+		if (result !== false) {
+			if (!__reloadInProgress) {
+				void __reloadModules("", ["dex", "games", "commandparser", "tournaments"], true);
+			}
+		}
 	}
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {

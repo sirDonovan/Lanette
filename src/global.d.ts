@@ -7,7 +7,7 @@ declare var Config: Partial<typeof import('./config-example')>;
 declare var Dex: import('./dex').Dex;
 declare var Games: import('./games').Games;
 declare var __reloadInProgress: boolean;
-declare var __reloadModules: (username: string, modules: string[]) => Promise<string | null>;
+declare var __reloadModules: (username: string, modules: string[], formatsUpdate?: boolean) => Promise<string | null>;
 declare var Rooms: import('./rooms').Rooms;
 declare var Storage: import('./storage').Storage;
 declare var tempConfig: boolean;

@@ -153,6 +153,8 @@ export interface IClientMessageTypes {
 	 */
 	challstr: string;
 
+	formats: null;
+
 	/**
 	 * Username|login result
 	 */
