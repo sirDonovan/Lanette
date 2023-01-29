@@ -1025,11 +1025,11 @@ export class Games {
 		return formats;
 	}
 
-	getLeastPlayedFormats(room: Room): IGameFormat[] {
+	getLeastPlayedFormats(room: Room, formatList?: IGameFormat[]): IGameFormat[] {
 		const database = Storage.getDatabase(room);
 		const lastGameFormatTimes = database.lastGameFormatTimes || {};
 
-		return this.getFormatList().sort((a, b) => {
+		return (formatList || this.getFormatList()).sort((a, b) => {
 			const lastGameA = lastGameFormatTimes[a.id] || 0;
 			const lastGameB = lastGameFormatTimes[b.id] || 0;
 			return lastGameA - lastGameB;
@@ -1488,7 +1488,17 @@ export class Games {
 			const database = Storage.getDatabase(room);
 			const now = Date.now();
 			if (type === 'tournament') {
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame", now);
+				let gameTarget = "";
+				const leastPlayedFormats = this.getLeastPlayedFormats(room, this.getTournamentFormatList());
+				for (const leastPlayedFormat of leastPlayedFormats) {
+					if (this.canCreateGame(room, leastPlayedFormat) === true) {
+						gameTarget = leastPlayedFormat.name;
+						break;
+					}
+				}
+
+				CommandParser.parse(room, Users.self,
+					Config.commandCharacter + (gameTarget ? "createtournamentgame " + gameTarget : "createrandomtournamentgame"), now);
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "startskippedcooldownvote", now);
 			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
