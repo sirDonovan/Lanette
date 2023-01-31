@@ -175,6 +175,7 @@ export const commands: BaseCommandDefinitions = {
 
 			const targetUser = Users.get(target);
 			if (!targetUser) return this.sayError(["invalidUserInRoom"]);
+            if (targetUser.locked) return this.say("You cannot egg someone who is locked.");
 
 			const eggTossFormat = Games.getInternalFormat('eggtoss');
 			if (Array.isArray(eggTossFormat)) {
@@ -234,6 +235,9 @@ export const commands: BaseCommandDefinitions = {
 				this.say("You cannot hide the sweets with someone who is marked as away.");
 				return false;
 			}
+            if (targetUser.locked) {
+                this.say("You cannot hide the sweets with someone who is locked.");
+            }
 
 			const sweetThiefFormat = Games.getInternalFormat('sweetthief');
 			if (Array.isArray(sweetThiefFormat)) {
