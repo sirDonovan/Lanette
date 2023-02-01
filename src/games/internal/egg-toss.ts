@@ -116,6 +116,10 @@ const commands: GameCommandDefinitions<EggToss> = {
 				this.say("You cannot egg someone who is marked as away.");
 				return false;
 			}
+            if (targetUser.locked) {
+                this.say("You cannot egg someone who is locked.");
+                return false;
+            }
 			if (targetUser.isBot(this.room) && targetUser !== Users.self) {
 				this.say("You cannot egg a bot that is not " + Users.self.name + ".");
 				return false;
