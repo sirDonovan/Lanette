@@ -237,6 +237,7 @@ export const commands: BaseCommandDefinitions = {
 			}
             if (targetUser.locked) {
                 this.say("You cannot hide the sweets with someone who is locked.");
+				return false;
             }
 
 			const sweetThiefFormat = Games.getInternalFormat('sweetthief');
