@@ -136,7 +136,8 @@ export class Tournaments {
 		let schedule = database.officialTournamentSchedule.years[monthAndYear.year];
 		let scheduleDays = schedule.months[month].days;
 		let day = 1;
-		let scheduleDay = scheduleDays[day] && scheduleDays[day]!.times[0][0] > scheduleDays[day]!.times[1][0] ? 2 : 1;
+		let scheduleDay = scheduleDays[day] && scheduleDays[day]!.times[1] &&
+			scheduleDays[day]!.times[0][0] > scheduleDays[day]!.times[1][0] ? 2 : 1;
 		date.setMonth(month - 1, day);
 		date.setDate(day);
 		date.setFullYear(monthAndYear.year);
