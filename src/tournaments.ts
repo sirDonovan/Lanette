@@ -43,7 +43,11 @@ export class Tournaments {
 	loadSchedules(loadAll?: boolean): void {
 		const rooms = Storage.getDatabaseIds();
 		for (const room of rooms) {
-			this.loadRoomSchedule(room, loadAll);
+			try {
+				this.loadRoomSchedule(room, loadAll);
+			} catch (e) {
+				Tools.logError(e as Error, "Failed to load tournament schedule for room " + room);
+			}
 		}
 	}
 
