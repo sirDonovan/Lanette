@@ -403,7 +403,7 @@ export abstract class Activity {
 	getOfflinePlayers(): Player[] {
 		const offlinePlayers: Player[] = [];
 		for (const i in this.players) {
-			if (this.players[i].offline) offlinePlayers.push(this.players[i]);
+			if (this.players[i].offline && !this.players[i].eliminated) offlinePlayers.push(this.players[i]);
 		}
 
 		return offlinePlayers;
