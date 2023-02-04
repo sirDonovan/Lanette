@@ -1636,6 +1636,8 @@ export abstract class BattleElimination extends ScriptedGame {
 					for (const pokemon of starterPokemon) {
 						this.pokedex.push(pokemon);
 					}
+
+					this.starterPokemon.delete(player);
 				}
 			}
 
