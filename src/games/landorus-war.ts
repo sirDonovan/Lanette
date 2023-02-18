@@ -190,7 +190,7 @@ const commands: GameCommandDefinitions<LandorusWar> = {
 			}
 
 			const playerPokemon = this.playerPokemon.get(player)!;
-			if (!data.learnsets[playerPokemon.id].includes(move.id)) {
+			if (!data.learnsets[playerPokemon.id].includes(move.id) && !data.learnsets[playerPokemon.id].includes('sketch')) {
 				player.say(playerPokemon.name + " does not learn **" + move.name + "**.");
 				return false;
 			}
