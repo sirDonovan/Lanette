@@ -1,4 +1,5 @@
 import child_process = require('child_process');
+import { copyPokemonShowdownShaBase } from '../../tools';
 
 import type { BaseCommandDefinitions } from "../types/command-parser";
 
@@ -54,5 +55,14 @@ export const commands: BaseCommandDefinitions = {
 		developerOnly: true,
 		syntax: ["[module(s)]"],
 		description: ["reloads the given module(s)"],
+	},
+	syncpokemonshowdownsha: {
+		command() {
+			copyPokemonShowdownShaBase();
+			this.say("Synced pokemon-showdown-sha.txt file.");
+		},
+		aliases: ['syncpssha'],
+		developerOnly: true,
+		description: ["syncs pokemon-showdown-sha.txt with the latest base file"],
 	},
 };

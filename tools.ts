@@ -172,11 +172,17 @@ export function setToSha(sha: string): string | false {
 	return exec('git reset --hard ' + sha);
 }
 
+export function copyPokemonShowdownShaBase(): void {
+	const inputFolders = getInputFolders();
+	fs.writeFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt'),
+		fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
+}
+
 export function createUntrackedFiles() {
 	const inputFolders = getInputFolders();
 	const pokemonShowdownShaFile = path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt');
 	if (!fs.existsSync(pokemonShowdownShaFile)) {
-		fs.writeFileSync(pokemonShowdownShaFile, fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
+		copyPokemonShowdownShaBase();
     }
 
 	const configFile = path.join(inputFolders.src.inputPath, 'config.ts');
