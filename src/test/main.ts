@@ -82,6 +82,15 @@ export function initializeTests(inputOptions: RunOptions): void {
 			let formats: string[];
 			if (testOptions.games) {
 				formats = testOptions.games.split(',');
+			} else if (testOptions.categories) {
+				const categories = testOptions.categories.split(',').map(x => Tools.toId(x));
+				formats = [];
+				for (const i in Games.getFormats()) {
+					const format = Games.getExistingFormat(i);
+					if (format.category && categories.includes(Tools.toId(format.category))) {
+						formats.push(i);
+					}
+				}
 			} else {
 				formats = Object.keys(Games.getFormats());
 			}

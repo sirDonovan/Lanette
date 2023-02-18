@@ -9,13 +9,14 @@ import type { IInputMetadata, InputFolderNames, InputFolders, RunOptionNames, Ru
 if (!global._outputFilepaths) global._outputFilepaths = [];
 
 const folderNames: InputFolderNames[] = ['private', 'src', 'web'];
-const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed', 'noBuild', 'mochaRuns', 'script',
-    'grep'];
+const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'noBuild', 'mochaRuns',
+	'script', 'grep'];
 const optionAliases: Dict<RunOptionNames> = {
 	'local': 'offline',
 	'incremental': 'incrementalBuild',
 	'module': 'modules',
 	'game': 'games',
+	'category': 'categories',
 };
 
 export function getInputFolders(): InputFolders {

@@ -1,4 +1,4 @@
-export type RunOptionNames = 'offline' | 'incrementalBuild' | 'modules' | 'games' | 'gameSeed' | 'mochaRuns' | 'script' |
+export type RunOptionNames = 'offline' | 'incrementalBuild' | 'modules' | 'categories' | 'games' | 'gameSeed' | 'mochaRuns' | 'script' |
     'grep' | 'noBuild' | 'noRemote' | 'noSha' | 'regression';
 export type RunOptions = PartialKeyedDict<RunOptionNames, string>;
 

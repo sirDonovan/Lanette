@@ -18,6 +18,14 @@ if (testOptions.games) {
 	for (const game of games) {
 		formatsToTest.push(Games.getExistingFormat(game));
 	}
+} else if (testOptions.categories) {
+	const categories = testOptions.categories.split(',').map(x => Tools.toId(x));
+	for (const i in Games.getFormats()) {
+		const format = Games.getExistingFormat(i);
+		if (format.category && categories.includes(Tools.toId(format.category))) {
+			formatsToTest.push(format);
+		}
+	}
 } else {
 	for (const i in Games.getFormats()) {
 		const format = Games.getExistingFormat(i);
@@ -162,7 +170,7 @@ for (const i in modes) {
 			}
 		}
 
-		if (!formats.length && !testOptions.games) {
+		if (!formats.length && !testOptions.games && !testOptions.categories) {
 			throw new Error("No format found for " + mode.name + " tests");
 		}
 
