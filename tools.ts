@@ -173,6 +173,11 @@ export function setToSha(sha: string): string | false {
 
 export function createUntrackedFiles() {
 	const inputFolders = getInputFolders();
+	const pokemonShowdownShaFile = path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt');
+	if (!fs.existsSync(pokemonShowdownShaFile)) {
+		fs.writeFileSync(pokemonShowdownShaFile, fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
+    }
+
 	const configFile = path.join(inputFolders.src.inputPath, 'config.ts');
 	if (!fs.existsSync(configFile)) {
 		console.log("Creating a default config.ts in the src folder (you need to edit this)...");
