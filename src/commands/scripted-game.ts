@@ -59,7 +59,13 @@ export const commands: BaseCommandDefinitions = {
 			for (const i in minigameCommandNames) {
 				const format = Games.getExistingFormat(minigameCommandNames[i].format);
 				if (format.disabled) continue;
-				minigames.push("<code>" + Config.commandCharacter + i + "</code> - " + format.name);
+
+				let shortestCommand = i;
+				if (minigameCommandNames[i].aliases.length) {
+					shortestCommand = [i].concat(minigameCommandNames[i].aliases).sort((a, b) => a.length - b.length)[0];
+				}
+
+				minigames.push("<code>" + Config.commandCharacter + shortestCommand + "</code> - " + format.name);
 			}
 
 			this.sayHtml("<details><summary>" + gameRoom.title + " minigame list</summary>" + minigames.join(", ") + "</details>",
