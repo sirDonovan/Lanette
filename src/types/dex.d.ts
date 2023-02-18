@@ -16,6 +16,17 @@ export type LocationData = KeyedDict<RegionName, KeyedDict<LocationType, string[
 export type TrainerClassData = string[];
 export type ModelGeneration = 'rb' | 'gs' | 'rs' | 'dp' | 'bw' | 'xy';
 
+interface IRandomBattleSet {
+	role: string;
+	movepool: string[];
+	teraTypes: string[];
+}
+
+export interface IRandomBattleSetData {
+	level: number;
+	sets: IRandomBattleSet[];
+}
+
 export interface IFormatDataLinks {
 	aliases?: string[];
 	desc?: string;

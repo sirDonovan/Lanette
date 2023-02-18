@@ -1,3 +1,4 @@
+import fs = require('fs');
 import path = require('path');
 
 import { badges as badgeData } from './data/badges';
@@ -8,7 +9,7 @@ import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
 	CategoryData, CharacterType, ModelGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData,
-	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId
+	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId, IRandomBattleSetData
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -286,6 +287,7 @@ export class Dex {
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 	private readonly pokemonShowdownTagsModule: IPokemonShowdownTagsModule;
 	private readonly pokemonShowdownTags: Dict<ITagData> = {};
+	private readonly randomBattleSetData: Dict<IRandomBattleSetData> | null = null;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesList: readonly IAbility[] | null = null;
@@ -337,6 +339,7 @@ export class Dex {
 			const dexPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "dex.js");
 			const teamValidatorPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "team-validator.js");
 			const tagsPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "tags.js");
+			const setsJsonPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "random-sets.json");
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			this.pokemonShowdownDexModule = require(dexPath) as IPokemonShowdownDexModule;
@@ -349,6 +352,8 @@ export class Dex {
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			this.pokemonShowdownTagsModule = require(tagsPath) as IPokemonShowdownTagsModule;
 			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
+
+			this.randomBattleSetData = JSON.parse(fs.readFileSync(setsJsonPath).toString()) as Dict<IRandomBattleSetData>;
 		} else {
 			this.pokemonShowdownDexModule = this.dexes.base.pokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.dexes.base.pokemonShowdownDex.mod(mod);
@@ -771,6 +776,18 @@ export class Dex {
 				pokemon.natDexTier = 'PU';
 			} else if (pokemon.natDexTier === '(PU)') {
 				pokemon.natDexTier = 'ZU';
+			}
+
+			if (!pokemon.randomBattleMoves && this.randomBattleSetData && this.gen > 8 && pokemon.id in this.randomBattleSetData) {
+				const moves: string[] = [];
+				for (const set of this.randomBattleSetData[pokemon.id].sets) {
+					for (const move of set.movepool) {
+						const moveId = Tools.toId(move);
+						if (!moves.includes(moveId)) moves.push(moveId);
+					}
+				}
+
+				if (moves.length) pokemon.randomBattleMoves = moves;
 			}
 
 			this.pokemonCache[id] = pokemon;
