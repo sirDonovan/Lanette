@@ -13,7 +13,8 @@ import type {
 	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TextColorHex, TimeZone
 } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
-import { buildPokemonShowdown, pullLatestPokemonShowdownSha } from './../build-src';
+import { buildPokemonShowdown, getCurrentPokemonShowdownSha, pullLatestPokemonShowdownSha } from './../build-src';
+import { setToSha } from '../tools';
 
 const TABLE_PADDING_SIZE = 2;
 const TABLE_TEXT_SIZE = 18;
@@ -81,9 +82,11 @@ const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
 const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
 const SMOGON_PERMALINK_PAGE_PREFIX = "page-";
 const SMOGON_PERMALINK_POST_PREFIX = "post-";
-const maxMessageLength = 1000;
-const maxUsernameLength = 18;
-const githubApiThrottle = 2 * 1000;
+const MAX_MESSAGE_LENGTH = 1000;
+const MAX_USERNAME_LENGTH = 18;
+const GITHUB_API_THROTTLE = 2 * 1000;
+const UPDATE_POKEMON_SHOWDOWN_TIMEOUT = 30 * 1000;
+const UPDATE_POKEMON_SHOWDOWN_ATTEMPTS = 60;
 
 // __dirname will be [..]/build/src
 const rootFolder = path.resolve(__dirname, '..', '..');
@@ -108,8 +111,8 @@ export class Tools {
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = MAIN_SERVER;
 	readonly mainReplayServer: string = MAIN_REPLAY_SERVER;
-	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
-	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly maxMessageLength: typeof MAX_MESSAGE_LENGTH = MAX_MESSAGE_LENGTH;
+	readonly maxUsernameLength: typeof MAX_USERNAME_LENGTH = MAX_USERNAME_LENGTH;
 	readonly minRoomHeight: number = 500;
 	readonly minRoomWidth: number = 350;
 	readonly namedHexCodes: typeof namedHexCodes = namedHexCodes;
@@ -812,7 +815,7 @@ export class Tools {
 
 	prepareMessage(message: string): string {
 		message = this.toString(message);
-		if (message.length > maxMessageLength) message = message.substr(0, maxMessageLength - 3) + "...";
+		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";
 		return message;
 	}
 
@@ -921,7 +924,7 @@ export class Tools {
 
 	isUsernameLength(name: string): boolean {
 		const id = this.toId(name);
-		return id && id.length <= maxUsernameLength ? true : false;
+		return id && id.length <= MAX_USERNAME_LENGTH ? true : false;
 	}
 
 	deepClone<T>(obj: T): DeepMutable<T> {
@@ -1290,7 +1293,7 @@ export class Tools {
 	}
 
 	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
-		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
+		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < GITHUB_API_THROTTLE) return;
 
 		const patchData = JSON.stringify({
 			description,
@@ -1338,17 +1341,46 @@ export class Tools {
 		this.lastGithubApiCall = Date.now();
 	}
 
-	updatePokemonShowdown(): void {
+	updatePokemonShowdown(attempt?: number): void {
+		if (attempt && attempt > UPDATE_POKEMON_SHOWDOWN_ATTEMPTS) return;
+
 		process.chdir(this.pokemonShowdownFolder);
 
-		let result = pullLatestPokemonShowdownSha();
-		if (result !== false) result = buildPokemonShowdown();
+		const currentSha = getCurrentPokemonShowdownSha();
+		if (currentSha === false) return;
+
+		const latestSha = pullLatestPokemonShowdownSha();
+		let buildResult: string | boolean = false;
+		if (latestSha !== false) buildResult = buildPokemonShowdown();
 
 		process.chdir(this.rootFolder);
 
-		if (result !== false) {
+		if (buildResult !== false) {
+			const modulesList = ["dex", "games", "commandparser", "tournaments"];
+
 			if (!__reloadInProgress) {
-				void __reloadModules("", ["dex", "games", "commandparser", "tournaments"], true);
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
+				__reloadModules("", modulesList, true).then(error => {
+					if (error) {
+						if (error.startsWith("You must wait for ")) {
+							setTimeout(() => this.updatePokemonShowdown((attempt || 1) + 1), UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
+						} else {
+							process.chdir(this.pokemonShowdownFolder);
+
+							const resetResult = setToSha(currentSha);
+							buildResult = false;
+							if (resetResult !== false) buildResult = buildPokemonShowdown();
+
+							process.chdir(this.rootFolder);
+
+							if (buildResult !== false) {
+								void __reloadModules("", modulesList, true);
+							}
+						}
+					} else {
+						void this.safeWriteFile(path.join(rootFolder, "pokemon-showdown-sha.txt"), latestSha as string);
+					}
+				});
 			}
 		}
 	}

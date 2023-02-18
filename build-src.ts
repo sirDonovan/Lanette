@@ -36,6 +36,15 @@ const removeFromPackageJson = [
 		"typescript",
 ];
 
+export const getCurrentPokemonShowdownSha = (): string | false => {
+	const revParseOutput = exec('git rev-parse master');
+	if (revParseOutput === false) {
+		throw new Error("git rev-parse error");
+	}
+
+	return revParseOutput.replace("\n", "");
+};
+
 export const pullLatestPokemonShowdownSha = (): string | false => {
 	// revert package.json changes
 	const cmd = exec('git reset --hard');
@@ -140,15 +149,14 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
 
-		const revParseOutput = exec('git rev-parse master');
-		if (revParseOutput === false) {
-			throw new Error("git rev-parse error");
-		}
-
 		const pokemonShowdownBaseDist = getPokemonShowdownDistFolder();
 		const pokemonShowdownDistFolders = [path.join(pokemonShowdownBaseDist, "data"), path.join(pokemonShowdownBaseDist, "sim")];
 
-		const currentSha = revParseOutput.replace("\n", "");
+		const currentSha = getCurrentPokemonShowdownSha();
+		if (currentSha === false) {
+			throw new Error("Error getting current pokemon-showdown commit");
+		}
+
 		const differentSha = currentSha !== lanetteSha;
 
 		let installPokemonShowdownDependencies = false;
