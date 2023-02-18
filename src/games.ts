@@ -2375,8 +2375,12 @@ export class Games {
 
 			let scriptedGames: string[] = ["## Scripted games", "(listed by category)"];
 			const categoryKeys = Object.keys(categories);
-			categoryKeys.splice(categoryKeys.indexOf(defaultCategory), 1);
-			categoryKeys.push(defaultCategory);
+			const defaultCategoryIndex = categoryKeys.indexOf(defaultCategory);
+			if (defaultCategoryIndex !== -1) {
+				categoryKeys.splice(defaultCategoryIndex, 1);
+				categoryKeys.push(defaultCategory);
+			}
+
 			for (const key of categoryKeys) {
 				scriptedGames.push("## " + key);
 				scriptedGames = scriptedGames.concat(categories[key]);
