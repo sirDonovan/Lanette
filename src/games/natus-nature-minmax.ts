@@ -100,7 +100,7 @@ export const game: IGameFile<NatusNatureMinMax> = Games.copyTemplateProperties(q
 	minigameCommand: 'natureminmax',
 	minigameCommandAliases: ['nminmax'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a nature that gives +10% to the highest stat " +
-		"and -10% to the lowest stat for the generated Pokemon!",
+		"and -10% to the lowest stat for the generated Pokemon (one chance to guess correctly)!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
 		'survival': {

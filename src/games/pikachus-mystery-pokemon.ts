@@ -137,7 +137,8 @@ export const game: IGameFile<PikachusMysteryPokemon> = Games.copyTemplatePropert
 	mascot: "Pikachu",
 	minigameCommand: "mysterypokemon",
 	minigameCommandAliases: ["mpokemon"],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon as hints are revealed!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon as hints are revealed (one chance to " +
+		"guess correctly)!",
 	modes: ['collectiveteam'],
 	variants: [
 		{
