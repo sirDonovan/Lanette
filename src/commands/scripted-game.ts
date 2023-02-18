@@ -367,12 +367,15 @@ export const commands: BaseCommandDefinitions = {
 				challengeSettings = challengeFormat.challengeSettings;
 			}
 
-			if (!challengeSettings || !challengeSettings.botchallenge || !challengeSettings.botchallenge.enabled) {
+			if (!challengeSettings || !challengeSettings.botchallenge || !challengeSettings.botchallenge.enabled ||
+				(challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.freejoin &&
+				!challengeFormat.defaultOptions.includes('freejoin'))) {
 				user.say(challengeFormat.nameWithOptions + " does not allow bot challenges.");
 				return;
 			}
 
-			if (challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.resolvedInputProperties.options.freejoin) {
+			if (challengeSettings.botchallenge.requiredFreejoin && !challengeFormat.freejoin &&
+				!challengeFormat.resolvedInputProperties.options.freejoin) {
 				user.say(challengeFormat.name + " can only be played as freejoin for bot challenges.");
 				return;
 			}
@@ -500,8 +503,16 @@ export const commands: BaseCommandDefinitions = {
 				challengeSettings = challengeFormat.challengeSettings;
 			}
 
-			if (!challengeSettings || !challengeSettings.onevsone || !challengeSettings.onevsone.enabled) {
+			if (!challengeSettings || !challengeSettings.onevsone || !challengeSettings.onevsone.enabled ||
+				(challengeSettings.onevsone.requiredFreejoin && !challengeFormat.freejoin &&
+				!challengeFormat.defaultOptions.includes('freejoin'))) {
 				user.say(challengeFormat.nameWithOptions + " does not allow one vs. one challenges.");
+				return;
+			}
+
+			if (challengeSettings.onevsone.requiredFreejoin && !challengeFormat.freejoin &&
+				!challengeFormat.resolvedInputProperties.options.freejoin) {
+				user.say(challengeFormat.name + " can only be played as freejoin for one vs. one challenges.");
 				return;
 			}
 

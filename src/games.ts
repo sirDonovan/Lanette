@@ -2266,11 +2266,15 @@ export class Games {
 				const format = this.getExistingFormat(key);
 				if (format.disabled || format.tournamentGame || format.searchChallenge) continue;
 				if (format.challengeSettings) {
-					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled) {
+					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled &&
+						(!format.challengeSettings.onevsone.requiredFreejoin || format.freejoin ||
+						format.defaultOptions.includes('freejoin'))) {
 						oneVsOneGames.push("* " + format.name + "\n");
 					}
 
-					if (format.challengeSettings.botchallenge && format.challengeSettings.botchallenge.enabled) {
+					if (format.challengeSettings.botchallenge && format.challengeSettings.botchallenge.enabled &&
+						(!format.challengeSettings.botchallenge.requiredFreejoin || format.freejoin ||
+						format.defaultOptions.includes('freejoin'))) {
 						let name = format.name;
 						if (format.challengeSettings.botchallenge.requiredFreejoin) name += " (freejoin)";
 						botChallengeGames.push("* " + name + "\n");
