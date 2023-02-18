@@ -26,20 +26,20 @@
   },
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
-    "@types/eslint": "8.4.10",
+    "@types/eslint": "8.21.1",
     "@types/mocha": "10.0.1",
-    "@types/node": "18.11.18",
+    "@types/node": "18.14.00",
     "@types/ws": "8.5.4",
     "bufferutil": "4.0.7",
-    "esbuild": "0.17.1",
-    "typescript": "4.9.4",
-    "utf-8-validate": "6.0.0",
-    "ws": "8.12.0"
+    "esbuild": "0.17.8",
+    "typescript": "4.9.5",
+    "utf-8-validate": "6.0.2",
+    "ws": "8.12.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.48.2",
-    "@typescript-eslint/parser": "5.48.2",
-    "eslint": "8.32.0",
+    "@typescript-eslint/eslint-plugin": "5.52.0",
+    "@typescript-eslint/parser": "5.52.0",
+    "eslint": "8.34s.0",
     "mocha": "10.2.0"
   },
   "optionalDependencies": {
