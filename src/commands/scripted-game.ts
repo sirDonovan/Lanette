@@ -328,7 +328,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-            if (!user.registered) {
+            if (!user.canPromote) {
                 user.say("You must have registered your account to play bot challenges.");
                 user.say("You can do so through typing ``/register``!");
                 return;
@@ -446,7 +446,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-            if (!user.registered) {
+            if (!user.canPromote) {
                 user.say("You must have registered your account to play one vs. one challenges.");
                 user.say("You can do so through typing ``/register``!");
                 return;
@@ -492,7 +492,7 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
-            if (!targetUser.registered) {
+            if (!targetUser.canPromote) {
                 room.say("Defender must have registered their account to play one vs. one challenges.");
                 return;
             }
