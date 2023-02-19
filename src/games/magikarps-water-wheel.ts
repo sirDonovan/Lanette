@@ -45,6 +45,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	consecutiveWheelSpins = new Map<Player, number>();
 	gameActionType = GAME_ACTION_TYPE;
 	maxRound: number = 20;
+	playerInactiveRoundLimit = 5;
 	playerWheels = new Map<Player, WheelsKey>();
 	points = new Map<Player, number>();
 	roundActions = new Set<Player>();
@@ -93,11 +94,12 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			'<b>' + this.wheels[wheel].magikarpChance + '%</b><br />';
 		let magikarp = false;
 		let goldenMagikarp = false;
-		if (this.random(100) <= wheelStats.magikarpChance) {
+		let inactiveKarp = player.inactiveRounds === this.playerInactiveRoundLimit;
+		if (this.random(100) <= wheelStats.magikarpChance || inactiveKarp) {
 			magikarp = true;
 			const gif = Dex.getPokemonModel(this.mascot!);
 			if (gif) html += gif + "<br />";
-			html += "You were karped! You have been eliminated from the game.";
+			html += "You were karped" + (inactiveKarp ? " for inactivity" : "") + "! You have been eliminated from the game.";
 		} else {
 			html += "<br />";
 			let points = this.points.get(player) || 0;
@@ -108,7 +110,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 			} else {
 				const spin = this.sampleOne(wheelStats.slots);
 				points += spin;
-				html += 'The wheel landed on <b>' + spin + ' points</b>!';
+				html += player.inactiveRounds + 'The wheel landed on <b>' + spin + ' points</b>!';
 			}
 			this.points.set(player, points);
 			html += '&nbsp;Your total is now <b>' + points + '</b>.';
@@ -176,6 +178,11 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundCarp = false;
+		if (this.round !== 1) { 
+			for (const i in this.players) {
+				if (!this.players[i].frozen && !this.roundActions.has(this.players[i])) this.addPlayerInactiveRound(this.players[i]);
+			}
+		}
 		this.roundActions.clear();
 
 		const uhtmlName = this.uhtmlBaseName + '-round';
