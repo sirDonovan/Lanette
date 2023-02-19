@@ -304,6 +304,11 @@ export let allowScriptedGames: string[] = [];
 export let scriptedGameDebugLogs: string[] = [];
 
 /**
+ * Whether or not debug stats of scripted games are saved
+ */
+export let scriptedGameDebugStats: boolean = false;
+
+/**
  * A list of rooms (roomids) where games are allowed to be hosted
  */
 export let allowUserHostedGames: string[] = [];

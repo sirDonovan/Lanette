@@ -136,13 +136,14 @@ export class Tools {
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 	readonly vowels: string = "aeiou";
 
-	lastGithubApiCall: number = 0;
-	currentAppendFiles: Dict<string> = {};
-	appendFileQueue: Dict<string[]> = {};
-	currentSafeFileWrites: Dict<string> = {};
-	safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
+	private lastGithubApiCall: number = 0;
+	private currentAppendFiles: Dict<string> = {};
+	private appendFileQueue: Dict<string[]> = {};
+	private currentSafeFileWrites: Dict<string> = {};
+	private safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
 
-	onReload(previous: Partial<Tools>): void {
+	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+	onReload(previous: Tools): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 		if (previous.currentAppendFiles) Object.assign(this.currentAppendFiles, previous.currentAppendFiles);
 		if (previous.appendFileQueue) Object.assign(this.appendFileQueue, previous.appendFileQueue);
@@ -157,6 +158,7 @@ export class Tools {
 		this.unrefProperties(previous.typeHexCodes);
 		this.unrefProperties(previous);
 	}
+	/* eslint-enable */
 
 	parseIncomingMessage<T = IClientMessageTypes>(incomingMessage: string): IParsedIncomingMessage<T> {
 		let message: string;
@@ -522,13 +524,7 @@ export class Tools {
 		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
 		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
-		if (filepath in this.currentAppendFiles) {
-			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
-			this.appendFileQueue[filepath].push(message);
-		} else {
-			this.currentAppendFiles[filepath] = message;
-			this.appendFileInternal(filepath, message);
-		}
+		this.appendFile(filepath, message);
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -1382,6 +1378,16 @@ export class Tools {
 					}
 				});
 			}
+		}
+	}
+
+	appendFile(filepath: string, data: string): void {
+		if (filepath in this.currentAppendFiles) {
+			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
+			this.appendFileQueue[filepath].push(data);
+		} else {
+			this.currentAppendFiles[filepath] = data;
+			this.appendFileInternal(filepath, data);
 		}
 	}
 

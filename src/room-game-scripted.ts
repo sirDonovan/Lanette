@@ -87,6 +87,8 @@ export class ScriptedGame extends Game {
 			const date = new Date();
 			this.debugLogs.push(date.toUTCString() + " (" + date.toTimeString() + ")");
 		}
+
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " created");
 	}
 
 	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined,
@@ -254,16 +256,18 @@ export class ScriptedGame extends Game {
 		}, time);
 	}
 
+	getDebugLogPath(filename?: string): string {
+		if (!filename) filename = Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "");
+		return path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
+	}
+
 	debugLog(log: string): void {
 		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
 	}
 
 	writeDebugLog(): void {
 		if (this.debugLogs.length) {
-			const filePath = path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" +
-				Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "") + ".txt");
-
-			void Tools.safeWriteFile(filePath, this.debugLogs.join("\n\n"))
+			void Tools.safeWriteFile(this.getDebugLogPath(), this.debugLogs.join("\n\n"))
 				.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
 		}
 
@@ -842,6 +846,7 @@ export class ScriptedGame extends Game {
 		this.destroyPlayers();
 
 		this.writeDebugLog();
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " ended");
 
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
