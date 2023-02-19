@@ -331,7 +331,7 @@ export class ScriptedGame extends Game {
 		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
 
-		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " created");
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.format.nameWithOptions + " created");
 
 		return true;
 	}
@@ -846,7 +846,7 @@ export class ScriptedGame extends Game {
 		this.destroyPlayers();
 
 		this.writeDebugLog();
-		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " ended");
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.format.nameWithOptions + " ended");
 
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
