@@ -90,11 +90,11 @@ class MagikarpsWaterWheel extends ScriptedGame {
 	spinWheel(player: Player): void {
 		const wheel = this.playerWheels.get(player)!;
 		const wheelStats = this.wheels[wheel];
+		const inactiveKarp = player.inactiveRounds === this.playerInactiveRoundLimit;
 		let html = '<center><h3>' + wheel.charAt(0).toUpperCase() + wheel.substr(1) + ' wheel</h3>The chances of Magikarp are ' +
 			'<b>' + this.wheels[wheel].magikarpChance + '%</b><br />';
 		let magikarp = false;
 		let goldenMagikarp = false;
-		let inactiveKarp = player.inactiveRounds === this.playerInactiveRoundLimit;
 		if (this.random(100) <= wheelStats.magikarpChance || inactiveKarp) {
 			magikarp = true;
 			const gif = Dex.getPokemonModel(this.mascot!);
@@ -178,7 +178,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		const len = this.getRemainingPlayerCount();
 		if (!len) return this.end();
 		this.roundCarp = false;
-		if (this.round !== 1) { 
+		if (this.round !== 1) {
 			for (const i in this.players) {
 				if (!this.players[i].frozen && !this.roundActions.has(this.players[i])) this.addPlayerInactiveRound(this.players[i]);
 			}
