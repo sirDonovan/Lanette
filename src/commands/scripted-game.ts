@@ -328,6 +328,12 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
+            if (!user.registered) {
+                user.say("You must have registered your account to play bot challenges.");
+                user.say("You can do so through typing ``/register``!");
+                return;
+            }
+
 			if (Games.isReloadInProgress()) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
@@ -440,6 +446,12 @@ export const commands: BaseCommandDefinitions = {
 				return;
 			}
 
+            if (!user.registered) {
+                user.say("You must have registered your account to play one vs. one challenges.");
+                user.say("You can do so through typing ``/register``!");
+                return;
+            }
+
 			if (Games.isReloadInProgress()) {
 				user.say(CommandParser.getErrorText(['reloadInProgress']));
 				return;
@@ -479,6 +491,11 @@ export const commands: BaseCommandDefinitions = {
 				user.say("You cannot challenge yourself.");
 				return;
 			}
+
+            if (!targetUser.registered) {
+                room.say("Defender must have registered their account to play one vs. one challenges.");
+                return;
+            }
 
 			if (targets.length === 1) {
 				user.say(CommandParser.getErrorText(['invalidGameFormat']));

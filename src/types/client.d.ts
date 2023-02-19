@@ -126,6 +126,21 @@ export interface IUserDetailsResponse {
 	userid: string;
 }
 
+export interface IUserSimData {
+    username: string;
+    userid: string;
+    registertime: number; // 0 if unregistered
+    group: number;
+    ratings: Dict<IUserRatingData>;
+}
+
+export interface IUserRatingData {
+    elo: string;
+    gxe: string;
+    rpr: string;
+    rprd: string;
+}
+
 export type ChatLogType = 'chat' | 'html' | 'uhtml';
 
 export interface IChatLogEntry {

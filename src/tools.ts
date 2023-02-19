@@ -8,7 +8,7 @@ import type { IColorPick } from './html-pages/components/color-picker';
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
-import type { IClientMessageTypes, IParsedIncomingMessage } from './types/client';
+import type { IClientMessageTypes, IParsedIncomingMessage, IUserSimData } from './types/client';
 import type {
 	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TextColorHex, TimeZone
 } from './types/tools';
@@ -72,6 +72,7 @@ const BUTTON_VALUE_REGEX = / value ?= ?"([^"]*)"/i;
 const MSG_COMMAND_REGEX = /^\/(?:msg|pm|w|whisper|botmsg) /;
 const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
+const MAIN_ROUTE = 'https://pokemonshowdown.com'
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
@@ -1102,7 +1103,7 @@ export class Tools {
 	}
 
 	async fetchUrl(urlToFetch: string): Promise<string | Error> {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve: PromiseResolve<string>, reject: PromiseReject<Error>) => {
 			let data = '';
 			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
@@ -1118,6 +1119,25 @@ export class Tools {
 			});
 		});
 	}
+
+    async getUserSimData(username: string): Promise<IUserSimData> {
+        const url = MAIN_ROUTE + '/users/' + this.toId(username) + '.json';
+        return new Promise((resolve) => {
+            const data = this.fetchUrl(url)
+                .then((data) => {
+                    if (typeof data !== 'string') throw data;
+                    resolve(JSON.parse(data));
+                })
+                .catch(() => resolve({
+                        username,
+                        userid: this.toId(username),
+                        registertime: 0,
+                        group: 1,
+                        ratings: {},
+                    })
+                );
+        });
+    }
 
 	parseUsernameText(usernameText: string): {status: string; username: string} {
 		let status = '';

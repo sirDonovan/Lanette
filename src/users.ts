@@ -14,6 +14,7 @@ export class User {
 	game: ScriptedGame | null = null;
 	globalRank: string | null = null;
 	locked: boolean | null = null;
+    registered: boolean = false;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
 	timers: Dict<NodeJS.Timer> | null = null;
@@ -74,6 +75,7 @@ export class User {
 	setGlobalRank(rank: string): void {
 		this.globalRank = rank;
 		this.setIsLocked(rank);
+        this.setIsRegistered();
 	}
 
 	/**Returns `true` if the user's rank changed */
@@ -84,12 +86,18 @@ export class User {
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		this.setIsLocked(rank);
+        this.setIsRegistered();
 		return true;
 	}
 
 	setIsLocked(rank: string): void {
 		this.locked = rank === Client.getGroupSymbols().locked;
 	}
+
+    async setIsRegistered(): Promise<void> {
+        const data = await Tools.getUserSimData(this.id);
+        this.registered = data.registertime !== 0;
+    }
 
 	addChatLog(log: string): void {
 		this.chatLog.unshift({log, type: 'chat'});
@@ -343,6 +351,7 @@ export class Users {
 
 		user.setName(name);
 		user.id = id;
+        user.setIsRegistered();
 		if (user.autoconfirmed === false) user.autoconfirmed = null;
 
 		this.users[id] = user;
