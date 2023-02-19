@@ -87,8 +87,6 @@ export class ScriptedGame extends Game {
 			const date = new Date();
 			this.debugLogs.push(date.toUTCString() + " (" + date.toTimeString() + ")");
 		}
-
-		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " created");
 	}
 
 	static resolveInputProperties<T extends ScriptedGame>(format: IGameFormat<T>, mode: IGameMode | undefined,
@@ -332,6 +330,8 @@ export class ScriptedGame extends Game {
 		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
 		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
+
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), this.format.nameWithOptions + " created");
 
 		return true;
 	}
