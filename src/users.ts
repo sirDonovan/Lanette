@@ -75,7 +75,7 @@ export class User {
 	setGlobalRank(rank: string): void {
 		this.globalRank = rank;
 		this.setIsLocked(rank);
-        if (this.isInChallengeRoom()) this.setIsCanPromote();
+        if (this.isInChallengeRoom()) this.setIsCanPromote().catch(console.error);
 	}
 
 	/**Returns `true` if the user's rank changed */
@@ -86,7 +86,7 @@ export class User {
 		this.rooms.set(room, {lastChatMessage: roomData ? roomData.lastChatMessage : 0, rank});
 
 		this.setIsLocked(rank);
-        if (this.isInChallengeRoom(room)) this.setIsCanPromote();
+        if (this.isInChallengeRoom(room)) this.setIsCanPromote().catch(console.error);
 		return true;
 	}
 
@@ -133,9 +133,9 @@ export class User {
 
     isInChallengeRoom(room?: Room): boolean {
         if (Config.allowChallengeGames) {
-            if (room) return Config.allowChallengeGames!.includes(room.id);
+            if (room) return Config.allowChallengeGames.includes(room.id);
             return Array.from(this.rooms).some(
-                ([room]) => Config.allowChallengeGames!.includes(room.id)
+                ([targetRoom]) => Config.allowChallengeGames!.includes(targetRoom.id)
             );
         }
         return false;
@@ -362,7 +362,7 @@ export class Users {
 
 		user.setName(name);
 		user.id = id;
-        if (user.isInChallengeRoom()) user.setIsCanPromote();
+        if (user.isInChallengeRoom()) user.setIsCanPromote().catch(console.error);
 		if (user.autoconfirmed === false) user.autoconfirmed = null;
 
 		this.users[id] = user;

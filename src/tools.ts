@@ -72,7 +72,7 @@ const BUTTON_VALUE_REGEX = / value ?= ?"([^"]*)"/i;
 const MSG_COMMAND_REGEX = /^\/(?:msg|pm|w|whisper|botmsg) /;
 const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
-const MAIN_ROUTE = 'https://pokemonshowdown.com'
+const MAIN_ROUTE = 'https://pokemonshowdown.com';
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
@@ -1103,7 +1103,7 @@ export class Tools {
 	}
 
 	async fetchUrl(urlToFetch: string): Promise<string | Error> {
-		return new Promise((resolve: PromiseResolve<string>, reject: PromiseReject<Error>) => {
+		return new Promise((resolve, reject) => {
 			let data = '';
 			const request = https.get(urlToFetch, res => {
 				res.setEncoding('utf8');
@@ -1121,12 +1121,11 @@ export class Tools {
 	}
 
     async getUserSimData(username: string): Promise<IUserSimData> {
-        const url = MAIN_ROUTE + '/users/' + this.toId(username) + '.json';
         return new Promise((resolve) => {
-            const data = this.fetchUrl(url)
+            this.fetchUrl(MAIN_ROUTE + '/users/' + this.toId(username) + '.json')
                 .then((data) => {
                     if (typeof data !== 'string') throw data;
-                    resolve(JSON.parse(data));
+                    resolve(JSON.parse(data) as IUserSimData);
                 })
                 .catch(() => resolve({
                         username,
