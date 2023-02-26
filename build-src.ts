@@ -47,12 +47,17 @@ export const getCurrentPokemonShowdownSha = (): string | false => {
 
 export const pullLatestPokemonShowdownSha = (): string | false => {
 	// revert package.json changes
-	const cmd = exec('git reset --hard');
+	let cmd = exec('git reset --hard');
 	if (cmd === false) {
 		return false;
 	}
 
-	return exec('git pull');
+	cmd = exec('git pull');
+	if (cmd === false) {
+		return false;
+	}
+
+	return getCurrentPokemonShowdownSha();
 };
 
 export const rewritePokemonShowdownPackageJson = (): void => {
