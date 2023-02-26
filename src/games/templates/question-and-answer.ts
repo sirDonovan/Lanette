@@ -474,8 +474,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	}
 
 	getAnswersHtml(answers: readonly string[]): string {
-		return "<div class='infobox-limited' style='max-height: 60px'><b>Answer" +
-			(answers.length > 1 ? "s" : "") + "</b>: <i>" + Tools.joinList(answers) + "</i></div>";
+		return "<div class='infobox-limited' style='max-height: 60px'><b>" +
+            (this.guessedAnswers.length ? answers.length > 1 ? "Other answers" : "Another answer" :
+             answers.length > 1 ? "Answers" : "Answer") + "</b>: <i>" + Tools.joinList(answers) + "</i></div>";
 	}
 
 	displayAnswers(givenAnswer?: string, finalAnswer?: boolean): void {
@@ -633,16 +634,32 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 							(awardedPoints > 1 ? "s" : "") + ".");
 					}
 				} else {
-					this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
+					if (this.maxCorrectPlayersPerRound &&
+                        this.maxCorrectPlayersPerRound > 1 &&
+                        this.answers.length > 1)
+                        this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) +
+                            "** correct player! There are **" + ((this.answers.length > this.maxCorrectPlayersPerRound ?
+                              this.maxCorrectPlayersPerRound - this.guessedAnswers.length : this.answers.length) - 1)
+                            + "** answers remaining.");
+                    else {
+                        this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
+                    }
 				}
 
 				if (this.maxCorrectPlayersPerRound && this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
+                    if (this.answers.length > 1) {
+                        this.removeAnswer(answer);
+                        this.displayAnswers();
+                    }
 					this.answers = [];
 				} else {
 					if (!this.allowRepeatCorrectAnswers) this.removeAnswer(answer);
 				}
 
-				if (!this.answers.length) this.setTimeout(() => this.nextRound(), 5000);
+				if (!this.answers.length) {
+                    if (this.maxCorrectPlayersPerRound > 1) this.say("All answers have guessed!");
+                    this.setTimeout(() => this.nextRound(), 5000);
+                }
 			}
 
 			return true;
