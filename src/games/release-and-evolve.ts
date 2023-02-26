@@ -8,12 +8,13 @@ const description = "Every player is given a randomly generated team to start ou
 	"must 'release' 1 of your Pokemon (remove it from your team) and then evolve 1 Pokemon on your team.";
 const bannedTiers: string[] = ['Uber', 'OU', 'UU', 'UUBL', 'RU', 'RUBL', 'NU', 'NUBL', 'PU', 'PUBL'];
 
+// max players > 32 eventually runs out of memory
 class ReleaseAndEvolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	dropsPerRound = 1;
 	evolutionsPerRound = 1;
 	startingTeamsLength = 6;
-	maxPlayers = 64;
+	maxPlayers = 32;
 	requiredDrop = true;
 	requiredEvolution = true;
 	canReroll = true;
