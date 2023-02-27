@@ -636,12 +636,13 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				} else {
 					if (this.maxCorrectPlayersPerRound &&
                         this.maxCorrectPlayersPerRound > 1 &&
-                        this.answers.length > 1)
+                        this.answers.length > 1) {
+                        const remainingAnswerSize = (this.answers.length > this.maxCorrectPlayersPerRound ?
+                              this.maxCorrectPlayersPerRound - this.guessedAnswers.length : this.answers.length) - 1;
                         this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) +
-                            "** correct player! There are **" + ((this.answers.length > this.maxCorrectPlayersPerRound ?
-                              this.maxCorrectPlayersPerRound - this.guessedAnswers.length : this.answers.length) - 1)
-                            + "** answers remaining.");
-                    else {
+                            "** correct player! There " + (remainingAnswerSize > 1 ? "are" : "is") + " **" +
+                            remainingAnswerSize + "** answer" + (remainingAnswerSize > 1 ? "s" : "") + " remaining.");
+                    } else {
                         this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
                     }
 				}
@@ -657,7 +658,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 				}
 
 				if (!this.answers.length) {
-                    if (this.maxCorrectPlayersPerRound > 1) this.say("All answers have guessed!");
+                    if (this.maxCorrectPlayersPerRound > 1) this.say("All answers have been guessed!");
                     this.setTimeout(() => this.nextRound(), 5000);
                 }
 			}
