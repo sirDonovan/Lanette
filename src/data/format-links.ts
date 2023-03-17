@@ -1,6 +1,23 @@
 import type { IFormatDataLinks } from "../types/dex";
 
 export const formatLinks: Dict<IFormatDataLinks> = {
+	// Gen 9
+	'gen9almostanyability': {
+		teams: 'https://www.smogon.com/forums/threads/3710568/#post-9390590',
+	},
+	'gen9ou': {
+		teams: 'https://www.smogon.com/forums/threads/3712513/',
+	},
+	'gen9ru': {
+		teams: 'https://www.smogon.com/forums/threads/3717072/',
+	},
+	'gen9nu': {
+		teams: 'https://www.smogon.com/forums/threads/3718115/',
+	},
+	'gen9monotype': {
+		teams: 'https://www.smogon.com/forums/threads/3715794/',
+	},
+
 	// Gen 8
 	'gen8anythinggoes': {
 		info: 'https://www.smogon.com/dex/ss/formats/ag',
@@ -238,9 +255,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3661782/post-8407209',
 	},
 	*/
-	'gen7mixandmega': {
-		teams: 'https://www.smogon.com/forums/threads/3679730/post-8778656',
-	},
+	// 'gen7mixandmega': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3679730/post-8778656',
+	// },
 	'gen7stabmons': {
 		teams: 'https://www.smogon.com/forums/threads/3675320/#post-8697545',
 	},

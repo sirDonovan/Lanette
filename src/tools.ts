@@ -827,10 +827,10 @@ export class Tools {
 		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
 			date.getSeconds()];
 		if (human) {
-			parts.push(parts[3] >= 12 ? 'pm' : 'am');
+			parts.push(parts[3] as number >= 12 ? 'pm' : 'am');
 			parts[3] = (parts[3] as number) % 12 || 12;
 		}
-		parts = parts.map(val => val < 10 ? '0' + val : '' + val);
+		parts = parts.map(val => typeof val === 'number' && val < 10 ? '0' + val : '' + val);
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
