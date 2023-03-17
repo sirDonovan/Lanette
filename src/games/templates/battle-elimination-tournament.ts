@@ -15,6 +15,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 	tournamentStarted: boolean = false;
 	usesTournamentStart = true;
 	usesTournamentJoin = true;
+
 	declare subRoom: Room;
 
 	afterInitialize(): void {
@@ -22,7 +23,10 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 		this.firstRoundTime = (this.autoDqMinutes * 60 * 1000) + this.firstRoundExtraTime;
 
-		if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
+		if (Config.tournamentGamesSameRoom && Config.tournamentGamesSameRoom.includes(this.room.id)) {
+			this.subRoom = this.room;
+			this.sameRoomSubRoom = true;
+		} else if (Config.tournamentGamesSubRoom && this.room.id in Config.tournamentGamesSubRoom) {
 			const subRoom = Rooms.get(Config.tournamentGamesSubRoom[this.room.id]);
 			if (!subRoom) {
 				this.say(Users.self.name + " must first join the room '" + Config.tournamentGamesSubRoom[this.room.id] + "'.");
@@ -155,7 +159,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	createTournament(): void {
 		if (this.subRoom.tournament) {
-			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament in " + this.subRoom.title + " to end.");
+			this.say("You must wait for the " + this.subRoom.tournament.name + " tournament" +
+				(!this.sameRoomSubRoom ? " in " + this.subRoom.title : "") + " to end.");
 			this.deallocate(true);
 			return;
 		}
@@ -175,11 +180,27 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 				if (customRules.length) {
 					this.subRoom.setTournamentRules(customRules.join(","));
 
+					const customRuleInfo = Dex.getCustomRuleInfoDisplay(customRules);
+					if (customRuleInfo) this.subRoom.sayHtml(customRuleInfo);
+
 					this.pokedex = this.shuffle(this.pokedex);
 				}
 
 				this.subRoom.announce("You must join the tournament in this room to play!" +
 					(!this.canRejoin ? " Once you leave, you cannot re-join." : ""));
+
+				if (Config.tournamentGameRoomAdvertisements && this.room.id in Config.tournamentGameRoomAdvertisements) {
+					let html = "<b>" + Users.self.name + " is hosting a " + this.format.nameWithOptions +
+						" tournament!</b>";
+					if (this.htmlPageGameDescription) html += "<br />" + this.htmlPageGameDescription;
+					html += "<br /><br />" + Client.getCommandButton("/join " + this.subRoom.id, "-> Join " +
+						(this.subRoom.groupchat ? "the groupchat" : this.subRoom.title) + " to play!");
+
+					for (const roomId of Config.tournamentGameRoomAdvertisements[this.room.id]) {
+						const advertisementRoom = Rooms.get(roomId);
+						if (advertisementRoom) advertisementRoom.sayHtml(html);
+					}
+				}
 
 				this.tournamentCreated = true;
 			},
@@ -254,7 +275,13 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 	onTournamentPlayerLeave(name: string): void {
 		if (this.started) {
-			const player = this.players[Tools.toId(name)];
+			let player = this.players[Tools.toId(name)];
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (!player && name.startsWith(Tools.guestUserPrefix)) {
+				const offlinePlayers = this.getOfflinePlayers();
+				if (offlinePlayers.length === 1) player = offlinePlayers[0];
+			}
+
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (player && !player.eliminated) {
 				this.debugLog(player.name + " left the tournament");
@@ -357,7 +384,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		} else {
 			this.playerCap = 0;
 			for (const i in players) {
-				if (!(players[i].id in this.players)) {
+				// ignore users logging out before the tournament starts
+				if (!(players[i].id in this.players) && this.playerCount < this.maxPlayers) {
 					this.addTournamentPlayer(players[i]);
 				}
 			}

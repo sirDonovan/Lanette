@@ -601,17 +601,7 @@ class CustomFormatManager extends HtmlPageBase {
 		let changedRules = false;
 		let changedTiers = false;
 
-		const pokemonTags = Dex.getPokemonTagsList();
-		const pokemonTagsById: Dict<string> = {
-			'allabilities': 'All Abilities',
-			'allitems': 'All Items',
-			'allmoves': 'All Moves',
-			'allpokemon': 'All Pokemon',
-		};
-
-		for (const tag of pokemonTags) {
-			pokemonTagsById[Tools.toId(tag)] = tag;
-		}
+		const pokemonTagRules = Dex.getData().pokemonTagRules;
 
 		const newCustomRules = this.nonValueCustomRules.slice();
 		const newCustomRuleTags = Object.assign({}, this.nonValueCustomRuleTags);
@@ -715,7 +705,7 @@ class CustomFormatManager extends HtmlPageBase {
 					changedPokemon = true;
 				} else if (part.startsWith(tierTag)) {
 					const id = Tools.toId(part.split(":")[1]);
-					if (!(id in pokemonTagsById)) continue;
+					if (!(id in pokemonTagRules)) continue;
 
 					if (complexBanSymbol) {
 						if (formattedName) formattedName += " " + complexBanSymbol + " ";
@@ -723,7 +713,7 @@ class CustomFormatManager extends HtmlPageBase {
 						tag = tierTag + id;
 					}
 
-					formattedName += pokemonTagsById[id];
+					formattedName += pokemonTagRules[id];
 					changedTiers = true;
 				} else {
 					const valueParts = part.split("=");
@@ -745,11 +735,21 @@ class CustomFormatManager extends HtmlPageBase {
 
 						continue;
 					} else {
-						const format = Dex.getFormat(part);
-						if (!format) continue;
+						const id = Tools.toId(part);
+						let ruleName = "";
+						if (id === 'unreleased') {
+							ruleName = 'Unreleased';
+						} else if (id === 'nonexistent') {
+							ruleName = 'Non-existent';
+						} else {
+							const format = Dex.getFormat(part);
+							if (format) ruleName = format.name;
+						}
+
+						if (!ruleName) continue;
 
 						if (complexBanSymbol && formattedName) formattedName += " " + complexBanSymbol + " ";
-						formattedName += format.name;
+						formattedName += ruleName;
 					}
 
 					changedRules = true;

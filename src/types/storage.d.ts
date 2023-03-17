@@ -216,6 +216,7 @@ export interface IDatabase {
 	gameHostingLeaderbaord?: ILeaderboard;
 	gameHostBoxes?: Dict<IGameHostBox>;
 	gameHostDisplays?: Dict<IGameHostDisplay>;
+	gameManagers?: string[];
 	gameScriptedBoxes?: Dict<IGameScriptedBox>;
 	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;

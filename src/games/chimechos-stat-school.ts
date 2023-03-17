@@ -49,6 +49,7 @@ export const game: IGameFile<ChimechosStatSchool> = Games.copyTemplateProperties
 	mascot: "Chimecho",
 	minigameCommand: 'statschool',
 	minigameCommandAliases: ['sschool'],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon with the given base stats!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the Pokemon with the given base stats (one chance " +
+		"to guess correctly)!",
 	modes: ["collectiveteam", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 });

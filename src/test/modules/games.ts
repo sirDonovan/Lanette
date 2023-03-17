@@ -18,6 +18,14 @@ if (testOptions.games) {
 	for (const game of games) {
 		formatsToTest.push(Games.getExistingFormat(game));
 	}
+} else if (testOptions.categories) {
+	const categories = testOptions.categories.split(',').map(x => Tools.toId(x));
+	for (const i in Games.getFormats()) {
+		const format = Games.getExistingFormat(i);
+		if (format.category && categories.includes(Tools.toId(format.category))) {
+			formatsToTest.push(format);
+		}
+	}
 } else {
 	for (const i in Games.getFormats()) {
 		const format = Games.getExistingFormat(i);
@@ -63,6 +71,9 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 		if (testConfig.inputTargets && testConfig.commands && testConfig.inputTargets.length !== testConfig.commands.length) {
 			throw new Error(format.name + " must have the same number of test inputTargets and commands");
 		}
+
+		if (testConfig.regressionOnly && !testOptions.regression) continue;
+
 		const formats = testConfig.inputTargets ? testConfig.inputTargets : [format.inputTarget];
 		const commands = testConfig.commands ? testConfig.commands : null;
 		const numberOfTests = Math.max(formats.length, commands ? commands.length : 0);
@@ -159,7 +170,7 @@ for (const i in modes) {
 			}
 		}
 
-		if (!formats.length && !testOptions.games) {
+		if (!formats.length && !testOptions.games && !testOptions.categories) {
 			throw new Error("No format found for " + mode.name + " tests");
 		}
 

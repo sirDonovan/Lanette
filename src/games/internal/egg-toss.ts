@@ -31,6 +31,8 @@ class EggToss extends ScriptedGame {
 	}
 
 	onUserLeaveRoom(room: Room, user: User): void {
+		super.onUserLeaveRoom(room, user);
+
 		if (!this.started || !(user.id in this.players) || this.players[user.id].eliminated) return;
 		this.currentHolder = this.players[user.id];
 		this.explodeEgg("for leaving the room");
@@ -114,6 +116,10 @@ const commands: GameCommandDefinitions<EggToss> = {
 				this.say("You cannot egg someone who is marked as away.");
 				return false;
 			}
+            if (targetUser.locked) {
+                this.say("You cannot egg someone who is locked.");
+                return false;
+            }
 			if (targetUser.isBot(this.room) && targetUser !== Users.self) {
 				this.say("You cannot egg a bot that is not " + Users.self.name + ".");
 				return false;

@@ -7,12 +7,13 @@ const name = "Release and De-volve";
 const description = "Every player is given a randomly generated team to start out. Each battle that you win, you " +
 	"must 'release' 1 of your Pokemon (remove it from your team) and then de-volve 1 Pokemon on your team.";
 
+// max players > 32 eventually runs out of memory
 class ReleaseAndDevolve extends BattleEliminationTournament {
 	canChangeFormat = true;
 	dropsPerRound = 1;
 	evolutionsPerRound = -1;
 	startingTeamsLength = 6;
-	maxPlayers = 64;
+	maxPlayers = 32;
 	requiredDrop = true;
 	requiredEvolution = true;
 	canReroll = true;

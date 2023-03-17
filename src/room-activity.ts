@@ -15,6 +15,7 @@ export class Player {
 	inactiveRounds: number | undefined;
 	/** The player has met the activity's win condition */
 	metWinCondition: boolean | undefined;
+	offline: boolean = false;
 	round: number | undefined;
 	sentAssistActions: boolean | undefined;
 	sentHtmlPage: string | undefined;
@@ -376,8 +377,16 @@ export abstract class Activity {
 	}
 
 	destroyPlayer(user: User | string, forceDelete?: boolean): Player | undefined {
-		const id = Tools.toId(user);
-		if (!(id in this.players)) return;
+		let id = Tools.toId(user);
+		if (!(id in this.players)) {
+			const offlinePlayers = this.getOfflinePlayers();
+			const name = typeof user === 'string' ? user : user.name;
+			if (name.startsWith(Tools.guestUserPrefix) && offlinePlayers.length === 1) {
+				id = offlinePlayers[0].id;
+			} else {
+				return;
+			}
+		}
 
 		const player = this.players[id];
 		if (this.started && !forceDelete) {
@@ -389,6 +398,27 @@ export abstract class Activity {
 		}
 
 		return player;
+	}
+
+	getOfflinePlayers(): Player[] {
+		const offlinePlayers: Player[] = [];
+		for (const i in this.players) {
+			if (this.players[i].offline && !this.players[i].eliminated) offlinePlayers.push(this.players[i]);
+		}
+
+		return offlinePlayers;
+	}
+
+	onUserJoinRoom(room: Room, user: User): void {
+		if (user.id in this.players) {
+			this.players[user.id].offline = false;
+		}
+	}
+
+	onUserLeaveRoom(room: Room, user: User): void {
+		if (user.id in this.players) {
+			this.players[user.id].offline = true;
+		}
 	}
 
 	generateBattleData(): IBattleGameData {
@@ -637,7 +667,5 @@ export abstract class Activity {
 	onEnd?(): void;
 	onForceEnd?(user?: User, reason?: string): void;
 	onRenamePlayer?(player: Player, oldId: string): void;
-	onUserJoinRoom?(room: Room, user: User): void;
-	onUserLeaveRoom?(room: Room, user: User): void;
 	onUserUpdateStatus?(user: User, status: string, away: boolean): void;
 }

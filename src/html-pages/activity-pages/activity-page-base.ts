@@ -8,6 +8,8 @@ export interface IActivityPageOptions {
 }
 
 export abstract class ActivityPageBase extends HtmlPageBase {
+    useExpirationTimer = false;
+
 	activity: Activity;
     player: Player;
 

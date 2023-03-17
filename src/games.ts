@@ -811,8 +811,8 @@ export class Games {
 
 						if (!pmRoom) return this.say(CommandParser.getErrorText(['noPmGameRoom']));
 					} else {
-						if (!user.hasRank(room, 'voice') || room.game || room.userHostedGame || !Config.allowScriptedGames ||
-							!Config.allowScriptedGames.includes(room.id)) return;
+						if (!global.Games.canUseRestrictedCommand(room, user) || room.game || room.userHostedGame ||
+							!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return;
 						if (!Users.self.hasRank(room, 'bot')) return this.sayError(['missingBotRankForFeatures', 'scripted game']);
 						const remainingGameCooldown = global.Games.getRemainingGameCooldown(room, true);
 						if (remainingGameCooldown > 1000) {
@@ -1025,11 +1025,11 @@ export class Games {
 		return formats;
 	}
 
-	getLeastPlayedFormats(room: Room): IGameFormat[] {
+	getLeastPlayedFormats(room: Room, formatList?: IGameFormat[]): IGameFormat[] {
 		const database = Storage.getDatabase(room);
 		const lastGameFormatTimes = database.lastGameFormatTimes || {};
 
-		return this.getFormatList().sort((a, b) => {
+		return (formatList || this.getFormatList()).sort((a, b) => {
 			const lastGameA = lastGameFormatTimes[a.id] || 0;
 			const lastGameB = lastGameFormatTimes[b.id] || 0;
 			return lastGameA - lastGameB;
@@ -1221,6 +1221,15 @@ export class Games {
 			this.lastUserHostedGames[room.id] > this.lastScriptedGames[room.id])) {
 			return true;
 		}
+		return false;
+	}
+
+	canUseRestrictedCommand(room: Room, user: User, infoCommand?: boolean): boolean {
+		if (user.hasRank(room, infoCommand ? 'star' : 'voice') || user.isDeveloper()) return true;
+
+		const database = Storage.getDatabase(room);
+		if (database.gameManagers && database.gameManagers.includes(user.id)) return true;
+
 		return false;
 	}
 
@@ -1479,7 +1488,17 @@ export class Games {
 			const database = Storage.getDatabase(room);
 			const now = Date.now();
 			if (type === 'tournament') {
-				CommandParser.parse(room, Users.self, Config.commandCharacter + "createrandomtournamentgame", now);
+				let gameTarget = "";
+				const leastPlayedFormats = this.getLeastPlayedFormats(room, this.getTournamentFormatList());
+				for (const leastPlayedFormat of leastPlayedFormats) {
+					if (this.canCreateGame(room, leastPlayedFormat) === true) {
+						gameTarget = leastPlayedFormat.name;
+						break;
+					}
+				}
+
+				CommandParser.parse(room, Users.self,
+					Config.commandCharacter + (gameTarget ? "createtournamentgame " + gameTarget : "createrandomtournamentgame"), now);
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "startskippedcooldownvote", now);
 			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
@@ -1662,6 +1681,22 @@ export class Games {
 		if (!options.gen) options.gen = Dex.getGen();
 		const dex = Dex.getDex('gen' + options.gen);
 		return this.getPokemonList(options).map(x => dex.getPokemonCopy(x));
+	}
+
+	unrefDex(): void {
+		Tools.unrefProperties(this.abilitiesLists);
+		Tools.unrefProperties(this.itemsLists);
+		Tools.unrefProperties(this.movesLists);
+		Tools.unrefProperties(this.nationalDexPokemonLists);
+		Tools.unrefProperties(this.pokemonLists);
+
+		/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+		this.abilitiesLists = Object.create(null);
+		this.itemsLists = Object.create(null);
+		this.movesLists = Object.create(null);
+		this.nationalDexPokemonLists = Object.create(null);
+		this.pokemonLists = Object.create(null);
+		/* eslint-enable */
 	}
 
 	getEffectivenessScore(source: string | IMove, target: string | readonly string[] | IPokemon, inverseTypes?: boolean): number {
@@ -2231,11 +2266,15 @@ export class Games {
 				const format = this.getExistingFormat(key);
 				if (format.disabled || format.tournamentGame || format.searchChallenge) continue;
 				if (format.challengeSettings) {
-					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled) {
+					if (format.challengeSettings.onevsone && format.challengeSettings.onevsone.enabled &&
+						(!format.challengeSettings.onevsone.requiredFreejoin || format.freejoin ||
+						format.defaultOptions.includes('freejoin'))) {
 						oneVsOneGames.push("* " + format.name + "\n");
 					}
 
-					if (format.challengeSettings.botchallenge && format.challengeSettings.botchallenge.enabled) {
+					if (format.challengeSettings.botchallenge && format.challengeSettings.botchallenge.enabled &&
+						(!format.challengeSettings.botchallenge.requiredFreejoin || format.freejoin ||
+						format.defaultOptions.includes('freejoin'))) {
 						let name = format.name;
 						if (format.challengeSettings.botchallenge.requiredFreejoin) name += " (freejoin)";
 						botChallengeGames.push("* " + name + "\n");
@@ -2340,8 +2379,12 @@ export class Games {
 
 			let scriptedGames: string[] = ["## Scripted games", "(listed by category)"];
 			const categoryKeys = Object.keys(categories);
-			categoryKeys.splice(categoryKeys.indexOf(defaultCategory), 1);
-			categoryKeys.push(defaultCategory);
+			const defaultCategoryIndex = categoryKeys.indexOf(defaultCategory);
+			if (defaultCategoryIndex !== -1) {
+				categoryKeys.splice(defaultCategoryIndex, 1);
+				categoryKeys.push(defaultCategory);
+			}
+
 			for (const key of categoryKeys) {
 				scriptedGames.push("## " + key);
 				scriptedGames = scriptedGames.concat(categories[key]);

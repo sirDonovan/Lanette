@@ -11,8 +11,15 @@ export interface IQuietPMButtonOptions {
 	style?: string;
 }
 
+export interface ISendOptions {
+	onExpire?: boolean;
+	onOpen?: boolean;
+	forceSend?: boolean;
+}
+
 export const CLOSE_COMMAND = 'closehtmlpage';
 export const SWITCH_LOCATION_COMMAND = 'switchhtmlpagelocation';
+const EXPIRATION_TIMEOUT_SECONDS = 30 * 60 * 1000;
 
 export abstract class HtmlPageBase {
 	abstract pageId: string;
@@ -24,6 +31,7 @@ export abstract class HtmlPageBase {
 	closeButtonHtml: string = "";
 	components: ComponentBase[] = [];
 	globalRoomPage: boolean = false;
+	expirationTimer: NodeJS.Timeout | null = null;
 	lastRender: string = '';
 	readonly: boolean = false;
 	closingSnapshot: boolean = false;
@@ -31,6 +39,7 @@ export abstract class HtmlPageBase {
 	staffUserView: boolean = false;
 	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
+	useExpirationTimer: boolean = true;
 
 	baseCommand: string;
 	commandPrefix: string;
@@ -51,12 +60,27 @@ export abstract class HtmlPageBase {
 
 		if (userOrPlayer.id in pageList) pageList[userOrPlayer.id].destroy();
 		pageList[userOrPlayer.id] = this;
+
+		this.setExpirationTimer();
 	}
 
 	abstract render(onOpen?: boolean): string;
 
+	setExpirationTimer(): void {
+		if (this.expirationTimer) clearTimeout(this.expirationTimer);
+
+		if (this.useExpirationTimer) this.expirationTimer = setTimeout(() => this.expire(), EXPIRATION_TIMEOUT_SECONDS);
+	}
+
+	expire(): void {
+		this.send({onExpire: true});
+		this.destroy();
+	}
+
 	destroy(): void {
 		if (this.destroyed) throw new Error(this.pageId + " page already destroyed for user " + this.userId);
+
+		if (this.expirationTimer) clearTimeout(this.expirationTimer);
 
 		for (const component of this.components) {
 			component.destroy();
@@ -69,7 +93,7 @@ export abstract class HtmlPageBase {
 	}
 
 	open(): void {
-		this.send(true);
+		this.send({onOpen: true});
 	}
 
 	close(): void {
@@ -171,16 +195,22 @@ export abstract class HtmlPageBase {
 		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render());
 	}
 
-	send(onOpen?: boolean, forceSend?: boolean): void {
+	send(options?: ISendOptions): void {
 		if (this.destroyed) return;
 
-		if (this.beforeSend && !this.beforeSend(onOpen)) return;
+		if (this.beforeSend && !this.beforeSend(options && options.onOpen)) return;
 
 		const user = Users.get(this.userId);
 		if (!user) return;
 
-		const render = this.render(onOpen);
-		if (render === this.lastRender && !this.usedCommandAfterLastRender && !this.closed && !forceSend) return;
+		let render = "";
+		if (options && options.onExpire) {
+			render = "<h1>The page has expired!</h1><hr />" + this.lastRender;
+		} else {
+			render = this.render(options && options.onOpen);
+		}
+
+		if (render === this.lastRender && !this.usedCommandAfterLastRender && !this.closed && !(options && options.forceSend)) return;
 
 		this.lastRender = render;
 		this.usedCommandAfterLastRender = false;
@@ -192,7 +222,9 @@ export abstract class HtmlPageBase {
 			this.getPmRoom().sendHtmlPage(user, this.pageId, render);
 		}
 
-		if (this.onSend) this.onSend(onOpen);
+		if (this.onSend) this.onSend(options && options.onOpen);
+
+		if (!(options && options.onExpire)) this.setExpirationTimer();
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {

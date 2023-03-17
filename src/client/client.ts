@@ -1490,12 +1490,12 @@ export class Client {
 			} else if (messageArguments.html.startsWith('<div class="broadcast-blue"><strong>Moderated chat was disabled!</strong>')) {
 				room.setModchat('off');
 			} else if (messageArguments.html.startsWith('<div class="infobox infobox-limited">This tournament includes:<br />')) {
-				if (room.tournament) {
-					if (lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-rules' &&
-						lastOutgoingMessage.roomid === room.id) {
-						this.websocket.clearLastOutgoingMessage(now);
-					}
+				if (room.tournament && lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-rules' &&
+					lastOutgoingMessage.roomid === room.id) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
 
+				if (room.tournament && !room.tournament.format.customFormatName) {
 					const separatedCustomRules: ISeparatedCustomRules = {
 						addedbans: [], removedbans: [], addedrestrictions: [], addedrules: [], removedrules: [],
 					};

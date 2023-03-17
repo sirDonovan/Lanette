@@ -17,6 +17,11 @@ function getPokemonShowdownFolder() {
 	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
 }
 
+function getPokemonShowdownDistFolder() {
+	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown', pokemonShowdownDistName);
+}
+
+const pokemonShowdownDistName = "dist";
 const removeFromPackageJson = [
 	// dependencies
 	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
@@ -31,7 +36,31 @@ const removeFromPackageJson = [
 		"typescript",
 ];
 
-function rewritePokemonShowdownPackageJson(): void {
+export const getCurrentPokemonShowdownSha = (): string | false => {
+	const revParseOutput = exec('git rev-parse master');
+	if (revParseOutput === false) {
+		throw new Error("git rev-parse error");
+	}
+
+	return revParseOutput.replace("\n", "");
+};
+
+export const pullLatestPokemonShowdownSha = (): string | false => {
+	// revert package.json changes
+	let cmd = exec('git reset --hard');
+	if (cmd === false) {
+		return false;
+	}
+
+	cmd = exec('git pull');
+	if (cmd === false) {
+		return false;
+	}
+
+	return getCurrentPokemonShowdownSha();
+};
+
+export const rewritePokemonShowdownPackageJson = (): void => {
 	const packageJsonPath = path.join(getPokemonShowdownFolder(), "package.json");
 	const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString().split("\n").join("")) as IPackageJson;
 
@@ -49,7 +78,15 @@ function rewritePokemonShowdownPackageJson(): void {
 	}
 
 	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson));
-}
+};
+
+export const buildPokemonShowdown = (): string | false => {
+	console.log("Running pokemon-showdown build script...");
+
+	deleteFolderRecursive(getPokemonShowdownDistFolder());
+
+	return exec('node build');
+};
 
 export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (options === undefined) options = getRunOptions();
@@ -117,33 +154,26 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 		console.log("Checking pokemon-showdown version...");
 		process.chdir(pokemonShowdown);
 
-		const revParseOutput = exec('git rev-parse master');
-		if (revParseOutput === false) {
-			throw new Error("git rev-parse error");
+		const pokemonShowdownBaseDist = getPokemonShowdownDistFolder();
+		const pokemonShowdownDistFolders = [path.join(pokemonShowdownBaseDist, "data"), path.join(pokemonShowdownBaseDist, "sim")];
+
+		const currentSha = getCurrentPokemonShowdownSha();
+		if (currentSha === false) {
+			throw new Error("Error getting current pokemon-showdown commit");
 		}
 
-		const pokemonShowdownDist = [path.join(pokemonShowdown, "dist")];
-
-		const currentSha = revParseOutput.replace("\n", "");
 		const differentSha = currentSha !== lanetteSha;
 
 		let installPokemonShowdownDependencies = false;
 		if (differentSha) {
 			installPokemonShowdownDependencies = true;
 
-			// revert package.json changes
-			let cmd = exec('git reset --hard');
-			if (cmd === false) {
-				throw new Error("git reset error");
-			}
-
-			cmd = exec('git pull');
-			if (cmd === false) {
+			if (pullLatestPokemonShowdownSha() === false) {
 				setToSha(currentSha);
-				throw new Error("git pull error");
+				throw new Error("git reset or pull error");
 			}
 
-			cmd = setToSha(lanetteSha);
+			const cmd = setToSha(lanetteSha);
 			if (cmd === false) {
 				setToSha(currentSha);
 				throw new Error("git reset error");
@@ -151,7 +181,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 
 			console.log("Updated pokemon-showdown to latest compatible commit (" + lanetteSha.substr(0, 7) + ")");
 		} else {
-			for (const dist of pokemonShowdownDist) {
+			for (const dist of pokemonShowdownDistFolders) {
 				if (!fs.existsSync(dist)) {
 					installPokemonShowdownDependencies = true;
 					break;
@@ -175,14 +205,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			}
 		}
 
-		console.log("Running pokemon-showdown build script...");
-
-		for (const dist of pokemonShowdownDist) {
-			deleteFolderRecursive(dist);
-		}
-
-		const nodeBuildOutput = exec('node build');
-		if (nodeBuildOutput === false) {
+		if (buildPokemonShowdown() === false) {
 			if (differentSha) setToSha(currentSha);
 			throw new Error("pokemon-showdown build script error");
 		}
@@ -193,7 +216,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 	if (!options.noBuild) {
 		console.log("Running esbuild...");
 
-		await transpile({ci: options.ci});
+		transpile();
 
 		console.log("Successfully built files");
 	}

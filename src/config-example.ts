@@ -204,6 +204,11 @@ export let disallowQueueingPastTournaments: string[] = [];
 export let tournamentRoomAdvertisements: Dict<string[]> = {};
 
 /**
+ * For each room in the object, a list of rooms (roomids) where created tournament games will be advertised
+ */
+export let tournamentGameRoomAdvertisements: Dict<string[]> = {};
+
+/**
  * The number of minutes to set for the auto DQ timer in tournaments
  */
 export let tournamentAutoDQTimers: Dict<number> = {};
@@ -299,6 +304,11 @@ export let allowScriptedGames: string[] = [];
 export let scriptedGameDebugLogs: string[] = [];
 
 /**
+ * Whether or not debug stats of scripted games are saved
+ */
+export let scriptedGameDebugStats: boolean = false;
+
+/**
  * A list of rooms (roomids) where games are allowed to be hosted
  */
 export let allowUserHostedGames: string[] = [];
@@ -326,7 +336,12 @@ export let allowGameAchievements: string[] = [];
 /**
  * For each room in the object, the subroomid that should be used for tournament games
  */
- export let tournamentGamesSubRoom: Dict<string> = {};
+export let tournamentGamesSubRoom: Dict<string> = {};
+
+/**
+ * A list of rooms (roomids) where tournaments for tournament games are created in the same room
+ */
+export let tournamentGamesSameRoom: string[] = [];
 
 /**
  * A list of rooms (roomids) where game trainer cards are shown for winners

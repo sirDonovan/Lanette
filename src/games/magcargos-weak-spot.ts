@@ -122,7 +122,8 @@ export const game: IGameFile<MagcargosWeakSpot> = Games.copyTemplateProperties(q
 	name: "Magcargo's Weak Spot",
 	mascot: "Magcargo",
 	minigameCommand: 'weakspot',
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the weakness(es) that the given Pokemon share!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess the weakness(es) that the given Pokemon share (one " +
+		"chance to guess correctly)!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	variants: [
 		{

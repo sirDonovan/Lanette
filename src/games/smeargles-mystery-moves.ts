@@ -117,7 +117,8 @@ export const game: IGameFile<SmearglesMysteryMoves> = Games.copyTemplateProperti
 	mascot: "Smeargle",
 	minigameCommand: "mysterymove",
 	minigameCommandAliases: ["mmove"],
-	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a move as hints are revealed!",
+	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a move as hints are revealed (one chance to " +
+		"guess correctly)!",
 	modes: ['collectiveteam'],
 	variants: [
 		{

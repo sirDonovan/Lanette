@@ -6,16 +6,17 @@ import path = require('path');
 import { buildSrc } from './build-src';
 import type { IInputMetadata, InputFolderNames, InputFolders, RunOptionNames, RunOptions } from './src/types/root';
 
-if (!global._esbuildResults) global._esbuildResults = {};
+if (!global._outputFilepaths) global._outputFilepaths = [];
 
 const folderNames: InputFolderNames[] = ['private', 'src', 'web'];
-const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'games', 'gameSeed', 'noBuild', 'mochaRuns', 'script',
-    'grep', 'ci'];
+const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'noBuild', 'mochaRuns',
+	'script', 'grep'];
 const optionAliases: Dict<RunOptionNames> = {
 	'local': 'offline',
 	'incremental': 'incrementalBuild',
 	'module': 'modules',
 	'game': 'games',
+	'category': 'categories',
 };
 
 export function getInputFolders(): InputFolders {
@@ -154,10 +155,6 @@ export function deletePreviousBuild(): void {
 
 		deleteFolderRecursive(inputFolders[folderName].buildPath);
 	}
-
-	try {
-		fs.unlinkSync(path.join(inputFolders.root.inputPath, 'tsconfig.tsbuildinfo'));
-	} catch (e) {} // eslint-disable-line no-empty
 }
 
 export function exec(command: string): string | false {
@@ -175,8 +172,19 @@ export function setToSha(sha: string): string | false {
 	return exec('git reset --hard ' + sha);
 }
 
+export function copyPokemonShowdownShaBase(): void {
+	const inputFolders = getInputFolders();
+	fs.writeFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt'),
+		fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
+}
+
 export function createUntrackedFiles() {
 	const inputFolders = getInputFolders();
+	const pokemonShowdownShaFile = path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt');
+	if (!fs.existsSync(pokemonShowdownShaFile)) {
+		copyPokemonShowdownShaBase();
+    }
+
 	const configFile = path.join(inputFolders.src.inputPath, 'config.ts');
 	if (!fs.existsSync(configFile)) {
 		console.log("Creating a default config.ts in the src folder (you need to edit this)...");
@@ -196,60 +204,63 @@ export function createUntrackedFiles() {
 	}
 }
 
-export async function transpile(options?: RunOptions): Promise<void> {
+export function transpile(): void {
 	const inputFolders = getInputFolders();
 	const tsConfig = path.join(inputFolders.root.inputPath, "tsconfig.json");
 
-	let allInputFiles: string[] = [];
+	const currentOutputFilepaths: string[] = [];
 	for (const folderName of folderNames) {
 		if (folderName === 'root') continue;
 
 		const inputFolder = inputFolders[folderName];
 		const inputFiles = listFilesRecursive(inputFolder.inputPath);
-		allInputFiles = allInputFiles.concat(inputFiles);
+
+		const folderEntryPoints: string[] = [];
 		for (const filepath of inputFiles) {
-			if (filepath in _esbuildResults!) {
-				_esbuildResults![filepath] = await _esbuildResults![filepath].rebuild();
-			} else {
-				if (!filepath.endsWith('.ts') || filepath.endsWith('.d.ts')) continue;
+			if (!filepath.endsWith('.ts') || filepath.endsWith('.d.ts')) continue;
 
-				let outDirectory = inputFolder.buildPath;
-				const relativeFilepath = filepath.substr(inputFolder.inputPath.length + 1);
-				const index = relativeFilepath.lastIndexOf(path.sep);
-				if (index !== -1) {
-					outDirectory = path.join(outDirectory, relativeFilepath.substr(0, index));
-				}
+			folderEntryPoints.push(filepath);
 
-				const result = await esbuild.build({
-					entryPoints: [filepath],
-					format: 'cjs',
-					platform: 'node',
-					sourcemap: true,
-					incremental: true,
-					tsconfig: inputFolder.tsConfig || tsConfig,
-					outdir: outDirectory,
-				}).catch((e: Error) =>  {
-					console.log("Error building file " + filepath + ": " + e.message);
-					process.exit(1);
-				});
-
-				if (!options || !options.ci) {
-					_esbuildResults![filepath] = result;
-				} else {
-					result.rebuild.dispose();
-				}
+			let outputDirectory = inputFolder.buildPath;
+			const relativeFilepath = filepath.substr(inputFolder.inputPath.length + 1);
+			let filename = relativeFilepath;
+			const index = relativeFilepath.lastIndexOf(path.sep);
+			if (index !== -1) {
+				outputDirectory = path.join(outputDirectory, relativeFilepath.substr(0, index));
+				filename = relativeFilepath.substr(index + 1);
 			}
+
+			const outputFilepath = path.join(outputDirectory, filename.substr(0, filename.length - 3) + ".js");
+			if (!global._outputFilepaths!.includes(outputFilepath)) global._outputFilepaths!.push(outputFilepath);
+			currentOutputFilepaths.push(outputFilepath);
+		}
+
+		const result = esbuild.buildSync({
+			entryPoints: folderEntryPoints,
+			format: 'cjs',
+			platform: 'node',
+			sourcemap: true,
+			tsconfig: inputFolder.tsConfig || tsConfig,
+			outdir: inputFolder.buildPath,
+		});
+
+		if (result.errors.length) {
+			console.log("Error building folder " + folderName + ": " + result.errors.map(x => x.text).join("\n"));
+			process.exit(1);
 		}
 	}
 
-    for (const filepath in _esbuildResults) {
-        if (!allInputFiles.includes(filepath)) {
-            _esbuildResults[filepath].rebuild.dispose();
-            delete _esbuildResults[filepath];
+	for (const filepath of global._outputFilepaths!) {
+		if (!currentOutputFilepaths.includes(filepath)) {
+			try {
+				fs.unlinkSync(filepath);
+			} catch (e) {} // eslint-disable-line no-empty
 
-            try {
-                fs.unlinkSync(filepath);
-            } catch (e) {} // eslint-disable-line no-empty
-        }
-    }
+			try {
+				fs.unlinkSync(filepath + ".map");
+			} catch (e) {} // eslint-disable-line no-empty
+
+			global._outputFilepaths!.splice(global._outputFilepaths!.indexOf(filepath), 1);
+		}
+	}
 }

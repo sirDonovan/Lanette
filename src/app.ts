@@ -69,7 +69,7 @@ export function instantiate() {
 }
 
 /**Returns an error message or null if successful */
-export async function reloadModules(username: string, targets: string[]): Promise<string | null> {
+export async function reloadModules(username: string, targets: string[], formatsUpdate?: boolean): Promise<string | null> {
 	let user = Users.get(username);
 	const hasModules: boolean[] = moduleOrder.slice().map(() => false);
 
@@ -122,7 +122,7 @@ export async function reloadModules(username: string, targets: string[]): Promis
 	const buildOptions: RunOptions = {
 		incrementalBuild: "true",
 		noRemote: "true",
-		noSha: !modules.includes('dex') ? "true" : "",
+		noSha: !modules.includes('dex') || formatsUpdate ? "true" : "",
 	};
 
 	if (user) user.say("Running ``esbuild``...");

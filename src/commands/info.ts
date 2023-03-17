@@ -122,8 +122,11 @@ export const commands: BaseCommandDefinitions = {
 	randomdoublesbattle: {
 		command(target, room, user) {
 			if (!this.isPm(room) && !user.hasRank(room, 'star')) return;
-			const pokemon = Dex.getPokemon(target);
-			if (!pokemon) return this.sayError(['invalidPokemon', target]);
+			const pokemon = Dex.getDex('gen8').getPokemon(target);
+			if (!pokemon) {
+				if (Dex.getPokemon(target)) return this.say("Random Doubles Battle data is not yet available for the current gen.");
+				return this.sayError(['invalidPokemon', target]);
+			}
 			if (!pokemon.randomDoubleBattleMoves) return this.say("No Random Doubles Battle data found for " + pokemon.name + ".");
 			const data: string[] = [];
 			for (const move of pokemon.randomDoubleBattleMoves) {

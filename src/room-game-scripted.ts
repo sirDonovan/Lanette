@@ -254,16 +254,18 @@ export class ScriptedGame extends Game {
 		}, time);
 	}
 
+	getDebugLogPath(filename?: string): string {
+		if (!filename) filename = Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "");
+		return path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
+	}
+
 	debugLog(log: string): void {
 		if (this.debugLogsEnabled) this.debugLogs.push(new Date().toTimeString() + ": " + log);
 	}
 
 	writeDebugLog(): void {
 		if (this.debugLogs.length) {
-			const filePath = path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" +
-				Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "") + ".txt");
-
-			void Tools.safeWriteFile(filePath, this.debugLogs.join("\n\n"))
+			void Tools.safeWriteFile(this.getDebugLogPath(), this.debugLogs.join("\n\n"))
 				.catch((e: Error) => console.log("Error exporting game debug log: " + e.message));
 		}
 
@@ -328,6 +330,8 @@ export class ScriptedGame extends Game {
 		if (this.mascot) htmlPageHeader += Dex.getPokemonIcon(this.mascot);
 		htmlPageHeader += (this.format.nameWithOptions || this.format.name) + "</h2>";
 		this.htmlPageHeader = htmlPageHeader;
+
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.format.nameWithOptions + " created");
 
 		return true;
 	}
@@ -756,6 +760,9 @@ export class ScriptedGame extends Game {
 
 		if (this.htmlPages.size) {
 			this.htmlPages.forEach(htmlPage => {
+				// already destroyed in CommandParser.onDestroyUser()
+				if (htmlPage.destroyed) return;
+
 				if (this.dontAutoCloseHtmlPages) {
 					htmlPage.sendClosingSnapshot();
 				} else {
@@ -839,6 +846,7 @@ export class ScriptedGame extends Game {
 		this.destroyPlayers();
 
 		this.writeDebugLog();
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.format.nameWithOptions + " ended");
 
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
@@ -1327,7 +1335,7 @@ export class ScriptedGame extends Game {
 	}
 
 	sendHtmlPage(player: Player, forceSend?: boolean): void {
-		if (this.getHtmlPage) this.getHtmlPage(player).send(false, forceSend);
+		if (this.getHtmlPage) this.getHtmlPage(player).send({forceSend});
 	}
 
 	sendChatHtmlPage(player: Player): void {

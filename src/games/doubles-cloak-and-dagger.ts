@@ -28,6 +28,7 @@ export const game: IGameFile<DoublesCloakAndDagger> = Games.copyTemplateProperti
 	aliases: ['doublescloakdagger', 'dcd'],
 	class: DoublesCloakAndDagger,
 	description,
+	disabled: true,
 	name,
 	variants: [
 		{

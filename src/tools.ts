@@ -1,9 +1,10 @@
 import fs = require('fs/promises');
 import https = require('https');
+import Module = require('module');
 import path = require('path');
 import url = require('url');
-import type { IColorPick } from './html-pages/components/color-picker';
 
+import type { IColorPick } from './html-pages/components/color-picker';
 import type { PRNG } from './lib/prng';
 import type { Room } from './rooms';
 import { eggGroupHexCodes, hexCodes, namedHexCodes, pokemonColorHexCodes, moveCategoryHexCodes, typeHexCodes } from './tools-hex-codes';
@@ -12,6 +13,8 @@ import type {
 	BorderType, HexCode, IExtractedBattleId, IHexCodeData, IParsedSmogonLink, IWriteQueueItem, NamedHexCode, TextColorHex, TimeZone
 } from './types/tools';
 import type { IParam, IParametersGenData, ParametersSearchType } from './workers/parameters';
+import { buildPokemonShowdown, getCurrentPokemonShowdownSha, pullLatestPokemonShowdownSha } from './../build-src';
+import { setToSha } from '../tools';
 
 const TABLE_PADDING_SIZE = 2;
 const TABLE_TEXT_SIZE = 18;
@@ -79,9 +82,11 @@ const SMOGON_THREADS_PREFIX = 'https://www.smogon.com/forums/threads/';
 const SMOGON_POSTS_PREFIX = 'https://www.smogon.com/forums/posts/';
 const SMOGON_PERMALINK_PAGE_PREFIX = "page-";
 const SMOGON_PERMALINK_POST_PREFIX = "post-";
-const maxMessageLength = 1000;
-const maxUsernameLength = 18;
-const githubApiThrottle = 2 * 1000;
+const MAX_MESSAGE_LENGTH = 1000;
+const MAX_USERNAME_LENGTH = 18;
+const GITHUB_API_THROTTLE = 2 * 1000;
+const UPDATE_POKEMON_SHOWDOWN_TIMEOUT = 30 * 1000;
+const UPDATE_POKEMON_SHOWDOWN_ATTEMPTS = 60;
 
 // __dirname will be [..]/build/src
 const rootFolder = path.resolve(__dirname, '..', '..');
@@ -106,8 +111,8 @@ export class Tools {
 	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
 	readonly mainServer: string = MAIN_SERVER;
 	readonly mainReplayServer: string = MAIN_REPLAY_SERVER;
-	readonly maxMessageLength: typeof maxMessageLength = maxMessageLength;
-	readonly maxUsernameLength: typeof maxUsernameLength = maxUsernameLength;
+	readonly maxMessageLength: typeof MAX_MESSAGE_LENGTH = MAX_MESSAGE_LENGTH;
+	readonly maxUsernameLength: typeof MAX_USERNAME_LENGTH = MAX_USERNAME_LENGTH;
 	readonly minRoomHeight: number = 500;
 	readonly minRoomWidth: number = 350;
 	readonly namedHexCodes: typeof namedHexCodes = namedHexCodes;
@@ -131,13 +136,14 @@ export class Tools {
 	readonly unsafeApiCharacterRegex: RegExp = UNSAFE_API_CHARACTER_REGEX;
 	readonly vowels: string = "aeiou";
 
-	lastGithubApiCall: number = 0;
-	currentAppendFiles: Dict<string> = {};
-	appendFileQueue: Dict<string[]> = {};
-	currentSafeFileWrites: Dict<string> = {};
-	safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
+	private lastGithubApiCall: number = 0;
+	private currentAppendFiles: Dict<string> = {};
+	private appendFileQueue: Dict<string[]> = {};
+	private currentSafeFileWrites: Dict<string> = {};
+	private safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
 
-	onReload(previous: Partial<Tools>): void {
+	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
+	onReload(previous: Tools): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
 		if (previous.currentAppendFiles) Object.assign(this.currentAppendFiles, previous.currentAppendFiles);
 		if (previous.appendFileQueue) Object.assign(this.appendFileQueue, previous.appendFileQueue);
@@ -152,6 +158,7 @@ export class Tools {
 		this.unrefProperties(previous.typeHexCodes);
 		this.unrefProperties(previous);
 	}
+	/* eslint-enable */
 
 	parseIncomingMessage<T = IClientMessageTypes>(incomingMessage: string): IParsedIncomingMessage<T> {
 		let message: string;
@@ -517,13 +524,7 @@ export class Tools {
 		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
 		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
-		if (filepath in this.currentAppendFiles) {
-			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
-			this.appendFileQueue[filepath].push(message);
-		} else {
-			this.currentAppendFiles[filepath] = message;
-			this.appendFileInternal(filepath, message);
-		}
+		this.appendFile(filepath, message);
 	}
 
 	random(limit?: number, prng?: PRNG): number {
@@ -810,7 +811,7 @@ export class Tools {
 
 	prepareMessage(message: string): string {
 		message = this.toString(message);
-		if (message.length > maxMessageLength) message = message.substr(0, maxMessageLength - 3) + "...";
+		if (message.length > MAX_MESSAGE_LENGTH) message = message.substr(0, MAX_MESSAGE_LENGTH - 3) + "...";
 		return message;
 	}
 
@@ -825,10 +826,10 @@ export class Tools {
 		let parts: (number | string)[] = [date.getFullYear(), date.getMonth() + 1, date.getDate(), date.getHours(), date.getMinutes(),
 			date.getSeconds()];
 		if (human) {
-			parts.push(parts[3] >= 12 ? 'pm' : 'am');
+			parts.push(parts[3] as number >= 12 ? 'pm' : 'am');
 			parts[3] = (parts[3] as number) % 12 || 12;
 		}
-		parts = parts.map(val => val < 10 ? '0' + val : '' + val);
+		parts = parts.map(val => typeof val === 'number' && val < 10 ? '0' + val : '' + val);
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
@@ -919,7 +920,7 @@ export class Tools {
 
 	isUsernameLength(name: string): boolean {
 		const id = this.toId(name);
-		return id && id.length <= maxUsernameLength ? true : false;
+		return id && id.length <= MAX_USERNAME_LENGTH ? true : false;
 	}
 
 	deepClone<T>(obj: T): DeepMutable<T> {
@@ -1010,12 +1011,29 @@ export class Tools {
 				}
 			}
 
+			// @ts-expect-error
+			const cacheKeys = Object.keys(Module.Module._cache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// @ts-expect-error
+			const pathCacheKeys = Object.keys(Module.Module._pathCache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+
 			for (const cachedModule of cachedModules) {
 				delete require.cache[cachedModule.filename];
 
-				cachedModule.parent = undefined;
-				cachedModule.children = [];
-				cachedModule.exports = undefined;
+				for (const cacheKey of cacheKeys) {
+					if (cacheKey.includes(cachedModule.filename)) {
+						// @ts-expect-error
+						delete Module.Module._cache[cacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+					}
+				}
+
+				for (const pathCacheKey of pathCacheKeys) {
+					if (pathCacheKey.includes(cachedModule.filename)) {
+						// @ts-expect-error
+						delete Module.Module._pathCache[pathCacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+					}
+				}
+
+				this.unrefProperties(cachedModule);
 			}
 		} catch (e) {
 			console.log(e);
@@ -1271,7 +1289,7 @@ export class Tools {
 	}
 
 	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {
-		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < githubApiThrottle) return;
+		if (this.lastGithubApiCall && (Date.now() - this.lastGithubApiCall) < GITHUB_API_THROTTLE) return;
 
 		const patchData = JSON.stringify({
 			description,
@@ -1317,6 +1335,60 @@ export class Tools {
 		request.end();
 
 		this.lastGithubApiCall = Date.now();
+	}
+
+	updatePokemonShowdown(attempt?: number): void {
+		if (attempt && attempt > UPDATE_POKEMON_SHOWDOWN_ATTEMPTS) return;
+
+		process.chdir(this.pokemonShowdownFolder);
+
+		const currentSha = getCurrentPokemonShowdownSha();
+		if (currentSha === false) return;
+
+		const latestSha = pullLatestPokemonShowdownSha();
+		let buildResult: string | boolean = false;
+		if (latestSha !== false) buildResult = buildPokemonShowdown();
+
+		process.chdir(this.rootFolder);
+
+		if (buildResult !== false) {
+			const modulesList = ["dex", "games", "commandparser", "tournaments"];
+
+			if (!__reloadInProgress) {
+				// eslint-disable-next-line @typescript-eslint/no-floating-promises
+				__reloadModules("", modulesList, true).then(error => {
+					if (error) {
+						if (error.startsWith("You must wait for ")) {
+							setTimeout(() => this.updatePokemonShowdown((attempt || 1) + 1), UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
+						} else {
+							process.chdir(this.pokemonShowdownFolder);
+
+							const resetResult = setToSha(currentSha);
+							buildResult = false;
+							if (resetResult !== false) buildResult = buildPokemonShowdown();
+
+							process.chdir(this.rootFolder);
+
+							if (buildResult !== false) {
+								void __reloadModules("", modulesList, true);
+							}
+						}
+					} else {
+						void this.safeWriteFile(path.join(rootFolder, "pokemon-showdown-sha.txt"), latestSha as string);
+					}
+				});
+			}
+		}
+	}
+
+	appendFile(filepath: string, data: string): void {
+		if (filepath in this.currentAppendFiles) {
+			if (!(filepath in this.appendFileQueue)) this.appendFileQueue[filepath] = [];
+			this.appendFileQueue[filepath].push(data);
+		} else {
+			this.currentAppendFiles[filepath] = data;
+			this.appendFileInternal(filepath, data);
+		}
 	}
 
 	async safeWriteFile(filepath: string, data: string): Promise<void> {

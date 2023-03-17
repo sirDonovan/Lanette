@@ -1,5 +1,6 @@
-import type { IGameFile } from '../types/games';
-import { game as eliminationTournamentGame } from './templates/battle-elimination';
+import { assertStrictEqual } from '../test/test-tools';
+import type { GameFileTests, IGameFile } from '../types/games';
+import { DEFAULT_BATTLE_FORMAT_ID, game as eliminationTournamentGame } from './templates/battle-elimination';
 import { BattleEliminationTournament } from './templates/battle-elimination-tournament';
 
 const name = "Cloak and Dagger";
@@ -23,11 +24,55 @@ class CloakAndDagger extends BattleEliminationTournament {
 
 }
 
+const tests: GameFileTests<CloakAndDagger> = {
+	'name from input properties': {
+		test(game): void {
+			if (game.format.variant) return;
+			const originalName = game.format.nameWithOptions;
+
+			game.validateInputProperties({options: {}});
+			assertStrictEqual(game.format.nameWithOptions, "Cloak and Dagger");
+
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {format: 'almostanyability'}});
+			assertStrictEqual(game.format.nameWithOptions, "Cloak and Dagger: Almost Any Ability");
+
+			game.battleFormatId = DEFAULT_BATTLE_FORMAT_ID;
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {format: 'gen8ou'}});
+			assertStrictEqual(game.format.nameWithOptions, "Cloak and Dagger: Gen 8 OU");
+
+			game.battleFormatId = DEFAULT_BATTLE_FORMAT_ID;
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {rules: 'sametypeclause'}});
+			assertStrictEqual(game.format.nameWithOptions, "Monotype Cloak and Dagger");
+
+			game.battleFormatId = DEFAULT_BATTLE_FORMAT_ID;
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {format: 'almostanyability', rules: 'sametypeclause'}});
+			assertStrictEqual(game.format.nameWithOptions, "Monotype Cloak and Dagger: Almost Any Ability");
+
+			const longRules = 'sametypeclause|-Charmander|-Bulbasaur|-Squirtle|-Cyndaquil|-Chikorita|-Totodile|-Torchic|-Treecko|-Mudkip';
+			game.battleFormatId = DEFAULT_BATTLE_FORMAT_ID;
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {rules: longRules}});
+			assertStrictEqual(game.format.nameWithOptions, "Cloak and Dagger" + Dex.getDefaultCustomRulesName());
+
+			game.battleFormatId = DEFAULT_BATTLE_FORMAT_ID;
+			game.format.nameWithOptions = originalName;
+			game.validateInputProperties({options: {format: 'almostanyability', rules: longRules}});
+			assertStrictEqual(game.format.nameWithOptions, "Cloak and Dagger: Almost Any Ability" + Dex.getDefaultCustomRulesName());
+		},
+	},
+};
+
 export const game: IGameFile<CloakAndDagger> = Games.copyTemplateProperties(eliminationTournamentGame, {
 	aliases: ['cloakdagger', 'cd'],
 	class: CloakAndDagger,
 	description,
+	disabled: true,
 	name,
+	tests: Object.assign({}, eliminationTournamentGame.tests, tests),
 	variants: [
 		// {
 		// 	name: "Cloak and Dagger Ubers",

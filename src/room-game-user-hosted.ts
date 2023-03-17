@@ -814,8 +814,8 @@ export const game: IUserHostedFile = {
 			name: "Rock Paras Scizor",
 			aliases: ["RPS"],
 			description: "A Pokemon themed rock paper scissors tournament where typings determine the winner. PM a Pokemon to the host " +
-				"in hopes of having a type advantage over your opponent. More info: " +
-				"https://docs.google.com/document/d/1H6bRZlxJSfNZvqzxnbTyV2RiXABtuVgZdprTNEfn6bk",
+				"in hopes of having a type advantage over your opponent. " +
+				"<a href='https://docs.google.com/document/d/1H6bRZlxJSfNZvqzxnbTyV2RiXABtuVgZdprTNEfn6bk'>More info</a>",
 		},
 		{
 			name: "Rotom's Dex Trivia",

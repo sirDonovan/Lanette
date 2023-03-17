@@ -78,6 +78,7 @@ export function load(config: typeof Config): typeof Config {
 	if (config.tournamentGamesSubRoom) {
 		config.tournamentGamesSubRoom = objectKeysToRoomId(stringObjectToRoomIds(config.tournamentGamesSubRoom));
 	}
+	if (config.tournamentGamesSameRoom) config.tournamentGamesSameRoom = arrayToRoomIds(config.tournamentGamesSameRoom);
 	if (config.showGameTrainerCards) config.showGameTrainerCards = arrayToRoomIds(config.showGameTrainerCards);
 	if (config.gameTrainerCardRequirements) objectKeysToRoomId(config.gameTrainerCardRequirements);
 	if (config.showGameHostBoxes) config.showGameHostBoxes = arrayToRoomIds(config.showGameHostBoxes);
@@ -135,6 +136,9 @@ export function load(config: typeof Config): typeof Config {
 	if (config.defaultTournamentPlayerCaps) objectKeysToRoomId(config.defaultTournamentPlayerCaps);
 	if (config.tournamentRoomAdvertisements) {
 		config.tournamentRoomAdvertisements = objectKeysToRoomId(stringArrayObjectToRoomIds(config.tournamentRoomAdvertisements));
+	}
+	if (config.tournamentGameRoomAdvertisements) {
+		config.tournamentGameRoomAdvertisements = objectKeysToRoomId(stringArrayObjectToRoomIds(config.tournamentGameRoomAdvertisements));
 	}
 	if (config.randomTournamentTimers) objectKeysToRoomId(config.randomTournamentTimers);
 	if (config.tournamentRules) objectKeysToRoomId(config.tournamentRules);

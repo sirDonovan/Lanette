@@ -138,6 +138,7 @@ export const game: IGameFile<GolemsGalvanicMine> = {
 		"are randomized each round.",
 	freejoin: true,
 	name: "Golem's Galvanic Mine",
+	nonTrivialLoadData: true,
 	mascot: "Golem-Alola",
 	mascotPrefix: "Golem's",
 	scriptedOnly: true,

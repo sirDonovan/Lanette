@@ -36,6 +36,8 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	onUserLeaveRoom(room: Room, user: User): void {
+		super.onUserLeaveRoom(room, user);
+
 		if (!this.started || !this.currentHolder || !(user.id in this.players) || this.players[user.id].eliminated) return;
 		this.currentHolder = this.players[user.id];
 		this.explodeEgg("for leaving the room");

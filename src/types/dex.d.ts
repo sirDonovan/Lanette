@@ -16,6 +16,17 @@ export type LocationData = KeyedDict<RegionName, KeyedDict<LocationType, string[
 export type TrainerClassData = string[];
 export type ModelGeneration = 'rb' | 'gs' | 'rs' | 'dp' | 'bw' | 'xy';
 
+interface IRandomBattleSet {
+	role: string;
+	movepool: string[];
+	teraTypes: string[];
+}
+
+export interface IRandomBattleSetData {
+	level: number;
+	sets: IRandomBattleSet[];
+}
+
 export interface IFormatDataLinks {
 	aliases?: string[];
 	desc?: string;
@@ -89,8 +100,10 @@ export interface IDataTable {
 	readonly learnsetDataKeys: DataKeys;
 	readonly locations: Readonly<LocationData>;
 	readonly moveKeys: DataKeys;
+	readonly moveTagRules: Dict<string>;
 	readonly natureKeys: DataKeys;
 	readonly pokemonKeys: DataKeys;
+	readonly pokemonTagRules: Dict<string>;
 	readonly rulesetKeys: DataKeys;
 	readonly trainerClasses: Readonly<TrainerClassData>;
 	readonly trainerSprites: Readonly<Dict<string>>;

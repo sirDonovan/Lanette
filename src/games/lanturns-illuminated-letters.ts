@@ -163,7 +163,8 @@ export const game: IGameFile<LanturnsIlluminatedLetters> = Games.copyTemplatePro
 	name: "Lanturn's Illuminated Letters",
 	mascot: "Lanturn",
 	minigameCommand: 'iletter',
-	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess the answer as letters are revealed and hidden!',
+	minigameDescription: 'Use <code>' + Config.commandCharacter + 'g</code> to guess the answer as letters are revealed and hidden (one ' +
+		'chance to guess correctly)!',
 	modes: ['collectiveteam'],
 	scriptedOnly: true,
 	variants: [

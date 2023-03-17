@@ -1,11 +1,13 @@
 import { formatLinks } from '../../data/format-links';
 import type { ISeparatedCustomRules } from '../../types/dex';
-import { assert, assertStrictEqual } from './../test-tools';
+import { assert, assertStrictEqual, testOptions } from './../test-tools';
 
 /* eslint-env mocha */
 
 describe("Dex", () => {
 	it('should properly load data', function(this: Mocha.Context) {
+		this.timeout(15000);
+
 		const dexData = Dex.getData();
 
 		assert(dexData.abilityKeys.length > 1);
@@ -75,7 +77,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 842);
+		assertStrictEqual(allPossibleMoves.length, 844);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -142,6 +144,9 @@ describe("Dex", () => {
 			const dex = Dex.getDex('gen' + i);
 			assertStrictEqual(dex.getPokemonCategory(dex.getExistingPokemon('Pikachu')), 'Mouse');
 		}
+
+		assertStrictEqual(Dex.getPokemonCategory(Dex.getExistingPokemon('Raichu')), 'Mouse');
+		assertStrictEqual(Dex.getPokemonCategory(Dex.getExistingPokemon('Raichu-Alola')), 'Mouse');
 
 		const categoryKeys = Object.keys(categories);
 		for (let i = 0; i < categoryKeys.length; i++) {
@@ -239,6 +244,8 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.isPokemon(fake), false);
 	});
 	it('should run methods for all data types', function() {
+		if (!testOptions.regression) return;
+
 		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(60000);
 
@@ -490,6 +497,49 @@ describe("Dex", () => {
 		assertStrictEqual(separatedCustomRules.addedbans.length, 1);
 		assertStrictEqual(separatedCustomRules.addedbans[0], "Empty Ability");
 	});
+	it('should return expected custom format names in getCustomFormatName()', () => {
+		let format = Dex.getExistingFormat("ou@@@+Lunala");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala)");
+
+		format = Dex.getExistingFormat("ou@@@+Moody");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Moody)");
+
+		format = Dex.getExistingFormat("ou@@@+King's Rock");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus King's Rock)");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,+Moody,+King's Rock");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala, Moody, and King's Rock)");
+
+		format = Dex.getExistingFormat("ou@@@-Pikachu");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Adaptability");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Adaptability) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Absorb Bulb");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Absorb Bulb) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@-Pikachu,-Adaptability,-Absorb Bulb");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu, Adaptability, or Absorb Bulb) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@Same Type Clause");
+		assertStrictEqual(Dex.getCustomFormatName(format), "Monotype [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Team Preview) [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@Same Type Clause,!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Team Preview) Monotype [Gen 9] OU");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,-Pikachu,Same Type Clause,!Team Preview");
+		assertStrictEqual(Dex.getCustomFormatName(format), "(No Pikachu or Team Preview) Monotype [Gen 9] OU (Plus Lunala)");
+
+		format = Dex.getExistingFormat("ou@@@*Tackle");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Restricted Tackle)");
+
+		format = Dex.getExistingFormat("ou@@@+Lunala,*Tackle");
+		assertStrictEqual(Dex.getCustomFormatName(format), "[Gen 9] OU (Plus Lunala) (Restricted Tackle)");
+	});
 	it('should return proper values from isImmune()', () => {
 		const normalTypeMove = Dex.getExistingMove('Tackle');
 		const ghostTypePokemon = Dex.getExistingPokemon('Duskull');
@@ -576,7 +626,7 @@ describe("Dex", () => {
 		assertStrictEqual(Dex.getEffectiveness(normalTypeMove, Dex.getExistingPokemon('Spiritomb')), 0);
 	});
 	it('should return proper values from getMoveAvailability()', () => {
-		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 461);
+		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Tackle")), 462);
 		assertStrictEqual(Dex.getMoveAvailability(Dex.getExistingMove("Aeroblast")), 2);
 
 		// bypass gen 8 Sketch check

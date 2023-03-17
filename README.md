@@ -7,7 +7,7 @@ A bot for [Pokemon Showdown](https://github.com/Zarel/Pokemon-Showdown) written 
 Lanette is still in the alpha phase of development so it is **not yet recommended for daily use**. If you do choose to use or experiment with it, please be aware that breaking changes will currently occur without warning and may require manual moving or renaming of config settings and/or data stored in database files.
 
 ## Installation
-Lanette requires [Node.js](https://nodejs.org/) version 16.13.0 (LTS) or later and a command line (e.g. `Powershell` on Windows or `Terminal` on Mac OS/Linux) to run. Once you have compatible software, complete installation by following these steps:
+Lanette requires [Node.js](https://nodejs.org/) version 18.14.0 or later and a command line (e.g. `Powershell` on Windows or `Terminal` on Mac OS/Linux) to run. Once you have compatible software, complete installation by following these steps:
 
 #### Obtain a copy of Lanette
 If you plan to make changes outside of the config file, you should create a fork. Make sure you are on the [main repository](https://github.com/sirDonovan/Lanette) and click "Fork" in the top right to create it. Then, either on your fork or the main repository if you don't plan to make changes, click the "Clone or download" button. In the popup, click either "Open in Desktop" if you're using the [GitHub Desktop program](https://desktop.github.com/) or run the following command if you're using [Git](https://git-scm.com/):

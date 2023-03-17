@@ -198,13 +198,15 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 
 		// may be set in tests
 		if (!this.topCard) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
-			let topCard = this.deck.shift();
-			while (topCard && topCard.action) {
-				this.deck.push(topCard);
-				topCard = this.deck.shift();
+			for (let i = 0; i < this.deck.length; i++) {
+				if (this.deck[i].action) continue;
+				this.topCard = this.deck[i] as IPokemonCard;
+				if (this.hasPlayableCard(this.getTurnCards(this.playerOrder[0]))) {
+					this.deck.splice(i, 1);
+					this.deck.unshift(this.topCard);
+					break;
+				}
 			}
-			if (!topCard) throw new Error("Invalid top card");
-			this.topCard = topCard as IPokemonCard;
 		}
 
 		this.storePreviouslyPlayedCard({card: this.topCard.name, player: Users.self.name});

@@ -1,6 +1,5 @@
 import { EliminationNode } from "./lib/elimination-node";
 import type { Player } from "./room-activity";
-import type { ScriptedGame } from "./room-game-scripted";
 import { Tournament } from "./room-tournament";
 import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
@@ -8,8 +7,8 @@ import type { TrainerSpriteId } from "./types/dex";
 import type { IFormat } from "./types/pokemon-showdown";
 import type { IPastTournament, LeaderboardType } from "./types/storage";
 import type {
-	IClientTournamentNode, ICreateTournamentOptions, IOfficialTournament, ITournamentCreateJson, ITournamentTimerData, ITreeRootPlaces,
-	TournamentPlace
+	IClientTournamentNode, ICreateTournamentOptions, IOfficialTournament, ITournamentCreateJson, ITournamentCreateListener,
+	ITournamentTimerData, ITreeRootPlaces, TournamentPlace
 } from "./types/tournaments";
 import type { User } from "./users";
 
@@ -30,7 +29,7 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<{format: IFormat; game?: ScriptedGame, official?: boolean, callback?: () => void}> = {};
+	createListeners: Dict<ITournamentCreateListener> = {};
 	private nextOfficialTournaments: Dict<IOfficialTournament> = {};
 	private officialTournaments: Dict<IOfficialTournament[]> = {};
 	private tournamentTimerData: Dict<ITournamentTimerData> = {};
@@ -44,7 +43,11 @@ export class Tournaments {
 	loadSchedules(loadAll?: boolean): void {
 		const rooms = Storage.getDatabaseIds();
 		for (const room of rooms) {
-			this.loadRoomSchedule(room, loadAll);
+			try {
+				this.loadRoomSchedule(room, loadAll);
+			} catch (e) {
+				Tools.logError(e as Error, "Failed to load tournament schedule for room " + room);
+			}
 		}
 	}
 
@@ -137,7 +140,8 @@ export class Tournaments {
 		let schedule = database.officialTournamentSchedule.years[monthAndYear.year];
 		let scheduleDays = schedule.months[month].days;
 		let day = 1;
-		let scheduleDay = scheduleDays[day] && scheduleDays[day]!.times[0][0] > scheduleDays[day]!.times[1][0] ? 2 : 1;
+		let scheduleDay = scheduleDays[day] && scheduleDays[day]!.times[1] &&
+			scheduleDays[day]!.times[0][0] > scheduleDays[day]!.times[1][0] ? 2 : 1;
 		date.setMonth(month - 1, day);
 		date.setDate(day);
 		date.setFullYear(monthAndYear.year);
@@ -273,10 +277,11 @@ export class Tournaments {
 
 				tournament.format = this.createListeners[room.id].format;
 
-				if (tournament.format.customFormatName) {
-					tournament.name = tournament.format.customFormatName;
+				const name = this.createListeners[room.id].name || tournament.format.customFormatName;
+				if (name) {
+					tournament.name = name;
 					tournament.manuallyNamed = true;
-					room.nameTournament(tournament.format.customFormatName);
+					if (!this.createListeners[room.id].name) room.nameTournament(name);
 				}
 
 				if (tournament.format.customRules) {
@@ -344,6 +349,11 @@ export class Tournaments {
 			if (Config.displayTournamentFormatInfo && Config.displayTournamentFormatInfo.includes(room.id)) {
 				const formatInfo = Dex.getFormatInfoDisplay(tournament.format, room.id);
 				if (formatInfo) room.sayHtml(formatInfo);
+
+				if (tournament.format.customRules) {
+					const customRuleInfo = Dex.getCustomRuleInfoDisplay(tournament.format.customRules);
+					if (customRuleInfo) room.sayHtml(customRuleInfo);
+				}
 			}
 
 			if (Config.tournamentRoomAdvertisements && room.id in Config.tournamentRoomAdvertisements) {
@@ -848,9 +858,11 @@ export class Tournaments {
 	createTournament(room: Room, options: ICreateTournamentOptions): void {
 		if (room.tournament) return;
 
-		// may be set by a scripted game
-		if (!(room.id in this.createListeners)) {
-			this.createListeners[room.id] = {format: options.format, official: options.official};
+		// may be set by a non-tournament activity
+		if (room.id in this.createListeners) {
+			if (options.name && !this.createListeners[room.id].name) this.createListeners[room.id].name = options.name;
+		} else {
+			this.createListeners[room.id] = {format: options.format, name: options.name, official: options.official};
 		}
 
 		room.createTournament(options.format, options.type || 'elimination', options.cap, options.name);

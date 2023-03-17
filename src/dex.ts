@@ -1,3 +1,4 @@
+import fs = require('fs');
 import path = require('path');
 
 import { badges as badgeData } from './data/badges';
@@ -8,7 +9,7 @@ import { locations as locationData } from './data/locations';
 import { trainerClasses } from './data/trainer-classes';
 import type {
 	CategoryData, CharacterType, ModelGeneration, IAlternateIconNumbers, IDataTable, IGetPossibleTeamsOptions, IGifData,
-	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId
+	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId, IRandomBattleSetData
 } from './types/dex';
 import type {
 	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
@@ -286,6 +287,7 @@ export class Dex {
 	private readonly pokemonShowdownValidator: IPokemonShowdownValidator;
 	private readonly pokemonShowdownTagsModule: IPokemonShowdownTagsModule;
 	private readonly pokemonShowdownTags: Dict<ITagData> = {};
+	private readonly randomBattleSetData: Dict<IRandomBattleSetData> | null = null;
 
 	/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 	private abilitiesList: readonly IAbility[] | null = null;
@@ -334,20 +336,24 @@ export class Dex {
 			this.dexes.base = this;
 			this.dexes[CURRENT_GEN_MOD] = this;
 
-			const dataDist = "dist/data";
-			const simDist = "dist/sim";
+			const dexPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "dex.js");
+			const teamValidatorPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "team-validator.js");
+			const tagsPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "tags.js");
+			const setsJsonPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "random-sets.json");
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			this.pokemonShowdownDexModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "dex.js")) as IPokemonShowdownDexModule;
+			this.pokemonShowdownDexModule = require(dexPath) as IPokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.pokemonShowdownDexModule.Dex;
 
-			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires
-			this.pokemonShowdownValidatorModule = require(path.join(Tools.pokemonShowdownFolder, simDist, "team-validator.js")) as IPokemonShowdownValidatorModule;
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			this.pokemonShowdownValidatorModule = require(teamValidatorPath) as IPokemonShowdownValidatorModule;
 			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
 
-			// eslint-disable-next-line max-len, @typescript-eslint/no-var-requires
-			this.pokemonShowdownTagsModule = require(path.join(Tools.pokemonShowdownFolder, dataDist, "tags.js")) as IPokemonShowdownTagsModule;
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			this.pokemonShowdownTagsModule = require(tagsPath) as IPokemonShowdownTagsModule;
 			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
+
+			this.randomBattleSetData = JSON.parse(fs.readFileSync(setsJsonPath).toString()) as Dict<IRandomBattleSetData>;
 		} else {
 			this.pokemonShowdownDexModule = this.dexes.base.pokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.dexes.base.pokemonShowdownDex.mod(mod);
@@ -772,6 +778,18 @@ export class Dex {
 				pokemon.natDexTier = 'ZU';
 			}
 
+			if (!pokemon.randomBattleMoves && this.randomBattleSetData && this.gen > 8 && pokemon.id in this.randomBattleSetData) {
+				const moves: string[] = [];
+				for (const set of this.randomBattleSetData[pokemon.id].sets) {
+					for (const move of set.movepool) {
+						const moveId = Tools.toId(move);
+						if (!moves.includes(moveId)) moves.push(moveId);
+					}
+				}
+
+				if (moves.length) pokemon.randomBattleMoves = moves;
+			}
+
 			this.pokemonCache[id] = pokemon;
 		}
 
@@ -828,11 +846,10 @@ export class Dex {
 	getPokemonTagsList(): readonly string[] {
 		if (this.pokemonTagsList) return this.pokemonTagsList;
 
+		const pokemonTagRules = this.getData().pokemonTagRules;
 		const pokemonTagsList: string[] = [];
-		for (const i in this.pokemonShowdownTags) {
-			if (!this.pokemonShowdownTags[i].speciesFilter) continue;
-
-			pokemonTagsList.push(this.pokemonShowdownTags[i].name);
+		for (const i in pokemonTagRules) {
+			pokemonTagsList.push(pokemonTagRules[i]);
 		}
 
 		this.pokemonTagsList = pokemonTagsList;
@@ -845,8 +862,14 @@ export class Dex {
 		return true;
 	}
 
-	getPokemonCategory(pokemon: IPokemon): string {
-		return this.getData().categories[pokemon.id] || '';
+	getPokemonCategory(pokemon: IPokemon): string | undefined {
+		const categories = this.getData().categories;
+		if (pokemon.id in categories) return categories[pokemon.id]!;
+
+		if (pokemon.forme) {
+			const id = Tools.toId(pokemon.baseSpecies);
+			if (id in categories) return categories[id]!;
+		}
 	}
 
 	getFormes(pokemon: IPokemon, nonCosmeticOnly?: boolean): string[] {
@@ -1647,7 +1670,8 @@ export class Dex {
 		format.tournamentPlayable = !!(format.searchShow || format.challengeShow || format.tournamentShow);
 		format.unranked = format.rated === false || format.id.includes('customgame') || format.id.includes('hackmonscup') ||
 			format.id.includes('challengecup') || format.id.includes('metronomebattle') ||
-			(format.team && (format.id.includes('1v1') || format.id.includes('monotype'))) || format.mod === 'seasonal' ||
+			(format.team && (format.id.includes('1v1') || format.id.includes('monotype') ||
+			format.id.includes('computergenerated'))) || format.mod === 'seasonal' ||
 			format.mod === 'ssb' ? true : false;
 
 		let info: IParsedSmogonLink | undefined;
@@ -1791,6 +1815,20 @@ export class Dex {
 			(links.length ? "<br /><br />" + links.join("<br />") : "");
 	}
 
+	getCustomRuleInfoDisplay(customRules: string[]): string {
+		const separatedCustomRules = this.separateCustomRules(customRules);
+		const info: string[] = [];
+
+		for (const addedRule of separatedCustomRules.addedrules) {
+			const rule = this.getFormat(addedRule);
+			if (rule && rule.name && rule.desc) info.push("<b>" + rule.name + "</b>: " + rule.desc);
+		}
+
+		if (!info.length) return "";
+
+		return "<b>Added rule descriptions</b>:<br /><br />" + info.join("<br />");
+	}
+
 	getRuleTable(format: IFormat): RuleTable {
 		if (!format.ruleTable) format.ruleTable = this.pokemonShowdownDex.formats.getRuleTable(format);
 		return format.ruleTable;
@@ -1811,9 +1849,6 @@ export class Dex {
 	}
 
 	getValidatedRuleName(input: string): string {
-		if (input === 'unreleased') return 'Unreleased';
-		if (input === 'illegal') return 'Illegal';
-		if (input === 'nonexistent') return 'Non-existent';
 		const type = input.charAt(0);
 		if (type === '+' || type === '-' || type === '*' || type === '!') {
 			input = input.substr(1);
@@ -1844,8 +1879,15 @@ export class Dex {
 		} else if (tag === 'pokemontag') {
 			if (ruleName in tagNames) ruleName = tagNames[ruleName];
 		} else {
-			const format = this.getFormat(ruleName);
-			if (format) ruleName = format.name;
+			const id = Tools.toId(ruleName);
+			if (id === 'unreleased') {
+				ruleName = 'Unreleased';
+			} else if (id === 'nonexistent') {
+				ruleName = 'Non-existent';
+			} else {
+				const format = this.getFormat(ruleName);
+				if (format) ruleName = format.name;
+			}
 		}
 
 		return ruleName + (value ? " = " + value.trim() : "");
@@ -2125,21 +2167,17 @@ export class Dex {
 		return true;
 	}
 
-	getCustomFormatName(format: IFormat, fullName?: boolean): string {
+	getCustomFormatName(format: IFormat, fullName?: boolean, formatName?: string): string {
 		if (!format.customRules || !format.customRules.length) return format.name;
 
 		if (format.customFormatName) return format.customFormatName;
 
 		const key = this.getCustomFormatNameKey(format);
-		if (!fullName) {
+		if (!fullName && !formatName) {
 			if (key in this.formatNamesByCustomRules) return this.formatNamesByCustomRules[key];
 		}
 
 		if (!format.separatedCustomRules) format.separatedCustomRules = this.separateCustomRules(format.customRules);
-
-		const prefixesAdded: string[] = [];
-		let prefixesRemoved: string[] = [];
-		let suffixes: string[] = [];
 
 		const addedBans = format.separatedCustomRules.addedbans.slice();
 		const removedBans = format.separatedCustomRules.removedbans.slice();
@@ -2147,6 +2185,7 @@ export class Dex {
 		const addedRules = format.separatedCustomRules.addedrules.slice();
 		const removedRules = format.separatedCustomRules.removedrules.slice();
 
+		const prefixAddedRules: string[] = [];
 		const baseFormat = this.getExistingFormat(format.name);
 		for (const id of customRuleAliasesByLength) {
 			if (!(id in nonClauseCustomRuleAliases)) continue;
@@ -2186,9 +2225,10 @@ export class Dex {
 				if (index !== -1) removedRules.splice(index, 1);
 			}
 
-			prefixesAdded.push(nonClauseCustomRuleAliases[id]);
+			prefixAddedRules.push(nonClauseCustomRuleAliases[id]);
 		}
 
+		let suffixRules: string[] = [];
 		let onlySuffix = false;
 		if (addedBans.length && removedBans.length && !addedRestrictions.length) {
 			if (addedBans.includes(tagNames.allabilities) && !addedBans.map(x => this.getAbility(x)).filter(x => !!x).length) {
@@ -2196,42 +2236,44 @@ export class Dex {
 				if (abilities.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allabilities), 1);
-					suffixes.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(abilities.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allitems) && !addedBans.map(x => this.getItem(x)).filter(x => !!x).length) {
 				const items = format.separatedCustomRules.removedbans.map(x => this.getItem(x)).filter(x => !!x);
 				if (items.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allitems), 1);
-					suffixes.push("Only " + Tools.joinList(items.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(items.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allmoves) && !addedBans.map(x => this.getMove(x)).filter(x => !!x).length) {
 				const moves = format.separatedCustomRules.removedbans.map(x => this.getMove(x)).filter(x => !!x);
 				if (moves.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allmoves), 1);
-					suffixes.push("Only " + Tools.joinList(moves.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(moves.map(x => x!.name)));
 				}
 			} else if (addedBans.includes(tagNames.allpokemon) && !addedBans.map(x => this.getPokemon(x)).filter(x => !!x).length) {
 				const pokemon = format.separatedCustomRules.removedbans.map(x => this.getPokemon(x)).filter(x => !!x);
 				if (pokemon.length === removedBans.length) {
 					onlySuffix = true;
 					addedBans.splice(addedBans.indexOf(tagNames.allpokemon), 1);
-					suffixes.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
+					suffixRules.push("Only " + Tools.joinList(pokemon.map(x => x!.name)));
 				}
 			}
 		}
 
+		let prefixRemovedRules: string[] = [];
+		let suffixAddedRestrictions: string[] = [];
 		if (addedBans.length) {
-			prefixesRemoved = prefixesRemoved.concat(addedBans);
+			prefixRemovedRules = prefixRemovedRules.concat(addedBans);
 		}
 
 		if (removedBans.length && !onlySuffix) {
-			suffixes = suffixes.concat(removedBans);
+			suffixRules = suffixRules.concat(removedBans);
 		}
 
 		if (addedRestrictions.length) {
-			suffixes = suffixes.concat(addedRestrictions);
+			suffixAddedRestrictions = suffixAddedRestrictions.concat(addedRestrictions);
 		}
 
 		if (addedRules.length) {
@@ -2243,23 +2285,27 @@ export class Dex {
 				} else if (rule in clauseNicknames) {
 					rule = clauseNicknames[rule];
 				}
-				prefixesAdded.push(rule);
+				prefixAddedRules.push(rule);
 			}
 		}
 
 		if (removedRules.length) {
-			prefixesRemoved = prefixesRemoved.concat(removedRules.map(x => clauseNicknames[x] || x));
+			prefixRemovedRules = prefixRemovedRules.concat(removedRules.map(x => clauseNicknames[x] || x));
 		}
 
 		let name = '';
-		if (prefixesRemoved.length) name += "(No " + Tools.joinList(prefixesRemoved, null, null, "or") + ") ";
-		if (prefixesAdded.length) name += prefixesAdded.join(" ") + " ";
-		name += format.name;
-		if (suffixes.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixes) + ")";
+		if (prefixRemovedRules.length) name += "(No " + Tools.joinList(prefixRemovedRules, null, null, "or") + ") ";
+		if (prefixAddedRules.length) name += prefixAddedRules.join(" ") + " ";
+
+		name += formatName || format.name;
+
+		if (suffixRules.length) name += " (" + (!onlySuffix ? "Plus " : "") + Tools.joinList(suffixRules) + ")";
+		if (suffixAddedRestrictions.length) name += " (Restricted " + Tools.joinList(suffixAddedRestrictions) + ")";
 
 		if (!fullName) {
-			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = format.name + DEFAULT_CUSTOM_RULES_NAME;
-			this.formatNamesByCustomRules[key] = name;
+			if (name.length > MAX_CUSTOM_NAME_LENGTH) name = (formatName || format.name) + DEFAULT_CUSTOM_RULES_NAME;
+
+			if (!formatName) this.formatNamesByCustomRules[key] = name;
 		}
 
 		return name;
@@ -3005,6 +3051,26 @@ export class Dex {
 			filteredRulesetKeys = this.dexes.base.dataCache!.rulesetKeys.slice();
 		}
 
+		const pokemonTagRules: Dict<string> = {
+			'allabilities': 'All Abilities',
+			'allitems': 'All Items',
+			'allmoves': 'All Moves',
+			'allpokemon': 'All Pokemon',
+		};
+		const moveTagRules: Dict<string> = {};
+		for (const tag in this.pokemonShowdownTags) {
+			try {
+				const validatedRule = this.validateRule("-" + tag);
+				if (typeof validatedRule === 'string') {
+					if (validatedRule.startsWith('-pokemontag:')) {
+						pokemonTagRules[Tools.toId(tag)] = this.pokemonShowdownTags[tag].name;
+					} else if (validatedRule.startsWith('-move:')) {
+						moveTagRules[Tools.toId(tag)] = this.pokemonShowdownTags[tag].name;
+					}
+				}
+			} catch (e) {} // eslint-disable-line no-empty
+		}
+
 		const data: IDataTable = {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys,
@@ -3013,6 +3079,8 @@ export class Dex {
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
+			pokemonTagRules,
+			moveTagRules,
 			rulesetKeys: filteredRulesetKeys,
 			typeKeys: filteredTypeKeys,
 			alternateIconNumbers,
@@ -3281,6 +3349,8 @@ export const instantiate = (): void => {
 	}
 
 	if (oldDex) {
+		Games.unrefDex();
+
 		// @ts-expect-error
 		global.Dex.onReload(oldDex);
 		oldDex = undefined;

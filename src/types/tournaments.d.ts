@@ -1,9 +1,18 @@
 import type { Player } from "../room-activity";
+import type { ScriptedGame } from "../room-game-scripted";
 import type { IFormat } from "./pokemon-showdown";
 
 export type TournamentPlace = 'semifinalist' | 'runnerup' | 'winner';
 
 export type TournamentType = 'elimination' | 'roundrobin';
+
+export interface ITournamentCreateListener {
+	format: IFormat;
+	game?: ScriptedGame;
+	name?: string;
+	official?: boolean;
+	callback?: () => void;
+}
 
 export interface ICreateTournamentOptions {
 	format: IFormat;
