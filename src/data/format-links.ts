@@ -12,12 +12,11 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3717072/',
 	}',
 	'gen9nu': {
-		teams: 'https://www.smogon.com/forums/threads/3718115/,
+		teams: 'https://www.smogon.com/forums/threads/3718115/',
 	},
 	'gen9monotype': {
 		teams: 'https://www.smogon.com/forums/threads/3715794/',
 	},
-	
 
 	// Gen 8
 	'gen8anythinggoes': {
