@@ -17,7 +17,10 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen9monotype': {
 		teams: 'https://www.smogon.com/forums/threads/3715794/',
 	},
-
+	'gen9lc': {
+		teams: 'https://www.smogon.com/forums/threads/3712989/',
+	},
+	
 	// Gen 8
 	'gen8anythinggoes': {
 		info: 'https://www.smogon.com/dex/ss/formats/ag',
