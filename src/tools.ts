@@ -72,6 +72,11 @@ const BUTTON_VALUE_REGEX = / value ?= ?"([^"]*)"/i;
 const MSG_COMMAND_REGEX = /^\/(?:msg|pm|w|whisper|botmsg) /;
 const BOT_MSG_COMMAND_REGEX = /^\/msgroom (?:[a-z0-9-]+), ?\/botmsg /;
 
+const CHALLONGE_REGEX = /(https?)?challonge.com\/([a-z][a-z]\/)?([a-z0-9#$%&\-+]*)/;
+const CHALLONGE_SIGNUPS_REGEX = /(https?)?challonge.com\/([a-z][a-z]\/)?tournaments\/signup\/([a-z0-9#$%&\-+]*)/;
+const CHALLONGE_URL = "challonge.com";
+const CHALLONGE_SIGNUPS_PREFIX = "/tournaments/signup";
+
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
@@ -1260,32 +1265,16 @@ export class Tools {
 	}
 
 	getChallongeUrl(input: string): string | undefined {
+		input = input.trim().toLowerCase();
 		if (!input) return;
-		const index = input.indexOf('challonge.com/');
-		if (index === -1) return;
-		let challongeLink = input.substr(index).trim();
-		const spaceIndex = challongeLink.indexOf(' ');
-		if (spaceIndex !== -1) challongeLink = challongeLink.substr(0, spaceIndex);
-		if (challongeLink.length < 15) return;
-		const httpIndex = challongeLink.indexOf('http://');
-		if (httpIndex !== -1) {
-			challongeLink = 'https://' + challongeLink.substr(httpIndex + 1);
-		} else {
-			const httpsIndex = challongeLink.indexOf('https://');
-			if (httpsIndex === -1) challongeLink = 'https://' + challongeLink;
-		}
 
-		const formatting: string[] = ["**", "__", "``"];
-		for (const format of formatting) {
-			const formatIndex = challongeLink.lastIndexOf(format);
-			if (formatIndex !== -1) challongeLink = challongeLink.substr(0, formatIndex);
-		}
+		let match = input.match(CHALLONGE_SIGNUPS_REGEX);
+		if (match && match[3]) return CHALLONGE_URL + CHALLONGE_SIGNUPS_PREFIX + "/" + match[3];
 
-		while (challongeLink.endsWith('!') || challongeLink.endsWith('.') || challongeLink.endsWith("'") || challongeLink.endsWith('"') ||
-			challongeLink.endsWith("\\")) {
-			challongeLink = challongeLink.substr(0, challongeLink.length - 1);
-		}
-		return challongeLink;
+		match = input.match(CHALLONGE_REGEX);
+		if (!match || !match[3] || (match[3] === "tournaments" && input.endsWith("/signup"))) return;
+
+		return CHALLONGE_URL + "/" + match[3];
 	}
 
 	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {

@@ -219,31 +219,86 @@ describe("Tools", () => {
 		assert(!Tools.compareArrays([[0, 1]], [[0], [0, 1]]));
 	});
 	it('should return proper values from getChallongeUrl()', () => {
+		assert(!Tools.getChallongeUrl('challonge.com'));
+		assert(!Tools.getChallongeUrl('challonge.com/'));
+		assert(!Tools.getChallongeUrl('http://challonge.com'));
+		assert(!Tools.getChallongeUrl('http://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com'));
 		assert(!Tools.getChallongeUrl('https://challonge.com/'));
+		assert(!Tools.getChallongeUrl('challonge.com/tournaments/signup'));
+		assert(!Tools.getChallongeUrl('http://challonge.com/tournaments/signup'));
+		assert(!Tools.getChallongeUrl('https://challonge.com/tournaments/signup'));
 
-		const links = ['https://challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/tournament/signup/mocha',
-			'http://challonge.com/tournament/signup/mocha',
-		];
-		for (const link of links) {
-			const expectedLink = link.startsWith('http://') ? 'https://' + link.substr(7) : link;
-			assertStrictEqual(Tools.getChallongeUrl(link), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" __" + link + "__"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" __" + link + "__!"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" ``" + link + "``"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" ``" + link + "``!"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**!"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**."), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**'"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**\""), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" **" + link + "**\\"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" " + link + "!"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" " + link + "."), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" " + link + "'"), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\""), expectedLink);
-			assertStrictEqual(Tools.getChallongeUrl(" " + link + "\\"), expectedLink);
+		const formatting: string[] = ["**", "__", "``", "~~", "^^", "\\\\"];
+		const suffixes: string[] = ["!", ".", "'", '"', "\\", "/"];
+
+		// bracket
+		let links = ['challonge.com/mocha', 'http://challonge.com/mocha', 'https://challonge.com/mocha',
+			'https://challonge.com/mocha/standings', 'https://challonge.com/mocha/announcements', 'https://challonge.com/mocha/log',
+			'https://challonge.com/mocha/stations', 'https://challonge.com/mocha/participants', 'http://challonge.com/fr/mocha',
+			'https://challonge.com/fr/mocha', 'https://challonge.com/fr/mocha/standings', 'https://challonge.com/fr/mocha/announcements',
+			'https://challonge.com/fr/mocha/log', 'https://challonge.com/fr/mocha/stations', 'https://challonge.com/fr/mocha/participants'];
+
+		let baseLinks = links.slice();
+		for (const format of formatting) {
+			for (const link of baseLinks) {
+				const formatted = format + link + format;
+				links.push(formatted);
+				for (const suffix of suffixes) {
+					links.push(formatted + suffix);
+				}
+			}
 		}
+
+		for (const suffix of suffixes) {
+			for (const link of baseLinks) {
+				links.push(link + suffix);
+			}
+		}
+
+		let expectedBracketLink = 'challonge.com/mocha';
+		for (const link of links) {
+			assertStrictEqual(Tools.getChallongeUrl(link), expectedBracketLink);
+		}
+
+		expectedBracketLink = 'challonge.com/mocha#';
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/mocha#"), expectedBracketLink);
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/mocha#"), expectedBracketLink);
+
+		// signups
+		links = ['challonge.com/tournaments/signup/mocha', 'http://challonge.com/tournaments/signup/mocha',
+			'https://challonge.com/tournaments/signup/mocha', 'https://challonge.com/tournaments/signup/mocha/signup/abcd1234',
+			'http://challonge.com/fr/tournaments/signup/mocha', 'https://challonge.com/fr/tournaments/signup/mocha',
+			'https://challonge.com/fr/tournaments/signup/mocha/signup/abcd1234',
+		];
+
+		baseLinks = links.slice();
+		for (const format of formatting) {
+			for (const link of baseLinks) {
+				const formatted = format + link + format;
+				links.push(formatted);
+				for (const suffix of suffixes) {
+					links.push(formatted + suffix);
+				}
+			}
+		}
+
+		for (const suffix of suffixes) {
+			for (const link of baseLinks) {
+				links.push(link + suffix);
+			}
+		}
+
+		let expectedSignupsLink = 'challonge.com/tournaments/signup/mocha';
+		for (const link of links) {
+			assertStrictEqual(Tools.getChallongeUrl(link), expectedSignupsLink);
+		}
+
+		expectedSignupsLink = 'challonge.com/tournaments/signup/mocha#';
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/tournaments/signup/mocha#"), expectedSignupsLink);
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/tournaments/signup/mocha#/signup/abcd1234"), expectedSignupsLink);
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/tournaments/signup/mocha#"), expectedSignupsLink);
+		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/tournaments/signup/mocha#/signup/abcd1234"), expectedSignupsLink);
 	});
 	it('should have proper hex code lists', () => {
 		for (const i in Tools.eggGroupHexCodes) {
