@@ -1433,6 +1433,17 @@ export class Client {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'create-groupchat') {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('User ') &&
+				messageArguments.error.endsWith(" is unregistered, and so can't be promoted.")) {
+				const userid = Tools.toId(messageArguments.error.split(" is unregistered")[0].split("User ").slice(1).join("User "));
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'room-voice' &&
+					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === userid) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+
+				if (room.game && room.game.onRoomVoiceError) {
+					room.game.onRoomVoiceError(userid);
+				}
 			} else if (this.isDataCommandError(messageArguments.error)) {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'chat' && lastOutgoingMessage.roomid === room.id &&
 					this.isDataRollCommand(lastOutgoingMessage.text!)) {
