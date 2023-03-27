@@ -76,6 +76,7 @@ const CHALLONGE_REGEX = /(https?)?challonge.com\/([a-z][a-z]\/)?([a-z0-9#$%&\-+]
 const CHALLONGE_SIGNUPS_REGEX = /(https?)?challonge.com\/([a-z][a-z]\/)?tournaments\/signup\/([a-z0-9#$%&\-+]*)/;
 const CHALLONGE_URL = "challonge.com";
 const CHALLONGE_SIGNUPS_PREFIX = "/tournaments/signup";
+const HTTPS = "https://";
 
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
@@ -1264,17 +1265,26 @@ export class Tools {
 		};
 	}
 
+	// requires https prefix for <a> in HTML
 	getChallongeUrl(input: string): string | undefined {
 		input = input.trim().toLowerCase();
 		if (!input) return;
 
 		let match = input.match(CHALLONGE_SIGNUPS_REGEX);
-		if (match && match[3]) return CHALLONGE_URL + CHALLONGE_SIGNUPS_PREFIX + "/" + match[3];
+		if (match && match[3]) return HTTPS + CHALLONGE_URL + CHALLONGE_SIGNUPS_PREFIX + "/" + match[3];
 
 		match = input.match(CHALLONGE_REGEX);
 		if (!match || !match[3] || (match[3] === "tournaments" && input.endsWith("/signup"))) return;
 
-		return CHALLONGE_URL + "/" + match[3];
+		return HTTPS + CHALLONGE_URL + "/" + match[3];
+	}
+
+	isChallongeSignupUrl(challongeUrl: string): boolean {
+		return challongeUrl.includes(CHALLONGE_SIGNUPS_PREFIX);
+	}
+
+	isChallongeBracketUrl(challongeUrl: string): boolean {
+		return !this.isChallongeSignupUrl(challongeUrl);
 	}
 
 	editGist(username: string, token: string, gistId: string, description: string, files: Dict<{filename: string; content: string}>): void {

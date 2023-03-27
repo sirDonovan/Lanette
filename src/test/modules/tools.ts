@@ -256,12 +256,12 @@ describe("Tools", () => {
 			}
 		}
 
-		let expectedBracketLink = 'challonge.com/mocha';
+		let expectedBracketLink = 'https://challonge.com/mocha';
 		for (const link of links) {
 			assertStrictEqual(Tools.getChallongeUrl(link), expectedBracketLink);
 		}
 
-		expectedBracketLink = 'challonge.com/mocha#';
+		expectedBracketLink = 'https://challonge.com/mocha#';
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/mocha#"), expectedBracketLink);
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/mocha#"), expectedBracketLink);
 
@@ -289,16 +289,21 @@ describe("Tools", () => {
 			}
 		}
 
-		let expectedSignupsLink = 'challonge.com/tournaments/signup/mocha';
+		let expectedSignupsLink = 'https://challonge.com/tournaments/signup/mocha';
 		for (const link of links) {
 			assertStrictEqual(Tools.getChallongeUrl(link), expectedSignupsLink);
 		}
 
-		expectedSignupsLink = 'challonge.com/tournaments/signup/mocha#';
+		expectedSignupsLink = 'https://challonge.com/tournaments/signup/mocha#';
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/tournaments/signup/mocha#"), expectedSignupsLink);
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/tournaments/signup/mocha#/signup/abcd1234"), expectedSignupsLink);
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/tournaments/signup/mocha#"), expectedSignupsLink);
 		assertStrictEqual(Tools.getChallongeUrl("https://challonge.com/fr/tournaments/signup/mocha#/signup/abcd1234"), expectedSignupsLink);
+
+		assertStrictEqual(Tools.isChallongeBracketUrl("https://challonge.com/mocha"), true);
+		assertStrictEqual(Tools.isChallongeSignupUrl("https://challonge.com/mocha"), false);
+		assertStrictEqual(Tools.isChallongeBracketUrl("https://challonge.com/tournaments/signup/mocha"), false);
+		assertStrictEqual(Tools.isChallongeSignupUrl("https://challonge.com/tournaments/signup/mocha"), true);
 	});
 	it('should have proper hex code lists', () => {
 		for (const i in Tools.eggGroupHexCodes) {
