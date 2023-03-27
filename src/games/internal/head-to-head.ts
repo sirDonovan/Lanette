@@ -84,7 +84,7 @@ export class HeadToHead extends ScriptedGame {
 		const text = this.leftPlayer.name + " and " + this.rightPlayer.name + " are going head to head in a game of " +
 			this.challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.nextRound();
 		});
 		this.say(text);
 	}
@@ -132,9 +132,10 @@ export class HeadToHead extends ScriptedGame {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.leftPlayer);
 				game.sendJoinNotice(this.rightPlayer);
+				this.setTimeout(() => game.start(), 5 * 1000);
+			} else {
+				game.start();
 			}
-
-			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

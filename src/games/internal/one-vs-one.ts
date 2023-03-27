@@ -162,9 +162,10 @@ export class OneVsOne extends ScriptedGame {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.defender);
 				game.sendJoinNotice(this.challenger);
+				this.setTimeout(() => game.start(), 5 * 1000);
+			} else {
+				game.start();
 			}
-
-			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 
