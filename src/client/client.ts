@@ -2181,15 +2181,39 @@ export class Client {
 				}
 
 				if (authOrTHC) {
+					const bracketUrl = Tools.isChallongeBracketUrl(link);
 					if (!room.approvedUserHostedTournaments) room.approvedUserHostedTournaments = {};
-					room.approvedUserHostedTournaments[link] = {
-						hostName: user.name,
-						hostId: user.id,
-						startTime: now,
-						approvalStatus: 'approved',
-						reviewer: user.id,
-						urls: [link],
-					};
+					if (!(link in room.approvedUserHostedTournaments)) {
+						let existingTournament = false;
+						for (const i in room.approvedUserHostedTournaments) {
+							if (link === room.approvedUserHostedTournaments[i].bracketUrl ||
+								link === room.approvedUserHostedTournaments[i].signupUrl) {
+								room.approvedUserHostedTournaments[link] = room.approvedUserHostedTournaments[i];
+								room.approvedUserHostedTournaments[link].urls.push(link);
+								if (bracketUrl) {
+									room.approvedUserHostedTournaments[link].bracketUrl = link;
+								} else {
+									room.approvedUserHostedTournaments[link].signupUrl = link;
+								}
+
+								existingTournament = true;
+								break;
+							}
+						}
+
+						if (!existingTournament) {
+							room.approvedUserHostedTournaments[link] = {
+								approvalStatus: 'approved',
+								bracketUrl: bracketUrl ? link : "",
+								hostName: user.name,
+								hostId: user.id,
+								reviewer: user.id,
+								signupUrl: bracketUrl ? "" : link,
+								startTime: now,
+								urls: [link],
+							};
+						}
+					}
 				} else {
 					for (const i in room.newUserHostedTournaments) {
 						if (room.newUserHostedTournaments[i].urls.includes(link)) {
