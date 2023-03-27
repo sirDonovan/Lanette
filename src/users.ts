@@ -1,6 +1,8 @@
 import type { ScriptedGame } from "./room-game-scripted";
 import type { Room } from "./rooms";
-import type { GroupName, IChatLogEntry, IOutgoingMessage, MessageListener, UserDetailsListener } from "./types/client";
+import type {
+	GroupName, IChatLogEntry, IOutgoingMessage, MessageListener, UserDetailsListener, RoomVoiceListener
+} from "./types/client";
 import type { IUserMessageOptions, IUserRoomData } from "./types/users";
 
 const chatFormatting: string[] = ["*", "_", "`", "~", "^", "\\"];
@@ -25,6 +27,7 @@ export class User {
 	messageListeners?: Dict<MessageListener>;
 	uhtmlMessageListeners?: Dict<Dict<MessageListener>>;
 	userDetailsListener?: UserDetailsListener;
+	roomVoiceListener?: RoomVoiceListener;
 
 	constructor(name: string, id: string) {
 		this.id = id;

@@ -930,7 +930,14 @@ export class Client {
 					if (lastOutgoingMessage.type === 'room-voice') {
 						if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
 							const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
-							if (Tools.toId(promoted) === lastOutgoingMessage.userid) this.websocket.clearLastOutgoingMessage(now);
+							if (Tools.toId(promoted) === lastOutgoingMessage.userid) {
+								this.websocket.clearLastOutgoingMessage(now);
+							}
+
+							const promotedUser = Users.get(promoted);
+							if (promotedUser && promotedUser.roomVoiceListener) {
+								promotedUser.roomVoiceListener();
+							}
 						}
 					} else if (lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
@@ -1440,6 +1447,9 @@ export class Client {
 					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === userid) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
+
+				const errorUser = Users.get(userid);
+				if (errorUser && errorUser.roomVoiceListener) delete errorUser.roomVoiceListener;
 
 				if (room.game && room.game.onRoomVoiceError) {
 					room.game.onRoomVoiceError(userid);
