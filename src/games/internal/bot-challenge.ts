@@ -51,6 +51,7 @@ export class BotChallenge extends ScriptedGame {
 
 		this.originalModchat = this.room.modchat;
 		if (!challenger.hasRank(this.room, 'voice')) {
+			challenger.roomVoiceListener = () => this.startChallenge();
 			this.room.roomVoice(challenger.name);
 			this.challengerPromotedName = challenger.id;
 		}
