@@ -946,8 +946,8 @@ export class Client {
 						}
                     } else if (lastOutgoingMessage.type === 'hidetext') {
                         if (messageArguments.message.endsWith(' messages were cleared from ' + room.title +
-                            'by' + Users.self.name + '. (' +
-                            lastOutgoingMessage.hideReason + ')'))
+                            'by' + Users.self.name + '.' + (lastOutgoingMessage.hideReason ? ' (' +
+                            lastOutgoingMessage.hideReason + ')' : '')));
                             this.websocket.clearLastOutgoingMessage(now);
 					} else if (lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
