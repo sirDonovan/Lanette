@@ -595,7 +595,8 @@ export const commands: BaseCommandDefinitions = {
 
 			if (targetRoom.newUserHostedTournaments) {
 				for (const i in targetRoom.newUserHostedTournaments) {
-					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) {
+					if (user.id === targetRoom.newUserHostedTournaments[i].hostId &&
+                        targetRoom.newUserHostedTournaments[i].startTime !== 0) {
 						return this.say("You are already on the waiting list for staff review.");
 					}
 				}
@@ -613,6 +614,11 @@ export const commands: BaseCommandDefinitions = {
 			const userHostedTournament: IUserHostedTournament = {
 				approvalStatus: '',
 				bracketUrl,
+                canWarn: {
+                    changesRequested: false,
+                    awaitingApproval: false,
+                    approvalRequested: false,
+                },
 				hostName: user.name,
 				hostId: user.id,
 				reviewer: '',

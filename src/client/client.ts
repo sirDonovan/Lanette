@@ -944,6 +944,11 @@ export class Client {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
 							if (Tools.toId(demoted) === lastOutgoingMessage.deauthedUserid) this.websocket.clearLastOutgoingMessage(now);
 						}
+                    } else if (lastOutgoingMessage.type === 'hidetext') {
+                        if (messageArguments.message.endsWith(' messages were cleared from ' + room.title +
+                            'by' + Users.self.name + '. (' +
+                            lastOutgoingMessage.hideReason + ')'))
+                            this.websocket.clearLastOutgoingMessage(now);
 					} else if (lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
 							lastOutgoingMessage.warnReason + ")")) {
@@ -2163,11 +2168,11 @@ export class Client {
 
 		// unlink unapproved Challonge tournaments
 		if (room.unlinkChallongeLinks && lowerCaseMessage.includes('challonge.com/')) {
-			const links: string[] = [];
+			const links: { url: string, valid: boolean }[] = [];
 			const possibleLinks = message.split(" ");
 			for (const possibleLink of possibleLinks) {
 				const link = Tools.getChallongeUrl(possibleLink);
-				if (link) links.push(link);
+				if (link) links.push({ url: link, valid: link === possibleLink });
 			}
 
 			const database = Storage.getDatabase(room);
@@ -2181,9 +2186,10 @@ export class Client {
 			for (const link of links) {
 				if (room.approvedUserHostedTournaments) {
 					for (const i in room.approvedUserHostedTournaments) {
-						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
+						if (room.approvedUserHostedTournaments[i].urls.includes(link.url)) {
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.warn(user, "Please do not post links to other hosts' tournaments");
+                                room.hidetext(user.id, true, 1, "");
 							}
 							break outer;
 						}
@@ -2191,19 +2197,19 @@ export class Client {
 				}
 
 				if (authOrTHC) {
-					const bracketUrl = Tools.isChallongeBracketUrl(link);
+					const bracketUrl = Tools.isChallongeBracketUrl(link.url);
 					if (!room.approvedUserHostedTournaments) room.approvedUserHostedTournaments = {};
-					if (!(link in room.approvedUserHostedTournaments)) {
+					if (!(link.url in room.approvedUserHostedTournaments)) {
 						let existingTournament = false;
 						for (const i in room.approvedUserHostedTournaments) {
-							if (link === room.approvedUserHostedTournaments[i].bracketUrl ||
-								link === room.approvedUserHostedTournaments[i].signupUrl) {
-								room.approvedUserHostedTournaments[link] = room.approvedUserHostedTournaments[i];
-								room.approvedUserHostedTournaments[link].urls.push(link);
+							if (link.url === room.approvedUserHostedTournaments[i].bracketUrl ||
+								link.url === room.approvedUserHostedTournaments[i].signupUrl) {
+								room.approvedUserHostedTournaments[link.url] = room.approvedUserHostedTournaments[i];
+								room.approvedUserHostedTournaments[link.url].urls.push(link.url);
 								if (bracketUrl) {
-									room.approvedUserHostedTournaments[link].bracketUrl = link;
+									room.approvedUserHostedTournaments[link.url].bracketUrl = link.url;
 								} else {
-									room.approvedUserHostedTournaments[link].signupUrl = link;
+									room.approvedUserHostedTournaments[link.url].signupUrl = link.url;
 								}
 
 								existingTournament = true;
@@ -2212,36 +2218,80 @@ export class Client {
 						}
 
 						if (!existingTournament) {
-							room.approvedUserHostedTournaments[link] = {
+							room.approvedUserHostedTournaments[link.url] = {
 								approvalStatus: 'approved',
-								bracketUrl: bracketUrl ? link : "",
+								bracketUrl: bracketUrl ? link.url : "",
+                                canWarn: {
+                                    changesRequested: false,
+                                    awaitingApproval: false,
+                                    approvalRequested: false,
+                                },
 								hostName: user.name,
 								hostId: user.id,
 								reviewer: user.id,
-								signupUrl: bracketUrl ? "" : link,
+								signupUrl: bracketUrl ? "" : link.url,
 								startTime: now,
-								urls: [link],
+								urls: [link.url],
 							};
 						}
 					}
 				} else {
 					for (const i in room.newUserHostedTournaments) {
-						if (room.newUserHostedTournaments[i].urls.includes(link)) {
+						if (room.newUserHostedTournaments[i].urls.includes(link.url)) {
 							if (room.newUserHostedTournaments[i].hostId !== user.id) {
 								room.warn(user, "Please do not post links to other hosts' tournaments");
+                                room.hidetext(user.id, true, 1, "");
 							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
 								let name = room.newUserHostedTournaments[i].reviewer;
 								const reviewer = Users.get(name);
 								if (reviewer) name = reviewer.name;
-								room.warn(user, name + " has requested changes for your tournament and you " +
-									"must wait for them to be approved");
+								if (room.newUserHostedTournaments[i].canWarn.changesRequested) {
+                                    room.warn(user, name + " has requested changes for your tournament and you " +
+                                        "must wait for them to be approved");
+                                    room.hidetext(user.id, true, 1, "");
+                                } else {
+                                    room.hidetext(user.id, true, 1, name + " has requested changes " +
+                                        "for your tournament and you must wait for them to be approved");
+                                    room.newUserHostedTournaments[i].canWarn.changesRequested = true;
+                                }
 							} else {
-								room.warn(user, "You must wait for a staff member to approve your tournament");
+                                if (room.newUserHostedTournaments[i].canWarn.awaitingApproval) {
+                                    room.warn(user, "You must wait for a staff member to approve your tournament");
+                                    room.hidetext(user.id, true, 1, "");
+                                } else {
+                                    room.hidetext(user.id, true, 1, "You must wait for a staff member to approve your tournament");
+                                    room.newUserHostedTournaments[i].canWarn.awaitingApproval = true;
+                                }
 							}
 							break outer;
 						}
 					}
-					room.warn(user, "Your tournament must be approved by a staff member");
+                    if (!room.newUserHostedTournaments) room.newUserHostedTournaments = {};
+                    // idk why eslint angries, can returns true and false
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                    if (room.newUserHostedTournaments[link.url] && room.newUserHostedTournaments[link.url].canWarn.approvalRequested) {
+                        room.warn(user, "Your tournament must be approved by a staff member");
+                        room.hidetext(user.id, true, 1, "");
+                    } else {
+                        const bracketUrl = Tools.isChallongeBracketUrl(link.url);
+                        room.newUserHostedTournaments[link.url] = {
+                            approvalStatus: '',
+							bracketUrl: bracketUrl ? link.url : "",
+                            canWarn: {
+                                changesRequested: false,
+                                awaitingApproval: false,
+                                approvalRequested: true,
+                            },
+							hostName: user.name,
+							hostId: user.id,
+							reviewer: user.id,
+							signupUrl: bracketUrl ? "" : link.url,
+							startTime: 0,
+							urls: [link.url],
+                        };
+                        room.hidetext(user.id, true, 1, "Your tournament must be approved by a staff member");
+                        user.say("Your tournament must be approved by a staff member");
+                    }
 					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, ' +
 						'__signup link__`` to get your tournament approved (insert your actual links).');
 					break;

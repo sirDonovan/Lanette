@@ -583,6 +583,28 @@ export class Room {
 		});
 	}
 
+    hidetext(user: string, clear: boolean, lineCount: number | null, reason: string, deleteAlts?: boolean): void {
+        user = Tools.toId(user);
+        if (!user || !reason) return;
+        if (deleteAlts) lineCount = null;
+
+        let message: string;
+        if (clear) {
+            if (lineCount) message = "/clearlines " + user + "," + lineCount + "," + reason;
+            else if (deleteAlts) message = "/clearaltstext " + user + "," + reason;
+            else message = "/cleartext " + user + "," + reason;
+        } else {
+            if (lineCount) message = "/hidelines " + user + "," + lineCount + "," + reason;
+            else if (deleteAlts) message = "/hidealtstext " + user + "," + reason;
+            else message = "/hidetext " + user + "," + reason;
+        }
+
+        this.say(message, {
+            type: 'hidetext',
+            hideReason: reason,
+        });
+    }
+
 	warn(userOrPlayer: User | Player, reason: string): void {
 		const user = this.getTargetUser(userOrPlayer);
 		if (!user) return;
