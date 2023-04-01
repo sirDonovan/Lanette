@@ -15,11 +15,12 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
     strategy:
       matrix:
+        platform: [ubuntu-latest, windows-latest]
         node-version: [18.x, 19.x]
+ 
+    runs-on: ${{ matrix.platform }}
 
     steps:
     - uses: actions/checkout@v3

@@ -58,7 +58,6 @@ export class OneVsOne extends ScriptedGame {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		this.originalModchat = this.room.modchat;
-		this.room.setRoomModchat("+");
 		if (!user.hasRank(this.room, 'voice')) {
 			this.room.roomVoice(user.name);
 			this.defenderPromotedName = user.id;
@@ -68,7 +67,12 @@ export class OneVsOne extends ScriptedGame {
 			this.challengerPromotedName = challenger.id;
 		}
 
-		this.start();
+		if (this.defenderPromotedName || this.challengerPromotedName) {
+			this.startTimer = setTimeout(() => this.startChallenge(),
+				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 2)));
+		} else {
+			this.startChallenge();
+		}
 		return true;
 	}
 
@@ -92,6 +96,25 @@ export class OneVsOne extends ScriptedGame {
 		this.say(user.name + " cancelled their challenge!");
 		this.forceEnd(user);
 		return true;
+	}
+
+	startChallenge(): void {
+		this.room.setRoomModchat("+");
+		this.start();
+	}
+
+	onRoomVoiceError(userid: string): void {
+		if (this.challenger && userid === this.challenger.id) {
+			this.say(this.challenger.name + " cannot be promoted!");
+			this.updateLastChallengeTime(this.challenger.id);
+			this.forceEnd(Users.self);
+		}
+
+		if (this.defender && userid === this.defender.id) {
+			this.say(this.defender.name + " cannot be promoted!");
+			this.updateLastChallengeTime(this.defender.id);
+			this.forceEnd(Users.self);
+		}
 	}
 
 	onStart(): void {
@@ -139,9 +162,10 @@ export class OneVsOne extends ScriptedGame {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.defender);
 				game.sendJoinNotice(this.challenger);
+				this.setTimeout(() => game.start(), 5 * 1000);
+			} else {
+				game.start();
 			}
-
-			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 
@@ -175,8 +199,8 @@ export class OneVsOne extends ScriptedGame {
 		if (this.defenderPromotedName) this.room.roomDeAuth(this.defenderPromotedName);
 	}
 
-	updateLastChallengeTime(): void {
-		if (this.challenger && this.started) Games.setLastChallengeTime('onevsone', this.room, this.challenger.id, Date.now());
+	updateLastChallengeTime(userid: string): void {
+		Games.setLastChallengeTime('onevsone', this.room, userid, Date.now());
 	}
 
 	onEnd(): void {
@@ -189,13 +213,13 @@ export class OneVsOne extends ScriptedGame {
 		}
 
 		this.resetModchatAndRanks();
-		this.updateLastChallengeTime();
+		this.updateLastChallengeTime(this.challenger.id);
 	}
 
 	onForceEnd(user?: User): void {
 		this.resetModchatAndRanks();
-		if (user && this.challenger && user.id === this.challenger.id) {
-			this.updateLastChallengeTime();
+		if (user && this.challenger && user.id === this.challenger.id && this.started) {
+			this.updateLastChallengeTime(this.challenger.id);
 		}
 	}
 }

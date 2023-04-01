@@ -139,6 +139,8 @@ export type MessageListener = (timestamp: number) => void;
 
 export type UserDetailsListener = (user: User) => void;
 
+export type RoomVoiceListener = () => void;
+
 export interface IServerUserSettings {
 	blockChallenges?: boolean;
 }

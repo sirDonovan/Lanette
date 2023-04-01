@@ -50,13 +50,18 @@ export class BotChallenge extends ScriptedGame {
 		if (this.timeout) clearTimeout(this.timeout);
 
 		this.originalModchat = this.room.modchat;
-		this.room.setRoomModchat("+");
 		if (!challenger.hasRank(this.room, 'voice')) {
+			challenger.roomVoiceListener = () => this.startChallenge();
 			this.room.roomVoice(challenger.name);
 			this.challengerPromotedName = challenger.id;
 		}
 
-		this.start();
+		if (this.challengerPromotedName) {
+			this.startTimer = setTimeout(() => this.startChallenge(),
+				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 1)));
+		} else {
+			this.startChallenge();
+		}
 		return true;
 	}
 
@@ -69,6 +74,19 @@ export class BotChallenge extends ScriptedGame {
 		this.say(user.name + " cancelled their challenge!");
 		this.forceEnd(user);
 		return true;
+	}
+
+	startChallenge(): void {
+		this.room.setRoomModchat("+");
+		this.start();
+	}
+
+	onRoomVoiceError(userid: string): void {
+		if (this.challenger && userid === this.challenger.id) {
+			this.say(this.challenger.name + " cannot be promoted!");
+			this.updateLastChallengeTime();
+			this.forceEnd(Users.self);
+		}
 	}
 
 	onStart(): void {

@@ -1442,6 +1442,7 @@ export class Games {
 	}
 
 	canSkipScriptedCooldown(room: Room, previousGameDuration: number): boolean {
+		if (!Config.allowScriptedGames || !Config.allowScriptedGames.includes(room.id)) return false;
 		return !(room.id in this.skippedScriptedCooldowns) && previousGameDuration <= SKIP_SCRIPTED_COOLDOWN_DURATION;
 	}
 

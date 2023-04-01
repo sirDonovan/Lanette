@@ -260,12 +260,30 @@ export class Room {
 		if (this.userHostedGame) this.userHostedGame.onUserLeaveRoom(this, user);
 	}
 
-	onUserRename(user: User, rank: string): void {
+	onUserRename(user: User, rank: string, oldId: string): void {
 		if (!this.users.has(user)) {
 			this.onUserJoin(user, rank);
 		} else {
 			if (user.setRoomRank(this, rank) && this.type === 'chat') {
 				Client.getRoomInfo(this);
+			}
+		}
+
+		if (this.newUserHostedTournaments) {
+			for (const i in this.newUserHostedTournaments) {
+				if (this.newUserHostedTournaments[i].hostId === oldId) {
+					this.newUserHostedTournaments[i].hostId = user.id;
+					this.newUserHostedTournaments[i].hostName = user.name;
+				}
+			}
+		}
+
+		if (this.approvedUserHostedTournaments) {
+			for (const i in this.approvedUserHostedTournaments) {
+				if (this.approvedUserHostedTournaments[i].hostId === oldId) {
+					this.approvedUserHostedTournaments[i].hostId = user.id;
+					this.approvedUserHostedTournaments[i].hostName = user.name;
+				}
 			}
 		}
 	}

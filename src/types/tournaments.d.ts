@@ -73,12 +73,14 @@ export interface IClientTournamentData {
 
 export interface IUserHostedTournament {
 	approvalStatus: 'changes-requested' | 'approved' | '';
+	bracketUrl: string;
 	hostId: string;
 	hostName: string;
 	reviewer: string;
+	signupUrl: string;
 	startTime: number;
-	reviewTimer?: NodeJS.Timer;
 	urls: string[];
+	reviewTimer?: NodeJS.Timer;
 }
 
 export interface ITournamentUpdateJson {

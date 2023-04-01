@@ -787,7 +787,7 @@ export class Client {
 
 			const {status, username} = Tools.parseUsernameText(messageArguments.usernameText);
 			const user = Users.rename(username, messageArguments.oldId);
-			room.onUserRename(user, messageArguments.rank);
+			room.onUserRename(user, messageArguments.rank, messageArguments.oldId);
 			user.updateStatus(status);
 
 			if (!user.away && Config.allowMail) {
@@ -930,7 +930,14 @@ export class Client {
 					if (lastOutgoingMessage.type === 'room-voice') {
 						if (messageArguments.message.endsWith(" was promoted to Room Voice by " + Users.self.name + ".")) {
 							const promoted = messageArguments.message.substr(5).split(" was promoted to Room Voice by")[0];
-							if (Tools.toId(promoted) === lastOutgoingMessage.userid) this.websocket.clearLastOutgoingMessage(now);
+							if (Tools.toId(promoted) === lastOutgoingMessage.userid) {
+								this.websocket.clearLastOutgoingMessage(now);
+							}
+
+							const promotedUser = Users.get(promoted);
+							if (promotedUser && promotedUser.roomVoiceListener) {
+								promotedUser.roomVoiceListener();
+							}
 						}
 					} else if (lastOutgoingMessage.type === 'room-deauth') {
 						if (messageArguments.message.endsWith(" was demoted to Room regular user by " + Users.self.name + ".)")) {
@@ -1432,6 +1439,20 @@ export class Client {
 			} else if (messageArguments.error.startsWith('A group chat named ')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'create-groupchat') {
 					this.websocket.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.error.startsWith('User ') &&
+				messageArguments.error.endsWith(" is unregistered, and so can't be promoted.")) {
+				const userid = Tools.toId(messageArguments.error.split(" is unregistered")[0].split("User ").slice(1).join("User "));
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'room-voice' &&
+					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === userid) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+
+				const errorUser = Users.get(userid);
+				if (errorUser && errorUser.roomVoiceListener) delete errorUser.roomVoiceListener;
+
+				if (room.game && room.game.onRoomVoiceError) {
+					room.game.onRoomVoiceError(userid);
 				}
 			} else if (this.isDataCommandError(messageArguments.error)) {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'chat' && lastOutgoingMessage.roomid === room.id &&
@@ -2170,15 +2191,39 @@ export class Client {
 				}
 
 				if (authOrTHC) {
+					const bracketUrl = Tools.isChallongeBracketUrl(link);
 					if (!room.approvedUserHostedTournaments) room.approvedUserHostedTournaments = {};
-					room.approvedUserHostedTournaments[link] = {
-						hostName: user.name,
-						hostId: user.id,
-						startTime: now,
-						approvalStatus: 'approved',
-						reviewer: user.id,
-						urls: [link],
-					};
+					if (!(link in room.approvedUserHostedTournaments)) {
+						let existingTournament = false;
+						for (const i in room.approvedUserHostedTournaments) {
+							if (link === room.approvedUserHostedTournaments[i].bracketUrl ||
+								link === room.approvedUserHostedTournaments[i].signupUrl) {
+								room.approvedUserHostedTournaments[link] = room.approvedUserHostedTournaments[i];
+								room.approvedUserHostedTournaments[link].urls.push(link);
+								if (bracketUrl) {
+									room.approvedUserHostedTournaments[link].bracketUrl = link;
+								} else {
+									room.approvedUserHostedTournaments[link].signupUrl = link;
+								}
+
+								existingTournament = true;
+								break;
+							}
+						}
+
+						if (!existingTournament) {
+							room.approvedUserHostedTournaments[link] = {
+								approvalStatus: 'approved',
+								bracketUrl: bracketUrl ? link : "",
+								hostName: user.name,
+								hostId: user.id,
+								reviewer: user.id,
+								signupUrl: bracketUrl ? "" : link,
+								startTime: now,
+								urls: [link],
+							};
+						}
+					}
 				} else {
 					for (const i in room.newUserHostedTournaments) {
 						if (room.newUserHostedTournaments[i].urls.includes(link)) {
