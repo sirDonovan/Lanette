@@ -34,7 +34,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			let result = exec('git pull');
 			if (result === false) {
-				user.say("An error occurred while running ``git pull``");
+				user.say("An error occurred while running ``git pull``.");
 				return;
 			}
 
@@ -44,12 +44,16 @@ export const commands: BaseCommandDefinitions = {
 				process.chdir(privateRepo);
 
 				result = exec('git pull');
-				if (result === false) {
-					user.say("An error occurred while running ``git pull`` in private repo");
-				}
 
 				process.chdir(currentDirecory);
+
+				if (result === false) {
+					user.say("An error occurred while running ``git pull`` in Lanette-private.");
+					return;
+				}
 			}
+
+			user.say("Successfully ran ``git pull``.");
 		},
 		developerOnly: true,
 		description: ["fetches the latest code from the source GitHub repository"],
