@@ -89,6 +89,7 @@ errors/*
 !errors/README.md
 game-debug-logs/*
 !game-debug-logs/README.md
+Lanette-private/
 local-utils/
 notes.txt
 pokemon-showdown/
