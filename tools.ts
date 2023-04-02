@@ -249,6 +249,12 @@ export function transpile(): void {
 			console.log("Error building folder " + folderName + ": " + result.errors.map(x => x.text).join("\n"));
 			process.exit(1);
 		}
+
+		if (folderName === 'Lanette-private') {
+			try {
+				require(path.join(inputFolder.buildPath, 'post-build.js'));
+			} catch (e) {} // eslint-disable-line no-empty
+		}
 	}
 
 	for (const filepath of global._outputFilepaths!) {
