@@ -62,13 +62,16 @@ export class Storage {
 	}
 
 	onReload(previous: Storage): void {
+		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
+		Object.assign(this.leaderboardsAnnualPointsCache, previous.leaderboardsAnnualPointsCache);
+		Object.assign(this.leaderboardsAnnualSourcePointsCache, previous.leaderboardsAnnualSourcePointsCache);
+		Object.assign(this.leaderboardsPointsCache, previous.leaderboardsPointsCache);
+		Object.assign(this.leaderboardsSourcePointsCache, previous.leaderboardsSourcePointsCache);
+		Object.assign(this.leaderboardsAnnualPointBreakdownsCache, previous.leaderboardsAnnualPointBreakdownsCache);
+		Object.assign(this.leaderboardsPointBreakdownsCache, previous.leaderboardsPointBreakdownsCache);
+
 		Object.assign(this.archiveDatabases, previous.archiveDatabases);
 		Object.assign(this.databases, previous.databases);
-		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
-
-		for (const id in this.databases) {
-			this.updateLeaderboardCaches(id, this.databases[id]);
-		}
 
 		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
 
