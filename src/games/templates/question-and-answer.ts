@@ -637,11 +637,11 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					if (this.maxCorrectPlayersPerRound &&
                         this.maxCorrectPlayersPerRound > 1 &&
                         this.answers.length > 1) {
-                        const remainingAnswerSize = (this.answers.length > this.maxCorrectPlayersPerRound ?
-                              this.maxCorrectPlayersPerRound - this.guessedAnswers.length : this.answers.length) - 1;
+                        const usePossibleSize = this.answers.length - 1 >= this.maxCorrectPlayersPerRound;
                         this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) +
-                            "** correct player! There " + (remainingAnswerSize > 1 ? "are" : "is") + " **" +
-                            remainingAnswerSize + "** answer" + (remainingAnswerSize > 1 ? "s" : "") + " remaining.");
+                            "** correct player! There " + (this.answers.length > 2 ? "are" : "is") + " **" +
+                            (this.answers.length - 1) + "** " + (usePossibleSize ? "possible " : "") +
+                            "answer" + (this.answers.length > 2 ? "s" : "") + " remaining.");
                     } else {
                         this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) + "** correct player!");
                     }
