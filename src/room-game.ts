@@ -668,4 +668,5 @@ export abstract class Game extends Activity {
 	}
 
 	afterInitialize?(): void;
+	onRoomVoiceError?(userid: string): void;
 }

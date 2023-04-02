@@ -965,6 +965,8 @@ export class Tournaments {
 			'<th style="width:150px">Reviewer</th><th style="width:200px">Status</th></tr>';
 		const rows: string[] = [];
 		for (const link in room.newUserHostedTournaments) {
+			if (link !== room.newUserHostedTournaments[link].bracketUrl) continue;
+
 			const tournament = room.newUserHostedTournaments[link];
 			let row = '<tr><td>' + tournament.hostName + '</td>';
 			row += '<td><center><a href="' + link + '">' + link + '</a></center></td>';
@@ -1025,7 +1027,7 @@ export class Tournaments {
 		const html = this.getUserHostedTournamentApprovalHtml(room);
 		let unreviewed = false;
 		for (const link in room.newUserHostedTournaments) {
-			if (!room.newUserHostedTournaments[link].reviewer) {
+			if (link === room.newUserHostedTournaments[link].bracketUrl && !room.newUserHostedTournaments[link].reviewer) {
 				unreviewed = true;
 				break;
 			}

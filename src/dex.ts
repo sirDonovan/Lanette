@@ -1456,7 +1456,7 @@ export class Dex {
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
 			(border ? 'border: ' + border + ';' : '') + 'image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v9) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v12) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
@@ -1548,14 +1548,14 @@ export class Dex {
 	resolveCustomRuleAliases(customRules: string[]): string[] {
 		const uniqueCustomRules: string[] = [];
 		for (const rule of customRules) {
+			const trimmed = rule.trim();
 			const id = Tools.toId(rule);
-			if (id in customRuleAliases) {
+			if (id in customRuleAliases && trimmed.charAt(0) !== '-' && trimmed.charAt(0) !== '+') {
 				for (const aliasRule of customRuleAliases[id]) {
-					const trimmed = aliasRule.trim();
-					if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+					const trimmedAlias = aliasRule.trim();
+					if (!uniqueCustomRules.includes(trimmedAlias)) uniqueCustomRules.push(trimmedAlias);
 				}
 			} else {
-				const trimmed = rule.trim();
 				if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
 			}
 		}

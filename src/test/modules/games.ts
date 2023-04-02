@@ -577,6 +577,7 @@ describe("Games", () => {
 
 			parentGame.canAcceptChallenge = true;
 			assert(parentGame.acceptChallenge(defender), format.name);
+			parentGame.startChallenge();
 			assert(parentGame.started, format.name);
 			parentGame.nextRound();
 			const childGame = room.game;
@@ -620,6 +621,7 @@ describe("Games", () => {
 			assert(!parentGame.started, format.name);
 
 			parentGame.acceptChallenge(Users.self);
+			parentGame.startChallenge();
 			const childGame = room.game;
 			assert(childGame, format.name);
 			assertStrictEqual(childGame.parentGame, parentGame);

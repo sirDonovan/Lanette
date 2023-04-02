@@ -44,7 +44,6 @@ export class HeadToHead extends ScriptedGame {
 		if (options) this.challengeOptions = options;
 
 		this.originalModchat = this.room.modchat;
-		this.room.setRoomModchat("+");
 		if (!leftUser.hasRank(this.room, 'voice')) {
 			this.room.roomVoice(leftUser.name);
 			this.leftPromotedName = leftUser.id;
@@ -54,7 +53,29 @@ export class HeadToHead extends ScriptedGame {
 			this.rightPromotedName = rightUser.id;
 		}
 
+		if (this.leftPromotedName || this.rightPromotedName) {
+			this.startTimer = setTimeout(() => this.startChallenge(),
+				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 2)));
+		} else {
+			this.startChallenge();
+		}
+	}
+
+	startChallenge(): void {
+		this.room.setRoomModchat("+");
 		this.start();
+	}
+
+	onRoomVoiceError(userid: string): void {
+		if (this.leftPlayer && userid === this.leftPlayer.id) {
+			this.say(this.leftPlayer.name + " cannot be promoted!");
+			this.forceEnd(Users.self);
+		}
+
+		if (this.rightPlayer && userid === this.rightPlayer.id) {
+			this.say(this.rightPlayer.name + " cannot be promoted!");
+			this.forceEnd(Users.self);
+		}
 	}
 
 	onStart(): void {
@@ -63,7 +84,7 @@ export class HeadToHead extends ScriptedGame {
 		const text = this.leftPlayer.name + " and " + this.rightPlayer.name + " are going head to head in a game of " +
 			this.challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.nextRound();
 		});
 		this.say(text);
 	}
@@ -111,9 +132,10 @@ export class HeadToHead extends ScriptedGame {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.leftPlayer);
 				game.sendJoinNotice(this.rightPlayer);
+				this.setTimeout(() => game.start(), 5 * 1000);
+			} else {
+				game.start();
 			}
-
-			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 

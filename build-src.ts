@@ -1,4 +1,5 @@
 import fs = require('fs');
+import os = require('os');
 import path = require('path');
 
 import type { RunOptions } from './src/types/root';
@@ -197,6 +198,13 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 			deleteFolderRecursive(path.join(pokemonShowdown, "node_modules"));
 
 			rewritePokemonShowdownPackageJson();
+			if (os.type().startsWith("Windows")) {
+				try {
+					fs.unlinkSync(path.join(pokemonShowdown, "package-lock.json"));
+				} catch (e) {
+					console.log(e);
+				}
+			}
 
 			const npmInstallOutput = exec('npm install --ignore-scripts');
 			if (npmInstallOutput === false) {

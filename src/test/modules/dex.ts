@@ -372,6 +372,10 @@ describe("Dex", () => {
 		for (const i in customRuleFormats) {
 			assert(Dex.validateFormat(customRuleFormats[i].format + '@@@' + customRuleFormats[i].banlist), i);
 		}
+
+		assert(Dex.resolveCustomRuleAliases(["ou"]).length > 1);
+		assertStrictEqual(Dex.resolveCustomRuleAliases(["-ou"]).join(','), "-ou");
+		assertStrictEqual(Dex.resolveCustomRuleAliases(["+ou"]).join(','), "+ou");
 	});
 	it('should support all types of custom rule aliases', () => {
 		const gen = Dex.getGen();
