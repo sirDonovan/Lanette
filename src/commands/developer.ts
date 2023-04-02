@@ -1,6 +1,6 @@
-import child_process = require('child_process');
-import { copyPokemonShowdownShaBase } from '../../tools';
+import fs = require('fs');
 
+import { copyPokemonShowdownShaBase, exec, getInputFolders } from '../../tools';
 import type { BaseCommandDefinitions } from "../types/command-parser";
 
 export const commands: BaseCommandDefinitions = {
@@ -32,14 +32,28 @@ export const commands: BaseCommandDefinitions = {
 	},
 	gitpull: {
 		command(target, room, user) {
-			child_process.exec('git pull', {}, err => {
-				const latestUser = Users.get(user.name);
-				if (err) {
-					if (latestUser) latestUser.say("An error occurred while running ``git pull``: " + err.message);
-				} else {
-					if (latestUser) latestUser.say("Successfully ran ``git pull``.");
+			let result = exec('git pull');
+			if (result === false) {
+				user.say("An error occurred while running ``git pull``.");
+				return;
+			}
+
+			const privateRepo = getInputFolders()['Lanette-private'].inputPath;
+			if (fs.existsSync(privateRepo)) {
+				const currentDirecory = process.cwd();
+				process.chdir(privateRepo);
+
+				result = exec('git pull');
+
+				process.chdir(currentDirecory);
+
+				if (result === false) {
+					user.say("An error occurred while running ``git pull`` in Lanette-private.");
+					return;
 				}
-			});
+			}
+
+			user.say("Successfully ran ``git pull``.");
 		},
 		developerOnly: true,
 		description: ["fetches the latest code from the source GitHub repository"],

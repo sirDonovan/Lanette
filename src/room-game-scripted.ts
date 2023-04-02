@@ -1370,8 +1370,6 @@ export class ScriptedGame extends Game {
 
 		bits = Math.floor(bits);
 		if (bits <= 0) return false;
-		// eslint-disable-next-line @typescript-eslint/no-extra-parens
-		if (Config.afd) bits *= (this.random(50) + 1);
 
 		if (!achievementBits) {
 			if (bits > this.maxBits) bits = this.maxBits;

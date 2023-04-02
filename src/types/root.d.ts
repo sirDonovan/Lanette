@@ -2,7 +2,7 @@ export type RunOptionNames = 'offline' | 'incrementalBuild' | 'modules' | 'categ
     'grep' | 'noBuild' | 'noRemote' | 'noSha' | 'regression';
 export type RunOptions = PartialKeyedDict<RunOptionNames, string>;
 
-export type InputFolderNames = 'root' | 'private' | 'src' | 'web';
+export type InputFolderNames = 'root' | 'Lanette-private' | 'private' | 'src' | 'web';
 
 export type InputFolders = KeyedDict<InputFolderNames, IInputMetadata>;
 

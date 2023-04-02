@@ -62,13 +62,16 @@ export class Storage {
 	}
 
 	onReload(previous: Storage): void {
+		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
+		Object.assign(this.leaderboardsAnnualPointsCache, previous.leaderboardsAnnualPointsCache);
+		Object.assign(this.leaderboardsAnnualSourcePointsCache, previous.leaderboardsAnnualSourcePointsCache);
+		Object.assign(this.leaderboardsPointsCache, previous.leaderboardsPointsCache);
+		Object.assign(this.leaderboardsSourcePointsCache, previous.leaderboardsSourcePointsCache);
+		Object.assign(this.leaderboardsAnnualPointBreakdownsCache, previous.leaderboardsAnnualPointBreakdownsCache);
+		Object.assign(this.leaderboardsPointBreakdownsCache, previous.leaderboardsPointBreakdownsCache);
+
 		Object.assign(this.archiveDatabases, previous.archiveDatabases);
 		Object.assign(this.databases, previous.databases);
-		Object.assign(this.lastExportedDatabaseContents, previous.lastExportedDatabaseContents);
-
-		for (const id in this.databases) {
-			this.updateLeaderboardCaches(id, this.databases[id]);
-		}
 
 		if (previous.loadedDatabases) this.loadedDatabases = previous.loadedDatabases;
 
@@ -161,7 +164,10 @@ export class Storage {
 		const archiveDatabaseFiles = fs.readdirSync(this.archivesDir);
 		for (const fileName of archiveDatabaseFiles) {
 			if (!fileName.endsWith('.json')) continue;
+
 			const id = fileName.substr(0, fileName.indexOf('.json'));
+			if (id in this.archiveDatabases) continue;
+
 			const file = fs.readFileSync(path.join(this.archivesDir, fileName)).toString();
 			this.archiveDatabases[id] = JSON.parse(file) as IArchiveDatabase;
 		}
@@ -170,7 +176,10 @@ export class Storage {
 		const databaseFiles = fs.readdirSync(this.databasesDir);
 		for (const fileName of databaseFiles) {
 			if (!fileName.endsWith('.json')) continue;
+
 			const id = fileName.substr(0, fileName.indexOf('.json'));
+			if (id in this.databases) continue;
+
 			const file = fs.readFileSync(path.join(this.databasesDir, fileName)).toString();
 			const database = JSON.parse(file) as IDatabase;
 
@@ -257,6 +266,11 @@ export class Storage {
 		}
 
 		return promises;
+	}
+
+	removeDatabase(id: string): void {
+		delete this.databases[id];
+		delete this.archiveDatabases[id];
 	}
 
 	renameRoom(room: Room, oldId: string): void {
