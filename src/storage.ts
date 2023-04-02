@@ -161,7 +161,10 @@ export class Storage {
 		const archiveDatabaseFiles = fs.readdirSync(this.archivesDir);
 		for (const fileName of archiveDatabaseFiles) {
 			if (!fileName.endsWith('.json')) continue;
+
 			const id = fileName.substr(0, fileName.indexOf('.json'));
+			if (id in this.archiveDatabases) continue;
+
 			const file = fs.readFileSync(path.join(this.archivesDir, fileName)).toString();
 			this.archiveDatabases[id] = JSON.parse(file) as IArchiveDatabase;
 		}
@@ -170,7 +173,10 @@ export class Storage {
 		const databaseFiles = fs.readdirSync(this.databasesDir);
 		for (const fileName of databaseFiles) {
 			if (!fileName.endsWith('.json')) continue;
+
 			const id = fileName.substr(0, fileName.indexOf('.json'));
+			if (id in this.databases) continue;
+
 			const file = fs.readFileSync(path.join(this.databasesDir, fileName)).toString();
 			const database = JSON.parse(file) as IDatabase;
 
@@ -257,6 +263,11 @@ export class Storage {
 		}
 
 		return promises;
+	}
+
+	removeDatabase(id: string): void {
+		delete this.databases[id];
+		delete this.archiveDatabases[id];
 	}
 
 	renameRoom(room: Room, oldId: string): void {
