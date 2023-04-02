@@ -637,7 +637,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					if (this.maxCorrectPlayersPerRound &&
                         this.maxCorrectPlayersPerRound > 1 &&
                         this.answers.length > 1) {
-                        const usePossibleSize = this.answers.length - 1 >= this.maxCorrectPlayersPerRound;
+                        const usePossibleSize = this.answers.length + this.guessedAnswers.length - 1 >= this.maxCorrectPlayersPerRound;
                         this.say(player.name + " is the **" + Tools.toNumberOrderString(this.correctPlayers.length) +
                             "** correct player! There " + (this.answers.length > 2 ? "are" : "is") + " **" +
                             (this.answers.length - 1) + "** " + (usePossibleSize ? "possible " : "") +
