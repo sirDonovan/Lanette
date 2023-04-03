@@ -723,7 +723,10 @@ export const commands: BaseCommandDefinitions = {
 
 				this.say("You have approved " + targetRoom.approvedUserHostedTournaments[link].hostName + "'s tournament.");
 				const host = Users.get(targetRoom.approvedUserHostedTournaments[link].hostName);
-				if (host) host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
+				if (host) {
+                    host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
+                    host.say("Please use this link: ``" + link + "``");
+                }
 			} else {
 				if (targetRoom.newUserHostedTournaments[link].approvalStatus === 'changes-requested') {
 					return this.say("Changes have already been requested for " +

@@ -585,7 +585,7 @@ export class Room {
 
     hidetext(user: string, clear: boolean, lineCount: number | null, reason: string, deleteAlts?: boolean): void {
         user = Tools.toId(user);
-        if (!user || !reason) return;
+        if (!user) return;
         if (deleteAlts) lineCount = null;
 
         let message: string;
