@@ -2173,7 +2173,7 @@ export class Client {
 			for (const possibleLink of possibleLinks) {
 				const link = Tools.getChallongeUrl(possibleLink);
 				if (link) links.push(link);
-            }
+			}
 
 			const database = Storage.getDatabase(room);
 			let rank: GroupName = 'voice';
