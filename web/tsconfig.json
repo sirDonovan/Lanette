@@ -5,7 +5,6 @@
 		"incremental": true,
 		"noEmit": true,
 		"module": "ESNext",
-		"importsNotUsedAsValues": "error",
 		"lib": [
             "dom",
 		    "esnext"

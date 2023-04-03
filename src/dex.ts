@@ -1548,14 +1548,14 @@ export class Dex {
 	resolveCustomRuleAliases(customRules: string[]): string[] {
 		const uniqueCustomRules: string[] = [];
 		for (const rule of customRules) {
+			const trimmed = rule.trim();
 			const id = Tools.toId(rule);
-			if (id in customRuleAliases) {
+			if (id in customRuleAliases && trimmed.charAt(0) !== '-' && trimmed.charAt(0) !== '+') {
 				for (const aliasRule of customRuleAliases[id]) {
-					const trimmed = aliasRule.trim();
-					if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
+					const trimmedAlias = aliasRule.trim();
+					if (!uniqueCustomRules.includes(trimmedAlias)) uniqueCustomRules.push(trimmedAlias);
 				}
 			} else {
-				const trimmed = rule.trim();
 				if (!uniqueCustomRules.includes(trimmed)) uniqueCustomRules.push(trimmed);
 			}
 		}

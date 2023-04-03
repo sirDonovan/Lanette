@@ -21,6 +21,7 @@
 	},
 	"include": [
 		"*.ts",
+		"Lanette-private/**/*.ts",
 		"private/**/*.ts",
 		"src/**/*.ts"
 	]

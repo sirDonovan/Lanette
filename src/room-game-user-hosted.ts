@@ -451,9 +451,6 @@ export class UserHostedGame extends Game {
 				hostBits /= 2;
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-extra-parens
-			if (Config.afd) hostBits *= (this.random(50) + 1);
-
 			if (Config.onUserHostedGameHost) Config.onUserHostedGameHost(this.room, this.format, hostName);
 
 			Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');

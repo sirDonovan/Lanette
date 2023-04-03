@@ -8,13 +8,14 @@ const name = "Doubles Release and De-volve";
 const description = "Every player is given a randomly generated team to start out. Each battle that you win, you " +
 	"must 'release' 2 of your Pokemon (remove them from your team) and then de-volve 2 Pokemon on your team.";
 
+// max players > 32 eventually runs out of memory
 class DoublesReleaseAndDevolve extends DoublesBattleEliminationTournament {
 	canChangeFormat = true;
 	firstRoundExtraTime = 5 * 60 * 1000;
 	dropsPerRound = 2;
 	evolutionsPerRound = -2;
 	startingTeamsLength = 6;
-	maxPlayers = 64;
+	maxPlayers = 32;
 	minTeamSize = 2;
 	requiredDrop = true;
 	requiredEvolution = true;

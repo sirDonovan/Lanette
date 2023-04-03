@@ -5,6 +5,7 @@
 /client-data/**
 /data/**
 /databases/**
+/Lanette-private/**
 /local-utils/**
 /node_modules/**
 /pokemon-showdown/**
