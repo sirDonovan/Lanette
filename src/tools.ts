@@ -839,6 +839,24 @@ export class Tools {
 		return parts.slice(0, 3).join("-") + " " + parts.slice(3, human ? 5 : 6).join(":") + (human ? "" + parts[6] : "");
 	}
 
+    fromTimeString(input: string): number {
+        // detecting "a minute" or something
+        input = input.toLowerCase().replace(/(?:^| )an? /ig, "1").replace(/[^a-z0-9.:]/g, "");
+        let time: number = 0;
+        const sec = /(\d+(?:\.\d+)?)(?:s(?:ec(?:onds?)?)?)/.exec(input);
+        if (sec && sec[0] && sec[1] && !Number.isNaN(Number(sec[1]))) {
+            time += Number(sec[1]) * 1000;
+            input = input.replace(sec[0], "");
+        }
+        const min = /(\d+(?:\.\d+)?)m(?:in(?:ute?)?s?)?/.exec(input);
+        if (min && min[0] && min[1] && !Number.isNaN(Number(min[1]))) {
+            time += Number(min[1]) * 60 * 1000;
+        }
+
+        if (time < 0) return 0;
+        return time;
+    }
+
 	/**Converts `input` in milliseconds to a duration string */
 	toDurationString(input: number, options?: {precision?: number; hhmmss?: boolean, milliseconds?: boolean}): string {
 		const date = new Date(input);
