@@ -144,6 +144,29 @@ describe("Tools", () => {
 		assert(!Tools.isFloat('-'));
 		assert(!Tools.isFloat('@'));
 	});
+    it('should return proper values from fromTimeString()', () => {
+        assertStrictEqual(Tools.fromTimeString('1 sec'), 1 * second);
+        assertStrictEqual(Tools.fromTimeString('2.5 secs'), 2.5 * second);
+        assertStrictEqual(Tools.fromTimeString('10 second'), 10 * second);
+        assertStrictEqual(Tools.fromTimeString('1+e7 seconds'), 7 * second);
+        assertStrictEqual(Tools.fromTimeString('2.5sec'), 2.5 * second);
+        assertStrictEqual(Tools.fromTimeString('10seconds'), 10 * second);
+        assertStrictEqual(Tools.fromTimeString('1 min'), 1 * minute);
+        assertStrictEqual(Tools.fromTimeString('2.5 mins'), 2.5 * minute);
+        assertStrictEqual(Tools.fromTimeString('10 minute'), 10 * minute);
+        assertStrictEqual(Tools.fromTimeString('1+e7 minutes'), 7 * minute);
+        assertStrictEqual(Tools.fromTimeString('2.5min'), 2.5 * minute);
+        assertStrictEqual(Tools.fromTimeString('10minutes'), 10 * minute);
+        assertStrictEqual(Tools.fromTimeString('a sec'), 1 * second);
+        assertStrictEqual(Tools.fromTimeString('a min'), 1 * minute);
+        assertStrictEqual(Tools.fromTimeString('1min, 1sec'), 1 * minute + 1 * second);
+        assertStrictEqual(Tools.fromTimeString('5seconds 5min'), 5 * minute + 5 * second);
+        assertStrictEqual(Tools.fromTimeString('5min5min'), 5 * minute);
+        assertStrictEqual(Tools.fromTimeString('10minute1sec'), 10 * minute + 1 * second);
+        assertStrictEqual(Tools.fromTimeString('1hour10sec'), 10 * second);
+        assertStrictEqual(Tools.fromTimeString('an hour'), 0);
+        assertStrictEqual(Tools.fromTimeString(''), 0);
+    })
 	it('should return proper values from toDurationString()', () => {
 		assertStrictEqual(Tools.toDurationString(second), '1 second');
 		assertStrictEqual(Tools.toDurationString(2 * second), '2 seconds');
