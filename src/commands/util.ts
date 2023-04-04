@@ -68,7 +68,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const time = Tools.fromTimeString(target);
-			if (isNaN(time) || time > 30 * 60 * 1000 || time < 5)
+			if (isNaN(time) || time > 30 * 60 * 1000 || time < 5000)
                 return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
 
 			if (!room.timers) room.timers = {};
