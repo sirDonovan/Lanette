@@ -24,5 +24,8 @@
 		"Lanette-private/**/*.ts",
 		"private/**/*.ts",
 		"src/**/*.ts"
+	],
+	"exclude": [
+		"Lanette-private/web/**/*.ts",
 	]
 }
