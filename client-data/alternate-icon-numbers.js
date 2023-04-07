@@ -229,6 +229,9 @@ exports.alternateIconNumbers = {
 		taurospaldea: 1020 + 224,
 		taurospaldeafire: 1020 + 225,
 		taurospaldeawater: 1020 + 226,
+		taurospaldeacombat: 1020 + 224,
+		taurospaldeablaze: 1020 + 225,
+		taurospaldeaaqua: 1020 + 226,
 		wooperpaldea: 1020 + 227,
 		oinkolognef: 1020 + 228,
 		palafinhero: 1020 + 229,
@@ -239,6 +242,9 @@ exports.alternateIconNumbers = {
 		squawkabillyyellow: 1020 + 234,
 		squawkabillywhite: 1020 + 235,
 		gimmighoulroaming: 1020 + 236,
+		dialgaorigin: 1020 + 237,
+		palkiaorigin: 1020 + 238,
+		basculinwhitestriped: 1020 + 239,
 
 		gumshoostotem: 735,
 		raticatealolatotem: 1020 + 120,
@@ -409,6 +415,7 @@ exports.alternateIconNumbers = {
 		solotl: 1488 + 31,
 		miasmite: 1488 + 32,
 		dorsoil: 1488 + 33,
+		saharascal: 1488 + 34,
 	},
 	// pokemon-showdown-client -> battle-dex-data.ts -> BattlePokemonIconIndexesLeft
 	left: {

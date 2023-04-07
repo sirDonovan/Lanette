@@ -261,9 +261,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	// 'gen7mixandmega': {
 	// 	teams: 'https://www.smogon.com/forums/threads/3679730/post-8778656',
 	// },
-	'gen7stabmons': {
-		teams: 'https://www.smogon.com/forums/threads/3675320/#post-8697545',
-	},
+	// 'gen7stabmons': {
+	// 	teams: 'https://www.smogon.com/forums/threads/3675320/#post-8697545',
+	// },
 
 	// Gen 6
 	'gen6anythinggoes': {
