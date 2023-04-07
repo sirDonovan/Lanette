@@ -331,7 +331,7 @@ export class Storage {
 				if (!archiveDatabase.previousCycles) {
 					archiveDatabase.previousCycles = [];
 				} else {
-					while (archiveDatabase.previousCycles.length === 26) {
+					while (archiveDatabase.previousCycles.length > 26) {
 						archiveDatabase.previousCycles.pop();
 					}
 				}
