@@ -840,19 +840,20 @@ export class Tools {
 	}
 
     fromTimeString(input: string): number {
-        // detecting "a minute" or something
-        input = input.toLowerCase().replace(/(?:^| )an? /ig, "1").replace(/[^a-z0-9.:]/g, "");
+        const targets: string[] = input.split(/,|and/gi).map((str) => this.toId(str));
         let time: number = 0;
-        const sec = /(\d+(?:\.\d+)?)(?:s(?:ec(?:onds?)?)?)/.exec(input);
-        if (sec && sec[0] && sec[1] && !Number.isNaN(Number(sec[1]))) {
-            time += Number(sec[1]) * 1000;
-            input = input.replace(sec[0], "");
+        for (const t of targets) {
+            if (t.includes("sec")) {
+                const possibleAmount = t.split("sec")[0]!;
+                const amount = possibleAmount === "a" ? 1 : parseInt(possibleAmount, 10);
+                if (!Number.isNaN(amount)) time += amount * 1000;
+            }
+            if (t.includes("min")) {
+                const possibleAmount = t.split("min")[0]!;
+                const amount = possibleAmount === "a" ? 1 : parseInt(possibleAmount, 10);
+                if (!Number.isNaN(amount)) time += amount * 60 * 1000;
+            }
         }
-        const min = /(\d+(?:\.\d+)?)m(?:in(?:ute?)?s?)?/.exec(input);
-        if (min && min[0] && min[1] && !Number.isNaN(Number(min[1]))) {
-            time += Number(min[1]) * 60 * 1000;
-        }
-
         if (time < 0) return 0;
         return time;
     }
