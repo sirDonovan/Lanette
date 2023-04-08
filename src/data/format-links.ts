@@ -167,7 +167,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen7ou': {
 		info: 'https://www.smogon.com/dex/sm/formats/ou',
-		teams: 'https://www.smogon.com/forums/threads/3638845/#post-7840056',
+		teams: 'https://www.smogon.com/forums/threads/3695427/',
 		viability: 'https://www.smogon.com/forums/threads/3667522',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen7ou',
 	},
