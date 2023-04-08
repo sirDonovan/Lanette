@@ -1436,7 +1436,7 @@ export class Dex {
 		let num = pokemon ? pokemon.num : 0;
 		if (num < 0) {
 			num = 0;
-		} else if (num > 898) {
+		} else if (num > 1010) {
 			num = 0;
 		}
 

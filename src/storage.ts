@@ -330,8 +330,10 @@ export class Storage {
 				const archiveDatabase = this.archiveDatabases[roomid];
 				if (!archiveDatabase.previousCycles) {
 					archiveDatabase.previousCycles = [];
-				} else if (archiveDatabase.previousCycles.length === 26) {
-					archiveDatabase.previousCycles.pop();
+				} else {
+					while (archiveDatabase.previousCycles.length > 26) {
+						archiveDatabase.previousCycles.pop();
+					}
 				}
 				archiveDatabase.previousCycles.unshift(previousCycle);
 
