@@ -840,18 +840,22 @@ export class Tools {
 	}
 
     fromTimeString(input: string): number {
-        const targets: string[] = input.split(/,|and/gi).map((str) => this.toId(str));
+        const targets: string[] = input.split(input.includes("and") ? "and" : ",").map((str) => str.toLowerCase().replaceAll(/[^a-z0-9.]/g, ""));
         let time: number = 0;
         for (const t of targets) {
             if (t.includes("sec")) {
                 const possibleAmount = t.split("sec")[0]!;
-                const amount = possibleAmount === "a" ? 1 : parseInt(possibleAmount, 10);
-                if (!Number.isNaN(amount)) time += amount * 1000;
+                if (!possibleAmount.includes("e")) {
+                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount, 10);
+                    if (!Number.isNaN(amount)) time += amount * 1000;
+                }
             }
             if (t.includes("min")) {
                 const possibleAmount = t.split("min")[0]!;
-                const amount = possibleAmount === "a" ? 1 : parseInt(possibleAmount, 10);
-                if (!Number.isNaN(amount)) time += amount * 60 * 1000;
+                if (!possibleAmount.includes("e")) {
+                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount, 10);
+                    if (!Number.isNaN(amount)) time += amount * 60 * 1000;
+                }
             }
         }
         if (time < 0) return 0;

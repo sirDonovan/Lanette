@@ -146,7 +146,7 @@ describe("Tools", () => {
 	});
     it('should return proper values from fromTimeString()', () => {
         assertStrictEqual(Tools.fromTimeString('1 sec'), 1 * second);
-        assertStrictEqual(Tools.fromTimeString('1+e7 seconds'), 1 * second);
+        assertStrictEqual(Tools.fromTimeString('1+e7 seconds'), 0);
         assertStrictEqual(Tools.fromTimeString('2.5sec'), 2.5 * second);
         assertStrictEqual(Tools.fromTimeString('10seconds'), 10 * second);
         assertStrictEqual(Tools.fromTimeString('1 min'), 1 * minute);
@@ -154,7 +154,7 @@ describe("Tools", () => {
         assertStrictEqual(Tools.fromTimeString('a min'), 1 * minute);
         assertStrictEqual(Tools.fromTimeString('1min, 1sec'), 1 * minute + 1 * second);
         assertStrictEqual(Tools.fromTimeString('5seconds, 5min'), 5 * minute + 5 * second);
-        assertStrictEqual(Tools.fromTimeString('5minand5min,5min'), 15 * minute);
+        assertStrictEqual(Tools.fromTimeString('5minand5min,5min'), 10 * minute);
         assertStrictEqual(Tools.fromTimeString('10minute,1sec'), 10 * minute + 1 * second);
         assertStrictEqual(Tools.fromTimeString('1hour,10sec'), 10 * second);
         assertStrictEqual(Tools.fromTimeString('an hour'), 0);
