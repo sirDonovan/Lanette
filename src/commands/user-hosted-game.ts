@@ -751,8 +751,9 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("The game start timer has been turned off.");
 			}
 
-			const time = Tools.fromTimeString(target)
-			if (isNaN(time) || time < 60 * 1000 || time > 60 * 4000) return this.say("You must specify time between 1 minute and 4 minutes.");
+			const time = Tools.fromTimeString(target);
+			if (isNaN(time) || time < 60 * 1000 || time > 60 * 4000)
+				return this.say("You must specify time between 1 minute and 4 minutes.");
 			room.userHostedGame.setStartTimer(time);
 			this.say("The game will start in " + Tools.toDurationString(time) + ".");
 		},
