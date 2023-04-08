@@ -847,14 +847,14 @@ export class Tools {
             if (t.includes("sec")) {
                 const possibleAmount = t.split("sec")[0]!;
                 if (!possibleAmount.includes("e")) {
-                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount, 10);
+                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount);
                     if (!Number.isNaN(amount)) time += amount * 1000;
                 }
             }
             if (t.includes("min")) {
                 const possibleAmount = t.split("min")[0]!;
                 if (!possibleAmount.includes("e")) {
-                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount, 10);
+                    const amount = possibleAmount === "a" ? 1 : parseFloat(possibleAmount);
                     if (!Number.isNaN(amount)) time += amount * 60 * 1000;
                 }
             }
