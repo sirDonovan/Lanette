@@ -647,20 +647,20 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
                     }
 				}
 
-				if (this.maxCorrectPlayersPerRound && this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
+				if (this.correctPlayers.length === this.maxCorrectPlayersPerRound) {
                     if (this.answers.length > 1) {
                         this.removeAnswer(answer);
                         this.displayAnswers();
                     }
+                    this.setTimeout(() => this.nextRound(), 5000);
 					this.answers = [];
 				} else {
 					if (!this.allowRepeatCorrectAnswers) this.removeAnswer(answer);
+                    if (!this.answers.length) {
+                        if (this.maxCorrectPlayersPerRound > 1) this.say("All answers have been guessed!");
+                        this.setTimeout(() => this.nextRound(), 5000);
+                    }
 				}
-
-				if (!this.answers.length) {
-                    if (this.maxCorrectPlayersPerRound > 1) this.say("All answers have been guessed!");
-                    this.setTimeout(() => this.nextRound(), 5000);
-                }
 			}
 
 			return true;
