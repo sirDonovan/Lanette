@@ -840,7 +840,8 @@ export class Tools {
 	}
 
     fromTimeString(input: string): number {
-        const targets: string[] = input.split(input.includes("and") ? "and" : ",").map((str) => str.toLowerCase().replaceAll(/[^a-z0-9.]/g, ""));
+        const targets: string[] = input.split(input.includes("and") ? "and" : ",")
+            .map((str) => str.toLowerCase().replaceAll(/[^a-z0-9.]/g, ""));
         let time: number = 0;
         for (const t of targets) {
             if (t.includes("sec")) {
