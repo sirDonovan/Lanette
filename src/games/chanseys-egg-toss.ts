@@ -44,7 +44,7 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	onRemovePlayer(player: Player): void {
-		if (this.currentHolder && this.getRemainingPlayerCount() < 2) {
+		if (this.getRemainingPlayerCount() < 2) {
 			this.say(player.name + " left the game!");
 			this.end();
 		}
@@ -86,11 +86,6 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	onNextRound(): void {
-		const remainingPlayerCount = this.getRemainingPlayerCount();
-		if (remainingPlayerCount < 2) {
-			return this.end();
-		}
-
 		this.spamTosses.clear();
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -101,7 +96,7 @@ class ChanseysEggToss extends ScriptedGame {
 				const eggText = "Chansey handed the egg to **" + holder.name + "**!";
 				this.on(eggText, () => {
 					let time: number;
-					if (remainingPlayerCount === 2) {
+					if (this.getRemainingPlayerCount() === 2) {
 						time = 5000;
 					} else {
 						time = this.sampleOne(this.roundTimes);
