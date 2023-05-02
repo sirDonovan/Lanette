@@ -50,7 +50,7 @@ class ChanseysEggToss extends ScriptedGame {
 		}
 	}
 
-	onEliminatePlayer(player: Player): void {
+	onEliminatePlayer(): void {
 		if (this.getRemainingPlayerCount() < 2) this.end();
 	}
 
