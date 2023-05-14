@@ -20,6 +20,7 @@ export abstract class MapCurrencyGame extends MapGame {
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			this.positionPlayer(player);
+            this.sendPlayerControls(player);
 		}
 		this.lives.set(player, this.startingLives);
 		return true;
