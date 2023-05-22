@@ -9,8 +9,8 @@ import type { IInputMetadata, InputFolderNames, InputFolders, RunOptionNames, Ru
 if (!global._outputFilepaths) global._outputFilepaths = [];
 
 const folderNames: InputFolderNames[] = ['private', 'src', 'web', 'Lanette-private'];
-const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'noBuild', 'mochaRuns',
-	'script', 'grep'];
+const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'mochaRuns', 'script',
+	'grep', 'noBuild', 'noRemote', 'noSha', 'regression'];
 const optionAliases: Dict<RunOptionNames> = {
 	'local': 'offline',
 	'incremental': 'incrementalBuild',
