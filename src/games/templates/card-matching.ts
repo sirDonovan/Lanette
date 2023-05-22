@@ -203,7 +203,6 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 				this.topCard = this.deck[i] as IPokemonCard;
 				if (this.hasPlayableCard(this.getTurnCards(this.playerOrder[0]))) {
 					this.deck.splice(i, 1);
-					this.deck.unshift(this.topCard);
 					break;
 				}
 			}
