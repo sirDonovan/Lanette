@@ -2041,6 +2041,8 @@ export class Client {
 
 	onConnect(): void {
 		this.loggedIn = false;
+
+		if (Config.onClientConnect) Config.onClientConnect();
 	}
 
 	prepareReconnect(): void {

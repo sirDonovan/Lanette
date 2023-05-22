@@ -492,6 +492,10 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  */
 export let gameCatalogGists: Dict<{description: string; files: {scripted?: string, userHosted?: string}; id: string}> = {};
 
+export let onClientConnect: (() => void) | undefined = undefined;
+
+export let onReloadPrivate: (() => void) | undefined = undefined;
+
 export let onScriptedGameCreate: ((room: Room, format: IGameFormat, official?: boolean) => void) | undefined = undefined;
 
 export let onScriptedGameWin: ((room: Room, format: IGameFormat, players: Dict<Player>, winners: Map<Player, number>,

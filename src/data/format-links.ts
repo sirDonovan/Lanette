@@ -5,9 +5,18 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen9almostanyability': {
 		teams: 'https://www.smogon.com/forums/threads/3710568/#post-9390590',
 	},
+    'gen9anythinggoes': {
+        teams: 'https://www.smogon.com/forums/threads/3719248/',
+    },
+    'gen9ubers': {
+        teams: 'https://www.smogon.com/forums/threads/3719619/',
+    },
 	'gen9ou': {
 		teams: 'https://www.smogon.com/forums/threads/3712513/',
 	},
+    'gen9uu': {
+        teams: 'https://www.smogon.com/forums/threads/3720278/',
+    },
 	'gen9ru': {
 		teams: 'https://www.smogon.com/forums/threads/3717072/',
 	},
@@ -20,6 +29,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen9lc': {
 		teams: 'https://www.smogon.com/forums/threads/3712989/',
 	},
+    'gen9nationaldex': {
+        teams: 'https://www.smogon.com/forums/threads/3714863/',
+    },
 
 	// Gen 8
 	'gen8anythinggoes': {
@@ -167,7 +179,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	},
 	'gen7ou': {
 		info: 'https://www.smogon.com/dex/sm/formats/ou',
-		teams: 'https://www.smogon.com/forums/threads/3638845/#post-7840056',
+		teams: 'https://www.smogon.com/forums/threads/3695427',
 		viability: 'https://www.smogon.com/forums/threads/3667522',
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen7ou',
 	},

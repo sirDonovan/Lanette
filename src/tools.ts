@@ -93,6 +93,8 @@ const MAX_USERNAME_LENGTH = 18;
 const GITHUB_API_THROTTLE = 2 * 1000;
 const UPDATE_POKEMON_SHOWDOWN_TIMEOUT = 30 * 1000;
 const UPDATE_POKEMON_SHOWDOWN_ATTEMPTS = 60;
+const LETTERS = "abcdefghijklmnopqrstuvwxyz";
+const ALPHA_NUMERIC = LETTERS + "0123456789";
 
 // __dirname will be [..]/build/src
 const rootFolder = path.resolve(__dirname, '..', '..');
@@ -107,6 +109,7 @@ timeout = undefined;
 
 export class Tools {
 	// exported constants
+	readonly alphaNumericArray: readonly string[] = ALPHA_NUMERIC.split("");
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
 	readonly rootBuildFolder: string = path.join(rootFolder, 'build');
 	readonly srcBuildFolder: string = path.join(rootFolder, 'build', 'src');
@@ -114,7 +117,8 @@ export class Tools {
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly guestUserPrefix: string = GUEST_USER_PREFIX;
 	readonly hexCodes: typeof hexCodes = hexCodes;
-	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
+	readonly letters: typeof LETTERS = LETTERS;
+	readonly lettersArray: readonly string[] = LETTERS.split("");
 	readonly mainServer: string = MAIN_SERVER;
 	readonly mainReplayServer: string = MAIN_REPLAY_SERVER;
 	readonly maxMessageLength: typeof MAX_MESSAGE_LENGTH = MAX_MESSAGE_LENGTH;
@@ -132,7 +136,7 @@ export class Tools {
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
 	readonly spritePrefix: string = '//' + MAIN_SERVER + '/sprites';
-	readonly timezones: TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
+	readonly timezones: readonly TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
 		'GMT-06:00', 'GMT-05:00', 'GMT-04:00', 'GMT-03:30', 'GMT-03:00', 'GMT-02:00', 'GMT-01:00', 'GMT+00:00', 'GMT+01:00', 'GMT+02:00',
 		'GMT+03:00', 'GMT+03:30', 'GMT+04:00', 'GMT+04:30', 'GMT+05:00', 'GMT+05:30', 'GMT+05:45', 'GMT+06:00', 'GMT+06:30', 'GMT+07:00',
 		'GMT+08:00', 'GMT+08:45', 'GMT+09:00', 'GMT+09:30', 'GMT+10:00', 'GMT+10:30', 'GMT+11:00', 'GMT+12:00', 'GMT+12:45', 'GMT+13:00',
