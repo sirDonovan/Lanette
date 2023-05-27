@@ -67,7 +67,8 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("Your timer has been turned off.");
 			}
 
-			const time = Tools.fromTimeString(target);
+			let time = Tools.fromTimeString(target);
+			if (!time) time = Tools.fromTimeString(target + (target.trim().length === 1 ? "min"  : "sec"));
 			if (isNaN(time) || time > 30 * 60 * 1000 || time < 5000)
                 return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
 

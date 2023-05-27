@@ -713,6 +713,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			} else {
 				time = Tools.fromTimeString(target);
+				if (!time) time = Tools.fromTimeString(target + (target.trim().length === 1 ? "min" : "sec"));
 				if (Number.isNaN(time) || time < 3000) this.say("Please enter an amount of seconds more than 3 seconds.");
 			}
 
@@ -751,9 +752,11 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("The game start timer has been turned off.");
 			}
 
-			const time = Tools.fromTimeString(target);
-			if (isNaN(time) || time < 60 * 1000 || time > 60 * 4000)
+			let time = Tools.fromTimeString(target);
+			if (!time) time = Tools.fromTimeString(id + (id.length === 1 ? "min" : "sec"));
+			if (isNaN(time) || time < 60 * 1000 || time > 60 * 4000) {
 				return this.say("You must specify time between 1 minute and 4 minutes.");
+			}
 			room.userHostedGame.setStartTimer(time);
 			this.say("The game will start in " + Tools.toDurationString(time) + ".");
 		},
