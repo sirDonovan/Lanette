@@ -1469,6 +1469,8 @@ export abstract class BattleElimination extends ScriptedGame {
 				"</b>");
 			this.dontAutoCloseHtmlPages = false;
 			this.deallocate(true);
+
+			this.setAutoCreateTimer(1);
 			return;
 		}
 
@@ -2191,10 +2193,16 @@ export abstract class BattleElimination extends ScriptedGame {
 				"starts now!");
 		}
 
+		this.setAutoCreateTimer();
+	}
+
+	setAutoCreateTimer(autoCreateTimer?: number) {
 		if (Config.tournamentGameAutoCreateTimers && this.room.id in Config.tournamentGameAutoCreateTimers) {
-			let autoCreateTimer = Config.tournamentGameAutoCreateTimers[this.room.id];
-			if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
-				autoCreateTimer += Config.tournamentGameCooldownTimers[this.room.id];
+			if (!autoCreateTimer) {
+				autoCreateTimer = Config.tournamentGameAutoCreateTimers[this.room.id];
+				if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
+					autoCreateTimer += Config.tournamentGameCooldownTimers[this.room.id];
+				}
 			}
 			Games.setAutoCreateTimer(this.room, 'tournament', autoCreateTimer * 60 * 1000);
 		}
