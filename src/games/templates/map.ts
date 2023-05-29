@@ -25,6 +25,8 @@ const UP_COMMAND = "up";
 const DOWN_COMMAND = "down";
 const LEFT_COMMAND = "left";
 const RIGHT_COMMAND = "right";
+const EXIT_COMMAND = "exit";
+const WAIT_COMMAND = "wait";
 
 const mapKeys: KeyedDict<MapKeys, string> = {
 	currency: 'o',
@@ -119,12 +121,14 @@ export abstract class MapGame extends ScriptedGame {
 	maxMovement: number = 3;
 	maxRound: number = 20;
 	minMovement: number = 1;
-	moveCommands: string[] = [UP_COMMAND, DOWN_COMMAND, LEFT_COMMAND, RIGHT_COMMAND];
+	moveCommands: string[] = [UP_COMMAND, DOWN_COMMAND, LEFT_COMMAND, RIGHT_COMMAND, EXIT_COMMAND, WAIT_COMMAND];
 	playerCoordinates = new Map<Player, number[]>();
 	playerRoundInfo = new Map<Player, string[]>();
 	points = new Map<Player, number>();
 	roundsWithoutCurrency = new Map<Player, number>();
 	startingFloor: number = 1;
+	usesExit: boolean = false;
+	usesWait: boolean = false;
 	usesHtmlPage = true;
 
 	declare readonly room: Room;
@@ -257,8 +261,6 @@ export abstract class MapGame extends ScriptedGame {
 			[mapKeys.unknown]: 'an unknown space',
 			[mapKeys.currency]: this.currency + ' that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
 			[mapKeys.empty]: 'an empty space',
-			[mapKeys.exit]: 'an exit that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
-			[mapKeys.trap]: 'a trap that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered',
 		};
 
 		if (this.additionalMapSymbols) {
@@ -363,7 +365,7 @@ export abstract class MapGame extends ScriptedGame {
 		if (this.sharedMap) {
 			for (const id in this.players) {
 				const otherPlayer = this.players[id];
-				if (otherPlayer.eliminated) continue;
+				if (otherPlayer.eliminated || this.escapedPlayers?.has(otherPlayer)) continue;
 				const playerCoordindates = this.playerCoordinates.get(this.players[id])!;
 				const coordinates = this.coordinatesToString(playerCoordindates[0], playerCoordindates[1]);
 				if (!(coordinates in playerLocations)) playerLocations[coordinates] = [];
@@ -447,7 +449,7 @@ export abstract class MapGame extends ScriptedGame {
 
 		if (this.trappedPlayers && this.trappedPlayers.has(player)) {
 			html += "<b>You are trapped and cannot move!</b>";
-		} else if (this.canMove && (!player.eliminated || (this.escapedPlayers && this.escapedPlayers.has(player)))) {
+		} else if (this.canMove && !player.eliminated) {
 			const cannotMove = this.roundActions && this.roundActions.has(player) ? true : false;
 			html += "<b>Controls</b>:<br /><table>";
 			html += "<tr><td>&nbsp;</td>";
@@ -485,6 +487,16 @@ export abstract class MapGame extends ScriptedGame {
 			html += "<td>" + this.getMsgRoomButton(DOWN_COMMAND + " 1", "Down 1", cannotMove || playerCoordindates[1] < 1, player) +
 				"</td>";
 			html += "<td>&nbsp;</td></tr>";
+			if (this.usesExit) {
+				html += "<tr><td>" + this.getMsgRoomButton("exit", "Exit", cannotMove || !this.escapedPlayers?.has(player), player) +
+					"</td>";
+				html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>";
+			}
+			if (this.usesWait) {
+				html += "<tr><td>" + this.getMsgRoomButton("wait", "Wait", cannotMove, player) +
+					"</td>";
+				html += "<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>";
+			}
 			html += '</table>';
 		}
 
@@ -552,11 +564,12 @@ export abstract class MapGame extends ScriptedGame {
 		this.playerRoundInfo.get(player)!.push("You arrived at (" + space.coordinates + ") and found an exit! You are now safe " +
 			"and will earn your bits at the end of the game.");
 		if (this.round < this.maxRound) {
+			this.playerRoundInfo.get(player)!.push("To confirm your exit, click the Exit button, after which the game will " +
+				"no longer accept further input from you.");
 			this.playerRoundInfo.get(player)!.push("If you are willing to risk it, you may continue travelling to collect more " +
 				this.currency + " <b>but you must find your way to an exit before time is up</b>!");
 		}
 		if (this.escapedPlayers) this.escapedPlayers.set(player, true);
-		player.eliminated = true;
 		if (!space.traversedAttributes.exit) space.traversedAttributes.exit = new Set();
 		space.traversedAttributes.exit.add(player);
 	}
@@ -628,6 +641,9 @@ export abstract class MapGame extends ScriptedGame {
 	}
 
 	setExitCoordinates(floor: MapFloor, exits?: number): void {
+		this.usesExit = true;
+		if (!this.additionalMapSymbols) this.additionalMapSymbols = {};
+		this.additionalMapSymbols[mapKeys.exit] = 'an exit that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered';
 		if (!exits) exits = floor.y;
 		for (let i = 0; i < exits; i++) {
 			const space = this.findOpenFloorSpace(floor);
@@ -648,6 +664,8 @@ export abstract class MapGame extends ScriptedGame {
 	}
 
 	setTrapCoordinates(floor: MapFloor, traps?: number): void {
+		if (!this.additionalMapSymbols) this.additionalMapSymbols = {};
+		this.additionalMapSymbols[mapKeys.trap] = 'a trap that ' + (this.sharedMap ? 'has been' : 'you have') + ' discovered';
 		if (!traps) traps = floor.y >= 10 ? Math.round(floor.y * 1.5) : floor.y;
 		for (let i = 0; i < traps; i++) {
 			const space = this.findOpenFloorSpace(floor);
@@ -707,17 +725,7 @@ export abstract class MapGame extends ScriptedGame {
 		const player = this.players[user.id];
 		if (this.roundActions && this.roundActions.has(player)) return false;
 
-		let eliminatedPlayer;
-		if (player.eliminated) {
-			if (this.escapedPlayers) {
-				if (!this.escapedPlayers.has(player)) return false;
-				this.escapedPlayers.delete(player);
-				player.eliminated = false;
-				eliminatedPlayer = true;
-			} else {
-				return false;
-			}
-		}
+		if (player.eliminated) return false;
 
 		if (this.trappedPlayers && this.trappedPlayers.has(player)) {
 			player.say("You are trapped and cannot move!");
@@ -774,12 +782,35 @@ export abstract class MapGame extends ScriptedGame {
 			playerCoordinates[1] = newPlayerCoordinate;
 		}
 
+		this.escapedPlayers?.delete(player);
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
 		this.sendPlayerControls(player);
+		return true;
+	}
 
-		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+	exit(user: User): boolean {
+		if (!this.usesExit) return false;
+		const player = this.players[user.id];
+		if (this.escapedPlayers && !player.eliminated) {
+			if (!this.escapedPlayers.has(player)) return false;
+			player.eliminated = true;
+		} else {
+			return false;
+		}
+		if (this.roundActions) this.roundActions.set(player, true);
+		this.playerRoundInfo.get(player)!.push("You have exited the map and will earn your bits at the end of the game.");
+		this.sendPlayerControls(player);
+		return true;
+	}
 
+	wait(user: User): boolean {
+		if (!this.usesWait) return false;
+		const player = this.players[user.id];
+		if (player.eliminated) return false;
+		if (this.roundActions) this.roundActions.set(player, true);
+		this.playerRoundInfo.get(player)!.push("You have waited for the next round.");
+		this.sendPlayerControls(player);
 		return true;
 	}
 
@@ -814,25 +845,31 @@ const commands: GameCommandDefinitions<MapGame> = {
 		command(target, room, user) {
 			return this.move(target, user, 'up');
 		},
-		eliminatedGameCommand: true,
 	},
 	[DOWN_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'down');
 		},
-		eliminatedGameCommand: true,
 	},
 	[LEFT_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'left');
 		},
-		eliminatedGameCommand: true,
 	},
 	[RIGHT_COMMAND]: {
 		command(target, room, user) {
 			return this.move(target, user, 'right');
 		},
-		eliminatedGameCommand: true,
+	},
+	[EXIT_COMMAND]: {
+		command(target, room, user) {
+			return this.exit(user);
+		},
+	},
+	[WAIT_COMMAND]: {
+		command(target, room, user) {
+			return this.wait(user);
+		},
 	},
 };
 

@@ -123,6 +123,7 @@ class LampentsLabyrinth extends MapGame  {
 export const game: IGameFile<LampentsLabyrinth> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["lampents", "llabyrinth"],
 	class: LampentsLabyrinth,
+	commandDescriptions: [Config.commandCharacter + 'up/down/left/right [spaces]', Config.commandCharacter + 'exit'],
 	description: "Players must find a path out of the labyrinth without falling into traps! You may travel once per turn (up to 3 paces).",
 	name: "Lampent's Labyrinth",
 	mascot: "Lampent",
