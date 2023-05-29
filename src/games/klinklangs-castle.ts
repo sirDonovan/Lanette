@@ -24,6 +24,7 @@ class KlinklangsCastle extends MapShuffleGame {
 	roundActions = new Map<Player, boolean>();
 	sharedMap: boolean = true;
 	startingLives: number = 3;
+	usesWait = true;
 
 	onGenerateMapFloor(floor: MapFloor): void {
 		this.setExitCoordinates(floor);
@@ -86,6 +87,8 @@ class KlinklangsCastle extends MapShuffleGame {
 export const game: IGameFile<KlinklangsCastle> = Games.copyTemplateProperties(mapGame, {
 	aliases: ["klinklangs", "kcastle"],
 	class: KlinklangsCastle,
+	commandDescriptions: [Config.commandCharacter + 'up/down/left/right [spaces]',
+		Config.commandCharacter + 'exit', Config.commandCharacter + 'wait'],
 	description: "Players must find a path out of the shifting castle without falling into traps! You may travel once per turn " +
 		"(up to 3 paces).",
 	name: "Klinklang's Castle",

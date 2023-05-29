@@ -41,7 +41,7 @@ export abstract class MapCurrencyGame extends MapGame {
 		this.roundActions.clear();
 		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
 
-		const html = this.getRoundHtml(players => this.getPlayerNames(players));
+		const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.round === 1) {
