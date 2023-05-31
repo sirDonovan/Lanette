@@ -285,6 +285,8 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		if (!this.canCreateTournament) return;
 
 		const database = this.getDatabase();
+		const numericMonth = parseInt(month);
+		month = numericMonth.toString();
 		if (month in database.officialTournamentSchedule!.years[this.selectedYear].months) {
 			this.newMonthInput.parentSetErrors(["A schedule already exists for " + month + "/" + this.selectedYear]);
 			this.send();
@@ -297,7 +299,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 
 		const date = new Date();
 		date.setFullYear(this.selectedYear);
-		date.setMonth(parseInt(month) - 1, 1);
+		date.setMonth(numericMonth - 1, 1);
 		const lastDayOfNewMonth = Tools.getLastDayOfMonth(date);
 
 		const days: Dict<ITournamentScheduleDay> = {};
