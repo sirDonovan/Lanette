@@ -23,7 +23,10 @@ class EmpoleonsEmpires extends ScriptedGame {
 
 	onRemovePlayer(player: Player): void {
 		if (this.started) {
-			if (this.currentPlayer === player) return this.nextRound();
+			if (this.currentPlayer === player) {
+				this.currentPlayer = null;
+				return this.nextRound();
+			}
 			if (this.getRemainingPlayerCount() < 2) this.end();
 		}
 	}
@@ -232,7 +235,8 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				return false;
 			}
 
-			this.removePlayer(targetPlayer.name);
+			this.removePlayer(targetPlayer.name, true);
+			targetPlayer.say("You were DQed from " + this.name + " by " + user.name + " for using an inappropriate alias.");
 			(this.room as Room).modnote(user.name + " DQed " + targetPlayer.name + " from " + this.name + " for using the alias '" +
 				target.trim() + "'.");
 			return true;
