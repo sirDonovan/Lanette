@@ -1356,6 +1356,7 @@ export class Client {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-create' &&
 					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
+                    room.onTournamentCreateError("Access denied");
 				}
 			} else if (messageArguments.error.startsWith('/tour start - Access denied')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-start' &&
@@ -1427,7 +1428,19 @@ export class Client {
 					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
-			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
+			} else if (messageArguments.error.includes("The server is restarting soon, so a tournament cannot be created.")) {
+                    this.websocket.clearLastOutgoingMessage(now);
+                    room.onTournamentCreateError("The server is restarting soon.");
+            } else if (messageArguments.error.includes("is not a valid tournament format.")) {
+                    this.websocket.clearLastOutgoingMessage(now);
+                    room.onTournamentCreateError("Invalid format given.");
+            } else if (messageArguments.error.includes("You cannot have a tournament until the current room activity is over:")) {
+                    this.websocket.clearLastOutgoingMessage(now);
+                    room.onTournamentCreateError("Another room game is in progress.");
+            } else if (messageArguments.error.includes("tournament was made too recently.")) {
+                    this.websocket.clearLastOutgoingMessage(now);
+                    room.onTournamentCreateError("The given format was played recently.");
+            } else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
 				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
 					(lastOutgoingMessage.type === 'pm-html' || lastOutgoingMessage.type === 'pm-uhtml' ||

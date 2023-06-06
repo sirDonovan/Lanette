@@ -898,6 +898,13 @@ export class Room {
 		});
 	}
 
+    onTournamentCreateError(reason: string): void {
+        // @ts-expect-error Mostly this.searchChallenge is a extended class of SearchChallengeTournament, it can be ignored
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        if (this.searchChallenge?.onTournamentCreateError) this.searchChallenge.onTournamentCreateError(reason);
+        else Tournaments.onTournamentCreateError(this, reason);
+    }
+
 	startHangman(answer: string, hint: string, user: User): void {
 		this.say("/hangman create " + answer + ", " + hint, {
 			dontCheckFilter: true,

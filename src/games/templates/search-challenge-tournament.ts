@@ -38,6 +38,11 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 		if (this.forfeitDisqualification) this.announce("Forfeiting a battle in the tournament will result in disqualification!");
 	}
 
+    onTournamentCreateError(reason: string): void {
+        this.say("Could not create a tournament: " + reason);
+        this.end();
+    }
+
 	onDeallocate(): void {
 		if (this.tournamentCreated && !this.tournamentEnded) {
 			this.tournamentEnded = true;
@@ -71,7 +76,8 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 	}
 
 	onEnd(): void {
-		if (!this.winners.size) this.say("No winners this challenge!");
+		if (!this.winners.size && this.tournamentStarted) this.say("No winners this challenge!");
+        else this.say("The search challenge of " + this.name + " was forcibly ended!");
 	}
 
 	onBattleMessage(room: Room, message: string): boolean {
