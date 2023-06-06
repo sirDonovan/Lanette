@@ -898,11 +898,6 @@ export class Room {
 		});
 	}
 
-    onTournamentCreateError(reason: string): void {
-        Tournaments.onTournamentCreateError(this, reason);
-        if (this.searchChallenge) this.searchChallenge.end();
-    }
-
 	startHangman(answer: string, hint: string, user: User): void {
 		this.say("/hangman create " + answer + ", " + hint, {
 			dontCheckFilter: true,

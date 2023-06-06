@@ -374,6 +374,8 @@ export class Tournaments {
 
     onTournamentCreateError(room: Room, reason: string): void {
         room.say("Could not create a tournament: " + reason);
+
+        if (room.searchChallenge) room.searchChallenge.end();
     }
 
 	resolveFormatFromInput(originalTargets: readonly string[], room?: Room): string | IFormat {
