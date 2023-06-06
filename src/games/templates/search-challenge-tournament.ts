@@ -38,11 +38,6 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 		if (this.forfeitDisqualification) this.announce("Forfeiting a battle in the tournament will result in disqualification!");
 	}
 
-    onTournamentCreateError(reason: string): void {
-        this.say("Could not create a tournament: " + reason);
-        this.end();
-    }
-
 	onDeallocate(): void {
 		if (this.tournamentCreated && !this.tournamentEnded) {
 			this.tournamentEnded = true;
