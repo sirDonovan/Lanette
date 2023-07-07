@@ -4,7 +4,9 @@ const formatEffectTypes: string[] = ['Format', 'Rule', 'ValidatorRule'];
 
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
-	it("should properly interface with Lanette", () => {
+	it("should properly interface with Lanette", function() {
+		this.timeout(10000); // eslint-disable-line @typescript-eslint/no-invalid-this
+
 		/*
 			Abilities
 		*/
@@ -158,7 +160,7 @@ describe("pokemon-showdown", () => {
 		assert(capMegaStone);
 		assertStrictEqual(capMegaStone.isNonstandard, "CAP");
 
-		const unObtainableItem = Dex.getItem("Draco Plate");
+		const unObtainableItem = Dex.getItem("Cherish Ball");
 		assert(unObtainableItem);
 		assertStrictEqual(unObtainableItem.isNonstandard, "Unobtainable");
 
@@ -453,7 +455,7 @@ describe("pokemon-showdown", () => {
 		const battleOnly = Dex.getPokemon("Greninja-Ash");
 		assert(battleOnly);
 		assert(battleOnly.baseSpecies !== battleOnly.name);
-		assertStrictEqual(battleOnly.battleOnly, "Greninja");
+		assertStrictEqual(battleOnly.battleOnly, "Greninja-Bond");
 
 		const eggGroup = Dex.getPokemon("Bulbasaur");
 		assert(eggGroup);
