@@ -3,7 +3,7 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
 import type { IParam, IParametersWorkerData } from './../workers/parameters';
 
-const gameGen = 8;
+const gameGen = 9;
 const genString = 'gen' + gameGen;
 
 type ParamType = 'color' | 'letter' | 'tier' | 'type';

@@ -5,7 +5,7 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { IParam, ParamType } from "../workers/parameters";
 
-const GEN = 8;
+const GEN = 9;
 const GEN_STRING = 'gen' + GEN;
 
 const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'ability', 'gen'];

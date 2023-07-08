@@ -5,7 +5,7 @@ import type { Player } from '../room-activity';
 
 const parameterCount = 2;
 const minimumPokmeon = 5;
-const gameGen = 8;
+const gameGen = 9;
 const genString = 'gen' + gameGen;
 
 type ParamType = 'color' | 'letter' | 'tier' | 'type';
