@@ -484,9 +484,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 			let weaknesses: string;
 			if (this.inverseTypes) {
-				weaknesses = dex.getInverseWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getInverseWeaknesses(dex.getExistingPokemon(card.name)).join(",");
 			} else {
-				weaknesses = dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getWeaknesses(dex.getExistingPokemon(card.name)).join(",");
 			}
 
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.weaknessLimit) continue;
@@ -621,7 +621,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			topCardTypes.push("Grass");
 			this.topCard.types = topCardTypes;
 		} else if (id === 'transform') {
-			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
+			const dex = this.getDex();
+			const newTopCard = this.alterCard(dex, this.pokemonToCard(dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
 				firstTimeShiny = true;
@@ -954,12 +955,6 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			name: "Delta Species Axew's Battle Cards",
 			variantAliases: ["delta species", "delta"],
 			deltaTypes: true,
-		},
-		{
-			name: "Axew's Kanto Battle Cards",
-			variantAliases: ["kanto", "gen1"],
-			requiredGen: 1,
-			maxPlayers: 20,
 		},
 		{
 			name: "Axew's Johto Battle Cards",

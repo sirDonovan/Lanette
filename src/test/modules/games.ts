@@ -88,6 +88,8 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 			if (commands) attributes.commands = commands[i];
 			if (testConfig.async) {
 				it(test, async function(this: Mocha.Context) {
+					this.timeout(5000);
+
 					const game = createIndividualTestGame(testFormat);
 					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
@@ -110,6 +112,8 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 				});
 			} else {
 				it(test, function(this: Mocha.Context) {
+					this.timeout(5000);
+
 					const game = createIndividualTestGame(testFormat);
 					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
