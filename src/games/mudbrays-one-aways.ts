@@ -1,8 +1,8 @@
 import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const upperCaseLetters: string[] = Tools.letters.toUpperCase().split("");
-const lowerCaseLetters: string[] = Tools.letters.split("");
+const upperCaseLetters: readonly string[] = Tools.lettersArray.map(x => x.toUpperCase());
+const lowerCaseLetters: readonly string[] = Tools.lettersArray;
 
 function getNextAndPreviousLetters(letter: string): [string, string] | null {
 	let index = upperCaseLetters.indexOf(letter);

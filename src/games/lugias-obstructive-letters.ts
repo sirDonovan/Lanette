@@ -5,11 +5,10 @@ const BASE_POINTS = 50;
 const BASE_TEAM_POINTS = 100;
 const MIN_LETTERS = 6;
 const MAX_ANSWERS = 20;
-const LETTERS = Tools.letters.split("");
 
 function getAvailableLetters(id: string): string[] {
 	const availableLetters: string[] = [];
-	for (const letter of LETTERS) {
+	for (const letter of Tools.lettersArray) {
 		if (!id.includes(letter)) availableLetters.push(letter);
 	}
 
