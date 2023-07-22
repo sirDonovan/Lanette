@@ -101,9 +101,7 @@ const commands: GameCommandDefinitions<EggToss> = {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];
 			} else {
 				if (user.id !== this.currentHolder.id) {
-                    // this.players[user.id] does not satisfy first-time players
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-                    const possiblePlayer = this.players[user.id] || this.createPlayer(user);
+                    const possiblePlayer = this.createPlayer(user) || this.players[user.id];
                     let spamTosses = this.spamTosses.get(possiblePlayer) || 0;
                     spamTosses++;
                     if (spamTosses === maxSpamTosses) {
