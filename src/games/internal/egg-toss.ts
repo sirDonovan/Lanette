@@ -6,6 +6,8 @@ import type { User } from "../../users";
 
 type AchievementNames = "eggthesystem";
 
+const maxSpamTosses = 3;
+
 class EggToss extends ScriptedGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, minigame: true, description: 'explode the egg on Lady Monita'},
@@ -16,6 +18,7 @@ class EggToss extends ScriptedGame {
 	internalGame: boolean = true;
 	managedPlayers = true;
 	lastHolder: Player | null = null;
+    spamTosses = new Map<Player, number>();
 
 	// hack for selectUser()
 	declare readonly room: Room;
@@ -97,8 +100,21 @@ const commands: GameCommandDefinitions<EggToss> = {
 			if (!this.currentHolder) {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];
 			} else {
-				if (this.currentHolder.id !== user.id) return false;
+				if (this.currentHolder.id !== user.id) {
+                    const player = this.createPlayer(user) || this.players[user.id];
+                    let spamTosses = this.spamTosses.get(player) || 0;
+                    spamTosses++;
+                    if (spamTosses === maxSpamTosses) {
+                        this.currentHolder = player;
+                        this.explodeEgg("for spam tossing");
+                    } else {
+                        this.spamTosses.set(player, spamTosses);
+                    }
+
+                    return false;
+                }
 			}
+
 			const targetUser = Users.get(target);
 			if (!targetUser || !targetUser.rooms.has(this.room)) {
 				this.say("You can only egg someone currently in the room.");
