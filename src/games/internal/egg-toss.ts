@@ -100,19 +100,21 @@ const commands: GameCommandDefinitions<EggToss> = {
 			if (!this.currentHolder) {
 				this.currentHolder = this.createPlayer(user) || this.players[user.id];
 			} else {
-				if (user.id !== this.currentHolder.id) {
-                    const possiblePlayer = this.createPlayer(user) || this.players[user.id];
-                    let spamTosses = this.spamTosses.get(possiblePlayer) || 0;
+				if (this.currentHolder.id !== user.id) {
+                    const player = this.createPlayer(user) || this.players[user.id];
+                    let spamTosses = this.spamTosses.get(player) || 0;
                     spamTosses++;
                     if (spamTosses === maxSpamTosses) {
-                        this.currentHolder = possiblePlayer;
+                        this.currentHolder = player;
                         this.explodeEgg("for spam tossing");
                     } else {
-                        this.spamTosses.set(possiblePlayer, spamTosses);
+                        this.spamTosses.set(player, spamTosses);
                     }
+
                     return false;
                 }
 			}
+
 			const targetUser = Users.get(target);
 			if (!targetUser || !targetUser.rooms.has(this.room)) {
 				this.say("You can only egg someone currently in the room.");
