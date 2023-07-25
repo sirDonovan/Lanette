@@ -100,7 +100,7 @@ const commands: GameCommandDefinitions<EggToss> = {
 			const player = this.createPlayer(user) || this.players[user.id];
 
 			if (!this.currentHolder) {
-				this.currentHolder = player
+				this.currentHolder = player;
 			} else {
 				if (this.currentHolder.id !== user.id) {
                     let spamTosses = this.spamTosses.get(player) || 0;
@@ -141,7 +141,7 @@ const commands: GameCommandDefinitions<EggToss> = {
 				this.say("You cannot egg a bot that is not " + Users.self.name + ".");
 				return false;
 			}
-			this.spamTossed.delete(player);
+			this.spamTosses.delete(player);
 
 			this.lastHolder = this.currentHolder;
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];
