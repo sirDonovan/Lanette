@@ -733,7 +733,7 @@ export class Tournaments {
 		let nextOfficialIndex = -1;
 
 		for (let i = 0; i < this.officialTournaments[room.id].length; i++) {
-			if (this.officialTournaments[room.id][i].time >= now) {
+			if (this.officialTournaments[room.id][i].time >= now && (this.officialTournaments[room.id][i].time - now) < 2_147_483_647) {
 				nextOfficialIndex = i;
 				break;
 			}
