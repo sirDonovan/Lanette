@@ -54,6 +54,13 @@ export interface ITournamentTrainerCard {
 	table?: HexCode | IHexCodeData;
 }
 
+interface ITournamentTrainerCardPrize {
+	name: string;
+	source: string;
+	width: number;
+	height: number;
+}
+
 export interface IGameTrainerCard {
 	pokemon: string[];
 	avatar?: TrainerSpriteId;
@@ -245,6 +252,8 @@ export interface IDatabase {
 	tournamentManagers?: string[];
 	tournamentGameBanlist?: Dict<ITournamentGameBan>;
 	tournamentTrainerCards?: Dict<ITournamentTrainerCard>;
+	tournamentTrainerCardBadges?: Dict<ITournamentTrainerCardPrize>;
+	tournamentTrainerCardRibbons?: Dict<ITournamentTrainerCardPrize>;
 	unlockedTournamentPointsShopRibbons?: Dict<string[]>;
 	unsortedLeaderboard?: ILeaderboard;
 	userHostedGameCounts?: Dict<number>;

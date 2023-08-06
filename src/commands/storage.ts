@@ -929,10 +929,14 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const badgesHtml: string[] = [];
-			if (Config.tournamentTrainerCardBadges) {
-				for (const i in Config.tournamentTrainerCardBadges) {
-					const badgeHtml = Tournaments.getBadgeHtml(i);
-					if (badgeHtml) badgesHtml.push(badgeHtml);
+			const trainerCardRoom = Tournaments.getTrainerCardRoom(tournamentRoom);
+			if (trainerCardRoom) {
+				const database = Storage.getDatabase(trainerCardRoom);
+				if (database.tournamentTrainerCardBadges) {
+					for (const i in database.tournamentTrainerCardBadges) {
+						const badgeHtml = Tournaments.getBadgeHtml(database, i);
+						if (badgeHtml) badgesHtml.push(badgeHtml);
+					}
 				}
 			}
 
@@ -963,16 +967,16 @@ export const commands: BaseCommandDefinitions = {
 			const id = Tools.toId(targets[0]);
 			if (!id) return this.say("You must specify a badge name.");
 
-			if (!Config.tournamentTrainerCardBadges || !(id in Config.tournamentTrainerCardBadges)) {
-				return this.say("'" + targets[0].trim() + "' is not a valid tournament trainer card badge.");
-			}
-
 			const trainerCardRoom = Tournaments.getTrainerCardRoom(tournamentRoom);
 			if (!trainerCardRoom) {
 				return this.say("The tournament trainer card badges for " + tournamentRoom.title + " cannot currently be viewed.");
 			}
 
 			const database = Storage.getDatabase(trainerCardRoom);
+			if (!database.tournamentTrainerCardBadges || !(id in database.tournamentTrainerCardBadges)) {
+				return this.say("'" + targets[0].trim() + "' is not a valid tournament trainer card badge.");
+			}
+
 			const users: string[] = [];
 			if (database.tournamentTrainerCards) {
 				for (const i in database.tournamentTrainerCards) {
@@ -983,8 +987,8 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (!users.length) return this.say("No one holds the " + Config.tournamentTrainerCardBadges[id].name + " badge.");
-			this.sayHtml("<b>" + Config.tournamentTrainerCardBadges[id].name + " badge holders</b>:<br />" + users.join(", "),
+			if (!users.length) return this.say("No one holds the " + database.tournamentTrainerCardBadges[id].name + " badge.");
+			this.sayHtml("<b>" + database.tournamentTrainerCardBadges[id].name + " badge holders</b>:<br />" + users.join(", "),
 				tournamentRoom);
 		},
 		aliases: ['tourtrainercardbadgeholders', 'tourbadgeholders', 'ttcbh'],

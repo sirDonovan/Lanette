@@ -252,6 +252,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.trainerCardBadgePicker = new TrainerCardBadgePicker(this, this.commandPrefix, setBadgesCommand, {
+			database,
 			currentPicks: trainerCard ? trainerCard.badges : undefined,
 			maxPicks: 0,
 			onClear: (index, dontRender) => this.clearBadges(dontRender),
@@ -262,6 +263,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.trainerCardRibbonPicker = new TrainerCardRibbonPicker(this, this.commandPrefix, setRibbonsCommand, {
+			database,
 			currentPicks: trainerCard ? trainerCard.ribbons : undefined,
 			trainerCardRoomId: this.trainerCardRoom.id,
 			maxPicks: 0,

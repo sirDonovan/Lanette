@@ -5,7 +5,7 @@ import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
 import type { TrainerSpriteId } from "./types/dex";
 import type { IFormat } from "./types/pokemon-showdown";
-import type { IPastTournament, LeaderboardType } from "./types/storage";
+import type { IDatabase, IPastTournament, LeaderboardType } from "./types/storage";
 import type {
 	IClientTournamentNode, ICreateTournamentOptions, IOfficialTournament, ITournamentCreateJson, ITournamentCreateListener,
 	ITournamentTimerData, ITreeRootPlaces, TournamentPlace
@@ -1080,25 +1080,31 @@ export class Tournaments {
 		return false;
 	}
 
-	getBadgeHtml(id: string): string {
-		if (Config.tournamentTrainerCardBadges && id in Config.tournamentTrainerCardBadges) {
-			return '<img src="' + Config.tournamentTrainerCardBadges[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardBadges[id].name + '" />';
+	getBadgeHtml(database: IDatabase, id: string): string {
+		if (database.tournamentTrainerCardBadges && id in database.tournamentTrainerCardBadges) {
+			return '<img src="' + database.tournamentTrainerCardBadges[id].source + '" ' +
+				'width=' + database.tournamentTrainerCardBadges[id].width + 'px ' +
+				'height=' + database.tournamentTrainerCardBadges[id].height + 'px ' +
+				'title="' + database.tournamentTrainerCardBadges[id].name + '" />';
 		}
 
 		return "";
 	}
 
-	getRibbonHtml(room: Room, id: string): string {
-		if (Config.tournamentTrainerCardRibbons && id in Config.tournamentTrainerCardRibbons) {
-			return '<img src="' + Config.tournamentTrainerCardRibbons[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardRibbons[id].name + '" />';
+	getRibbonHtml(room: Room, database: IDatabase, id: string): string {
+		if (database.tournamentTrainerCardRibbons && id in database.tournamentTrainerCardRibbons) {
+			return '<img src="' + database.tournamentTrainerCardRibbons[id].source + '" ' +
+				'width=' + database.tournamentTrainerCardRibbons[id].width + 'px ' +
+				'height=' + database.tournamentTrainerCardRibbons[id].height + 'px ' +
+				'title="' + database.tournamentTrainerCardRibbons[id].name + '" />';
 		}
 
 		if (Config.tournamentPointsShopRibbons && room.id in Config.tournamentPointsShopRibbons &&
 			id in Config.tournamentPointsShopRibbons[room.id]) {
-			return '<img src="' + Config.tournamentPointsShopRibbons[room.id][id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentPointsShopRibbons[room.id][id].name + '" />';
+			return '<img src="' + Config.tournamentPointsShopRibbons[room.id][id].source + '" ' +
+				'width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'height=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'title="' + Config.tournamentPointsShopRibbons[room.id][id].name + '" />';
 		}
 
 		return "";
@@ -1198,7 +1204,7 @@ export class Tournaments {
 			const badgesPerLine = 15;
 			const badgesHtml: string[] = [];
 			for (const badge of trainerCard.badges) {
-				let badgeHtml = this.getBadgeHtml(badge);
+				let badgeHtml = this.getBadgeHtml(database, badge);
 				if (badgeHtml) {
 					if (badgesHtml.length && badgesHtml.length % badgesPerLine === 0) badgeHtml = "<br />" + badgeHtml;
 					badgesHtml.push(badgeHtml);
@@ -1215,7 +1221,7 @@ export class Tournaments {
 			const ribbonsPerLine = 15;
 			const ribbonsHtml: string[] = [];
 			for (const ribbon of trainerCard.ribbons) {
-				let ribbonHtml = this.getRibbonHtml(trainerCardRoom, ribbon);
+				let ribbonHtml = this.getRibbonHtml(trainerCardRoom, database, ribbon);
 				if (ribbonHtml) {
 					if (ribbonsHtml.length && ribbonsHtml.length % ribbonsPerLine === 0) ribbonHtml = "<br />" + ribbonHtml;
 					ribbonsHtml.push(ribbonHtml);
