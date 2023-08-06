@@ -247,7 +247,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 			height: this.newBadgeHeight,
 		};
 
-		this.room.modnote(this.userName + " added a new badge with the source " + this.newBadgeSource);
+		this.room.modnote(this.userName + " added the " + this.newBadgeName + " badge with the source " + this.newBadgeSource);
 
 		this.send();
 	}
