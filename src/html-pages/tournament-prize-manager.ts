@@ -26,7 +26,7 @@ const updateRibbonCommand = 'updateribbon';
 
 const DEFAULT_DIMENSIONS = 24;
 
-export const pageId = 'tournament-card-prizes';
+export const pageId = 'tournament-prize-manager';
 export const pages: Dict<TournamentPrizeManager> = {};
 
 class TournamentPrizeManager extends HtmlPageBase {
@@ -398,7 +398,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" +
-			this.room.title + " Tournament Trainer Card Prizes</b>";
+			this.room.title + " Tournament Prize Manager</b>";
 		html += "&nbsp;" + this.closeButtonHtml;
 		html += "</center>";
 		html += "<br /><br />";
