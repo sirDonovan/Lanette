@@ -528,7 +528,7 @@ export const commands: BaseCommandDefinitions = {
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			targets.shift();
 
-			if (!user.hasRank(targetRoom, 'driver')) return;
+			if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
 
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();
