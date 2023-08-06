@@ -49,7 +49,6 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearAllPokemonInput(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),

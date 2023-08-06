@@ -33,7 +33,6 @@ export class ManualHostDisplay extends HostDisplayBase {
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),

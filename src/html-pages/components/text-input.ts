@@ -23,8 +23,8 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	textArea?: boolean;
 	textAreaConfiguration?: ITextAreaConfiguration;
 	hideClearButton?: boolean;
-	onClear: () => void;
-	onErrors: (errors: string[]) => void;
+	onClear?: () => void;
+	onErrors?: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
 	validateSubmission?: (input: string, output?: OutputType) => ITextInputValidation;
 }
@@ -76,7 +76,11 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 		this.currentInput = undefined;
 
-		this.props.onClear();
+		if (this.props.onClear) {
+			this.props.onClear();
+		} else {
+			this.props.reRender();
+		}
 	}
 
 	submit(input: string): void {
@@ -96,7 +100,11 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		this.currentInput = Tools.escapeHTML(this.currentInput);
 
 		if (this.errors.length) {
-			this.props.onErrors(this.errors);
+			if (this.props.onErrors) {
+				this.props.onErrors(this.errors);
+			} else {
+				this.props.reRender();
+			}
 		} else {
 			this.props.onSubmit(this.currentOutput!);
 		}

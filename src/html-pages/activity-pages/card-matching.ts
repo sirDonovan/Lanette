@@ -47,8 +47,6 @@ export class CardMatchingPage extends GamePageBase {
 		this.actionCardInput = new TextInput(this, this.commandPrefix, actionCardInputCommand, {
 			hideClearButton: true,
 			submitText: "Validate",
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.validateActionCardTarget(output),
 			reRender: () => this.send(),
 		});

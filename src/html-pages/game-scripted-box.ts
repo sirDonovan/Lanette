@@ -112,7 +112,6 @@ class GameScriptedBox extends HtmlPageBase {
 			allowModes: false,
 			allowVariants: false,
 			onClear: () => this.clearFormat(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setFormat(output),
 			reRender: () => this.send(),
 		});
@@ -204,7 +203,6 @@ class GameScriptedBox extends HtmlPageBase {
 			clearText: "Clear",
 			submitText: "Update",
 			onClear: () => this.clearGamePokemonAvatar(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.selectGamePokemonAvatar(output),
 			reRender: () => this.send(),
 		});

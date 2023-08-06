@@ -13,8 +13,8 @@ export interface IMultiTextInputProps<OutputType = string[]> extends IComponentP
 	submitText?: string;
 	textAreas?: boolean[];
 	textAreaConfigurations?: (ITextAreaConfiguration | null)[];
-	onClear: () => void;
-	onErrors: (errors: string[]) => void;
+	onClear?: () => void;
+	onErrors?: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
 }
 
@@ -54,7 +54,11 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 
 		this.currentInputs = [];
 
-		this.props.onClear();
+		if (this.props.onClear) {
+			this.props.onClear();
+		} else {
+			this.props.reRender();
+		}
 	}
 
 	submit(inputs: string[]): void {
@@ -64,7 +68,11 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 		this.onSubmit(inputs);
 
 		if (this.errors.length) {
-			this.props.onErrors(this.errors);
+			if (this.props.onErrors) {
+				this.props.onErrors(this.errors);
+			} else {
+				this.props.reRender();
+			}
 		} else {
 			this.props.onSubmit(this.currentOutput!);
 		}

@@ -259,8 +259,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			currentInput: this.customPrimaryColor,
 			label: "Custom primary color",
 			hideClearButton: true,
-			onClear: () => this.props.reRender(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitCustomPrimaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
 		});
@@ -269,7 +267,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			currentInput: this.customSecondaryColor,
 			label: "Custom secondary color",
 			onClear: () => this.clearCustomSecondaryColor(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitCustomSecondaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
 		});

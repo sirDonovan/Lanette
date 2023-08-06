@@ -101,12 +101,9 @@ class CustomFormatManager extends HtmlPageBase {
 		this.setCloseButton();
 
 		this.formatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
-			label: "",
 			submitText: "Set format",
 			maxFormats: 1,
 			hideClearButton: true,
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setFormat(output),
 			reRender: () => this.send(),
 		});
@@ -129,19 +126,15 @@ class CustomFormatManager extends HtmlPageBase {
 				return {currentOutput: input};
 			},
 			onClear: () => this.clearCustomFormatName(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setCustomFormatName(output),
 			reRender: () => this.send(),
 		});
 
 		this.customRulesInput = new CustomRuleTextInput(this, this.commandPrefix, customRulesInputCommand, {
-			label: "",
 			submitText: "Add rules",
 			hideClearButton: true,
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.addCustomRules(output),
 			reRender: () => this.send(),
 		});
@@ -209,7 +202,6 @@ class CustomFormatManager extends HtmlPageBase {
 					}
 				},
 				onClear: () => this.clearValueRule(rule.id),
-				onErrors: () => this.send(),
 				onSubmit: (output) => this.setValueRule(rule.id, output),
 				reRender: () => this.send(),
 			});

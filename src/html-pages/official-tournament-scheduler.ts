@@ -63,8 +63,6 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			label: "Add new month",
 			min: 1,
 			max: 12,
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.addMonth(output),
 			reRender: () => this.send(),
 		});
@@ -80,8 +78,6 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			maxFormats: 1,
 			hideClearButton: true,
 			customRules: true,
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setDayFormat(output),
 			reRender: () => this.send(),
 		});
@@ -89,8 +85,6 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		this.tournamentTimeInput = new TextInput(this, this.commandPrefix, tournamentTimeInputCommand, {
 			label: "Update time",
 			submitText: "Submit",
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setTournamentTime(output),
 			reRender: () => this.send(),
 		});

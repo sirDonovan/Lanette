@@ -94,7 +94,6 @@ export class PokemonPickerManual extends PokemonPickerBase {
 				placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),
 				submitText: "Update",
 				onClear: () => this.clearPokemonInput(),
-				onErrors: () => this.props.reRender(),
 				onSubmit: (output) => this.submitPokemonInput(output),
 				readonly: this.props.readonly,
 				reRender: () => this.props.reRender(),

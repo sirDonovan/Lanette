@@ -77,7 +77,6 @@ class GameTrainerCard extends HtmlPageBase {
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			reRender: () => this.send(),
 		});

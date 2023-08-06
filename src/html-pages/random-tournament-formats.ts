@@ -23,13 +23,10 @@ class RandomTournamentFormats extends HtmlPageBase {
 		this.setCloseButton();
 
 		this.formatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
-			label: "",
 			submitText: "Add format(s)",
 			hideClearButton: true,
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.addFormats(output),
 			reRender: () => this.send(),
 		});
