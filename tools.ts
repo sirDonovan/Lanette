@@ -88,8 +88,10 @@ export async function initializeSrc(options?: RunOptions) {
 
 	// tools.ts is required by build-src so src files cannot be imported directly
 
+	const appPath = path.join(getInputFolders().src.buildPath, 'app');
+
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	(require(path.join(getInputFolders().src.buildPath, 'app')) as typeof import("./src/app")).instantiate();
+	(require(appPath) as typeof import("./src/app")).instantiate();
 }
 
 export function setExceptionHandler() {
@@ -252,7 +254,8 @@ export function transpile(): void {
 
 		if (folderName === 'Lanette-private') {
 			try {
-				require(path.join(inputFolder.buildPath, 'post-build.js'));
+				const postBuildPath = path.join(inputFolder.buildPath, 'post-build.js');
+				require(postBuildPath);
 			} catch (e) {} // eslint-disable-line no-empty
 		}
 	}

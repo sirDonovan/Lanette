@@ -2914,12 +2914,15 @@ export class Dex {
 			this.loadBaseData();
 		}
 
+		const alternateIconNumbersPath = path.join(this.clientDataDirectory, 'alternate-icon-numbers.js');
+		const trainerSpritesPath = path.join(this.clientDataDirectory, 'trainer-sprites.js');
+
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const alternateIconNumbers = require(path.join(this.clientDataDirectory, 'alternate-icon-numbers.js'))
+		const alternateIconNumbers = require(alternateIconNumbersPath)
 			.alternateIconNumbers as IAlternateIconNumbers;
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const trainerSpriteList = require(path.join(this.clientDataDirectory, 'trainer-sprites.js')) as string[];
+		const trainerSpriteList = require(trainerSpritesPath) as string[];
 		trainerSpriteList.sort();
 
 		const trainerSprites: Dict<string> = {};

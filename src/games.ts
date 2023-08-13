@@ -448,8 +448,10 @@ export class Games {
 	}
 
 	loadFormats(): void {
-		const userHostedModule = require(path.join(Tools.srcBuildFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-		typeof import('./room-game-user-hosted');
+		const userHostedPath = path.join(Tools.srcBuildFolder, "room-game-user-hosted.js");
+
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const userHostedModule = require(userHostedPath) as typeof import('./room-game-user-hosted');
 
 		// @ts-expect-error
 		this.formatModules.push(userHostedModule);

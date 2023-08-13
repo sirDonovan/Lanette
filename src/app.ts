@@ -23,15 +23,22 @@ const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 };
 const configLoaderFilename = 'config-loader';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
+const clientPath = './' + moduleFilenames.client;
+const commandParserPath = './' + moduleFilenames.commandparser;
+const dexPath = './' + moduleFilenames.dex;
+const gamesPath = './' + moduleFilenames.games;
+const storagePath = './' + moduleFilenames.storage;
+const toolsPath = './' + moduleFilenames.tools;
+const tournamentsPath = './' + moduleFilenames.tournaments;
 
-let client = require('./' + moduleFilenames.client) as typeof import('./client/client');
-let commandParser = require('./' + moduleFilenames.commandparser) as typeof import('./command-parser');
-let dex = require('./' + moduleFilenames.dex) as typeof import('./dex');
-let games = require('./' + moduleFilenames.games) as typeof import('./games');
-let storage = require('./' + moduleFilenames.storage) as typeof import('./storage');
-let tools = require('./' + moduleFilenames.tools) as typeof import('./tools');
-let tournaments = require('./' + moduleFilenames.tournaments) as typeof import('./tournaments');
+/* eslint-disable @typescript-eslint/no-var-requires */
+let client = require(clientPath) as typeof import('./client/client');
+let commandParser = require(commandParserPath) as typeof import('./command-parser');
+let dex = require(dexPath) as typeof import('./dex');
+let games = require(gamesPath) as typeof import('./games');
+let storage = require(storagePath) as typeof import('./storage');
+let tools = require(toolsPath) as typeof import('./tools');
+let tournaments = require(tournamentsPath) as typeof import('./tournaments');
 
 export function instantiate() {
 	console.log("Instantiating modules...");
@@ -131,7 +138,8 @@ export async function reloadModules(username: string, targets: string[], formats
 		Tools.uncacheTree(path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js'));
 	}
 
-	if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.srcBuildFolder, configLoaderFilename + '.js'));
+	const configLoaderPath = path.join(Tools.srcBuildFolder, configLoaderFilename + '.js');
+	if (modules.includes('config')) Tools.uncacheTree(configLoaderPath);
 	if (modules.includes('games') || modules.includes('tournaments')) {
 		Tools.uncacheTree(path.join(Tools.srcBuildFolder, 'room-activity.js'));
 	}
@@ -155,8 +163,7 @@ export async function reloadModules(username: string, targets: string[], formats
 				if (!modules.includes('games')) global.Games.loadFormatCommands();
 			} else if (moduleId === 'config') {
 				let oldConfig = global.Config;
-				const configLoader = require(path.join(Tools.srcBuildFolder,
-					configLoaderFilename + '.js')) as typeof import('./config-loader');
+				const configLoader = require(configLoaderPath) as typeof import('./config-loader');
 				const newConfig = configLoader.load(Tools.deepClone(require(modulePath) as typeof import('./config-example')));
 				global.Config = newConfig;
 				global.Client.updateConfigSettings();

@@ -12,7 +12,8 @@ if (!options.script) {
 module.exports = (async() => {
 	await initializeSrc();
 
-	require(path.join(getInputFolders().src.buildPath, "local-scripts", options.script + ".js"));
+	const localScriptPath = path.join(getInputFolders().src.buildPath, "local-scripts", options.script + ".js");
+	require(localScriptPath);
 })().catch((error) => {
 	console.error(error);
 	process.exit(1);

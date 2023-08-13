@@ -195,8 +195,10 @@ export class CommandParser {
 		const htmlPageFiles = fs.readdirSync(this.htmlPagesDir);
 		for (const fileName of htmlPageFiles) {
 			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
+			const htmlPagePath = path.join(this.htmlPagesDir, fileName);
+
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const htmlPage = require(path.join(this.htmlPagesDir, fileName)) as IHtmlPageFile;
+			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
 			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
 
 			this.htmlPageModules[htmlPage.pageId] = htmlPage;
@@ -403,8 +405,10 @@ export class CommandParser {
 		for (const fileName of commandFiles) {
 			if (!fileName.endsWith('.js')) continue;
 
+			const commandFilePath = path.join(directory, fileName);
+
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const commandFile = require(path.join(directory, fileName)) as ICommandFile;
+			const commandFile = require(commandFilePath) as ICommandFile;
 			this.commandModules.push(commandFile);
 
 			if (commandFile.commands) {
