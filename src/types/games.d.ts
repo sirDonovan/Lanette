@@ -252,7 +252,7 @@ export interface IGameVariantProperties {
 }
 
 interface IUserHostedGameClass<T extends UserHostedGame = UserHostedGame> {
-	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
+	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T; // eslint-disable-line @typescript-eslint/prefer-function-type
 }
 
 export interface IUserHostedFile<T extends UserHostedGame = UserHostedGame> {

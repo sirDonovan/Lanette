@@ -1114,8 +1114,8 @@ export const commands: BaseCommandDefinitions = {
 			if (!this.runningMultipleTargets) this.run('playerlist');
 			if (reachedCap.length) {
 				const reached = room.userHostedGame.teams ? "team" : "user";
-				user.say((reachedCap.length === 1 ? "A " + reached + " has" : reachedCap + " " + reached + "s have") + " reached the " +
-					"score cap in your game.");
+				user.say((reachedCap.length === 1 ? "A " + reached + " has" : reachedCap.length + " " + reached + "s have") +
+					" reached the score cap in your game.");
 			}
 
 			if (!this.runningMultipleTargets) room.userHostedGame.autoRefreshControlPanel();

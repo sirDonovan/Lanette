@@ -853,7 +853,7 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		test(game): void {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
-			const conversion2 = game.actionCards['conversion2'];
+			const conversion2 = game.actionCards['conversion2']; // eslint-disable-line @typescript-eslint/dot-notation
 			assert(conversion2);
 
 			const player = addPlayer(game, "Player 1");

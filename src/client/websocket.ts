@@ -873,7 +873,7 @@ export class Websocket {
 		}
 		if (assertion.charAt(0) === '\r') assertion = assertion.slice(1);
 		if (assertion.charAt(0) === '\n') assertion = assertion.slice(1);
-		if (assertion.indexOf('<') >= 0) {
+		if (assertion.includes('<')) {
 			const message = 'Something is interfering with the connection to the login server.';
 			if (sessionUpkeep) {
 				console.log(message + ' (session upkeep)');
@@ -892,7 +892,7 @@ export class Websocket {
 				console.log('Failed to log in: invalid username or password');
 				process.exit();
 			}
-		} else if (assertion.indexOf('\n') >= 0 || !assertion) {
+		} else if (assertion.includes('\n') || !assertion) {
 			const message = 'Something is interfering with the connection to the login server.';
 			if (sessionUpkeep) {
 				console.log(message + ' (session upkeep)');

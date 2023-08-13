@@ -525,11 +525,15 @@ export class Dex {
 									fetchedFiles++;
 									if (fetchedFiles === files.length && this.dataCache) this.loadGifData(true);
 								})
-								.catch(e => console.log("Error writing " + fileName + ": " + (e as Error).message));
+								.catch(e => {
+									console.log("Error writing " + fileName + ": " + (e as Error).message);
+								});
 						}
 					}
 				})
-				.catch(e => console.log("Error fetching " + fileName + ": " + (e as Error).message));
+				.catch(e => {
+					console.log("Error fetching " + fileName + ": " + (e as Error).message);
+				});
 		}
 	}
 

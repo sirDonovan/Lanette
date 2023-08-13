@@ -36,6 +36,7 @@ class EkansEdges extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const edge = getEdge(character);
 			if (!edge) continue;
@@ -95,6 +96,7 @@ class EkansEdges extends QuestionAndAnswer {
 			}
 			categoryHints["Pokemon Moves"][edge].push(move.name);
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

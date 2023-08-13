@@ -164,7 +164,7 @@ export function exec(command: string): string | false {
         if (typeof result === 'string') return result;
         return result.toString();
     } catch (e: unknown) {
-        console.log("Failed to run command " + command + ": " + e);
+        console.log("Failed to run command " + command + ": " + (e as Error).message);
         return false;
     }
 }

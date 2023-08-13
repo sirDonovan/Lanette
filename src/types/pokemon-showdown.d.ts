@@ -837,7 +837,7 @@ export interface RuleTable {
 	isBannedSpecies: (species: IPokemon) => boolean;
 	isRestricted: (thing: string) => boolean;
 	isRestrictedSpecies: (species: IPokemon) => boolean;
-	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null;
+	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null; // eslint-disable-line @typescript-eslint/consistent-indexed-object-style
 	getReason: (key: string) => string | null;
 	getTagRules: () => string[];
 	getComplexBanIndex: (complexBans: ComplexBan[], rule: string) => number;
@@ -896,7 +896,7 @@ interface ITypeData {
 	  * Type chart, attackingTypeName:result, effectid:result
 	  * result is: 0 = normal, 1 = weakness, 2 = resistance, 3 = immunity
 	  */
-	readonly damageTaken: {[attackingTypeNameOrEffectid: string]: number};
+	readonly damageTaken: {[attackingTypeNameOrEffectid: string]: number}; // eslint-disable-line @typescript-eslint/consistent-indexed-object-style
 	/** The IVs to get this Type Hidden Power (in gen 3 and later) */
 	readonly HPivs: SparseStatsTable;
 	/** The DVs to get this Type Hidden Power (in gen 2). */

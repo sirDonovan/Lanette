@@ -5,7 +5,7 @@ const formatEffectTypes: string[] = ['Format', 'Rule', 'ValidatorRule'];
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
 	it("should properly interface with Lanette", function() {
-		this.timeout(10000); // eslint-disable-line @typescript-eslint/no-invalid-this
+		this.timeout(10000);
 
 		/*
 			Abilities
@@ -384,12 +384,12 @@ describe("pokemon-showdown", () => {
 
 			assertStrictEqual(typeof pokemon.spriteid, 'string');
 			assertStrictEqual(typeof pokemon.abilities['0'], 'string');
-			assertStrictEqual(typeof pokemon.baseStats['hp'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['atk'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['def'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spa'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spd'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spe'], 'number');
+			assertStrictEqual(typeof pokemon.baseStats.hp, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.atk, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.def, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spa, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spd, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spe, 'number');
 			assertStrictEqual(typeof pokemon.tier, 'string');
 			assertStrictEqual(typeof pokemon.prevo, 'string');
 			// @ts-expect-error
@@ -585,9 +585,11 @@ describe("pokemon-showdown", () => {
 		assert(normalType);
 		assertStrictEqual(normalType.id, 'normal');
 		assertStrictEqual(normalType.name, "Normal");
+		/* eslint-disable @typescript-eslint/dot-notation */
 		assertStrictEqual(normalType.damageTaken['Normal'], 0);
 		assertStrictEqual(normalType.damageTaken['Fighting'], 1);
 		assertStrictEqual(normalType.damageTaken['Ghost'], 3);
+		/* eslint-enable */
 
 		const allPossibleMoves = Dex.getAllPossibleMoves(Dex.getExistingPokemon("Charizard"));
 		assert(allPossibleMoves);

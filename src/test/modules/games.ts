@@ -250,7 +250,6 @@ describe("Games", () => {
 	});
 
 	it('should create games properly', function() {
-		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(5000);
 
 		for (const format of formatsToTest) {
@@ -259,7 +258,8 @@ describe("Games", () => {
 				Games.createGame(room, format, {pmRoom: room, initialSeed});
 			} catch (e) {
 				console.log(e);
-				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " + room.game.initialSeed + ")" : ""));
+				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " +
+					room.game.initialSeed.join(',') + ")" : ""));
 			}
 			if (room.game) room.game.deallocate(true);
 			Rooms.remove(room);
@@ -283,7 +283,7 @@ describe("Games", () => {
 				} catch (e) {
 					console.log(e);
 					fail((e as Error).message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " +
-						room.game.initialSeed + ")" : ""));
+						room.game.initialSeed.join(',') + ")" : ""));
 				}
 				if (room.game) room.game.deallocate(true);
 				Rooms.remove(room);
@@ -292,7 +292,6 @@ describe("Games", () => {
 	});
 
 	it('should properly deallocate games', function() {
-		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(10000);
 
 		const room = createTestRoom();
@@ -382,13 +381,12 @@ describe("Games", () => {
 	});
 
 	it('should support setting the initial PRNG seed', function() {
-		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(10000);
 
 		const room = createTestRoom();
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
-			const game = Games.createGame(room, format, {pmRoom: room, initialSeed: prng.initialSeed.slice() as PRNGSeed}) as ScriptedGame;
+			const game = Games.createGame(room, format, {pmRoom: room, initialSeed: prng.initialSeed.slice() as PRNGSeed})!;
 			for (let i = 0; i < game.prng.initialSeed.length; i++) {
 				assert(game.prng.initialSeed[i] === prng.initialSeed[i], format.name);
 			}

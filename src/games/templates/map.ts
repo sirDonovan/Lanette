@@ -301,7 +301,7 @@ export abstract class MapGame extends ScriptedGame {
 		if (!(stringCoordinates in floor.traversedCoordinates)) floor.traversedCoordinates[stringCoordinates] = new Set();
 		floor.traversedCoordinates[stringCoordinates].add(player);
 		floor.spaces[stringCoordinates].addPlayer(player);
-		this.playerRoundInfo.set(player, ["You were teleported to (" + coordinates + ")."]);
+		this.playerRoundInfo.set(player, ["You were teleported to (" + coordinates.join(", ") + ")."]);
 	}
 
 	positionPlayers(): void {

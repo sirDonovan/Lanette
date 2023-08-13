@@ -246,7 +246,6 @@ describe("Dex", () => {
 	it('should run methods for all data types', function() {
 		if (!testOptions.regression) return;
 
-		// eslint-disable-next-line @typescript-eslint/no-invalid-this
 		this.timeout(60000);
 
 		const dexData = Dex.getData();

@@ -41,7 +41,7 @@ class PanchamPairs extends ScriptedGame {
 
 	static loadData(): void {
 		for (const pokemon of Games.getPokemonList()) {
-			dataKeys['Pokemon'].push(pokemon.name);
+			dataKeys['Pokemon'].push(pokemon.name); // eslint-disable-line @typescript-eslint/dot-notation
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error

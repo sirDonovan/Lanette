@@ -63,6 +63,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const oneAways = getOneAways(character);
@@ -136,6 +137,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 				categoryHints["Pokemon Moves"][oneAway].push(move.name);
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

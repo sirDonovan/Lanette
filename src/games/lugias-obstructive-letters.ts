@@ -39,21 +39,21 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 			if (character.length < MIN_LETTERS) continue;
 
 			this.availableLetters[character] = getAvailableLetters(Tools.toId(character));
-			categoryHintKeys["Characters"].push(character);
+			categoryHintKeys["Characters"].push(character); // eslint-disable-line @typescript-eslint/dot-notation
 		}
 
 		for (const location of Dex.getLocations()) {
 			if (location.length < MIN_LETTERS) continue;
 
 			this.availableLetters[location] = getAvailableLetters(Tools.toId(location));
-			categoryHintKeys["Locations"].push(location);
+			categoryHintKeys["Locations"].push(location); // eslint-disable-line @typescript-eslint/dot-notation
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.name.length < MIN_LETTERS) continue;
 
 			this.availableLetters[pokemon.name] = getAvailableLetters(pokemon.id);
-			categoryHintKeys["Pokemon"].push(pokemon.name);
+			categoryHintKeys["Pokemon"].push(pokemon.name); // eslint-disable-line @typescript-eslint/dot-notation
 		}
 
 		for (const ability of Games.getAbilitiesList()) {

@@ -57,6 +57,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		const inverseCategoryHintKeys = Tools.deepClone(categoryHintKeys);
 		const inverseCategoryHints = Tools.deepClone(categoryHints);
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const lostLetters = getLostLetters(character);
 			if (lostLetters) {
@@ -176,6 +177,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 				inverseCategoryHints["Pokemon Moves"][inverseLostLetters].push(move.name);
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

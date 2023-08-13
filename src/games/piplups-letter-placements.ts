@@ -33,6 +33,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 			"Pokemon Moves": [],
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const id = Tools.toId(character);
 			if (id.length < MIN_LETTERS) continue;
@@ -154,6 +155,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				}
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;

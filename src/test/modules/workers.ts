@@ -5,6 +5,7 @@ import { assert, assertStrictEqual } from './../test-tools';
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 
 /* eslint-env mocha */
+/* eslint-disable @typescript-eslint/dot-notation */
 
 describe("Parameters Worker", () => {
 	// TODO: update to gen 9
@@ -217,3 +218,4 @@ describe("Portmanteaus Worker", () => {
 		assert(!result.answers.includes('teddiursandacondagmax'));
 	});
 });
+/* eslint-enable */

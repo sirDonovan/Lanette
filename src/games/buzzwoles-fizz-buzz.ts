@@ -83,15 +83,15 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.secondMultiple = multiples[1];
 
 		const categories = this.sampleMany(data.categories, 2);
-		this.roundCategories['firstMultiple'] = categories[0];
+		this.roundCategories.firstMultiple = categories[0];
 		categories.shift();
-		this.roundCategories['secondMultiple'] = categories[0];
+		this.roundCategories.secondMultiple = categories[0];
 		categories.shift();
 
-		const firstCategory = this.roundCategories['firstMultiple'];
-		const secondCategory = this.roundCategories['secondMultiple'];
-		this.expectedMultiples['firstMultiple'] = data.categoryPools[Tools.toId(firstCategory)].slice();
-		this.expectedMultiples['secondMultiple'] = data.categoryPools[Tools.toId(secondCategory)].slice();
+		const firstCategory = this.roundCategories.firstMultiple;
+		const secondCategory = this.roundCategories.secondMultiple;
+		this.expectedMultiples.firstMultiple = data.categoryPools[Tools.toId(firstCategory)].slice();
+		this.expectedMultiples.secondMultiple = data.categoryPools[Tools.toId(secondCategory)].slice();
 		this.quizRound++;
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -178,60 +178,60 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 				match = parseInt(guess) === this.expectedMultiple;
 			} else {
 				if (this.expectedMultiple === 'both') {
-					for (let i = 0; i < this.expectedMultiples['firstMultiple'].length; i++) {
-						if (guess === this.expectedMultiples['firstMultiple'][i]) {
+					for (let i = 0; i < this.expectedMultiples.firstMultiple.length; i++) {
+						if (guess === this.expectedMultiples.firstMultiple[i]) {
 							match = true;
-							this.expectedMultiples['firstMultiple'].splice(i, 1);
-							if (this.roundCategories['firstMultiple'] === 'Plate') {
+							this.expectedMultiples.firstMultiple.splice(i, 1);
+							if (this.roundCategories.firstMultiple === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+									this.expectedMultiples.firstMultiple.splice(this.expectedMultiples.firstMultiple
 										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+									this.expectedMultiples.firstMultiple.splice(this.expectedMultiples.firstMultiple
 										.indexOf(guess + 'plate'), 1);
 								}
-							} else if (this.roundCategories['firstMultiple'] === 'Berry') {
+							} else if (this.roundCategories.firstMultiple === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+									this.expectedMultiples.firstMultiple.splice(this.expectedMultiples.firstMultiple
 										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['firstMultiple'].splice(this.expectedMultiples['firstMultiple']
+									this.expectedMultiples.firstMultiple.splice(this.expectedMultiples.firstMultiple
 										.indexOf(guess + 'berry'), 1);
 								}
 							}
-							if (!this.expectedMultiples['firstMultiple'].length) {
-								this.say("Resetting the " + this.roundCategories['firstMultiple'] + " list!");
-								this.expectedMultiples['firstMultiple'] =
-									data.categoryPools[Tools.toId(this.roundCategories['firstMultiple'])].slice();
+							if (!this.expectedMultiples.firstMultiple.length) {
+								this.say("Resetting the " + this.roundCategories.firstMultiple + " list!");
+								this.expectedMultiples.firstMultiple =
+									data.categoryPools[Tools.toId(this.roundCategories.firstMultiple)].slice();
 							}
 							break;
 						}
 					}
-					for (let i = 0; i < this.expectedMultiples['secondMultiple'].length; i++) {
-						if (guess === this.expectedMultiples['secondMultiple'][i]) {
+					for (let i = 0; i < this.expectedMultiples.secondMultiple.length; i++) {
+						if (guess === this.expectedMultiples.secondMultiple[i]) {
 							match = true;
-							this.expectedMultiples['secondMultiple'].splice(i, 1);
-							if (this.roundCategories['secondMultiple'] === 'Plate') {
+							this.expectedMultiples.secondMultiple.splice(i, 1);
+							if (this.roundCategories.secondMultiple === 'Plate') {
 								if (guess.endsWith('plate')) {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+									this.expectedMultiples.secondMultiple.splice(this.expectedMultiples.secondMultiple
 										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+									this.expectedMultiples.secondMultiple.splice(this.expectedMultiples.secondMultiple
 										.indexOf(guess + 'plate'), 1);
 								}
-							} else if (this.roundCategories['secondMultiple'] === 'Berry') {
+							} else if (this.roundCategories.secondMultiple === 'Berry') {
 								if (guess.endsWith('berry')) {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+									this.expectedMultiples.secondMultiple.splice(this.expectedMultiples.secondMultiple
 										.indexOf(guess.substr(0, guess.length - 5)), 1);
 								} else {
-									this.expectedMultiples['secondMultiple'].splice(this.expectedMultiples['secondMultiple']
+									this.expectedMultiples.secondMultiple.splice(this.expectedMultiples.secondMultiple
 										.indexOf(guess + 'berry'), 1);
 								}
 							}
-							if (!this.expectedMultiples['secondMultiple'].length) {
-								this.say("Resetting the " + this.roundCategories['secondMultiple'] + " list!");
-								this.expectedMultiples['secondMultiple'] =
-									data.categoryPools[Tools.toId(this.roundCategories['secondMultiple'])].slice();
+							if (!this.expectedMultiples.secondMultiple.length) {
+								this.say("Resetting the " + this.roundCategories.secondMultiple + " list!");
+								this.expectedMultiples.secondMultiple =
+									data.categoryPools[Tools.toId(this.roundCategories.secondMultiple)].slice();
 							}
 							break;
 						}

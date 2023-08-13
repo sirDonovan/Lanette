@@ -134,7 +134,7 @@ class InkaysCups extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (this.timeout) clearTimeout(this.timeout);
-			this.setTimeout(() => void this.generateCups(), 5000);
+			this.setTimeout(() => this.generateCups(), 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

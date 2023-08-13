@@ -60,6 +60,7 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 			}
 		}
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		/*
 		data.pool['Item']['type']['Berry'] = [];
 		data.pool['Item']['type']['Plate'] = [];
@@ -116,6 +117,7 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 				data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
 			}
 		}
+		/* eslint-enable */
 
 		return data;
 	}

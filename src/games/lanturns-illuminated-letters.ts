@@ -30,6 +30,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHintKeys: Dict<string[]> = {};
+		// eslint-disable-next-line @typescript-eslint/dot-notation
 		categoryHintKeys["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {

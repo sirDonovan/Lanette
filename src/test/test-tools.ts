@@ -32,11 +32,11 @@ function getAdditionalInformation(message: string): string {
 	const room = Rooms.get('mocha');
 	if (room) {
 		if (room.game) {
-			roomInformation.push("Scripted game = " + room.game.name + "; initial seed = " + room.game.initialSeed);
+			roomInformation.push("Scripted game = " + room.game.name + "; initial seed = " + room.game.initialSeed.join(","));
 		}
 		if (room.userHostedGame) {
 			roomInformation.push("User-hosted game = " + room.userHostedGame.name + "; initial seed = " +
-				room.userHostedGame.initialSeed);
+				room.userHostedGame.initialSeed.join(","));
 		}
 		if (room.tournament) {
 			roomInformation.push("Tournament = " + room.tournament.name);

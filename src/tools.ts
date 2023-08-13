@@ -1414,7 +1414,7 @@ export class Tools {
 				reject(e);
 				this.logError(e, "Error writing temp file " + tempFilepath);
 			})
-			.then(() => fs.rename(tempFilepath, filepath)) // eslint-disable-line @typescript-eslint/promise-function-async
+			.then(() => fs.rename(tempFilepath, filepath))
 			.catch((e: Error) => {
 				reject(e);
 				this.logError(e, "Error renaming temp file " + tempFilepath);
@@ -1433,7 +1433,10 @@ export class Tools {
 				} else {
 					delete this.currentSafeFileWrites[filepath];
 				}
-			});
+			})
+			.catch((e: Error) => {
+				this.logError(e, "Error in finally block for temp file " + tempFilepath);
+			})
 	}
 
 	private appendFileInternal(filepath: string, message: string): void {

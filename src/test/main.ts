@@ -23,7 +23,7 @@ export function initializeTests(inputOptions: RunOptions): void {
 		fs[method + 'Sync'] = noOp;
 
 		// @ts-expect-error
-		fsPromises[method] = () => Promise.resolve(); // eslint-disable-line @typescript-eslint/promise-function-async
+		fsPromises[method] = () => Promise.resolve();
 	}
 
 	Object.assign(fs, {createWriteStream() {

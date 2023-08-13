@@ -71,6 +71,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			},
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		const currentGen = Dex.getGen();
 		for (let gen = 1; gen <= currentGen; gen++) {
 			const mod = 'gen' + gen;
@@ -299,6 +300,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 				otherFormes,
 			};
 		}
+		/* eslint-enable */
 
 		return data;
 	}
