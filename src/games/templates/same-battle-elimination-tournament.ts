@@ -2,7 +2,6 @@ import type { IGameTemplateFile } from "../../types/games";
 import { game as battleEliminationTournamentGame, BattleEliminationTournament } from './battle-elimination-tournament';
 
 export abstract class SameBattleEliminationTournament extends BattleEliminationTournament {
-	banlist = ['Blissey', 'Wailord', 'Wobbuffet'];
 	additionsPerRound = 0;
 	dropsPerRound = 0;
 	evolutionsPerRound = 0;

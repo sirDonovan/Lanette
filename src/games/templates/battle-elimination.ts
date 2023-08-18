@@ -53,7 +53,6 @@ export abstract class BattleElimination extends ScriptedGame {
 	allowsScouting: boolean = false;
 	allowsSingleStage: boolean = false;
 	availableMatchNodes: EliminationNode<Player>[] = [];
-	banlist: string[] = [];
 	battleFormatId: string = DEFAULT_BATTLE_FORMAT_ID;
 	battleFormatType: GameType = 'singles';
 	readonly battleData = new Map<Room, IBattleGameData>();
@@ -78,6 +77,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	firstRoundByeAdditions = new Map<Player, string[]>();
 	firstRoundExtraTime: number = 0;
 	firstRoundTime: number = 0;
+	roomPokedexBanlist: string[] = [];
 	fullyEvolved: boolean = false;
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
@@ -290,6 +290,23 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.hasSpeciesClause = Dex.getRuleTable(this.battleFormat).has('speciesclause');
+
+		const database = Storage.getDatabase(this.room);
+		if (database.tournamentGameFormatBanlists && this.format.id in database.tournamentGameFormatBanlists) {
+			const ruleTable = Dex.getRuleTable(this.battleFormat);
+			const formatBanlist = database.tournamentGameFormatBanlists[this.format.id];
+			const combinedBans: string[] = formatBanlist.abilities.concat(formatBanlist.items, formatBanlist.moves,
+				formatBanlist.pokemon);
+			for (const ban of combinedBans) {
+				try {
+					if (ruleTable.has(Dex.validateRule("+" + ban) as string)) {
+						combinedBans.splice(combinedBans.indexOf(ban), 1);
+					}
+				} catch (e) {} // eslint-disable-line no-empty
+			}
+
+			this.roomPokedexBanlist = combinedBans;
+		}
 	}
 
 	afterInitialize(): void {
@@ -332,9 +349,10 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	meetsPokemonCriteria(pokemon: IPokemon, type: 'starter' | 'evolution', bannedFormes: readonly string[]): boolean {
-		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) || this.banlist.includes(pokemon.name) ||
-			(this.type && !pokemon.types.includes(this.type)) || bannedFormes.includes(pokemon.name) ||
-			(pokemon.forme && bannedFormes.includes(pokemon.baseSpecies)) || (pokemon.forme && !this.allowsFormes)) {
+		if (pokemon.battleOnly || !this.battleFormat.usablePokemon!.includes(pokemon.name) ||
+			this.roomPokedexBanlist.includes(pokemon.name) || (this.type && !pokemon.types.includes(this.type)) ||
+			bannedFormes.includes(pokemon.name) || (pokemon.forme && bannedFormes.includes(pokemon.baseSpecies)) ||
+			(pokemon.forme && !this.allowsFormes)) {
 			return false;
 		}
 

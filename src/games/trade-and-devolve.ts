@@ -10,7 +10,6 @@ const description = "Every player is given a randomly generated team to start ou
 
 // starting team length > 3 is too slow and eventually runs out of memory
 class TradeAndDevolve extends BattleEliminationTournament {
-	banlist = ['Wobbuffet'];
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	dropsPerRound = 1;
