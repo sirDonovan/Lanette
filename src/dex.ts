@@ -1546,7 +1546,12 @@ export class Dex {
 			}
 		}
 
-		return (typeof format === 'string' ? format : format.name) + (compatibleRules.length ? "@@@" + compatibleRules.join(',') : "");
+		const base = typeof format === 'string' ? format : format.name;
+		if (compatibleRules.length) {
+			return base + (base.includes("@@@") ? "," : "@@@") + compatibleRules.join(',');
+		}
+
+		return base;
 	}
 
 	resolveCustomRuleAliases(customRules: string[]): string[] {
