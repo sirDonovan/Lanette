@@ -8,10 +8,6 @@ export abstract class DoublesBattleEliminationTournament extends BattleEliminati
 	autoDqMinutes: number = 5;
 	battleFormatId = 'gen9doublesou';
 	battleFormatType: GameType = 'doubles';
-
-	getGameCustomRules(): string[] {
-		return ['-Ally Switch', '-Perish Song'];
-	}
 }
 
 // @ts-expect-error

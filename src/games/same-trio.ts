@@ -15,9 +15,8 @@ class SameTrio extends SameBattleEliminationTournament {
 	battleFormatId = 'gen6battlespottriples';
 	battleFormatType: GameType = 'triples';
 
-	getGameCustomRules(): string[] {
-		return ['!!pickedteamsize=3', 'maxteamsize=3', '-Focus Sash', '-King\'s Rock', '-Ally Switch', '-Final Gambit', '-Moody',
-			'-Perish Song', '-Swagger', 'Evasion Items Clause', 'Accuracy Moves Clause'];
+	getRequiredCustomRules(): string[] {
+		return ['!!pickedteamsize=3', 'maxteamsize=3'];
 	}
 }
 

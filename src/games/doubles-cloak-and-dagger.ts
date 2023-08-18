@@ -17,7 +17,7 @@ class DoublesCloakAndDagger extends DoublesBattleEliminationTournament {
 	requiredDoublesTier = "DOU";
 	usesCloakedPokemon = true;
 
-	getGameCustomRules(): string[] {
+	getRequiredCustomRules(): string[] {
 		return ['-Zorua-Base', '-Zorua-Hisui', '-Zoroark-Base', '-Zoroark-Hisui', '-Illusion'];
 	}
 

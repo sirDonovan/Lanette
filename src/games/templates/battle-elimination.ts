@@ -132,6 +132,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 	validateInputProperties(inputProperties: IGameInputProperties): boolean {
 		const baseFormat = Dex.getExistingFormat(this.battleFormatId);
+		let battleFormat: IFormat = baseFormat;
 
 		if (inputProperties.options.format) {
 			if (!this.canChangeFormat) {
@@ -139,25 +140,48 @@ export abstract class BattleElimination extends ScriptedGame {
 				return false;
 			}
 
-			const battleFormat = Dex.getFormat(inputProperties.options.format);
-			if (!battleFormat || battleFormat.effectType !== 'Format') {
+			const inputFormat = Tournaments.getFormat(inputProperties.options.format, this.room);
+			if (!inputFormat || inputFormat.effectType !== 'Format') {
 				this.say(CommandParser.getErrorText(['invalidFormat', inputProperties.options.format]));
 				return false;
 			}
 
+			battleFormat = inputFormat;
+
 			this.battleFormatId = battleFormat.inputTarget;
-			try {
-				this.setFormat();
-				this.generatePokedex();
-			} catch (e) {
-				this.say("Unable to generate enough valid Pokemon for the format " + battleFormat.name + ".");
-				return false;
+		}
+
+		const battleFormatIdBeforeRules = this.battleFormatId;
+		const customRules = battleFormat.customRules ? battleFormat.customRules.slice() : [];
+
+		// add any rules that are required for the game to function, such as -Illusion in Cloak & Dagger
+		if (this.getRequiredCustomRules) {
+			const requiredCustomRules = this.getRequiredCustomRules();
+			const ruleTable = Dex.getRuleTable(battleFormat);
+			const addedRules: string[] = [];
+			for (const rule of requiredCustomRules) {
+				try {
+					if (!ruleTable.has(Dex.validateRule(rule) as string)) {
+						customRules.push(rule);
+						addedRules.push(rule);
+					}
+				} catch (e) {} // eslint-disable-line no-empty
+			}
+
+			if (addedRules.length) {
+				let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, addedRules);
+				try {
+					formatid = Dex.validateFormat(formatid);
+				} catch (e) {
+					this.say("Error setting required custom rules: " + (e as Error).message);
+					return false;
+				}
+
+				this.battleFormatId = formatid;
 			}
 		}
 
-		const customRules = this.getGameCustomRules ? this.getGameCustomRules() : [];
 		const inputRules: string[] = [];
-		const battleFormatIdBeforeRules = this.battleFormatId;
 
 		if (inputProperties.options.rules) {
 			if (!this.canChangeFormat) {
@@ -173,36 +197,18 @@ export abstract class BattleElimination extends ScriptedGame {
 				}
 			}
 
-			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
+			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, inputRules);
 			try {
 				formatid = Dex.validateFormat(formatid);
 			} catch (e) {
-				this.say("Error setting custom rules: " + (e as Error).message);
-				return false;
-			}
-
-			this.battleFormatId = formatid;
-			try {
-				this.setFormat();
-				this.generatePokedex();
-			} catch (e) {
-				this.say("Unable to generate enough valid Pokemon for the format " + Dex.getExistingFormat(this.battleFormatId).name +
-					" with custom rules.");
-				return false;
-			}
-		} else if (customRules.length) {
-			let formatid = Dex.joinNameAndCustomRules(this.battleFormatId, customRules);
-			try {
-				formatid = Dex.validateFormat(formatid);
-			} catch (e) {
-				this.say("Error setting custom rules: " + (e as Error).message);
+				this.say("Error setting input rules: " + (e as Error).message);
 				return false;
 			}
 
 			this.battleFormatId = formatid;
 		}
 
-		const battleFormat = Dex.getExistingFormat(this.battleFormatId);
+		battleFormat = Dex.getExistingFormat(this.battleFormatId);
 		if (battleFormat.gameType !== this.battleFormatType) {
 			this.say("You can only change the format to another " + this.battleFormatType + " format.");
 			return false;
@@ -265,6 +271,15 @@ export abstract class BattleElimination extends ScriptedGame {
 				this.say("You can only change the format to one that allows battling with a variable number of Pokemon.");
 				return false;
 			}
+		}
+
+		try {
+			this.setFormat();
+			this.generatePokedex();
+		} catch (e) {
+			this.say("Unable to generate enough valid Pokemon for the format " +
+				(battleFormat.customFormatName || battleFormat.name) + (customRules.length ? " with custom rules" : "") + ".");
+			return false;
 		}
 
 		const inputRulesFormat = Dex.getFormat(Dex.joinNameAndCustomRules(battleFormatIdBeforeRules, inputRules));
@@ -2226,7 +2241,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 	}
 
-	getGameCustomRules?(): string[];
+	getRequiredCustomRules?(): string[];
 	meetsStarterCriteria?(pokemon: IPokemon): boolean;
 	meetsEvolutionCriteria?(pokemon: IPokemon): boolean;
 }
