@@ -10,6 +10,8 @@ export interface ITrainerPick {
 	customAvatar?: boolean;
 }
 
+export type TrainerChoices = (ITrainerPick | undefined)[];
+
 interface ITrainerPickerProps extends IPickerProps<ITrainerPick> {
 	userId?: string;
 	random?: boolean;

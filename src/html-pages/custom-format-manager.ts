@@ -530,7 +530,8 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			} else {
 				if (type === '!') {
-					if (this.format.ruleset.includes(rule)) {
+					const id = Tools.toId(rule);
+					if (id && !ruleTable.has(id)) {
 						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
 						continue;
 					}

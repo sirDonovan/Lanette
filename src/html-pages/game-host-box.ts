@@ -8,10 +8,9 @@ import { BorderStyle } from "./components/border-style";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
 import { PokemonModelPicker } from "./components/pokemon-model-picker";
-import type { IPokemonPick } from "./components/pokemon-picker-base";
+import type { IPokemonPick, PokemonChoices } from "./components/pokemon-picker-base";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { TrainerPicker } from "./components/trainer-picker";
-import type { PokemonChoices } from "./game-host-control-panel";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 type BorderPickers = 'background' | 'buttons' | 'signups-background' | 'signups-buttons';

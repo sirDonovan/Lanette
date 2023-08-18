@@ -5,6 +5,7 @@ import { TextInput } from "./text-input";
 export interface IGameTextInputProps extends ITextInputProps {
 	allowModes: boolean;
 	allowVariants: boolean;
+	onlyTournamentGame?: boolean;
 }
 
 export class GameTextInput extends TextInput {
@@ -29,6 +30,8 @@ export class GameTextInput extends TextInput {
 					this.errors.push("Modes are not allowed.");
 				} else if (format.variant && !this.props.allowVariants) {
 					this.errors.push("Variants are not allowed.");
+				} else if (this.props.onlyTournamentGame && !format.tournamentGame) {
+					this.errors.push("Only tournament games are allowed.");
 				} else {
 					games.push(format.name);
 				}

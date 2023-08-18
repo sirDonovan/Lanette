@@ -1,9 +1,8 @@
 import type { ModelGeneration } from "../../types/dex";
-import type { PokemonChoices } from "../game-host-control-panel";
 import type { HtmlPageBase } from "../html-page-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
-import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
+import type { IPokemonPick, IPokemonPickerProps, PokemonChoices } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import { PokemonTextInput } from "./pokemon-text-input";
 

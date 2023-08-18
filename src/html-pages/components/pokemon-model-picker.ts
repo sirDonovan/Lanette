@@ -1,8 +1,7 @@
 import { PokemonPickerManual } from "./pokemon-picker-manual";
-import type { PokemonChoices } from "../game-host-control-panel";
 import type { IPokemonTextInputProps } from "./pokemon-text-input";
 import { PokemonTextInput } from "./pokemon-text-input";
-import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
+import type { IPokemonPick, IPokemonPickerProps, PokemonChoices } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
 import type { IComponentProps } from "./component-base";

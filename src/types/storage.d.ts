@@ -195,6 +195,13 @@ export interface IRoomCustomFormat {
 	name: string;
 }
 
+interface ITournamentGameFormatBanlist {
+	abilities: string[];
+	items: string[];
+	moves: string[];
+	pokemon: string[];
+}
+
 interface ITournamentGameBan {
 	name: string;
 	expirationTime: number;
@@ -249,8 +256,9 @@ export interface IDatabase {
 	scriptedGameStats?: IGameStat[];
 	thcWinners?: Dict<string>;
 	tournamentLeaderboard?: ILeaderboard;
-	tournamentManagers?: string[];
+	tournamentGameFormatBanlists?: Dict<ITournamentGameFormatBanlist>;
 	tournamentGameBanlist?: Dict<ITournamentGameBan>;
+	tournamentManagers?: string[];
 	tournamentTrainerCards?: Dict<ITournamentTrainerCard>;
 	tournamentTrainerCardBadges?: Dict<ITournamentTrainerCardPrize>;
 	tournamentTrainerCardRibbons?: Dict<ITournamentTrainerCardPrize>;

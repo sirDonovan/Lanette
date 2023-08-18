@@ -9,9 +9,8 @@ import { BorderStyle } from "./components/border-style";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
 import { GameTextInput } from "./components/game-text-input";
-import { PokemonPickerBase } from "./components/pokemon-picker-base";
+import { PokemonChoices, PokemonPickerBase } from "./components/pokemon-picker-base";
 import { PokemonTextInput } from "./components/pokemon-text-input";
-import type { PokemonChoices } from "./game-host-control-panel";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 type BorderPickers = 'background' | 'buttons' | 'signups-background' | 'signups-buttons' | 'game-background' | 'game-buttons';
@@ -193,9 +192,7 @@ class GameScriptedBox extends HtmlPageBase {
 		PokemonPickerBase.loadData();
 
 		this.pokemonAvatarPicker = new PokemonTextInput(this, this.commandPrefix, setGamePokemonAvatarCommand, {
-			gif: false,
 			currentInput: currentGamePokemonAvatar ? currentGamePokemonAvatar : "",
-			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 1,

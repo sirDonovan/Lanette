@@ -11,8 +11,7 @@ import { TrainerCardBadgePicker } from "./components/trainer-card-badge-picker";
 import { TextInput } from "./components/text-input";
 import { ColorPicker, type IColorPick } from "./components/color-picker";
 import { PokemonTextInput } from "./components/pokemon-text-input";
-import { PokemonPickerBase } from "./components/pokemon-picker-base";
-import type { PokemonChoices } from "./game-host-control-panel";
+import { PokemonChoices, PokemonPickerBase } from "./components/pokemon-picker-base";
 import { NamePicker } from "./components/name-picker";
 import { TrainerCardRibbonPicker } from "./components/trainer-card-ribbon-picker";
 
@@ -319,9 +318,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		PokemonPickerBase.loadData();
 
 		this.pokemonPicker = new PokemonTextInput(this, this.commandPrefix, setPokemonCommand, {
-			gif: false,
 			currentInput: trainerCard && trainerCard.pokemon ? trainerCard.pokemon.join(", ") : "",
-			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 6,

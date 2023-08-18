@@ -7,17 +7,14 @@ import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ManualHostDisplay } from "./components/manual-host-display";
 import type { IHostDisplayProps } from "./components/host-display-base";
-import type { IPokemonPick } from "./components/pokemon-picker-base";
+import type { IPokemonPick, PokemonChoices } from "./components/pokemon-picker-base";
 import { RandomHostDisplay } from "./components/random-host-display";
-import type { ITrainerPick } from "./components/trainer-picker";
+import type { ITrainerPick, TrainerChoices } from "./components/trainer-picker";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 import { MultiTextInput } from "./components/multi-text-input";
 import { TextInput } from "./components/text-input";
 import { NumberTextInput } from "./components/number-text-input";
 import type { IDatabase, GifIcon, IGameHostDisplay } from "../types/storage";
-
-export type PokemonChoices = (IPokemonPick | undefined)[];
-export type TrainerChoices = (ITrainerPick | undefined)[];
 
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
 'zygardesorders'];

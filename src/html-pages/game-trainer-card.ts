@@ -4,11 +4,10 @@ import type { IDatabase, IGameTrainerCard } from "../types/storage";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
-import { PokemonPickerBase } from "./components/pokemon-picker-base";
+import { PokemonChoices, PokemonPickerBase } from "./components/pokemon-picker-base";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
-import type { PokemonChoices } from "./game-host-control-panel";
 import { PokemonTextInput } from "./components/pokemon-text-input";
 
 const baseCommand = 'gametrainercard';
@@ -67,9 +66,7 @@ class GameTrainerCard extends HtmlPageBase {
 		PokemonPickerBase.loadData();
 
 		this.pokemonPicker = new PokemonTextInput(this, this.commandPrefix, setPokemonCommand, {
-			gif: false,
 			currentInput: trainerCard ? trainerCard.pokemon.join(", ") : "",
-			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: maxIcons,

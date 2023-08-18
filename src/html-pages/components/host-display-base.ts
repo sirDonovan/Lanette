@@ -1,11 +1,10 @@
 import type { IColorPick } from "./color-picker";
 import { ColorPicker } from "./color-picker";
-import type { IPokemonPick, IPokemonPickerProps, PokemonPickerBase } from "./pokemon-picker-base";
-import type { ITrainerPick } from "./trainer-picker";
+import type { IPokemonPick, IPokemonPickerProps, PokemonChoices, PokemonPickerBase } from "./pokemon-picker-base";
+import type { ITrainerPick, TrainerChoices } from "./trainer-picker";
 import { TrainerPicker } from "./trainer-picker";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
-import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import type { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { PokemonPickerRandom } from "./pokemon-picker-random";
 import type { ModelGeneration } from "../../types/dex";
