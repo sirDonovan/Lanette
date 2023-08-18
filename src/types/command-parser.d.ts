@@ -36,8 +36,8 @@ export type BaseCommandDefinitions = CommandDefinitions<CommandContext, void>;
 export type BaseLoadedCommands = LoadedCommands<CommandContext, void>;
 
 export type CommandErrorOptionalTarget = 'invalidBotRoom' | 'invalidAbility' | 'invalidFormat' | 'invalidGameFormat' | 'invalidItem' |
-	'invalidMove' | 'invalidPokemon' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidType' | 'invalidEggGroup' |
-	'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
+	'invalidMove' | 'invalidPokemon' | 'invalidTournamentFormat' | 'invalidUserHostedGameFormat' | 'invalidRule' | 'invalidType' |
+	'invalidEggGroup' | 'tooManyGameModes' | 'tooManyGameVariants' | 'emptyUserHostedGameQueue';
 
 export type CommandErrorRequiredTarget = 'noPmHtmlRoom' | 'missingBotRankForFeatures' | 'disabledTournamentFeatures' |
 	'disabledGameFeatures' | 'disabledTournamentGameFeatures' | 'disabledSearchChallengeFeatures' | 'disabledUserHostedGameFeatures' |

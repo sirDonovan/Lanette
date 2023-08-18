@@ -7,6 +7,7 @@ import { ItemChoices, ItemTextInput } from "./components/item-text-input";
 import { MoveChoices, MoveTextInput } from "./components/move-text-input";
 import { PokemonChoices } from "./components/pokemon-picker-base";
 import { PokemonTextInput } from "./components/pokemon-text-input";
+import { RuleChoices, RuleTextInput } from "./components/rule-text-input";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 
 const baseCommand = 'tournamentgamebanlistmanager';
@@ -16,6 +17,7 @@ const chooseAbilitesViewCommand = 'chooseabilities';
 const chooseItemsViewCommand = 'chooseitems';
 const chooseMovesViewCommand = 'choosemoves';
 const choosePokemonViewCommand = 'choosepokemon';
+const chooseRulesViewCommand = 'chooserules';
 const abilityInputCommand = 'abilityinput';
 const removeAbilityCommand = 'removeability';
 const itemInputCommand = 'iteminput';
@@ -24,6 +26,8 @@ const moveInputCommand = 'moveinput';
 const removeMoveCommand = 'removemove';
 const pokemonInputCommand = 'pokemoninput';
 const removePokemonCommand = 'removepokemon';
+const ruleInputCommand = 'ruleinput';
+const removeRuleCommand = 'removepokemon';
 
 export const pageId = 'tournament-game-banlist-manager';
 export const pages: Dict<TournamentGameBanlistManager> = {};
@@ -31,7 +35,7 @@ export const pages: Dict<TournamentGameBanlistManager> = {};
 class TournamentGameBanlistManager extends HtmlPageBase {
 	pageId = pageId;
 
-	currentView: 'abilities' | 'items' | 'moves' | 'pokemon' = 'pokemon';
+	currentView: 'abilities' | 'items' | 'moves' | 'pokemon' | 'rules' = 'pokemon';
 	currentFormatId: string = "";
 	currentFormatName: string = "";
 	formatIds: string[] = [];
@@ -41,6 +45,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 	itemInput: ItemTextInput;
 	moveInput: MoveTextInput;
 	pokemonInput: PokemonTextInput;
+	ruleInput: RuleTextInput;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
@@ -89,7 +94,16 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		this.components = [this.abilityInput, this.itemInput, this.moveInput, this.pokemonInput];
+		this.ruleInput = new RuleTextInput(this, this.commandPrefix, ruleInputCommand, {
+			submitText: "Add rule(s)",
+			hideClearButton: true,
+			textArea: true,
+			textAreaConfiguration: {rows: 3, cols: 60},
+			onSubmit: (output) => this.addRules(output),
+			reRender: () => this.send(),
+		});
+
+		this.components = [this.abilityInput, this.itemInput, this.moveInput, this.pokemonInput, this.ruleInput];
 	}
 
 	chooseFormat(id: string): void {
@@ -129,6 +143,13 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		this.send();
 	}
 
+	chooseRulesView(): void {
+		if (this.currentView === 'rules') return;
+
+		this.currentView = 'rules';
+		this.send();
+	}
+
 	getDatabase(): IDatabase {
 		const database = Storage.getDatabase(this.room);
 		if (!database.tournamentGameFormatBanlists) database.tournamentGameFormatBanlists = {};
@@ -138,6 +159,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 				items: [],
 				moves: [],
 				pokemon: [],
+				rules: [],
 			}
 		}
 
@@ -264,6 +286,36 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		this.send();
 	}
 
+	addRules(choices: RuleChoices): void {
+		if (!this.currentFormatId) return;
+
+		const database = this.getDatabase();
+
+		for (const choice of choices) {
+			if (!choice) continue;
+
+			const id = Tools.toId(choice.rule);
+			if (id && !database.tournamentGameFormatBanlists![this.currentFormatId].rules.includes(id)) {
+				database.tournamentGameFormatBanlists![this.currentFormatId].rules.push(id);
+			}
+		}
+
+		this.send();
+	}
+
+	removeRule(rule: string): void {
+		if (!this.currentFormatId) return;
+
+		const database = Storage.getDatabase(this.room);
+		if (!database.tournamentGameFormatBanlists || !(this.currentFormatId in database.tournamentGameFormatBanlists)) return;
+
+		const id = Tools.toId(rule);
+		const index = database.tournamentGameFormatBanlists[this.currentFormatId].rules.indexOf(id);
+		if (index !== -1) database.tournamentGameFormatBanlists[this.currentFormatId].rules.splice(index, 1);
+
+		this.send();
+	}
+
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" +
 			this.room.title + " Tournament Game Banlists</b>";
@@ -293,6 +345,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 			const itemsView = this.currentView === 'items';
 			const movesView = this.currentView === 'moves';
 			const pokemonView = this.currentView === 'pokemon';
+			const rulesView = this.currentView === 'rules';
 
 			html += "<b>Current banlist</b>:";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseAbilitesViewCommand, "Abilities",
@@ -303,6 +356,8 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 				{selectedAndDisabled: movesView});
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonViewCommand, "Pokemon",
 				{selectedAndDisabled: pokemonView});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRulesViewCommand, "Rules",
+				{selectedAndDisabled: rulesView});
 			html += "<br />";
 
 			if (abilitiesView) {
@@ -370,8 +425,8 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 				}
 
 				html += "<br /><br />";
-				html += this.pokemonInput.render();
-			} else {
+				html += this.moveInput.render();
+			} else if (pokemonView) {
 				const pokemonList: string[] = [];
 				if (this.currentFormatId in database.tournamentGameFormatBanlists) {
 					for (const id of database.tournamentGameFormatBanlists[this.currentFormatId].pokemon) {
@@ -393,6 +448,28 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 
 				html += "<br /><br />";
 				html += this.pokemonInput.render();
+			} else {
+				const rulesList: string[] = [];
+				if (this.currentFormatId in database.tournamentGameFormatBanlists) {
+					for (const id of database.tournamentGameFormatBanlists[this.currentFormatId].rules) {
+						rulesList.push(id);
+					}
+				}
+
+				if (rulesList.length) {
+					html += "<ul>";
+					for (const id of rulesList) {
+						const rule = Dex.getExistingFormat(id);
+						html += "<li>" + rule.name + "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + removeRuleCommand +
+							", " + id, "remove") + "</li>";
+					}
+					html += "</ul>";
+				} else {
+					html += "No rules have been added.";
+				}
+
+				html += "<br /><br />";
+				html += this.ruleInput.render();
 			}
 		}
 
@@ -432,7 +509,9 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseMovesView();
 			} else if (cmd === choosePokemonViewCommand) {
 				pages[user.id].choosePokemonView();
-			}else if (cmd === removeAbilityCommand) {
+			} else if (cmd === chooseRulesViewCommand) {
+				pages[user.id].chooseRulesView();
+			} else if (cmd === removeAbilityCommand) {
 				pages[user.id].removeAbility(targets[0].trim());
 			} else if (cmd === removeItemCommand) {
 				pages[user.id].removeItem(targets[0].trim());
@@ -440,6 +519,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].removeMove(targets[0].trim());
 			} else if (cmd === removePokemonCommand) {
 				pages[user.id].removePokemon(targets[0].trim());
+			} else if (cmd === removeRuleCommand) {
+				pages[user.id].removeRule(targets[0].trim());
 			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {

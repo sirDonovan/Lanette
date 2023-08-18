@@ -200,6 +200,7 @@ interface ITournamentGameFormatBanlist {
 	items: string[];
 	moves: string[];
 	pokemon: string[];
+	rules: string[];
 }
 
 interface ITournamentGameBan {

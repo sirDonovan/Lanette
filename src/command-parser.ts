@@ -303,6 +303,9 @@ export class CommandParser {
 		} else if (error[0] === 'invalidPokemon') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid Pokemon.";
 			return "You must specify a valid Pokemon.";
+		} else if (error[0] === 'invalidRule') {
+			if (error[1]) return "'" + error[1].trim() + "' is not a valid rule.";
+			return "You must specify a valid rule.";
 		} else if (error[0] === 'invalidType') {
 			if (error[1]) return "'" + error[1].trim() + "' is not a valid type.";
 			return "You must specify a valid type.";
