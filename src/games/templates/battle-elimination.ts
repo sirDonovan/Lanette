@@ -77,7 +77,6 @@ export abstract class BattleElimination extends ScriptedGame {
 	firstRoundByeAdditions = new Map<Player, string[]>();
 	firstRoundExtraTime: number = 0;
 	firstRoundTime: number = 0;
-	roomPokedexBanlist: string[] = [];
 	fullyEvolved: boolean = false;
 	gen: number | null = null;
 	givenFirstRoundExtraTime = new Set<Player>();
@@ -109,6 +108,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	rerollStartDelay: number = REROLL_START_DELAY;
 	requiredTier: string | null = null;
 	requiredDoublesTier: string | null = null;
+	roomPokedexBanlist: string[] = [];
+	roomFormatRules: string[] = [];
 	rulesHtml: string = "";
 	sameRoomSubRoom: boolean = false;
 	sharedTeams: boolean = false;
@@ -154,12 +155,49 @@ export abstract class BattleElimination extends ScriptedGame {
 		const battleFormatIdBeforeRules = this.battleFormatId;
 		const customRules = battleFormat.customRules ? battleFormat.customRules.slice() : [];
 
-		// add any rules that are required for the game to function, such as -Illusion in Cloak & Dagger
+		// add any rules from the room's database and that are required for the game to function, such as -Illusion in Cloak & Dagger
+		const database = Storage.getDatabase(this.room);
+		if (database.tournamentGameFormatBanlists && this.format.id in database.tournamentGameFormatBanlists) {
+			const formatBanlist = database.tournamentGameFormatBanlists[this.format.id];
+			for (const ability of formatBanlist.abilities) {
+				this.roomPokedexBanlist.push(ability);
+				this.roomFormatRules.push("-" + ability);
+			}
+
+			for (const item of formatBanlist.items) {
+				this.roomPokedexBanlist.push(item);
+				this.roomFormatRules.push("-" + item);
+			}
+
+			for (const move of formatBanlist.moves) {
+				this.roomPokedexBanlist.push(move);
+				this.roomFormatRules.push("-" + move);
+			}
+
+			for (const pokemon of formatBanlist.pokemon) {
+				this.roomPokedexBanlist.push(pokemon);
+				this.roomFormatRules.push("-" + pokemon);
+			}
+
+			for (const rule of formatBanlist.rules) {
+				this.roomFormatRules.push(rule);
+			}
+		}
+
+		const baseFormatRules: string[] = this.roomFormatRules.slice();
 		if (this.getRequiredCustomRules) {
 			const requiredCustomRules = this.getRequiredCustomRules();
+			for (const rule of requiredCustomRules) {
+				if (!baseFormatRules.includes(rule)) {
+					baseFormatRules.push(rule);
+				}
+			}
+		}
+
+		if (baseFormatRules.length) {
 			const ruleTable = Dex.getRuleTable(battleFormat);
 			const addedRules: string[] = [];
-			for (const rule of requiredCustomRules) {
+			for (const rule of baseFormatRules) {
 				try {
 					if (!ruleTable.has(Dex.validateRule(rule) as string)) {
 						customRules.push(rule);
@@ -306,21 +344,18 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.battleFormat.usablePokemon = Dex.getUsablePokemon(this.battleFormat);
 		this.hasSpeciesClause = Dex.getRuleTable(this.battleFormat).has('speciesclause');
 
-		const database = Storage.getDatabase(this.room);
-		if (database.tournamentGameFormatBanlists && this.format.id in database.tournamentGameFormatBanlists) {
+		if (this.roomPokedexBanlist.length) {
 			const ruleTable = Dex.getRuleTable(this.battleFormat);
-			const formatBanlist = database.tournamentGameFormatBanlists[this.format.id];
-			const combinedBans: string[] = formatBanlist.abilities.concat(formatBanlist.items, formatBanlist.moves,
-				formatBanlist.pokemon);
-			for (const ban of combinedBans) {
+			const filteredBanlist: string[] = this.roomPokedexBanlist.slice();
+			for (const ban of filteredBanlist) {
 				try {
 					if (ruleTable.has(Dex.validateRule("+" + ban) as string)) {
-						combinedBans.splice(combinedBans.indexOf(ban), 1);
+						filteredBanlist.splice(filteredBanlist.indexOf(ban), 1);
 					}
 				} catch (e) {} // eslint-disable-line no-empty
 			}
 
-			this.roomPokedexBanlist = combinedBans;
+			this.roomPokedexBanlist = filteredBanlist;
 		}
 	}
 
