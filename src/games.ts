@@ -121,12 +121,12 @@ export class Games {
 
 	private readonly achievements: Achievements = {};
 	private readonly aliases: Dict<string> = {};
-	private autoCreateTimers: Dict<NodeJS.Timer> = {};
+	private autoCreateTimers: Dict<NodeJS.Timeout> = {};
 	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	private readonly formats: Formats = {};
 	private readonly formatModules: NodeModule[] = [];
 	private readonly freejoinFormatTargets: string[] = [];
-	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
+	private gameCooldownMessageTimers: Dict<NodeJS.Timeout> = {};
 	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
 	private readonly internalFormats: InternalFormats = {};
@@ -158,7 +158,7 @@ export class Games {
 	private officialGames: Dict<Dict<IOfficialGame[]>> = {};
 	private readonly schedules: typeof gameSchedules = gameSchedules;
 	private scheduledGameTimerData: Dict<IScheduledGameTimerData> = {};
-	private scheduledGameTimers: Dict<NodeJS.Timer> = {};
+	private scheduledGameTimers: Dict<NodeJS.Timeout> = {};
 
 	private readonly commands: LoadedGameCommands;
 	private readonly sharedCommands: LoadedGameCommands;

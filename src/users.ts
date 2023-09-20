@@ -18,7 +18,7 @@ export class User {
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
-	timers: Dict<NodeJS.Timer> | null = null;
+	timers: Dict<NodeJS.Timeout> | null = null;
 
 	id: string;
 	name!: string;
@@ -290,7 +290,7 @@ export class Users {
 	self: User;
 
 	private users: Dict<User> = {};
-	private pruneUsersInterval: NodeJS.Timer;
+	private pruneUsersInterval: NodeJS.Timeout;
 
 	constructor() {
 		const username = Config.username || "Self";

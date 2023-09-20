@@ -80,7 +80,7 @@ export interface IUserHostedTournament {
 	signupUrl: string;
 	startTime: number;
 	urls: string[];
-	reviewTimer?: NodeJS.Timer;
+	reviewTimer?: NodeJS.Timeout;
 }
 
 export interface ITournamentUpdateJson {

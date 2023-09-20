@@ -38,7 +38,7 @@ export class Storage {
 	allLeaderboardTypes: LeaderboardType[];
 	allLeaderboardTypesById: Dict<LeaderboardType>;
 	allLeaderboardNames: KeyedDict<LeaderboardType, string>;
-	globalDatabaseExportInterval: NodeJS.Timer;
+	globalDatabaseExportInterval: NodeJS.Timeout;
 
 	private archiveDatabases: Dict<IArchiveDatabase> = {};
 	private databases: Dict<IDatabase> = {};

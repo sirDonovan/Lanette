@@ -105,7 +105,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		ColorPicker.loadData();
 
 		if (this.props.currentPickObject) {
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (this.props.currentPickObject.color) {
 				this.customPrimaryColor = this.props.currentPickObject.color;
 			}

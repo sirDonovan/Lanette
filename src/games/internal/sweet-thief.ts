@@ -6,7 +6,7 @@ import type { User } from "../../users";
 
 export class SweetThief extends ScriptedGame {
 	currentHolder: Player | null = null;
-	takeBackTimeout: NodeJS.Timer | null = null;
+	takeBackTimeout: NodeJS.Timeout | null = null;
 	internalGame: boolean = true;
 	managedPlayers = true;
 

@@ -12,7 +12,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 	additionalHintHeader: string = '';
 	allowRepeatCorrectAnswers: boolean = false;
 	answers: readonly string[] = [];
-	answerTimeout: NodeJS.Timer | undefined;
+	answerTimeout: NodeJS.Timeout | undefined;
 	answerUhtmlName: string = '';
 	beforeNextRoundTime: number = 5 * 1000;
 	cooldownBetweenRounds: number = 0;

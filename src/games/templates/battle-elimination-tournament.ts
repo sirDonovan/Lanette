@@ -9,7 +9,7 @@ const GROUPCHAT_SUFFIX = "Games";
 export abstract class BattleEliminationTournament extends BattleElimination {
 	autoDqMinutes: number = 3;
 	requiresAutoconfirmed = false;
-	startAutoDqTimer: NodeJS.Timer | undefined;
+	startAutoDqTimer: NodeJS.Timeout | undefined;
 	tournamentCreated: boolean = false;
 	tournamentEnded: boolean = false;
 	tournamentStarted: boolean = false;

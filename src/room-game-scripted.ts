@@ -61,7 +61,7 @@ export class ScriptedGame extends Game {
 	allowChildGameBits?: boolean;
 	readonly battleRooms?: string[];
 	botChallengeSpeeds: number[] | null = null;
-	botTurnTimeout?: NodeJS.Timer;
+	botTurnTimeout?: NodeJS.Timeout;
 	canLateJoin?: boolean;
 	challengeRoundTimes: number[] | null = null;
 	dontAutoCloseHtmlPages?: boolean;

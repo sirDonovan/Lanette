@@ -11,7 +11,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	active: boolean = true;
 	destroyed: boolean = false;
 	components: ComponentBase[] = [];
-	timeout: NodeJS.Timer | null = null;
+	timeout: NodeJS.Timeout | null = null;
 
 	htmlPage: HtmlPageBase;
 	commandPrefix: string;

@@ -45,10 +45,10 @@ export abstract class BattleElimination extends ScriptedGame {
 	abstract baseHtmlPageGameName: string;
 
 	activityDQTimeout: number = 2 * 60 * 1000;
-	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
+	activityTimers = new Map<EliminationNode<Player>, NodeJS.Timeout>();
 	activityWarnTimeout: number = 3 * 60 * 1000;
 	additionsPerRound: number = 0;
-	advertisementInterval: NodeJS.Timer | null = null;
+	advertisementInterval: NodeJS.Timeout | null = null;
 	allowsFormes: boolean = true;
 	allowsScouting: boolean = false;
 	allowsSingleStage: boolean = false;
@@ -61,8 +61,8 @@ export abstract class BattleElimination extends ScriptedGame {
 	canRejoin: boolean = false;
 	canReroll: boolean = false;
 	checkedBattleRooms: string[] = [];
-	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
-	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timer>();
+	checkChallengesTimers = new Map<EliminationNode<Player>, NodeJS.Timeout>();
+	checkChallengesInactiveTimers = new Map<EliminationNode<Player>, NodeJS.Timeout>();
 	color: string | null = null;
 	creatingSubRoom: boolean = false;
 	disqualifiedOpponents = new Map<Player, Player>();

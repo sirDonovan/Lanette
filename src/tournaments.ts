@@ -33,8 +33,8 @@ export class Tournaments {
 	private nextOfficialTournaments: Dict<IOfficialTournament> = {};
 	private officialTournaments: Dict<IOfficialTournament[]> = {};
 	private tournamentTimerData: Dict<ITournamentTimerData> = {};
-	private tournamentTimers: Dict<NodeJS.Timer> = {};
-	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
+	private tournamentTimers: Dict<NodeJS.Timeout> = {};
+	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timeout> = {};
 
 	getNextOfficialTournaments(): DeepImmutable<Dict<IOfficialTournament>> {
 		return this.nextOfficialTournaments;

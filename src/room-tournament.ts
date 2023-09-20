@@ -18,7 +18,7 @@ const GENERATORS: Dict<number> = {
 
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
-	adjustCapTimer: NodeJS.Timer | null = null;
+	adjustCapTimer: NodeJS.Timeout | null = null;
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
@@ -48,7 +48,7 @@ export class Tournament extends Activity {
 	playerLosses = new Map<Player, number>();
 	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
-	runAutoDqTimeout: NodeJS.Timer | null = null;
+	runAutoDqTimeout: NodeJS.Timeout | null = null;
 	official: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};

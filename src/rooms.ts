@@ -44,7 +44,7 @@ export class Room {
 	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | null = null;
 	subRoom: Room | null = null;
-	timers: Dict<NodeJS.Timer> | null = null;
+	timers: Dict<NodeJS.Timeout> | null = null;
 	tournament: Tournament | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<MessageListener>> = {};
 	userHostedGame: UserHostedGame | null = null;
@@ -988,7 +988,7 @@ export class Rooms {
 	createListeners: Dict<RoomCreateListener[]> = {};
 	private rooms: Dict<Room> = {};
 
-	private pruneRoomsInterval: NodeJS.Timer;
+	private pruneRoomsInterval: NodeJS.Timeout;
 
 	constructor() {
 		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 15 * 60 * 1000);

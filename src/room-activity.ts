@@ -205,12 +205,12 @@ export abstract class Activity {
 	playerAvatars: Dict<string> = {};
 	roomCreateListeners: string[] = [];
 	showSignupsHtml: boolean = false;
-	signupsHtmlTimeout: NodeJS.Timer | null = null;
+	signupsHtmlTimeout: NodeJS.Timeout | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
-	startTimer: NodeJS.Timer | null = null;
+	startTimer: NodeJS.Timeout | null = null;
 	subRoom: Room | null = null;
-	timeout: NodeJS.Timer | null = null;
+	timeout: NodeJS.Timeout | null = null;
 	uhtmlMessageListeners: Dict<IActivityHtmlListener[]> = {};
 
 	// set in initialize()

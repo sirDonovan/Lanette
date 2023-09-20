@@ -45,10 +45,10 @@ export class Websocket {
 	onIncomingMessage: IncomingMessageHandler;
 
 	private challstr: string = '';
-	private challstrTimeout: NodeJS.Timer | undefined = undefined;
+	private challstrTimeout: NodeJS.Timeout | undefined = undefined;
 	private connectionAttempts: number = 0;
 	private connectionAttemptTime: number = Config.connectionAttemptTime || 60 * 1000;
-	private connectionTimeout: NodeJS.Timer | undefined = undefined;
+	private connectionTimeout: NodeJS.Timeout | undefined = undefined;
 	private firstFormatsList: boolean = true;
 	private incomingMessageQueue: {event: ws.MessageEvent, timestamp: number}[] = [];
 	private lastMeasuredMessage: IOutgoingMessage | null = null;
@@ -57,7 +57,7 @@ export class Websocket {
 	private lastProcessingTimeCheck: number = 0;
 	private loginServerHostname: string = '';
 	private loginServerPath: string = '';
-	private loginTimeout: NodeJS.Timer | undefined = undefined;
+	private loginTimeout: NodeJS.Timeout | undefined = undefined;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
 	private outgoingMessageMeasurements: number[] = [];
 	private outgoingMessageMeasurementsInfo: string[] = [];
@@ -65,11 +65,11 @@ export class Websocket {
 	private pausedOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
 	private reloadInProgress: boolean = false;
-	private retryLoginTimeout: NodeJS.Timer | undefined = undefined;
-	private sendTimeout: NodeJS.Timer | true | undefined = undefined;
+	private retryLoginTimeout: NodeJS.Timeout | undefined = undefined;
+	private sendTimeout: NodeJS.Timeout | true | undefined = undefined;
 	private sendTimeoutDuration: number = 0;
 	private serverId: string = 'showdown';
-	private serverPingTimeout: NodeJS.Timer | null = null;
+	private serverPingTimeout: NodeJS.Timeout | null = null;
 	private ws: import('ws') | null = null;
 
 	private chatQueueSendThrottle!: number;

@@ -15,11 +15,11 @@ const HOST_TIME_LIMIT = 25 * 60 * 1000;
 export class UserHostedGame extends Game {
 	endTime: number = 0;
 	extended: boolean = false;
-	gameTimer: NodeJS.Timer | null = null;
+	gameTimer: NodeJS.Timeout | null = null;
 	gameTimerEndTime: number = 0;
 	hostId: string = '';
 	hostName: string = '';
-	hostTimeout: NodeJS.Timer | null = null;
+	hostTimeout: NodeJS.Timeout | null = null;
 	isUserHosted: boolean = true;
 	mascots: string[] = [];
 	noControlPanel: boolean = false;

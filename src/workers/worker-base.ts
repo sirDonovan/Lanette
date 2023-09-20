@@ -22,7 +22,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	private pendingResolves: IWorkerQueueItem<ThreadResponse>[] = [];
 	private workerMessageQueues: Dict<string[]> = {};
 	private sendMessages: boolean = true;
-	private unrefTimer: NodeJS.Timer | undefined = undefined;
+	private unrefTimer: NodeJS.Timeout | undefined = undefined;
 
 	abstract loadData(): WorkerData;
 
