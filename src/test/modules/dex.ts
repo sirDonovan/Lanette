@@ -77,7 +77,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 844);
+		assertStrictEqual(allPossibleMoves.length, 848);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
