@@ -33,7 +33,7 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 		this.cachedData.hintKeys = hintKeys;
 	}
 
-    filterGuess(guess: string) {
+    filterGuess(guess: string): boolean {
         return !Dex.getPokemon(guess);
     }
 }

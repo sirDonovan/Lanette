@@ -974,7 +974,7 @@ export class Tools {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	unrefProperties(objectInstance: any, skippedKeys?: string[]) {
+	unrefProperties(objectInstance: any, skippedKeys?: string[]): void {
 		if (!objectInstance) return;
 
 		const keys = Object.getOwnPropertyNames(objectInstance);
@@ -1067,7 +1067,7 @@ export class Tools {
 
 		const permutations: T[][] = [];
 		const indicesInUse = new Set<number>();
-		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number) => {
+		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number): void => {
 			if (!currentPermutation) currentPermutation = [];
 			const currentLength = currentPermutation.length;
 			if (currentLength >= minimumLength!) {
@@ -1093,7 +1093,7 @@ export class Tools {
 		const combinations: T[][] = [];
 		const maxIndex = input.length - 1;
 
-		function combine(current: T[], index: number) {
+		function combine(current: T[], index: number): void {
 			for (let i = 0, j = input[index].length; i < j; i++) {
 				const clone = current.slice();
 				clone.push(input[index][i]);

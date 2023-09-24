@@ -34,7 +34,7 @@ class Door extends Location {
 		this.number = number;
 	}
 
-	getColor() {
+	getColor(): IHexCodeData {
 		if (this.canMoveThrough) {
 			return Tools.getNamedHexCode(tileColors.unlockedDoor);
 		} else {
@@ -42,7 +42,7 @@ class Door extends Location {
 		}
 	}
 
-	getText() {
+	getText(): string {
 		return "" + this.number;
 	}
 }
@@ -57,7 +57,7 @@ class Switch extends Location {
 		this.number = door.number;
 	}
 
-	getText() {
+	getText(): string {
 		return "" + this.number;
 	}
 }
@@ -67,7 +67,7 @@ class CandyLocation extends Location {
 		super(true, tileColors.candy);
 	}
 
-	getText() {
+	getText(): string {
 		if (this.hasCandy) return "C";
 		return "";
 	}

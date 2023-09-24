@@ -27,7 +27,7 @@ let botMsgPrefix = "";
 let msgRoomPrefix = "";
 let msgSelfPrefix = "";
 
-const requestListener = (req: http.IncomingMessage, res: http.ServerResponse) => {
+const requestListener = (req: http.IncomingMessage, res: http.ServerResponse): void => {
     req.setEncoding('utf8');
 
     let bodyJson = '';
@@ -352,7 +352,7 @@ function modifyGlobals(): void {
     Tools.spritePrefix = 'https://' + Tools.mainServer + '/sprites';
 }
 
-export function initializeGameServer() {
+export function initializeGameServer(): void {
     modifyGlobals();
 
     if (!room) {

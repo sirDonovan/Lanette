@@ -80,7 +80,7 @@ export function getRunOptions(filename?: string): RunOptions {
 	return global._runOptions;
 }
 
-export async function initializeSrc(options?: RunOptions) {
+export async function initializeSrc(options?: RunOptions): Promise<void> {
     await buildSrc(options).catch(e => {
 		console.log(e);
 		process.exit(1);
@@ -94,7 +94,7 @@ export async function initializeSrc(options?: RunOptions) {
 	(require(appPath) as typeof import("./src/app")).instantiate();
 }
 
-export function setExceptionHandler() {
+export function setExceptionHandler(): void {
 	process.on('uncaughtException', error => {
 		console.log(error);
 		Tools.logError(error, "process.on('uncaughtException')");
@@ -181,7 +181,7 @@ export function copyPokemonShowdownShaBase(): void {
 		fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
 }
 
-export function createUntrackedFiles() {
+export function createUntrackedFiles(): void {
 	const inputFolders = getInputFolders();
 	const pokemonShowdownShaFile = path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt');
 	if (!fs.existsSync(pokemonShowdownShaFile)) {

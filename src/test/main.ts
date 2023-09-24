@@ -141,7 +141,7 @@ export function initializeTests(inputOptions: RunOptions): void {
 
 		let mochaRuns = 0;
 
-		const runMocha = () => {
+		const runMocha = (): void => {
 			mocha.run(failures => {
 				if (failures) process.exit(1);
 

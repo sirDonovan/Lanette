@@ -342,7 +342,7 @@ class DarkraisLair extends MapGame {
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		if (!this.getRemainingPlayerCount()) {
 			this.say("All players were eliminated!");
 		} else {

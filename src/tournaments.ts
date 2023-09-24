@@ -1247,7 +1247,7 @@ export class Tournaments {
 		const id = Tools.toId(name);
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {
-			const sendTrainerCard = (username: string) => {
+			const sendTrainerCard = (username: string): void => {
 				const trainerCard = this.getTrainerCardHtml(room, username);
 				if (trainerCard) {
 					room.sayHtml((htmlBefore || "") + trainerCard + (htmlAfter || ""));
@@ -1259,7 +1259,7 @@ export class Tournaments {
 			const database = Storage.getDatabase(trainerCardRoom);
 			const user = Users.get(name);
 			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(id in database.tournamentTrainerCards))) {
-				const updateTrainerCard = (avatar?: string) => {
+				const updateTrainerCard = (avatar?: string): void => {
 					Storage.createTournamentTrainerCard(database, user.name);
 					if (!database.tournamentTrainerCards![id].avatar && avatar) {
 						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;

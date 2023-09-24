@@ -356,8 +356,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			if (roundText === false) return;
 		}
 
-		const sayHint = () => {
-			const onHintHtml = (timestamp: number) => {
+		const sayHint = (): void => {
+			const onHintHtml = (timestamp: number): void => {
 				if (this.ended) return;
 				if (!this.canGuess) this.canGuess = true;
 				if (newAnswer) {

@@ -14,11 +14,11 @@ interface IPackageJson {
     secretDependencies: Dict<string>;
 }
 
-function getPokemonShowdownFolder() {
+function getPokemonShowdownFolder(): string {
 	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
 }
 
-function getPokemonShowdownDistFolder() {
+function getPokemonShowdownDistFolder(): string {
 	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown', pokemonShowdownDistName);
 }
 

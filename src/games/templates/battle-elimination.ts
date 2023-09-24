@@ -2264,7 +2264,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.setAutoCreateTimer();
 	}
 
-	setAutoCreateTimer(autoCreateTimer?: number) {
+	setAutoCreateTimer(autoCreateTimer?: number): void {
 		if (Config.tournamentGameAutoCreateTimers && this.room.id in Config.tournamentGameAutoCreateTimers) {
 			if (!autoCreateTimer) {
 				autoCreateTimer = Config.tournamentGameAutoCreateTimers[this.room.id];

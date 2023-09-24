@@ -40,7 +40,7 @@ let storage = require(storagePath) as typeof import('./storage');
 let tools = require(toolsPath) as typeof import('./tools');
 let tournaments = require(tournamentsPath) as typeof import('./tournaments');
 
-export function instantiate() {
+export function instantiate(): void {
 	console.log("Instantiating modules...");
 
 	tools.instantiate();

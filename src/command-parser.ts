@@ -39,7 +39,7 @@ export class CommandContext {
 		this.pm = room === user;
 	}
 
-	destroy() {
+	destroy(): void {
 		Tools.unrefProperties(this);
 	}
 

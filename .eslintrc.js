@@ -28,6 +28,30 @@ module.exports = {
             'ignoreComments': true
         }],
 
+        'brace-style': 'off',
+        '@typescript-eslint/brace-style': ['error', '1tbs'],
+
+        'comma-dangle': 'off',
+        '@typescript-eslint/comma-dangle': ['error', {
+            'arrays': 'always-multiline',
+            'objects': 'always-multiline',
+            'imports': 'never',
+            'exports': 'never',
+            'functions': 'never'
+        }],
+
+        'comma-spacing': 'off',
+        '@typescript-eslint/comma-spacing': 'error',
+
+        'func-call-spacing': 'off',
+        '@typescript-eslint/func-call-spacing': 'error',
+
+        'keyword-spacing': 'off',
+        '@typescript-eslint/keyword-spacing': ["error", {
+            "before": true,
+            "after": true
+        }],
+
         '@typescript-eslint/ban-ts-comment': ['error', {
             'ts-ignore': false,
             'ts-expect-error': false,
@@ -60,6 +84,10 @@ module.exports = {
         '@typescript-eslint/no-inferrable-types': 'off',
         '@typescript-eslint/prefer-optional-chain': 'off',
         '@typescript-eslint/prefer-string-starts-ends-with': 'off',
-        '@typescript-eslint/no-useless-constructor': 'off'
+        '@typescript-eslint/no-useless-constructor': 'off',
+
+        '@typescript-eslint/explicit-function-return-type': ['error', {
+            'allowExpressions': true
+        }]
     }
 }
