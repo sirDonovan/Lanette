@@ -116,7 +116,7 @@ export class Room {
 		this.id = id;
 
 		this.setPublicRoom(Client.getPublicRooms().includes(id));
-		this.battle = id.startsWith(Tools.battleRoomPrefix);
+		this.battle = id.startsWith(Tools.battleRoomPrefix) || id.startsWith(Tools.bestOfRoomPrefix);
 		this.groupchat = id.startsWith(Tools.groupchatPrefix);
 
 		let publicId = id;

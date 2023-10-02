@@ -81,6 +81,7 @@ const HTTPS = "https://";
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
+const BEST_OF_ROOM_PREFIX = 'game-bestof';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const GUEST_USER_PREFIX = 'Guest ';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
@@ -111,6 +112,7 @@ export class Tools {
 	// exported constants
 	readonly alphaNumericArray: readonly string[] = ALPHA_NUMERIC.split("");
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
+	readonly bestOfRoomPrefix: string = BEST_OF_ROOM_PREFIX;
 	readonly rootBuildFolder: string = path.join(rootFolder, 'build');
 	readonly srcBuildFolder: string = path.join(rootFolder, 'build', 'src');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
@@ -715,7 +717,9 @@ export class Tools {
 
 	toRoomId(name: string): string {
 		const id = name.trim().toLowerCase();
-		if (id.startsWith(BATTLE_ROOM_PREFIX) || id.startsWith(GROUPCHAT_PREFIX)) return id.replace(SPACE_REGEX, '');
+		if (id.startsWith(BATTLE_ROOM_PREFIX) || id.startsWith(BEST_OF_ROOM_PREFIX) || id.startsWith(GROUPCHAT_PREFIX)) {
+			return id.replace(SPACE_REGEX, '');
+		}
 		return this.toId(name);
 	}
 

@@ -110,7 +110,8 @@ export class Storage {
 	}
 
 	async exportDatabase(roomid: string): Promise<void> {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.bestOfRoomPrefix) ||
+			roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
@@ -130,7 +131,8 @@ export class Storage {
 	}
 
 	async exportArchiveDatabase(roomid: string): Promise<void> {
-		if (!(roomid in this.archiveDatabases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.archiveDatabases) || roomid.startsWith(Tools.battleRoomPrefix) ||
+			roomid.startsWith(Tools.bestOfRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
@@ -143,7 +145,8 @@ export class Storage {
 	}
 
 	async saveDatabaseSnapshot(roomid: string): Promise<void> {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.bestOfRoomPrefix) ||
+			roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
