@@ -187,6 +187,7 @@ interface IQueuedTournament {
 	playerCap: number;
 	official: boolean;
 	time: number;
+	endOfCycle?: boolean;
 	tournamentName?: string;
 }
 

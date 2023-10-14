@@ -717,7 +717,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	clearleaderboard: {
 		command(target, room, user) {
-			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
+			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper() && user !== Users.self)) return;
 			const database = Storage.getDatabase(room);
 			let leaderboards = 0;
 			for (const type of Storage.allLeaderboardTypes) {

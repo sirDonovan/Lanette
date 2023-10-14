@@ -23,6 +23,7 @@ export class Tournament extends Activity {
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
 	readonly currentBattles: ICurrentTournamentBattle[] = [];
+	endOfCycle: boolean = false;
 	finalBattle: boolean = false;
 	generator: number = 1;
 	readonly info: ITournamentUpdateJson & ITournamentEndJson = {
@@ -367,6 +368,11 @@ export class Tournament extends Activity {
 
 		if (awardedPoints) {
 			Storage.tryExportDatabase(this.room.id);
+		}
+
+		if (this.endOfCycle) {
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "leaderboard", now);
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "clearleaderboard", now);
 		}
 	}
 

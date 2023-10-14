@@ -349,6 +349,7 @@ export const commands: BaseCommandDefinitions = {
 				formatid: format.customFormatName ? format.customFormatName : Dex.joinNameAndCustomRules(format, format.customRules),
 				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
 				official,
+				endOfCycle: nextOfficialTournaments[room.id].endOfCycle,
 				time,
 				tournamentName: format.tournamentName || format.customFormatName,
 			};
@@ -356,7 +357,7 @@ export const commands: BaseCommandDefinitions = {
 			if (official) {
 				Tournaments.setOfficialTournamentTimer(room);
 			} else if (time) {
-				Tournaments.setTournamentTimer(room, time, format, playerCap, false, database.queuedTournament.tournamentName);
+				Tournaments.setTournamentTimer(room, time, {format, cap: playerCap, name: database.queuedTournament.tournamentName});
 			}
 			this.run('queuedtournament', '');
 

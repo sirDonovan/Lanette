@@ -271,6 +271,10 @@ export class Tournaments {
 					this.setOfficialTournament(room);
 				}
 
+				if (this.createListeners[room.id].endOfCycle) {
+					tournament.endOfCycle = true;
+				}
+
 				if (this.createListeners[room.id].game) {
 					tournament.battleRoomGame = this.createListeners[room.id].game;
 				}
@@ -718,8 +722,8 @@ export class Tournaments {
 				const now = Date.now();
 				if (database.queuedTournament.time <= now) database.queuedTournament.time = now + this.delayedOfficialTournamentTime;
 
-				this.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, false,
-					database.queuedTournament.tournamentName);
+				this.setTournamentTimer(room, database.queuedTournament.time, {format, cap: database.queuedTournament.playerCap,
+					name: database.queuedTournament.tournamentName});
 			}
 		}
 	}
@@ -755,7 +759,8 @@ export class Tournaments {
 		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
 			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
 
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true, format.customFormatName);
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, {format, cap: this.maxPlayerCap,
+			official: true, endOfCycle: this.nextOfficialTournaments[room.id].endOfCycle, name: format.customFormatName});
 	}
 
 	canSetRandomTournament(room: Room): boolean {
@@ -839,19 +844,27 @@ export class Tournaments {
 			}
 		}
 
-		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, format,
-			this.getDefaultPlayerCap(room));
+		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, {format,
+			cap: this.getDefaultPlayerCap(room)});
 	}
 
-	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, official?: boolean, name?: string): void {
+	setTournamentTimer(room: Room, startTime: number, options: ICreateTournamentOptions): void {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedOfficialTournamentTime;
 
-		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, official: official, name};
+		this.tournamentTimerData[room.id] = {
+			cap: options.cap,
+			formatid: options.format.inputTarget,
+			startTime,
+			official: options.official,
+			endOfCycle: options.endOfCycle,
+			name: options.name,
+		};
+
 		this.tournamentTimers[room.id] = setTimeout(() => {
-			this.createTournament(room, {format, cap, official, name});
+			this.createTournament(room, options);
 		}, timer);
 	}
 
@@ -862,7 +875,7 @@ export class Tournaments {
 		if (room.id in this.createListeners) {
 			if (options.name && !this.createListeners[room.id].name) this.createListeners[room.id].name = options.name;
 		} else {
-			this.createListeners[room.id] = {format: options.format, name: options.name, official: options.official};
+			this.createListeners[room.id] = options;
 		}
 
 		room.createTournament(options.format, options.type || 'elimination', options.cap, options.name);
@@ -891,8 +904,8 @@ export class Tournaments {
 						database.queuedTournament.time = now + this.queuedTournamentTime;
 					}
 
-					this.setTournamentTimer(room, database.queuedTournament.time, format,
-						database.queuedTournament.playerCap, database.queuedTournament.official);
+					this.setTournamentTimer(room, database.queuedTournament.time, {format, cap: database.queuedTournament.playerCap,
+						official: database.queuedTournament.official, endOfCycle: database.queuedTournament.endOfCycle});
 				} else {
 					delete database.queuedTournament;
 					Storage.tryExportDatabase(room.id);
@@ -1333,7 +1346,8 @@ export class Tournaments {
 					const data = previous.tournamentTimerData[i];
 					const format = this.getFormat(data.formatid, room);
 					if (format && format.effectType === 'Format') {
-						this.setTournamentTimer(room, data.startTime, format, data.cap, data.official, data.name);
+						this.setTournamentTimer(room, data.startTime, {format, cap: data.cap,
+							official: data.official, endOfCycle: data.endOfCycle, name: data.name});
 					}
 				}
 			}

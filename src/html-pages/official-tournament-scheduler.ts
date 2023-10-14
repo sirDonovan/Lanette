@@ -19,6 +19,8 @@ const formatsInputCommand = 'setformat';
 const tournamentTimeInputCommand = 'settournamenttime';
 const addDayTournamentCommand = 'adddaytournament';
 const removeDayTournamentCommand = 'removedaytournament';
+const enableCycleResetCommand = 'enablecyclereset';
+const disableCycleResetCommand = 'disablecyclereset';
 
 export const pageId = 'official-tournament-scheduler';
 export const pages: Dict<OfficialTournamentScheduler> = {};
@@ -315,6 +317,38 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		Tournaments.setOfficialTournament(this.room);
 	}
 
+	enableCycleReset(): void {
+		if (!this.canCreateTournament) return;
+
+		const database = this.getDatabase();
+		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
+		if (!(this.selectedMonth in schedule.months) ||
+			!(this.selectedDay in schedule.months[this.selectedMonth].days)) return;
+
+		if (!schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle) {
+			schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle = [];
+		}
+
+		schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle![this.selectedTournamentIndex] = true;
+
+		this.send();
+	}
+
+	disableCycleReset(): void {
+		if (!this.canCreateTournament) return;
+
+		const database = this.getDatabase();
+		const schedule = database.officialTournamentSchedule!.years[this.selectedYear];
+		if (!(this.selectedMonth in schedule.months) ||
+			!(this.selectedDay in schedule.months[this.selectedMonth].days)) return;
+
+		if (!schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle) return;
+
+		schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle![this.selectedTournamentIndex] = false;
+
+		this.send();
+	}
+
 	render(): string {
 		const database = this.getDatabase();
 
@@ -428,6 +462,22 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 					html += "<br /><br />";
 					html += this.tournamentTimeInput.render();
 				}
+
+				const endOfCycle = schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle;
+				const enabledLeaderboardReset = endOfCycle && endOfCycle[this.selectedTournamentIndex];
+				if (enabledLeaderboardReset) {
+					html += "<br />";
+					html += "<b>The leaderboard will automatically reset after tournament #" + (this.selectedTournamentIndex + 1) +
+						" ends</b>!";
+				}
+
+				if (this.canCreateTournament) {
+					html += "<br /><br />";
+					html += this.getQuietPmButton(this.commandPrefix + ", " + enableCycleResetCommand,
+						"Enable leaderboard reset", {selectedAndDisabled: enabledLeaderboardReset});
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + disableCycleResetCommand,
+						"Disable leaderboard reset", {selectedAndDisabled: !enabledLeaderboardReset});
+				}
 			}
 		}
 
@@ -468,6 +518,10 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].addDayTournamentCommand();
 			} else if (cmd === removeDayTournamentCommand) {
 				pages[user.id].removeDayTournamentCommand();
+			} else if (cmd === enableCycleResetCommand) {
+				pages[user.id].enableCycleReset();
+			} else if (cmd === disableCycleResetCommand) {
+				pages[user.id].disableCycleReset();
 			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
 			} else {
