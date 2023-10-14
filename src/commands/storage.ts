@@ -19,6 +19,15 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room)) return;
 			if (!Config.allowMail) return this.say("Offline messages are not enabled.");
+			if (user.autoconfirmed === null) {
+				Client.getUserDetails(user, (checkedUser) => {
+					CommandParser.parse(checkedUser, checkedUser, Config.commandCharacter + "offlinemessage " + target, Date.now());
+				});
+				return;
+			}
+
+			if (!user.autoconfirmed) return this.say("You must be autoconfirmed to send offline messages.");
+
 			const targets = target.split(',');
 			if (targets.length < 2) return this.say("You must specify a user and a message to send.");
 			const targetUser = Users.get(targets[0]);
