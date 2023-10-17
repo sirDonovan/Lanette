@@ -367,7 +367,8 @@ export class TrainerPicker extends PickerBase<ITrainerPick, ITrainerPickerProps>
 					throw new Error("Unsupported trainer gen: " + gen);
 				}
 			} else if (trainerSprites[trainerId].endsWith("-masters") || trainerSprites[trainerId].endsWith("-masters2") ||
-				trainerSprites[trainerId].endsWith("-masters3")) {
+				trainerSprites[trainerId].endsWith("-masters3") || trainerSprites[trainerId].endsWith("-masters4") ||
+				trainerSprites[trainerId].endsWith("-masters5") || trainerSprites[trainerId].endsWith("-masters6")) {
 				this.mastersTrainerIds.push(trainerId);
 				this.mastersTrainerNames[trainerId] = trainerSprites[trainerId];
 			} else if (trainerSprites[trainerId].endsWith("-usum") || trainerSprites[trainerId].endsWith("-lgpe")) {
