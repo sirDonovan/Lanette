@@ -331,6 +331,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 
 		schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle![this.selectedTournamentIndex] = true;
 
+		this.setOfficialTournament();
 		this.send();
 	}
 
@@ -346,6 +347,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 
 		schedule.months[this.selectedMonth].days[this.selectedDay]!.endOfCycle![this.selectedTournamentIndex] = false;
 
+		this.setOfficialTournament();
 		this.send();
 	}
 
