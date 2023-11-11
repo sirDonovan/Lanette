@@ -199,7 +199,12 @@ export class Tournaments {
 				}
 
 				date.setHours(scheduleDays[scheduleDay]!.times[i][0], scheduleDays[scheduleDay]!.times[i][1], 0, 0);
-				this.officialTournaments[room].push({format, time: date.getTime(), official: true});
+				this.officialTournaments[room].push({
+					format,
+					time: date.getTime(),
+					official: true,
+					endOfCycle: scheduleDays[scheduleDay]!.endOfCycle && scheduleDays[scheduleDay]!.endOfCycle![i],
+				});
 			}
 
 			if (!rolledOverDay) {
