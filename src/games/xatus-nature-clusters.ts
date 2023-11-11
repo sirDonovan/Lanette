@@ -99,7 +99,7 @@ export const game: IGameFile<XatusNatureClusters> = Games.copyTemplateProperties
 	minigameCommand: 'naturecluster',
 	minigameCommandAliases: ['ncluster'],
 	minigameDescription: "Use <code>" + Config.commandCharacter + "g</code> to guess a Pokemon that gets +10% to its highest stat " +
-		"and -10% to its lowest stat for the generated nature (only Pokemon with up to " + MAX_VALID_NATURES + " valid natures and (one " +
+		"and -10% to its lowest stat for the generated nature (only Pokemon with up to " + MAX_VALID_NATURES + " valid natures and one " +
 		"chance to guess correctly)!",
 	modes: ["collectiveteam", "multianswer", "pmtimeattack", "spotlightteam", "survival", "timeattack"],
 	modeProperties: {
