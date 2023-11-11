@@ -2923,8 +2923,7 @@ export class Dex {
 		const trainerSpritesPath = path.join(this.clientDataDirectory, 'trainer-sprites.js');
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
-		const alternateIconNumbers = require(alternateIconNumbersPath)
-			.alternateIconNumbers as IAlternateIconNumbers;
+		const alternateIconNumbers = require(alternateIconNumbersPath).alternateIconNumbers as IAlternateIconNumbers;
 
 		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const trainerSpriteList = require(trainerSpritesPath) as string[];
