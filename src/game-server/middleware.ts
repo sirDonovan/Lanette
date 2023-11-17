@@ -35,6 +35,10 @@ const requestListener = (req: http.IncomingMessage, res: http.ServerResponse): v
         bodyJson += chunk;
     });
 
+    req.on('error', (error) => {
+        console.log("Error during request: " + error.stack);
+    });
+
     req.on('end', () => {
         if (req.url === '/favicon.ico') return;
 

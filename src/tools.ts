@@ -536,6 +536,8 @@ export class Tools {
 		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
 		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
+		console.log(message);
+
 		this.appendFile(filepath, message);
 	}
 
@@ -1326,6 +1328,9 @@ export class Tools {
 			response.on('data', chunk => {
 				data += chunk;
 			});
+			response.on('error', error => {
+				console.log("Error during gist response for " + gistId + ": " + error.stack);
+			});
 			response.on('end', () => {
 				if (response.statusCode !== 200) {
 					console.log(response.statusCode + ": " + response.statusMessage);
@@ -1335,7 +1340,7 @@ export class Tools {
 		});
 
 		request.on('error', error => {
-			console.log("Error updating gist " + gistId + ": " + error.stack);
+			console.log("Error during gist request for " + gistId + ": " + error.stack);
 		});
 
 		request.write(patchData);

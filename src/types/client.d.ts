@@ -65,7 +65,7 @@ export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'star' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' |
 	'host' | 'roomowner' | 'administrator';
 
-export interface ILoginOptions {
+export interface ILoginServerRequestOptions {
 	hostname: string | undefined;
 	path: string | undefined;
 	agent: boolean;

@@ -188,7 +188,11 @@ export class Client {
 			serverAddress: this.serverAddress,
 			defaultMessageRoom: this.defaultMessageRoom,
 			onConnect: () => this.onConnect(),
-			onFailedPing: () => this.prepareReconnect(),
+			onFailedPing: () => {
+				Tools.logMessage("Failed to ping server");
+
+				this.prepareReconnect();
+			},
 			onIncomingMessage: (room, message, now) => this.parseMessage(room, message, now),
 		});
 
