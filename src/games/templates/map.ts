@@ -776,9 +776,12 @@ export abstract class MapGame extends ScriptedGame {
 
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
-		this.sendPlayerControls(player);
 
-		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+		if (!this.ended) {
+			this.sendPlayerControls(player);
+
+			if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+		}
 
 		return true;
 	}
