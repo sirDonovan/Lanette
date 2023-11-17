@@ -941,6 +941,7 @@ export class Client {
 							const promotedUser = Users.get(promoted);
 							if (promotedUser && promotedUser.roomVoiceListener) {
 								promotedUser.roomVoiceListener();
+								delete promotedUser.roomVoiceListener;
 							}
 						}
 					} else if (lastOutgoingMessage.type === 'room-deauth') {

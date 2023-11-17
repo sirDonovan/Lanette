@@ -209,6 +209,15 @@ export class BotChallenge extends ScriptedGame {
 			this.updateLastChallengeTime();
 		}
 	}
+
+	destroyPlayers(): void {
+		if (this.challenger) {
+			const challenger = Users.get(this.challenger.name);
+			if (challenger) delete challenger.roomVoiceListener;
+		}
+
+		super.destroyPlayers();
+	}
 }
 
 export const game: IGameFile<BotChallenge> = {
