@@ -1290,6 +1290,8 @@ export class Tools {
 	}
 
 	isChallongeSignupUrl(challongeUrl: string): boolean {
+		if (!challongeUrl) return false;
+
 		return challongeUrl.includes(CHALLONGE_SIGNUPS_PREFIX);
 	}
 
