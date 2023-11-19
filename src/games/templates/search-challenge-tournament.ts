@@ -71,7 +71,8 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 	}
 
 	onEnd(): void {
-		if (!this.winners.size) this.say("No winners this challenge!");
+		if (!this.winners.size && this.tournamentStarted) this.say("No winners this challenge!");
+        else this.say("The search challenge of " + this.name + " was forcibly ended!");
 	}
 
 	onBattleMessage(room: Room, message: string): boolean {
