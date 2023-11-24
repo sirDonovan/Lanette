@@ -1281,8 +1281,8 @@ export class Tools {
 	}
 
 	// requires https prefix for <a> in HTML
-	getChallongeUrl(input: string): string | undefined {
-		input = input.trim().toLowerCase();
+	getChallongeUrl(input: string | undefined): string | undefined {
+		if (input) input = input.trim().toLowerCase();
 		if (!input) return;
 
 		let match = input.match(CHALLONGE_SIGNUPS_REGEX);
