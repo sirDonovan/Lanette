@@ -20,12 +20,31 @@ describe("Tools", () => {
 		const testString = "test";
 		const left = testString.substr(0, 2);
 		const right = testString.substr(2);
+		assertStrictEqual(Tools.stripHtmlCharacters("< " + testString + ">"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("< " + testString + " />"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters("< " + left + "<" + right + " <"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters("> " + left + ">" + right + " >"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters("/ " + left + "/" + right + " /"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters("\\ " + left + "\\" + right + " \\"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters("' " + left + "'" + right + " '"), testString);
 		assertStrictEqual(Tools.stripHtmlCharacters('" ' + left + '"' + right + ' "'), testString);
+	});
+	it('should return proper values from stripHtmlTagCharacters()', () => {
+		const testString = "test";
+		const left = testString.substr(0, 2);
+		const right = testString.substr(2);
+		assertStrictEqual(Tools.stripHtmlTagCharacters("< " + testString + ">"), testString);
+		assertStrictEqual(Tools.stripHtmlTagCharacters("< " + testString + " />"), testString);
+		assertStrictEqual(Tools.stripHtmlTagCharacters("< " + left + "<" + right + " <"), testString);
+		assertStrictEqual(Tools.stripHtmlTagCharacters("> " + left + ">" + right + " >"), testString);
+		assertStrictEqual(Tools.stripHtmlTagCharacters("/ " + left + "/" + right + " /"), testString);
+		assertStrictEqual(Tools.stripHtmlCharacters("\\ " + left + "\\" + right + " \\"), testString);
+
+		let valid = "' " + left + "'" + right + " '";
+		assertStrictEqual(Tools.stripHtmlTagCharacters(valid), valid);
+
+		valid = '" ' + left + '"' + right + ' "';
+		assertStrictEqual(Tools.stripHtmlTagCharacters(valid), valid);
 	});
 	it('should return proper values from deepClone()', () => {
 		const array = ['a'];

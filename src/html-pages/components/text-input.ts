@@ -84,7 +84,12 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 	}
 
 	submit(input: string): void {
-		if (this.props.stripHtmlCharacters) input = Tools.stripHtmlCharacters(input);
+		if (this.props.stripHtmlCharacters) {
+			input = Tools.stripHtmlCharacters(input);
+		} else {
+			input = Tools.stripHtmlTagCharacters(input);
+		}
+
 		this.currentInput = Tools.unescapeHTML(input);
 		this.errors = [];
 

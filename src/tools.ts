@@ -27,6 +27,7 @@ const FLOAT_REGEX = /^[.0-9]+$/g;
 const SPACE_REGEX = /\s/g;
 const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
+const HTML_TAG_CHARACTER_REGEX = /[<>/\\]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 const HEX_CODE_REGEX = /^[abcdef0123456789]+$/g;
 
@@ -806,6 +807,10 @@ export class Tools {
 
 	stripHtmlCharacters(input: string): string {
 		return input.replace(HTML_CHARACTER_REGEX, '').trim();
+	}
+
+	stripHtmlTagCharacters(input: string): string {
+		return input.replace(HTML_TAG_CHARACTER_REGEX, '').trim();
 	}
 
 	joinList(list: readonly string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
