@@ -84,6 +84,7 @@ export class Websocket {
 	private pausedIncomingMessages: boolean = true;
 	private pausedOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
+	private reFetchClientData: boolean = false;
 	private reloadInProgress: boolean = false;
 	private retryLoginTimeout: NodeJS.Timeout | undefined = undefined;
 	private sendTimeout: NodeJS.Timeout | true | undefined = undefined;
@@ -263,6 +264,8 @@ export class Websocket {
 		this.connectionAttempts = 0;
 
 		this.terminate();
+
+		this.reFetchClientData = true;
 		this.connect();
 	}
 
@@ -600,7 +603,8 @@ export class Websocket {
 
 		this.pingServer();
 
-		Dex.fetchClientData();
+		// avoid reload race condition on server restart with Tools.updatePokemonShowdown()
+		if (!this.reFetchClientData) Dex.fetchClientData();
 	}
 
 	private onMessage(event: ws.MessageEvent, now: number): void {
@@ -690,7 +694,8 @@ export class Websocket {
 				return;
 			}
 
-			Tools.updatePokemonShowdown();
+			Tools.updatePokemonShowdown(this.reFetchClientData);
+			if (this.reFetchClientData) this.reFetchClientData = false;
 		} else {
             this.onIncomingMessage(room, parsedMessage, now);
         }

@@ -1356,7 +1356,7 @@ export class Tools {
 		this.lastGithubApiCall = Date.now();
 	}
 
-	updatePokemonShowdown(attempt?: number): void {
+	updatePokemonShowdown(fetchClientData?: boolean, attempt?: number): void {
 		if (attempt && attempt > UPDATE_POKEMON_SHOWDOWN_ATTEMPTS) return;
 
 		process.chdir(this.pokemonShowdownFolder);
@@ -1378,7 +1378,8 @@ export class Tools {
 				__reloadModules("", modulesList, true).then(error => {
 					if (error) {
 						if (error.startsWith("You must wait for ")) {
-							setTimeout(() => this.updatePokemonShowdown((attempt || 1) + 1), UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
+							setTimeout(() => this.updatePokemonShowdown(fetchClientData, (attempt || 1) + 1),
+								UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
 						} else {
 							process.chdir(this.pokemonShowdownFolder);
 
@@ -1394,6 +1395,7 @@ export class Tools {
 						}
 					} else {
 						void this.safeWriteFile(path.join(rootFolder, "pokemon-showdown-sha.txt"), latestSha as string);
+						if (fetchClientData) Dex.fetchClientData();
 					}
 				});
 			}
