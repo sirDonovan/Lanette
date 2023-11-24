@@ -1432,6 +1432,16 @@ export class Client {
 					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('The server is restarting soon, so a tournament cannot be created')) {
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-create' &&
+					lastOutgoingMessage.roomid === room.id) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+
+				room.say(messageArguments.error);
+				if (room.id in Tournaments.createListeners && Tournaments.createListeners[room.id].game) {
+					Tournaments.createListeners[room.id].game!.forceEnd(Users.self);
+				}
 			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
 				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
