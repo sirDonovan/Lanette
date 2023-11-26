@@ -66,6 +66,7 @@ export class Websocket {
 	private loginServerHosts: KeyedDict<LoginServerAction, string>;
 	private loginServerPaths: KeyedDict<LoginServerAction, string>;
 
+	private averageOutgoingMessageMeasurements: number[] = [];
 	private challstr: string = '';
 	private challstrTimeout: NodeJS.Timeout | undefined = undefined;
 	private connectionAttempts: number = 0;
@@ -80,6 +81,7 @@ export class Websocket {
 	private loginTimeout: NodeJS.Timeout | undefined = undefined;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
 	private outgoingMessageMeasurements: number[] = [];
+	private outgoingMessageMeasurementsLimit: number = 30;
 	private outgoingMessageMeasurementsInfo: string[] = [];
 	private pausedIncomingMessages: boolean = true;
 	private pausedOutgoingMessages: boolean = false;
@@ -277,11 +279,11 @@ export class Websocket {
 		if (this.lastOutgoingMessage) {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				const measurement = responseTime - this.lastOutgoingMessage.sentTime;
-				if (this.outgoingMessageMeasurements.length > 30) {
+				if (this.outgoingMessageMeasurements.length > this.outgoingMessageMeasurementsLimit) {
 					this.outgoingMessageMeasurements.pop();
 				}
 
-				if (this.outgoingMessageMeasurementsInfo.length > 30) {
+				if (this.outgoingMessageMeasurementsInfo.length > this.outgoingMessageMeasurementsLimit) {
 					this.outgoingMessageMeasurementsInfo.pop();
 				}
 
@@ -302,6 +304,7 @@ export class Websocket {
 					sendTimeout = this.sendThrottle;
 				}
 
+				sendTimeout += this.getAverageOutgoingMeasurements();
 				this.lastSendTimeoutAfterMeasure = sendTimeout;
 				this.startSendTimeout(sendTimeout);
 			}
@@ -344,6 +347,9 @@ export class Websocket {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
 
+		if (previous.averageOutgoingMessageMeasurements) {
+			this.averageOutgoingMessageMeasurements = previous.averageOutgoingMessageMeasurements.slice();
+		}
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.outgoingMessageMeasurements) this.outgoingMessageMeasurements = previous.outgoingMessageMeasurements.slice();
 		if (previous.outgoingMessageMeasurementsInfo) {
@@ -735,7 +741,7 @@ export class Websocket {
 				}
 				this.lastOutgoingMessage = null;
 
-				this.startSendTimeout(this.chatQueueSendThrottle);
+				this.startSendTimeout(this.chatQueueSendThrottle + this.getAverageOutgoingMeasurements());
 				return;
 			}
 
@@ -747,6 +753,23 @@ export class Websocket {
 				this.send(this.outgoingMessageQueue.shift()!);
 			}
 		}, time);
+	}
+
+	private getAverageOutgoingMeasurements(): number {
+		if (!this.outgoingMessageMeasurements.length) return 0;
+
+		let totalMeasurements = 0;
+		for (const measurement of this.outgoingMessageMeasurements) {
+			totalMeasurements += measurement;
+		}
+
+		const average = Math.ceil(totalMeasurements / this.outgoingMessageMeasurements.length);
+		if (this.averageOutgoingMessageMeasurements.length > this.outgoingMessageMeasurementsLimit) {
+			this.averageOutgoingMessageMeasurements.pop();
+		}
+
+		this.averageOutgoingMessageMeasurements.unshift(average);
+		return average;
 	}
 
 	private setRetryLoginTimeout(failedUpkeep?: boolean): void {
