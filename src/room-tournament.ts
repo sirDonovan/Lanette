@@ -258,6 +258,7 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		if (!Config.allowTournaments || !Config.allowTournaments.includes(this.room.id)) return;
 
 		const now = Date.now();
