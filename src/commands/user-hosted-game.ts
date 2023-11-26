@@ -1621,17 +1621,18 @@ export const commands: BaseCommandDefinitions = {
 
 			}
 
-			if (hint.length > HANGMAN_HINT_MAX_LENGTH) {
-				this.say("Your hint must be less than " + HANGMAN_HINT_MAX_LENGTH + " characters.");
-				return;
-			}
-
 			if (Client.checkFilters(hint, gameRoom)) {
 				this.say("Your hint contains a word banned in " + gameRoom.title + ".");
 				return;
 			}
 
-			gameRoom.startHangman(answer, hint + " [" + user.name + "]", user);
+			const displayedHint = hint + " [" + user.name + "]";
+			if (displayedHint.length > HANGMAN_HINT_MAX_LENGTH) {
+				this.say("Your hint must be less than " + HANGMAN_HINT_MAX_LENGTH + " characters (including your username).");
+				return;
+			}
+
+			gameRoom.startHangman(answer, displayedHint, user);
 		},
 		pmOnly: true,
 		syntax: ["[room], [answer], [hint]"],
