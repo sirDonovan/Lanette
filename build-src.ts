@@ -25,7 +25,7 @@ function getPokemonShowdownDistFolder(): string {
 const pokemonShowdownDistName = "dist";
 const removeFromPackageJson = [
 	// dependencies
-	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
+	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "source-map-support", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
 		"sql-template-strings", "sqlite", "sucrase",
