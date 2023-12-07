@@ -46,7 +46,7 @@ export class Tournaments {
 			try {
 				this.loadRoomSchedule(room, loadAll);
 			} catch (e) {
-				Tools.logError(e as Error, "Failed to load tournament schedule for room " + room);
+				Tools.logException(e as Error, "Failed to load tournament schedule for room " + room);
 			}
 		}
 	}

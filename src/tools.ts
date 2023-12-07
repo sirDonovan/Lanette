@@ -133,6 +133,11 @@ export class Tools {
 	readonly moveCategoryHexCodes: typeof moveCategoryHexCodes = moveCategoryHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
+	readonly runtimeOutputRootFolder: string = 'runtime-output';
+	readonly runtimeOutputDebug: string = 'debug';
+	readonly runtimeOutputError: string = 'error';
+	readonly runtimeOutputGameDebug: string = 'game-debug';
+	readonly runtimeOutputWarning: string = 'warning';
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
 	readonly smogonPermalinkPagePrefix: string = SMOGON_PERMALINK_PAGE_PREFIX;
 	readonly smogonPermalinkPostPrefix: string = SMOGON_PERMALINK_POST_PREFIX;
@@ -528,13 +533,25 @@ export class Tools {
 		return year + '-' + month + '-' + day;
 	}
 
-	logError(error: NodeJS.ErrnoException, message?: string): void {
-		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
+	debugLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputDebug);
 	}
 
-	logMessage(message: string): void {
+	warningLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputWarning);
+	}
+
+	errorLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputError);
+	}
+
+	logException(error: NodeJS.ErrnoException, message?: string): void {
+		this.logRuntimeOutput((message ? message + "\n" : "") + (error.stack || error.message), this.runtimeOutputError);
+	}
+
+	logRuntimeOutput(message: string, subFolder: string): void {
 		const date = new Date();
-		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
+		const filepath = path.join(rootFolder, this.runtimeOutputRootFolder, subFolder, this.getDateFilename(date) + '.txt');
 		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
 
 		console.log(message);
@@ -1430,12 +1447,12 @@ export class Tools {
 		fs.writeFile(tempFilepath, data)
 			.catch((e: Error) => {
 				reject(e);
-				this.logError(e, "Error writing temp file " + tempFilepath);
+				this.logException(e, "Error writing temp file " + tempFilepath);
 			})
 			.then(() => fs.rename(tempFilepath, filepath))
 			.catch((e: Error) => {
 				reject(e);
-				this.logError(e, "Error renaming temp file " + tempFilepath);
+				this.logException(e, "Error renaming temp file " + tempFilepath);
 			})
 			.then(() => {
 				resolve();
@@ -1453,7 +1470,7 @@ export class Tools {
 				}
 			})
 			.catch((e: Error) => {
-				this.logError(e, "Error in finally block for temp file " + tempFilepath);
+				this.logException(e, "Error in finally block for temp file " + tempFilepath);
 			})
 	}
 

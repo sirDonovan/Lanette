@@ -97,7 +97,7 @@ export async function initializeSrc(options?: RunOptions): Promise<void> {
 export function setExceptionHandler(): void {
 	process.on('uncaughtException', error => {
 		console.log(error);
-		Tools.logError(error, "process.on('uncaughtException')");
+		Tools.logException(error, "process.on('uncaughtException')");
 	});
 }
 

@@ -31,6 +31,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat';
 
 export interface IOutgoingMessageAttributes {
+	/**Return `false` to prevent a message from being sent */
 	filterSend?: () => boolean;
 	announcement?: string;
 	deauthedUserid?: string;

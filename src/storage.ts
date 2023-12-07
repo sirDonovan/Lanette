@@ -123,7 +123,7 @@ export class Storage {
 		this.lastExportedDatabaseContents[roomid] = contents;
 
 		return Tools.safeWriteFile(path.join(this.databasesDir, roomid + '.json'), contents)
-			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error exporting " + roomid + " database: " + e.message));
 	}
 
 	tryExportDatabase(roomid: string): void {
@@ -137,7 +137,7 @@ export class Storage {
 		}
 
 		return Tools.safeWriteFile(path.join(this.archivesDir, roomid + '.json'), JSON.stringify(this.archiveDatabases[roomid]))
-			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " archive database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error exporting " + roomid + " archive database: " + e.message));
 	}
 
 	tryExportArchiveDatabase(roomid: string): void {
@@ -158,7 +158,7 @@ export class Storage {
 			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
 
 		return Tools.safeWriteFile(path.join(this.snapshotsDir, filename + '.json'), JSON.stringify(this.databases[roomid]))
-			.catch((e: Error) => Tools.logError(e, "Error saving snapshot of " + roomid + " database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error saving snapshot of " + roomid + " database: " + e.message));
 	}
 
 	importDatabases(): void {

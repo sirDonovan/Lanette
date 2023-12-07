@@ -255,7 +255,7 @@ export class CommandParser {
 			commandContext.run();
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
+			Tools.logException(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
 				" (room = " + room.id + "; " + "user = " + user.id + ")");
 			result = false;
 		}

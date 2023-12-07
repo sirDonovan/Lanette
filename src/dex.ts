@@ -518,7 +518,7 @@ export class Dex {
 				.then(file => {
 					if (file) {
 						if (typeof file !== 'string') {
-							Tools.logMessage("Unexpected response for client file " + fileName + ": " + file.message);
+							Tools.warningLog("Unexpected response for client file " + fileName + ": " + file.message);
 						} else {
 							Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file)
 								.then(() => {
@@ -526,13 +526,13 @@ export class Dex {
 									if (fetchedFiles === files.length && this.dataCache) this.loadGifData(true);
 								})
 								.catch(e => {
-									Tools.logError(e as Error, "Error writing client file " + fileName);
+									Tools.logException(e as Error, "Error writing client file " + fileName);
 								});
 						}
 					}
 				})
 				.catch(e => {
-					Tools.logError(e as Error, "Error fetching client file " + fileName);
+					Tools.logException(e as Error, "Error fetching client file " + fileName);
 				});
 		}
 	}

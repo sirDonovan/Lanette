@@ -314,7 +314,7 @@ export class Websocket {
 	}
 
     onMessageThrottle(): void {
-        Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
+        Tools.errorLog("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
             this.outgoingMessageQueue.length +
             "\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
             (this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
@@ -428,7 +428,7 @@ export class Websocket {
 				data += chunk;
 			});
 			response.on('error', error => {
-				Tools.logError(error, "Error during client connect response");
+				Tools.logException(error, "Error during client connect response");
 			});
 			response.on('end', () => {
 				const configData = data.split('var config = ')[1];
@@ -463,10 +463,10 @@ export class Websocket {
 					}
 				}
 
-				Tools.logMessage('Error: failed to get data for server ' + this.serverAddress);
+				Tools.warningLog('Error: failed to get data for server ' + this.serverAddress);
 			});
 		}).on('error', error => {
-			Tools.logError(error, "Error during client connect request");
+			Tools.logException(error, "Error during client connect request");
 		});
 	}
 
@@ -673,7 +673,7 @@ export class Websocket {
 				}
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, "Websocket.parseMessage() in " + room.id + ": " + line);
+				Tools.logException(e as NodeJS.ErrnoException, "Websocket.parseMessage() in " + room.id + ": " + line);
 			}
 		}
 	}
@@ -732,7 +732,7 @@ export class Websocket {
 
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
-					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
+					Tools.warningLog("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
 						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
@@ -812,12 +812,12 @@ export class Websocket {
 				data += chunk;
 			});
 			response.on('error', error => {
-				Tools.logError(error, "Error during client upkeep response");
+				Tools.logException(error, "Error during client upkeep response");
 				this.setRetryLoginTimeout(true);
 			});
 			response.on('end', () => {
 				if (!data) {
-					Tools.logMessage('Did not receive a response from the login server.');
+					Tools.warningLog('Did not receive a response from the login server.');
 					this.login(true);
 					return;
 				}
@@ -831,7 +831,7 @@ export class Websocket {
 						sessionAssertion = sessionResponse.assertion;
 					}
 				} catch (e) {
-					Tools.logMessage('Error parsing upkeep response:\n' + (e as Error).stack);
+					Tools.warningLog('Error parsing upkeep response:\n' + (e as Error).stack);
 					this.setRetryLoginTimeout(true);
 					return;
 				}
@@ -839,14 +839,14 @@ export class Websocket {
 				if (sessionAssertion) {
 					this.verifyLoginAssertion(sessionAssertion, true);
 				} else {
-					Tools.logMessage("Previous session expired");
+					Tools.debugLog("Previous session expired");
 					this.login(true);
 				}
 			});
 		});
 
 		request.on('error', error => {
-			Tools.logError(error, "Error during client upkeep request");
+			Tools.logException(error, "Error during client upkeep request");
 			this.setRetryLoginTimeout(true);
 		});
 
@@ -903,12 +903,12 @@ export class Websocket {
 				data += chunk;
 			});
 			response.on('error', error => {
-				Tools.logError(error, "Error during client login response");
+				Tools.logException(error, "Error during client login response");
 				this.setRetryLoginTimeout();
 			});
 			response.on('end', () => {
 				if (!data) {
-					Tools.logMessage('Did not receive a response from the login server.');
+					Tools.warningLog('Did not receive a response from the login server.');
 					this.setRetryLoginTimeout();
 					return;
 				}
@@ -935,7 +935,7 @@ export class Websocket {
 					if (Config.password) {
 						const loginResponse = JSON.parse(data) as ILoginResponse;
 						if (!loginResponse.curuser || !loginResponse.curuser.loggedin) {
-							Tools.logMessage('Login response did not contain user or loggedin status');
+							Tools.warningLog('Login response did not contain user or loggedin status');
 							this.setRetryLoginTimeout();
 							return;
 						}
@@ -945,7 +945,7 @@ export class Websocket {
 						loginAssertion = (JSON.parse(data) as string) || '';
 					}
 				} catch (e) {
-					Tools.logError(e as Error, "Error parsing login response");
+					Tools.logException(e as Error, "Error parsing login response");
 					this.setRetryLoginTimeout();
 					return;
 				}
@@ -959,7 +959,7 @@ export class Websocket {
 		});
 
 		request.on('error', error => {
-			Tools.logError(error, "Error during client login request");
+			Tools.logException(error, "Error during client login request");
 			this.setRetryLoginTimeout();
 		});
 
@@ -981,7 +981,7 @@ export class Websocket {
 			if (sessionUpkeep) {
 				console.log('Failed to upkeep session');
 			} else {
-				Tools.logMessage('Failed to log in: ' + assertion);
+				Tools.warningLog('Failed to log in: ' + assertion);
 			}
 
 			this.setRetryLoginTimeout(sessionUpkeep);
@@ -993,7 +993,7 @@ export class Websocket {
 			if (sessionUpkeep) {
 				console.log(message + ' (session upkeep)');
 			} else {
-				Tools.logMessage(message + ": " + assertion);
+				Tools.warningLog(message + ": " + assertion);
 			}
 
 			this.setRetryLoginTimeout(sessionUpkeep);

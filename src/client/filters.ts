@@ -124,7 +124,7 @@ export class Filters {
                         }
                     } catch (e) {
                         console.log(e);
-                        Tools.logError(e as NodeJS.ErrnoException);
+                        Tools.logException(e as NodeJS.ErrnoException);
                     }
 
                     if (regularExpression) {

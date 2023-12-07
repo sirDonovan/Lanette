@@ -214,7 +214,7 @@ export async function reloadModules(username: string, targets: string[], formats
 		return null;
 	}).catch(e => {
 		console.log(e);
-		Tools.logError(e as Error, "__reloadModules(): " + Tools.joinList(modules));
+		Tools.logException(e as Error, "__reloadModules(): " + Tools.joinList(modules));
 
 		global.__reloadInProgress = false;
 		if (global.Games.isReloadInProgress()) global.Games.setReloadInProgress(false);

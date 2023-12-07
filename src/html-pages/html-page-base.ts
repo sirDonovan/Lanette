@@ -77,7 +77,7 @@ export abstract class HtmlPageBase {
 			this.send({onExpire: true});
 			this.destroy();
 		} catch (e) {
-			Tools.logError(e as Error, "Error expiring " + this.pageId + " page for user " + this.userId);
+			Tools.logException(e as Error, "Error expiring " + this.pageId + " page for user " + this.userId);
 		}
 	}
 

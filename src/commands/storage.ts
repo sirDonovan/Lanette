@@ -749,7 +749,7 @@ export const commands: BaseCommandDefinitions = {
 						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s" : "") + ".");
 					}
 
-					Tools.logError(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
+					Tools.logException(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
 				});
 		},
 		chatOnly: true,

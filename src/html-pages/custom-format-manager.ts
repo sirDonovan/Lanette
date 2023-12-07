@@ -878,7 +878,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable abilities in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable abilities in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -899,7 +899,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable items in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable items in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -920,7 +920,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable moves in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable moves in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -943,7 +943,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable Pokemon in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable Pokemon in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -966,7 +966,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting rule table in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting rule table in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -988,7 +988,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}

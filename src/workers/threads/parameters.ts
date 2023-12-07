@@ -177,7 +177,7 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 		}
 	} catch (e) {
 		console.log(e);
-		Tools.logError(e as NodeJS.ErrnoException, "Incoming message: " + incomingMessage);
+		Tools.logException(e as NodeJS.ErrnoException, "Incoming message: " + incomingMessage);
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));

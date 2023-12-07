@@ -189,7 +189,7 @@ export class Client {
 			defaultMessageRoom: this.defaultMessageRoom,
 			onConnect: () => this.onConnect(),
 			onFailedPing: () => {
-				Tools.logMessage("Failed to ping server");
+				Tools.errorLog("Failed to ping server");
 
 				this.prepareReconnect();
 			},
@@ -1078,7 +1078,7 @@ export class Client {
 
 					return;
 				} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
-					Tools.logMessage("Error message in PM to " + messageArguments.recipientUsername + ": " +
+					Tools.warningLog("Error message in PM to " + messageArguments.recipientUsername + ": " +
 						messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 				}
 
@@ -1346,7 +1346,7 @@ export class Client {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
-				Tools.logMessage("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
+				Tools.warningLog("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 			}
 
 			break;
@@ -1484,7 +1484,7 @@ export class Client {
 				}
 			} else {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id) {
-					Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
+					Tools.warningLog("Error message in " + room.title + ": " + messageArguments.error);
 				}
 			}
 
@@ -2061,7 +2061,7 @@ export class Client {
 	}
 
 	prepareReconnect(): void {
-		Tools.logMessage("Client.reconnect() called");
+		Tools.debugLog("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();
 		if (Config.rooms && !Config.rooms.includes(this.defaultMessageRoom)) {

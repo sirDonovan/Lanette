@@ -737,7 +737,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		const startingLocation = this.setupBoard(players);
 		if (!startingLocation) {
-			Tools.logMessage(this.name + " failed to generate a valid board (starting seed = " + this.prng.initialSeed.join(',') + ")");
+			Tools.errorLog(this.name + " failed to generate a valid board (starting seed = " + this.prng.initialSeed.join(',') + ")");
 			this.errorEnd();
 			return;
 		}

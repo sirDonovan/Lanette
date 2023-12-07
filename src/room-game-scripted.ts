@@ -256,7 +256,8 @@ export class ScriptedGame extends Game {
 
 	getDebugLogPath(filename?: string): string {
 		if (!filename) filename = Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "");
-		return path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
+		return path.join(Tools.rootFolder, Tools.runtimeOutputRootFolder, Tools.runtimeOutputGameDebug,
+			Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
 	}
 
 	debugLog(log: string): void {
@@ -464,7 +465,7 @@ export class ScriptedGame extends Game {
 				this.onSignups();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onSignups()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onSignups()");
 				this.errorEnd();
 				return;
 			}
@@ -537,7 +538,7 @@ export class ScriptedGame extends Game {
 				this.onStart();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onStart()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onStart()");
 				this.errorEnd();
 			}
 		}
@@ -557,7 +558,7 @@ export class ScriptedGame extends Game {
 					this.onMaxRound();
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onMaxRound()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onMaxRound()");
 					this.errorEnd();
 				}
 			}
@@ -573,7 +574,7 @@ export class ScriptedGame extends Game {
 					if (this.onTimeLimit()) timeEnded = true;
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onTimeLimit()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onTimeLimit()");
 					this.errorEnd();
 					return;
 				}
@@ -596,7 +597,7 @@ export class ScriptedGame extends Game {
 				this.onNextRound();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onNextRound()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onNextRound()");
 				this.errorEnd();
 			}
 		}
@@ -662,7 +663,7 @@ export class ScriptedGame extends Game {
 				this.onEnd();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onEnd()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onEnd()");
 				this.errorEnd();
 				return;
 			}
@@ -726,7 +727,7 @@ export class ScriptedGame extends Game {
 				this.onForceEnd(user, reason);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onForceEnd()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onForceEnd()");
 			}
 		}
 
@@ -794,7 +795,7 @@ export class ScriptedGame extends Game {
 				this.onDeallocate(forceEnd);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onDeallocate()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onDeallocate()");
 			}
 		}
 
@@ -828,7 +829,7 @@ export class ScriptedGame extends Game {
 					this.parentGame.onChildEnd(this.winners);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.format.name + ")");
+					Tools.logException(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.format.name + ")");
 				}
 			}
 		}
@@ -838,7 +839,7 @@ export class ScriptedGame extends Game {
 				this.onAfterDeallocate(forceEnd);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onAfterDeallocate()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onAfterDeallocate()");
 			}
 		}
 
@@ -867,7 +868,7 @@ export class ScriptedGame extends Game {
 					this.onAddPlayer(this.players[i]);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
 					this.errorEnd();
 					return;
 				}
@@ -896,7 +897,7 @@ export class ScriptedGame extends Game {
 					this.onAddExistingPlayer(this.players[user.id]);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddExistingPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddExistingPlayer()");
 					this.errorEnd();
 				}
 			}
@@ -943,7 +944,7 @@ export class ScriptedGame extends Game {
 					addPlayerResult = this.onAddPlayer(player, this.started);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
 					this.errorEnd();
 					return;
 				}
@@ -980,7 +981,7 @@ export class ScriptedGame extends Game {
 							this.onAddLateJoinQueuedPlayers(presentPlayers);
 						} catch (e) {
 							console.log(e);
-							Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
+							Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
 							this.errorEnd();
 							return;
 						}
@@ -1070,7 +1071,7 @@ export class ScriptedGame extends Game {
 				this.onRemovePlayer(player, notAutoconfirmed);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onRemovePlayer()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onRemovePlayer()");
 				this.errorEnd();
 				return;
 			}
@@ -1107,7 +1108,7 @@ export class ScriptedGame extends Game {
 				this.onEliminatePlayer(player, eliminator);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onEliminatePlayer()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onEliminatePlayer()");
 				this.errorEnd();
 			}
 		}
@@ -1290,7 +1291,7 @@ export class ScriptedGame extends Game {
 			result = commandDefinition.command.call(this, target, room, user, command, timestamp);
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e as NodeJS.ErrnoException, this.name + " command " + command);
+			Tools.logException(e as NodeJS.ErrnoException, this.name + " command " + command);
 			this.errorEnd();
 			return false;
 		}
@@ -1310,7 +1311,7 @@ export class ScriptedGame extends Game {
 						commandListener.listener(commandListener.lastUserId);
 					} catch (e) {
 						console.log(e);
-						Tools.logError(e as NodeJS.ErrnoException, this.name + " command listener for [" +
+						Tools.logException(e as NodeJS.ErrnoException, this.name + " command listener for [" +
 							commandListener.commands.join(', ') + "]");
 						this.errorEnd();
 						return false;
