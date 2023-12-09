@@ -480,7 +480,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 				this.setTimeout(() => {
 					if (!player!.eliminated) {
 						if (this.finitePlayerCards) {
-							if (this.addPlayerInactiveRound(player!)) {
+							if (this.incrementPlayerInactiveRound(player!)) {
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);

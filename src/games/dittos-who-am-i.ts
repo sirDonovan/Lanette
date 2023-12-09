@@ -373,7 +373,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 	onNextRound(): void {
 		if (this.currentPlayer) {
-			if (this.addPlayerInactiveRound(this.currentPlayer)) {
+			if (this.incrementPlayerInactiveRound(this.currentPlayer)) {
 				this.say(this.currentPlayer.name + " did not guess a parameter or their Pokemon and has been eliminated from the game!");
 				this.currentPlayer.say("Your Pokemon was **" + this.playerPokemon.get(this.currentPlayer)!.name + "**!");
 				this.eliminatePlayer(this.currentPlayer);

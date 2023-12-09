@@ -175,7 +175,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 
 	onNextRound(): void {
 		if (this.currentPlayer) {
-			if (this.addPlayerInactiveRound(this.currentPlayer)) {
+			if (this.incrementPlayerInactiveRound(this.currentPlayer)) {
 				this.say(this.currentPlayer.name + " did not exclude a Pokemon or guess the parameter and has been eliminated from " +
 					"the game!");
 				this.eliminatePlayer(this.currentPlayer);

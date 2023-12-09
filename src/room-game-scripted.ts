@@ -1091,7 +1091,7 @@ export class ScriptedGame extends Game {
 	}
 
 	/** Returns `true` if the player has been inactive for the game's inactive round limit */
-	addPlayerInactiveRound(player: Player): boolean {
+	incrementPlayerInactiveRound(player: Player): boolean {
 		if (!player.inactiveRounds) player.inactiveRounds = 0;
 		player.inactiveRounds++;
 

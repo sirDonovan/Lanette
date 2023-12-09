@@ -180,7 +180,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		this.roundCarp = false;
 		if (this.round !== 1) {
 			for (const i in this.players) {
-				if (!this.players[i].frozen && !this.roundActions.has(this.players[i])) this.addPlayerInactiveRound(this.players[i]);
+				if (!this.players[i].frozen && !this.roundActions.has(this.players[i])) this.incrementPlayerInactiveRound(this.players[i]);
 			}
 		}
 		this.roundActions.clear();
