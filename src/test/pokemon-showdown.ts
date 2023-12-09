@@ -175,20 +175,6 @@ describe("pokemon-showdown", () => {
 		assertStrictEqual(zCrystal.zMoveType, "Bug");
 
 		/*
-			Learnset data
-		*/
-
-		const learnsetDataKeys = Dex.getData().learnsetDataKeys;
-		assert(learnsetDataKeys.length);
-		assert(learnsetDataKeys.includes('pikachu'));
-		assert(learnsetDataKeys.includes('pokestarsmeargle'));
-		assert(learnsetDataKeys.includes('arghonaut'));
-
-		for (const i of learnsetDataKeys) {
-			assert(Dex.getLearnsetData(i), i);
-		}
-
-		/*
 			Moves
 		*/
 

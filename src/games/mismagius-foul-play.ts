@@ -41,13 +41,15 @@ class MismagiusFoulPlay extends ScriptedGame {
 	static loadData(): void {
 		const pokemonList = Games.getPokemonList({filter: x => x.baseSpecies === x.name});
 		for (const pokemon of pokemonList) {
-			const learnsetData = Dex.getLearnsetData(pokemon.id);
-			if (!learnsetData || !learnsetData.learnset) continue;
+			const possibleMoves = Dex.getAllPossibleMoves(pokemon);
+			if (!possibleMoves.length) continue;
+
 			data.pokemon.push(pokemon.name);
 			if (!(pokemon.color in data.colors)) {
 				data.colors[pokemon.color] = [];
 				dataKeys.colors.push(pokemon.color);
 			}
+
 			data.colors[pokemon.color].push(pokemon.name);
 			for (const eggGroup of pokemon.eggGroups) {
 				const name = eggGroup + " group";
@@ -57,6 +59,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 				}
 				data.eggGroups[name].push(pokemon.name);
 			}
+
 			for (const type of pokemon.types) {
 				const name = type + " type";
 				if (!(name in data.types)) {
@@ -66,8 +69,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 				data.types[name].push(pokemon.name);
 			}
 
-			for (const i in learnsetData.learnset) {
-				const move = Dex.getExistingMove(i);
+			for (const id of possibleMoves) {
+				const move = Dex.getExistingMove(id);
 				if (!(move.name in data.moves)) {
 					data.moves[move.name] = [];
 					dataKeys.moves.push(move.name);

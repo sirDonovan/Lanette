@@ -12,7 +12,7 @@ import type {
 	IGifDirectionData, ISeparatedCustomRules, LocationType, RegionName, IClosestPossibleTeam, TrainerSpriteId, IRandomBattleSetData
 } from './types/dex';
 import type {
-	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, ILearnsetData, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
+	IAbility, IAbilityCopy, IFormat, IItem, IItemCopy, IMove, IMoveCopy, INature, IPokemon, IPokemonCopy,
 	IPokemonShowdownDex, IPokemonShowdownDexModule, IPokemonShowdownTagsModule, IPokemonShowdownValidator, IPokemonShowdownValidatorModule,
 	IPSFormat, ITagData, ITypeData, RuleTable, ValidatedRule
 } from './types/pokemon-showdown';
@@ -303,7 +303,6 @@ export class Dex {
 	private readonly itemCache: Dict<IItem> = Object.create(null);
 	private itemsList: readonly IItem[] | null = null;
 	private readonly isEvolutionFamilyCache: Dict<boolean> = Object.create(null);
-	private readonly learnsetDataCache: Dict<ILearnsetData> = Object.create(null);
 	private loadedMods: boolean = false;
 	private readonly moveCache: Dict<IMove> = Object.create(null);
 	private movesList: readonly IMove[] | null = null;
@@ -641,39 +640,6 @@ export class Dex {
 		return true;
 	}
 
-	getLearnsetData(name: string): ILearnsetData | undefined {
-		const id = Tools.toId(name);
-		if (Object.prototype.hasOwnProperty.call(this.learnsetDataCache, id)) return this.learnsetDataCache[id];
-
-		const learnsetData = this.pokemonShowdownDex.species.getLearnsetData(id);
-		if (!learnsetData.exists) return undefined;
-
-		this.learnsetDataCache[id] = learnsetData;
-		return learnsetData;
-	}
-
-	getLearnsetParent(pokemon: IPokemon): IPokemon {
-		let learnsetParent = pokemon;
-		const learnsetData = this.getLearnsetData(learnsetParent.id);
-		if (!learnsetData || !learnsetData.learnset) {
-			let forme: string | undefined;
-			if (learnsetParent.changesFrom) {
-				forme = typeof learnsetParent.changesFrom === 'string' ? learnsetParent.changesFrom : learnsetParent.changesFrom[0];
-			} else {
-				forme = learnsetParent.baseSpecies;
-			}
-
-			if (forme && forme !== learnsetParent.name) {
-				// forme without its own learnset
-				learnsetParent = this.getPokemon(forme)!;
-				// warning: formes with their own learnset, like Wormadam, should NOT
-				// inherit from their base forme unless they're freely switchable
-			}
-		}
-
-		return learnsetParent;
-	}
-
 	/*
 		Moves
 	*/
@@ -902,7 +868,7 @@ export class Dex {
 
 	getAllPossibleMoves(pokemon: IPokemon): readonly string[] {
 		if (pokemon.gen > this.gen) throw new Error("Dex.getAllPossibleMoves() called on " + pokemon.name + " in gen " + this.gen);
-		return this.allPossibleMovesCache[this.getLearnsetParent(pokemon).id];
+		return this.allPossibleMovesCache[pokemon.id];
 	}
 
 	getEvolutionLines(pokemon: IPokemon, includedFormes?: readonly string[]): readonly string[][] {
@@ -1033,8 +999,8 @@ export class Dex {
 		const type = this.pokemonShowdownDex.types.get(name);
 		if (!type.exists) return undefined;
 
-		this.typeCache[id] = type;
-		return type;
+		this.typeCache[id] = Tools.deepClone(type);
+		return this.typeCache[id];
 	}
 
 	getExistingType(name: string): ITypeData {
@@ -1062,8 +1028,8 @@ export class Dex {
 		const nature = this.pokemonShowdownDex.natures.get(name);
 		if (!nature.exists || nature.gen > this.gen) return undefined;
 
-		this.natureCache[id] = nature;
-		return nature;
+		this.natureCache[id] = Tools.deepClone(nature);
+		return this.natureCache[id];
 	}
 
 	getExistingNature(name: string): INature {
@@ -1655,8 +1621,8 @@ export class Dex {
 
 		// standard formats are cached in PS
 		if (!format.customRules) {
-			delete format.ruleTable;
 			format = Tools.deepClone(format);
+			delete format.ruleTable;
 		}
 
 		format.inputTarget = inputTarget;
@@ -2975,7 +2941,6 @@ export class Dex {
 		const lcFormat = this.pokemonShowdownDex.formats.get("gen" + this.gen + "lc");
 
 		const pokemonKeys = this.pokemonShowdownDex.species.all().map(x => x.id);
-		const filteredLearnsetDataKeys: string[] = [];
 		const filteredPokemonKeys: string[] = [];
 		const moveAvailbilityPokemonList: IPokemon[] = [];
 		const colors: Dict<string> = {};
@@ -2999,7 +2964,6 @@ export class Dex {
 				this.cacheIsPseudoLCPokemon(forme, lcFormat);
 			}
 
-			filteredLearnsetDataKeys.push(key);
 			filteredPokemonKeys.push(key);
 
 			if (pokemon.isNonstandard !== 'CAP' && pokemon.isNonstandard !== 'LGPE' && pokemon.isNonstandard !== 'Custom') {
@@ -3086,7 +3050,6 @@ export class Dex {
 			abilityKeys: filteredAbilityKeys,
 			formatKeys,
 			itemKeys: filteredItemKeys,
-			learnsetDataKeys: filteredLearnsetDataKeys,
 			moveKeys: filteredMoveKeys,
 			natureKeys: filteredNatureKeys,
 			pokemonKeys: filteredPokemonKeys,
@@ -3202,36 +3165,28 @@ export class Dex {
 	}
 
 	private cacheAllPossibleMoves(validator: IPokemonShowdownValidator, pokemon: IPokemon, typeKeys: string[]): void {
-		let possibleMoves: string[] = [];
-		let learnsetParent: IPokemon | null = pokemon;
-		while (learnsetParent && learnsetParent.gen <= this.gen) {
-			const learnsetData = this.getLearnsetData(learnsetParent.id);
-			if (!learnsetData || !learnsetData.learnset) {
-				const nextLearnsetParent = this.getLearnsetParent(learnsetParent);
-				if (nextLearnsetParent.name !== learnsetParent.name) {
-					learnsetParent = nextLearnsetParent;
-					continue;
-				}
-				break;
+		// base move list from PS
+		const possibleMoves: string[] = [];
+		const fullLearnset = this.pokemonShowdownDex.species.getFullLearnset(pokemon.id);
+		for (const learnset of fullLearnset) {
+			for (const id in learnset.learnset) {
+				if (!possibleMoves.includes(id)) possibleMoves.push(id);
 			}
+		}
 
-			if ('sketch' in learnsetData.learnset) {
-				possibleMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
-				break;
+		// additional moves handled by PS validator but used in Lanette games
+		if (possibleMoves.includes('sketch')) {
+			const allMoves = Object.keys(this.pokemonShowdownDex.data.Moves);
+			for (const id of allMoves) {
+				if (!possibleMoves.includes(id)) possibleMoves.push(id);
 			}
-			possibleMoves = possibleMoves.concat(Object.keys(learnsetData.learnset));
-
-			const previousLearnsetParent: IPokemon = learnsetParent;
-			learnsetParent = validator.learnsetParent(learnsetParent);
-
-			// prevent recursion from calling validator.learnsetParent() directly
-			if (learnsetParent && learnsetParent.name === previousLearnsetParent.name) break;
 		}
 
 		if (possibleMoves.includes('hiddenpower')) {
 			for (const type of typeKeys) {
 				if (type === 'fairy' || type === 'normal') continue;
-				possibleMoves.push('hiddenpower' + type);
+				const id = 'hiddenpower' + type;
+				if (!possibleMoves.includes(id)) possibleMoves.push(id);
 			}
 		}
 
@@ -3272,8 +3227,8 @@ export class Dex {
 		}
 
 		let invalidEvent: boolean | undefined;
-		const learnsetData = this.getLearnsetData(pokemon.id);
-		if (learnsetData && learnsetData.eventData && learnsetData.eventOnly) {
+		const learnsetData = this.pokemonShowdownDex.species.getLearnsetData(pokemon.id);
+		if (learnsetData.exists && learnsetData.eventData && learnsetData.eventOnly) {
 			invalidEvent = true;
 			for (const event of learnsetData.eventData) {
 				if (event.level && event.level <= 5)  {

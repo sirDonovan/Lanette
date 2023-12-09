@@ -13,7 +13,6 @@ describe("Dex", () => {
 		assert(dexData.abilityKeys.length > 1);
 		assert(dexData.formatKeys.length > 1);
 		assert(dexData.itemKeys.length > 1);
-		assert(dexData.learnsetDataKeys.length > 1);
 		assert(dexData.moveKeys.length > 1);
 		assert(dexData.natureKeys.length > 1);
 		assert(dexData.pokemonKeys.length > 1);
@@ -57,23 +56,14 @@ describe("Dex", () => {
 		assert(allPossibleMoves.includes("hiddenpowerice"));
 		assert(!allPossibleMoves.includes("hiddenpowernormal"));
 		assert(!allPossibleMoves.includes("hiddenpowerfairy"));
-		let learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset && Object.keys(learnsetData.learnset).length > 1);
-		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Lycanroc-Dusk');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 		assert(allPossibleMoves.length > 1);
-		learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset && Object.keys(learnsetData.learnset).length > 1);
-		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Rotom-Frost');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
 		assert(allPossibleMoves.length > 1);
-		learnsetData = Dex.getLearnsetData(pokemon.id);
-		assert(learnsetData && learnsetData.learnset);
-		assert(allPossibleMoves.length > Object.keys(learnsetData.learnset).length, pokemon.name);
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -206,10 +196,11 @@ describe("Dex", () => {
 			assertStrictEqual(Dex.getPokemon(variant), pokemon);
 		}
 
-		const learnsetData = Dex.getLearnsetData("Mr. Mime");
-		assert(learnsetData);
+		const type = Dex.getType("Water");
+		assert(type);
+		variants = ["water", "WATER"];
 		for (const variant of variants) {
-			assertStrictEqual(Dex.getLearnsetData(variant), learnsetData);
+			assertStrictEqual(Dex.getType(variant), type);
 		}
 	});
 	it('should properly determine data types', () => {
@@ -311,7 +302,6 @@ describe("Dex", () => {
 			}
 			Dex.getPokemonIcon(pokemon);
 			Dex.getPSPokemonIcon(pokemon);
-			Dex.getLearnsetData(pokemon.id);
 		}
 	});
 	it('should set custom attributes for formats', () => {
@@ -331,7 +321,6 @@ describe("Dex", () => {
 		assert(Dex.getExistingMove("Acid Armor") === Dex.getExistingMove("Acid Armor"));
 		assert(Dex.getExistingNature("Adamant") === Dex.getExistingNature("Adamant"));
 		assert(Dex.getExistingPokemon("Mr. Mime") === Dex.getExistingPokemon("Mr. Mime"));
-		assert(Dex.getLearnsetData("Mr. Mime") === Dex.getLearnsetData("Mr. Mime"));
 
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU"));
 		assert(Dex.getExistingFormat("[Gen 8] OU") !== Dex.getExistingFormat("[Gen 8] OU@@@+Lunala"));

@@ -707,6 +707,11 @@ interface ILearnsetData {
 	exists?: boolean;
 }
 
+interface IFullLearnset {
+	learnset: NonNullable<ILearnsetData['learnset']>;
+	species: IPokemon;
+}
+
 export interface INatureCopy extends IBasicEffect {
 	gen: number;
 	name: string;
@@ -999,6 +1004,7 @@ export interface IPokemonShowdownDex {
 		getByID: (id: string) => IPSPokemon;
 		all: () => readonly IPSPokemon[];
 		getLearnsetData: (id: string) => ILearnsetData;
+		getFullLearnset: (id: string) => IFullLearnset[];
 	}
 	types: {
 		get: (name: string | IPSTypeData) => IPSTypeData;
