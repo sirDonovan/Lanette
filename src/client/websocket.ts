@@ -447,12 +447,14 @@ export class Websocket {
 						}
 
 						const wsOptions: ws.ClientOptions = {
-							maxPayload: 8 * 100 * 1024 * 1024,
 							perMessageDeflate: Config.perMessageDeflate || false,
 							headers: {
 								"Cache-Control": "no-cache",
 								"User-Agent": "ws",
 							},
+							skipUTF8Validation: true,
+							// @ts-expect-error
+							allowMultipleEventsPerMicrotask: true,
 						};
 
 						this.ws = new ws(address, [], wsOptions);

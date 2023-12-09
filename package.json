@@ -34,7 +34,7 @@
     "esbuild": "0.19.8",
     "typescript": "5.3.3",
     "utf-8-validate": "6.0.3",
-    "ws": "8.14.2"
+    "ws": "8.15.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "6.13.2",
