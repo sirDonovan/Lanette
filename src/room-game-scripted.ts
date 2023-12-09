@@ -966,32 +966,20 @@ export class ScriptedGame extends Game {
 				}
 
 				if (presentPlayers.length === this.lateJoinQueueSize) {
-					for (const listener of this.commandsListeners) {
-						if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
-					}
-
-					for (const queuedPlayer of presentPlayers) {
-						queuedPlayer.frozen = false;
-						queuedPlayer.sendRoomHighlight("You are now in the game!");
-						this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
-					}
-
-					if (this.onAddLateJoinQueuedPlayers) {
-						try {
-							this.onAddLateJoinQueuedPlayers(presentPlayers);
-						} catch (e) {
-							console.log(e);
-							Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
-							this.errorEnd();
-							return;
-						}
-					}
+					this.processLateJoinQueue(presentPlayers);
 				} else {
 					player.frozen = true;
-					const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
-					player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
-						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
-						this.joinLeaveButtonUhtmlName);
+
+					let lateJoinQueueMessage: string;
+					if (this.getLateJoinQueueMessage) {
+						lateJoinQueueMessage = this.getLateJoinQueueMessage(player);
+					} else {
+						const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
+						lateJoinQueueMessage = "You have been added to the late-join queue! " + playersNeeded + " more player" +
+						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.";
+					}
+
+					player.sayPrivateUhtml(lateJoinQueueMessage, this.joinLeaveButtonUhtmlName);
 				}
 
 				return;
@@ -1086,6 +1074,29 @@ export class ScriptedGame extends Game {
 
 			if (this.usesHtmlPage) {
 				player.closeHtmlPage();
+			}
+		}
+	}
+
+	processLateJoinQueue(processedPlayers: Player[]): void {
+		for (const listener of this.commandsListeners) {
+			if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, processedPlayers.length);
+		}
+
+		for (const queuedPlayer of processedPlayers) {
+			queuedPlayer.frozen = false;
+			queuedPlayer.sendRoomHighlight("You are now in the game!");
+			this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
+		}
+
+		if (this.onAddLateJoinQueuedPlayers) {
+			try {
+				this.onAddLateJoinQueuedPlayers(processedPlayers);
+			} catch (e) {
+				console.log(e);
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
+				this.errorEnd();
+				return;
 			}
 		}
 	}
@@ -1518,6 +1529,7 @@ export class ScriptedGame extends Game {
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	/** Return `false` to add a player to the late-join queue */
 	tryQueueLateJoin?(player: Player): boolean;
+	getLateJoinQueueMessage?(player: Player): string;
 	onAddLateJoinQueuedPlayers?(players: Player[]): void;
 	onAddExistingPlayer?(player: Player): void;
 	onAfterDeallocate?(forceEnd: boolean): void;
