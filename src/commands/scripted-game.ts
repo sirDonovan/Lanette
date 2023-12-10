@@ -151,7 +151,10 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const game = Games.createGame(room, voteFormat);
-			if (game) game.signups();
+			if (game) {
+				if (target) game.format.minigameCreator = target;
+				game.signups();
+			}
 		},
 		chatOnly: true,
 		aliases: ['sv', 'startskippedcooldownvote'],

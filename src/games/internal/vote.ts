@@ -53,7 +53,7 @@ export class Vote extends ScriptedGame {
 			formatNames[name].push(vote.anonymous ? "[Anonymous]" : "<username>" + player.name + "</username>");
 		});
 
-		let html = "<div class='infobox'><center>";
+		let html = "";
 		let uhtmlName: string;
 		if (ended) {
 			uhtmlName = this.finalVotesUhtmlName;
@@ -79,7 +79,7 @@ export class Vote extends ScriptedGame {
 
 			const formats = Object.keys(formatNames);
 
-			html += "<h3>Current votes</h3>";
+			html += "&nbsp;<br /><h3>Current votes</h3>";
 			if (formats.length) {
 				const currentVotes: string[] = [];
 				for (const format of formats) {
@@ -92,7 +92,8 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		html += "</center></div>";
+		html += "<br />&nbsp;";
+		html = "<center>" + Games.getCustomBoxDiv(html, this.customBox, undefined, 'signups') + "</center>";
 
 		if (callback) {
 			this.onUhtml(uhtmlName, html, () => {
@@ -134,6 +135,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	onSignups(): void {
+		this.signupsUhtmlName = this.uhtmlBaseName + '-signups';
 		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
 		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';
 		this.privateVoteUhtmlName = this.uhtmlBaseName + '-private-vote';
@@ -169,18 +171,38 @@ export class Vote extends ScriptedGame {
 		this.votingName = "Scripted Game Voting #" + votingNumber;
 		this.votingNumber = votingNumber;
 
-		let html = "<center><h3>" + this.votingName + "</h3>Vote for the next scripted game with the command <code>" +
-			Config.commandCharacter + "vote [name]</code>!";
-		html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
-				this.getHighlightPhrase() + '">Enable voting highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
+		let pokemonIcon = "";
+		let boxUser = this.format.minigameCreator;
+		const lastWinners = Games.getLastWinners(this.room);
+		if (lastWinners && lastWinners.length) {
+			boxUser = this.sampleOne(lastWinners);
+		}
+
+		if (boxUser) {
+			const id = Tools.toId(boxUser);
+			if (database.gameVoteBoxes && id in database.gameVoteBoxes) {
+				this.customBox = database.gameVoteBoxes[id];
+				if (database.gameVoteBoxes[id].pokemonAvatar) {
+					pokemonIcon = Dex.getPokemonIcon(Dex.getPokemon(database.gameVoteBoxes[id].pokemonAvatar!));
+				}
+			}
+		}
+
+		let html = "&nbsp;<br /><h3>" + (boxUser ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the next " +
+			"scripted game with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
+		html += '<br />';
+		html += Client.getClientCommandButton("/highlight roomadd " + this.getHighlightPhrase(), "Enable voting highlights", false,
+			Games.getCustomBoxButtonStyle(this.customBox));
+		html += Client.getClientCommandButton("/highlight roomdelete " + this.getHighlightPhrase(), "Disable voting highlights", false,
+			Games.getCustomBoxButtonStyle(this.customBox));
+		html += '<br /><br />';
 
 		if (this.botSuggestions.length) {
 			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
 
 			const buttons: string[] = [];
 			for (const pick of this.botSuggestions) {
-				buttons.push(this.getPmVoteButton(BUTTON_VOTE_COMMAND, pick, pick));
+				buttons.push(this.getPmVoteButton(BUTTON_VOTE_COMMAND, pick, pick, this.customBox));
 			}
 			html += buttons.join(" | ");
 			html += "<br />";
@@ -188,14 +210,15 @@ export class Vote extends ScriptedGame {
 
 		const leastPlayedFormat = this.getLeastPlayedFormat();
 		if (leastPlayedFormat) {
-			html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, leastPlayedFormat, "Least played game") + " | ";
+			html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, leastPlayedFormat, "Least played game", this.customBox) + " | ";
 		}
 
-		html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, "random", "Random game");
+		html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, "random", "Random game", this.customBox);
+		html += " | ";
+		html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, "random, freejoin", "Random freejoin game", this.customBox);
 		html += "<br /><br />";
 
 		html += this.getQuietPmButton(VOTABLE_GAMES_COMMAND, "View current votable games");
-		html += "</center>";
 
 		const pastGames: string[] = [];
 		if (database.pastGames && database.pastGames.length) {
@@ -210,14 +233,18 @@ export class Vote extends ScriptedGame {
 		}
 
 		if (pastGames.length) {
-			html += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
+			html += "<br /><br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
 		}
 
-		this.onHtml(html, () => {
+		html += "<br />&nbsp;";
+
+		html = "<center>" + Games.getCustomBoxDiv(html, this.customBox) + "</center>";
+
+		this.onUhtml(this.signupsUhtmlName, html, () => {
 			this.canVote = true;
 			this.setTimeout(() => this.endVoting(), timeLimit);
 		});
-		this.sayHtml(html);
+		this.sayUhtml(this.signupsUhtmlName, html);
 		this.updateVotesHtml(undefined, true);
 
 		this.notifyRankSignups = true;
