@@ -2551,6 +2551,12 @@ export class Games {
 		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
 		if (previous.skippedScriptedCooldowns) Object.assign(this.skippedScriptedCooldowns, previous.skippedScriptedCooldowns);
 
+		if (previous.lastWinners) {
+			for (const i in previous.lastWinners) {
+				this.lastWinners[i] = previous.lastWinners[i].slice();
+			}
+		}
+
 		if (previous.nextVoteBans) {
 			for (const i in previous.nextVoteBans) {
 				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
