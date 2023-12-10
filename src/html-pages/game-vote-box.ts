@@ -500,7 +500,7 @@ class GameVoteBox extends HtmlPageBase {
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
 			{selectedAndDisabled: buttonsBorder});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-			"Votes background border", {selectedAndDisabled: signupsBackground});
+			"Votes background color", {selectedAndDisabled: signupsBackground});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
 			"Votes background border", {selectedAndDisabled: signupsBackgroundBorder});
 
