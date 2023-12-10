@@ -1283,7 +1283,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 				if (CommandParser.isCommandMessage(gameRoom.userHostedGame.storedMessages[key])) {
 					const parts = gameRoom.userHostedGame.storedMessages[key].split(" ");
-					this.run(parts[0].substr(1), parts.slice(1).join(" "));
+                    let storedCommand = Tools.toId(parts[0].substr(1));
+
+                    if (storedCommand === "timer") storedCommand = "gametimer";
+					this.run(storedCommand, parts.slice(1).join(" "));
 					return;
 				}
 				this.say(gameRoom.userHostedGame.storedMessages[key]);
