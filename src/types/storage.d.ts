@@ -103,6 +103,10 @@ export interface IGameScriptedBox extends IGameCustomBox {
 	previewFormat?: string;
 }
 
+export interface IGameVoteBox extends IGameCustomBox {
+	pokemonAvatar?: string;
+}
+
 export type GifIcon = 'gif' | 'icon';
 
 export interface IGameHostDisplay extends IGameCustomBox {
@@ -242,6 +246,7 @@ export interface IDatabase {
 	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
+	gameVoteBoxes?: Dict<IGameVoteBox>;
 	gameVoteOptions?: Dict<IGameVoteOptions>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;

@@ -313,6 +313,11 @@ export class Client {
 			'<summary></summary>' + Tools.escapeHTML(code.replace(NEWLINE, "<br />")) + '</details></div>';
 	}
 
+	getClientCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="parseCommand" value="' + command + '">' + label + '</button>';
+	}
+
 	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
 		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
 			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="send" value="' + command + '">' + label + '</button>';
