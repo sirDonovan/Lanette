@@ -188,8 +188,8 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		let html = "<h3>" + (boxUser ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the next " +
-			"scripted game with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
+		let html = "<h3>" + (boxUser && this.customBox ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the " +
+			"next scripted game with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
 		html += '<br />';
 		html += Client.getClientCommandButton("/highlight roomadd " + this.getHighlightPhrase(), "Enable voting highlights", false,
 			Games.getCustomBoxButtonStyle(this.customBox));
