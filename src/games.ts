@@ -141,6 +141,7 @@ export class Games {
 	private lastUserHostedGames: Dict<number> = {};
 	private lastUserHostTimes: Dict<Dict<number>> = {};
 	private lastUserHostFormatTimes: Dict<Dict<number>> = {};
+	private lastWinners: Dict<string[]> = {};
 	private readonly minigameCommandNames: MinigameCommandNames = {};
 	private readonly modes: Modes = {};
 	private readonly modeAliases: Dict<string> = {};
@@ -230,6 +231,10 @@ export class Games {
 
 	getLastChallengeTimes(): DeepImmutable<LastChallengeTimes> {
 		return this.lastChallengeTimes;
+	}
+
+	getLastWinners(room: Room): string[] | undefined {
+		return this.lastWinners[room.id];
 	}
 
 	getMinigameCommandNames(): Readonly<MinigameCommandNames> {
@@ -1157,6 +1162,10 @@ export class Games {
 	setLastUserHostTime(room: Room, hostId: string, time: number): void {
 		if (!(room.id in this.lastUserHostTimes)) this.lastUserHostTimes[room.id] = {};
 		this.lastUserHostTimes[room.id][hostId] = time;
+	}
+
+	setLastWinners(room: Room, winners: readonly string[]): void {
+		this.lastWinners[room.id] = winners.slice();
 	}
 
 	removeLastUserHostTime(room: Room, hostId: string): void {

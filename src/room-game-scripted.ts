@@ -681,6 +681,7 @@ export class ScriptedGame extends Game {
 
 			Games.setLastGame(this.room, now);
 			Games.setLastScriptedGame(this.room, now);
+			Games.setLastWinners(this.room, Array.from(this.winners.keys()).map(x => x.name));
 			database.lastGameTime = now;
 
 			if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
