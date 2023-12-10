@@ -712,16 +712,9 @@ export const commands: BaseCommandDefinitions = {
 					time *= 60 * 1000;
 				}
 			} else {
-				time = parseFloat(targets[0] ? targets[0].trim() : "");
-				if (secondsArguments.includes(Tools.toId(targets[1]))) {
-					if (isNaN(time) || time > 60 || time < 3) return this.say("Please enter an amount of seconds between 3 and 60.");
-					time *= 1000;
-				} else {
-					if (isNaN(time) || time < 1) {
-						return this.say("Please enter a valid amount of minutes (add `` seconds`` to use seconds).");
-					}
-					time *= 60 * 1000;
-				}
+				time = Tools.fromTimeString(target);
+				if (!time) time = Tools.fromTimeString(target + (target.trim().length === 1 ? "min" : "sec"));
+				if (Number.isNaN(time) || time < 3000) this.say("Please enter an amount of seconds more than 3 seconds.");
 			}
 
 			if (now + time > gameRoom.userHostedGame.endTime) {
@@ -759,10 +752,13 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("The game start timer has been turned off.");
 			}
 
-			const minutes = parseInt(target.trim());
-			if (isNaN(minutes) || minutes < 1 || minutes > 4) return this.say("You must specify a number of minutes between 1 and 4.");
-			room.userHostedGame.setStartTimer(minutes);
-			this.say("The game will start in " + minutes + " minutes.");
+			let time = Tools.fromTimeString(target);
+			if (!time) time = Tools.fromTimeString(id + (id.length === 1 ? "min" : "sec"));
+			if (isNaN(time) || time < 60 * 1000 || time > 60 * 4000) {
+				return this.say("You must specify time between 1 minute and 4 minutes.");
+			}
+			room.userHostedGame.setStartTimer(time);
+			this.say("The game will start in " + Tools.toDurationString(time) + ".");
 		},
 		chatOnly: true,
 		aliases: ['sgtimer'],

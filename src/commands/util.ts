@@ -3,6 +3,7 @@ import type { BaseCommandDefinitions } from "../types/command-parser";
 import type { CharacterType, ModelGeneration, LocationType, RegionName } from "../types/dex";
 import type { IPokemon } from "../types/pokemon-showdown";
 
+const shinyOption = "shiny";
 const RANDOM_GENERATOR_LIMIT = 6;
 
 export const commands: BaseCommandDefinitions = {
@@ -66,14 +67,10 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("Your timer has been turned off.");
 			}
 
-			let time: number;
-			if (id.length === 1) {
-				time = parseInt(id) * 60;
-			} else {
-				time = parseInt(id);
-			}
-			if (isNaN(time) || time > 1800 || time < 5) return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
-			time *= 1000;
+			let time = Tools.fromTimeString(target);
+			if (!time) time = Tools.fromTimeString(target + (target.trim().length === 1 ? "min"  : "sec"));
+			if (isNaN(time) || time > 30 * 60 * 1000 || time < 5000)
+                return this.say("Please enter an amount of time between 5 seconds and 30 minutes.");
 
 			if (!room.timers) room.timers = {};
 			if (timerId in room.timers) clearTimeout(room.timers[timerId]);
@@ -199,14 +196,23 @@ export const commands: BaseCommandDefinitions = {
 			const gifsOrIcons: string[] = [];
 			const pokemonList: IPokemon[] = [];
 
-			for (const name of targets) {
+			for (let name of targets) {
+                name = name.trim();
+                let shiny: boolean = false;
+                const names = name.split(" ");
+                if (names[0] === shinyOption) {
+                    shiny = true;
+                    name = names.slice(1).join("");
+                }
+                if (showIcon && shiny) return this.say("You cannot specify the option shiny with icons.");
 				const pokemon = Dex.getPokemon(name);
 				if (!pokemon) return this.sayError(['invalidPokemon', name]);
 				if (!showIcon && !Dex.hasModelData(pokemon, generation)) {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" : "") + " gif.");
 				}
 				pokemonList.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
+                    Dex.getPokemonModel(pokemon, generation, "front", shiny));
 			}
 
 			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");

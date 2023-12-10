@@ -214,9 +214,9 @@ export class UserHostedGame extends Game {
 		this.parseCommand(this.subHostName || this.hostName, command, target);
 	}
 
-	setStartTimer(minutes: number): void {
+	setStartTimer(time: number): void {
 		if (this.startTimer) clearTimeout(this.startTimer);
-		this.startTimer = setTimeout(() => this.useHostCommand('startgame'), minutes * 60 * 1000);
+		this.startTimer = setTimeout(() => this.useHostCommand('startgame'), time);
 	}
 
 	// Players
