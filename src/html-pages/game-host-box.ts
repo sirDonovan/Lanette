@@ -703,7 +703,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("Game host boxes are not enabled for " + targetRoom.title + ".");
 			}
 
-			const checkBits = !user.hasRank(targetRoom, 'voice');
+			const checkBits = !user.hasRank(targetRoom, 'voice') && !user.isDeveloper();
 			const database = Storage.getDatabase(targetRoom);
 			const annualBits = Storage.getAnnualPoints(targetRoom, Storage.gameLeaderboard, user.name);
 			if (checkBits && Config.gameHostBoxRequirements[targetRoom.id].background > 0) {
