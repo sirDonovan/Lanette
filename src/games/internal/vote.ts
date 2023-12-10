@@ -173,14 +173,22 @@ export class Vote extends ScriptedGame {
 
 		let pokemonIcon = "";
 		let boxUser = this.format.minigameCreator;
-		const lastWinners = Games.getLastWinners(this.room);
-		if (lastWinners && lastWinners.length) {
-			boxUser = this.sampleOne(lastWinners);
+		if (!boxUser && database.gameVoteBoxes) {
+			const lastWinners = Games.getLastWinners(this.room);
+			if (lastWinners && lastWinners.length) {
+				const shuffled = this.shuffle(lastWinners);
+				for (const winner of shuffled) {
+					if (Tools.toId(winner) in database.gameVoteBoxes) {
+						boxUser = winner;
+						break;
+					}
+				}
+			}
 		}
 
-		if (boxUser) {
+		if (boxUser && database.gameVoteBoxes) {
 			const id = Tools.toId(boxUser);
-			if (database.gameVoteBoxes && id in database.gameVoteBoxes) {
+			if (id in database.gameVoteBoxes) {
 				this.customBox = database.gameVoteBoxes[id];
 				if (database.gameVoteBoxes[id].pokemonAvatar) {
 					pokemonIcon = Dex.getPokemonIcon(Dex.getPokemon(database.gameVoteBoxes[id].pokemonAvatar!));
