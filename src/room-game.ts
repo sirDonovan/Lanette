@@ -320,16 +320,24 @@ export abstract class Game extends Activity {
 			"will not receive any further signups messages." : ""), this.privateJoinLeaveUhtmlName);
 	}
 
-	getPlayerOrPickedCustomBox(player?: Player): IGameCustomBox | undefined {
+	getPlayerOrPickedCustomBox(player?: Player, voteBox?: boolean): IGameCustomBox | undefined {
 		if (this.isPmActivity(this.room)) return;
 
 		if (!player) return this.customBox;
 
 		if (!this.playerCustomBoxes.has(player)) {
 			const database = Storage.getDatabase(this.room);
-			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
-				this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
+			if (voteBox) {
+				if (database.gameVoteBoxes && player.id in database.gameVoteBoxes) {
+					this.playerCustomBoxes.set(player, database.gameVoteBoxes[player.id]);
+				}
 			} else {
+				if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
+					this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
+				}
+			}
+
+			if (!this.playerCustomBoxes.has(player)) {
 				this.playerCustomBoxes.set(player, undefined);
 			}
 		}

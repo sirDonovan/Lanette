@@ -262,7 +262,7 @@ export class Vote extends ScriptedGame {
 	getVoteVariantModeHtml(player: Player, pm: boolean): string {
 		const vote = this.votes.get(player)!;
 		const format = Games.getExistingFormat(vote.format);
-		const customBox = this.getPlayerOrPickedCustomBox(player);
+		const customBox = this.getPlayerOrPickedCustomBox(player, true);
 		const voteCommand = vote.anonymous ? PM_VOTE_COMMAND : pm ? VOTE_COMMAND : BUTTON_VOTE_COMMAND;
 
 		let variantsHtml = "";
@@ -374,7 +374,7 @@ export class Vote extends ScriptedGame {
 	}
 
 	getPrivateVoteHtml(player: Player, showVotableGames?: boolean): string {
-		const customBox = this.getPlayerOrPickedCustomBox(player);
+		const customBox = this.getPlayerOrPickedCustomBox(player, true);
 		const database = Storage.getDatabase(this.room);
 		if (!database.gameVoteOptions) database.gameVoteOptions = {};
 		if (!(player.id in database.gameVoteOptions)) database.gameVoteOptions[player.id] = {};
@@ -460,7 +460,7 @@ export class Vote extends ScriptedGame {
 		if (player.id in this.privateVotesHtmlTimeouts) return;
 
 		const html = this.getPrivateVoteHtml(player, showVotableGames);
-		player.sayPrivateUhtml(html, this.votableFormatsUhtmlName);
+		player.sayPrivateUhtml(Games.getCustomBoxDiv(html, this.getPlayerOrPickedCustomBox(player, true)), this.votableFormatsUhtmlName);
 
 		this.privateVotesHtmlTimeouts[player.id] = setTimeout(() => {
 			delete this.privateVotesHtmlTimeouts[player.id];
