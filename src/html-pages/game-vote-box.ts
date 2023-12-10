@@ -453,7 +453,7 @@ class GameVoteBox extends HtmlPageBase {
 		}
 
 		const buttonStyle = Games.getCustomBoxButtonStyle(voteBox);
-		let voteHtml = "&nbsp;<br /><h3>" + name + "'s Scripted Game Voting #0" + pokemonIcon + "</h3>Vote for the next scripted game " +
+		let voteHtml = "<h3>" + name + "'s Scripted Game Voting #0" + pokemonIcon + "</h3>Vote for the next scripted game " +
 			"with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
 		voteHtml += '<br />';
 		voteHtml += Client.getClientCommandButton("/dummy", "Enable voting highlights", false, buttonStyle);
@@ -475,8 +475,7 @@ class GameVoteBox extends HtmlPageBase {
 
 		html += Games.getCustomBoxDiv(voteHtml, voteBox);
 
-		html += Games.getCustomBoxDiv("&nbsp;<br /><h3>Current votes</h3>Sample Game: " + name + "<br />&nbsp;", voteBox, undefined,
-			'signups');
+		html += Games.getCustomBoxDiv("<h3>Current votes</h3>Sample Game: " + name + "<br />&nbsp;", voteBox, undefined, 'signups');
 		html += "</center><br />";
 
 		const background = this.currentPicker === 'background';

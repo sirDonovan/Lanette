@@ -79,7 +79,7 @@ export class Vote extends ScriptedGame {
 
 			const formats = Object.keys(formatNames);
 
-			html += "&nbsp;<br /><h3>Current votes</h3>";
+			html += "<h3>Current votes</h3>";
 			if (formats.length) {
 				const currentVotes: string[] = [];
 				for (const format of formats) {
@@ -188,7 +188,7 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		let html = "&nbsp;<br /><h3>" + (boxUser ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the next " +
+		let html = "<h3>" + (boxUser ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the next " +
 			"scripted game with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
 		html += '<br />';
 		html += Client.getClientCommandButton("/highlight roomadd " + this.getHighlightPhrase(), "Enable voting highlights", false,
