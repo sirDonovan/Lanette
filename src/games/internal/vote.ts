@@ -571,6 +571,23 @@ const commands: GameCommandDefinitions<Vote> = {
 					player.sayPrivateHtml("A random game could not be chosen.");
 					return false;
 				}
+			} else if (targetId === 'randomfj' || targetId === 'randomfreejoin' || targetId === 'randomgamefj' ||
+				targetId === 'randomgamefreejoin') {
+				const formats = this.shuffle(Games.getFormatList());
+				for (const randomFormat of formats) {
+					if (!this.isValidFormat(randomFormat)) continue;
+					if (randomFormat.freejoin) {
+						format = randomFormat;
+						break;
+					} else if (randomFormat.defaultOptions.includes('freejoin')) {
+						format = Games.getExistingFormat(randomFormat.id + ", freejoin");
+					}
+				}
+
+				if (!format) {
+					player.sayPrivateHtml("A random game could not be chosen.");
+					return false;
+				}
 			} else {
 				if (targetId === 'leastplayed' || targetId === 'lpgame') {
 					target = this.getLeastPlayedFormat();
