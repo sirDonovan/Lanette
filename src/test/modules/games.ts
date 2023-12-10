@@ -202,6 +202,7 @@ describe("Games", () => {
 	});
 
 	it('should export valid data from files', () => {
+		const categories = Games.getCategoryNames();
 		for (const format of formatsToTest) {
 			testMascots(format);
 			assert(!format.name.match(Tools.unsafeApiCharacterRegex), format.name + " name");
@@ -225,6 +226,7 @@ describe("Games", () => {
 			}
 
 			if (format.category) {
+				assert(format.category in categories);
 				assert(!format.category.match(Tools.unsafeApiCharacterRegex), format.name + " category");
 			}
 

@@ -118,6 +118,11 @@ export interface IGameScriptedOptions {
 	assistActions?: boolean;
 }
 
+export interface IGameVoteOptions {
+	sortBy?: 'name' | 'category';
+	favoriteCategories?: string[];
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export interface IUserHostStatusData {
@@ -237,6 +242,7 @@ export interface IDatabase {
 	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
+	gameVoteOptions?: Dict<IGameVoteOptions>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;
