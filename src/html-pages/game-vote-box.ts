@@ -15,9 +15,9 @@ type BorderDatabaseKeys = 'backgroundBorder' | 'buttonsBorder' | 'signupsBackgro
 
 const baseCommand = 'gamevotebox';
 const setGamePokemonAvatarCommand = 'setgamepokemonavatar';
+const chooseHome = 'choosehome';
 const chooseBackgroundColorPicker = 'choosebackgroundcolorpicker';
 const chooseButtonColorPicker = 'choosebuttoncolorpicker';
-const choosePokemonAvatarPicker = 'choosepokemonavatarpicker';
 const chooseBackgroundBorderPicker = 'choosebackgroundborderpicker';
 const chooseButtonsBorderPicker = 'choosebuttonsborderpicker';
 const chooseSignupsBackgroundColorPicker = 'choosesignupsbackgroundcolorpicker';
@@ -45,13 +45,14 @@ class GameVoteBox extends HtmlPageBase {
 	signupsBackgroundBorderStyle!: BorderStyle;
 	pokemonAvatarPicker!: PokemonTextInput;
 	currentPicker: 'background' | 'buttons' | 'background-border' | 'buttons-border' | 'signups-background' | 'signups-background-border' |
-		'pokemon-avatar';
+		'home';
+	selectedColor: string = "#000000";
 
 	constructor(room: Room, user: User, pokemonAvatar: boolean) {
 		super(room, user, baseCommand, pages);
 
 		this.pokemonAvatar = pokemonAvatar;
-		this.currentPicker = pokemonAvatar ? 'pokemon-avatar' : 'background';
+		this.currentPicker = 'home';
 		this.setCloseButton();
 
 		this.resetComponents();
@@ -66,6 +67,7 @@ class GameVoteBox extends HtmlPageBase {
 			currentPick: typeof gameVoteBox.background === 'string' ? gameVoteBox.background : undefined,
 			currentPickObject: gameVoteBox.background && typeof gameVoteBox.background !== 'string' ?
 				gameVoteBox.background : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -74,9 +76,11 @@ class GameVoteBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			button: true,
 			currentPick: typeof gameVoteBox.buttons === 'string' ? gameVoteBox.buttons : undefined,
 			currentPickObject: gameVoteBox.buttons && typeof gameVoteBox.buttons !== 'string' ?
 				gameVoteBox.buttons : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
@@ -88,6 +92,7 @@ class GameVoteBox extends HtmlPageBase {
 			currentPick: typeof gameVoteBox.signupsBackground === 'string' ? gameVoteBox.signupsBackground : undefined,
 			currentPickObject: gameVoteBox.signupsBackground && typeof gameVoteBox.signupsBackground !== 'string' ?
 				gameVoteBox.signupsBackground : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickSignupsBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickSignupsBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsBackgroundColor(dontRender),
@@ -116,6 +121,7 @@ class GameVoteBox extends HtmlPageBase {
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('background', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('background'),
@@ -128,11 +134,13 @@ class GameVoteBox extends HtmlPageBase {
 		});
 
 		this.buttonsBorderStyle = new BorderStyle(this, this.commandPrefix, setButtonBorderStyleCommand, {
+			button: true,
 			currentBorder: gameVoteBox.buttonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('buttons', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('buttons'),
@@ -150,6 +158,7 @@ class GameVoteBox extends HtmlPageBase {
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('signups-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('signups-background', color,
 				dontRender),
@@ -181,7 +190,7 @@ class GameVoteBox extends HtmlPageBase {
 	}
 
 	toggleActivePicker(): void {
-		this.pokemonAvatarPicker.active = this.currentPicker === 'pokemon-avatar';
+		this.pokemonAvatarPicker.active = this.currentPicker === 'home';
 		this.backgroundColorPicker.active = this.currentPicker === 'background';
 		this.buttonColorPicker.active = this.currentPicker === 'buttons';
 		this.backgroundBorderStyle.active = this.currentPicker === 'background-border';
@@ -190,10 +199,10 @@ class GameVoteBox extends HtmlPageBase {
 		this.signupsBackgroundBorderStyle.active = this.currentPicker === 'signups-background-border';
 	}
 
-	choosePokemonAvatarPicker(): void {
-		if (!this.pokemonAvatar || this.currentPicker === 'pokemon-avatar') return;
+	chooseHome(): void {
+		if (this.currentPicker === 'home') return;
 
-		this.currentPicker = 'pokemon-avatar';
+		this.currentPicker = 'home';
 		this.toggleActivePicker();
 
 		this.send();
@@ -478,57 +487,72 @@ class GameVoteBox extends HtmlPageBase {
 		html += Games.getCustomBoxDiv("<h3>Current votes</h3>Sample Game: " + name + "<br />&nbsp;", voteBox, undefined, 'signups');
 		html += "</center><br />";
 
+		const home = this.currentPicker === 'home';
 		const background = this.currentPicker === 'background';
 		const buttons = this.currentPicker === 'buttons';
-		const pokemonAvatar = this.currentPicker === 'pokemon-avatar';
 		const backgroundBorder = this.currentPicker === 'background-border';
 		const buttonsBorder = this.currentPicker === 'buttons-border';
 		const signupsBackground = this.currentPicker === 'signups-background';
 		const signupsBackgroundBorder = this.currentPicker === 'signups-background-border';
 
-		if (this.pokemonAvatar) {
-			html += this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonAvatarPicker, "Pokemon avatar",
-				{selectedAndDisabled: pokemonAvatar}) + "&nbsp;";
+		let navigation = "";
+		let component = "";
+		if (home) {
+			navigation += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
+				{selectedAndDisabled: background});
+			navigation += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
+				{selectedAndDisabled: backgroundBorder});
+			navigation += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
+				{selectedAndDisabled: buttons});
+			navigation += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
+				{selectedAndDisabled: buttonsBorder});
+			navigation += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
+				"Votes background color", {selectedAndDisabled: signupsBackground});
+			navigation += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
+				"Votes background border", {selectedAndDisabled: signupsBackgroundBorder});
+
+			if (this.pokemonAvatar) {
+				component += "<br /><br />";
+				component += "<b>Pokemon avatar</b><br />";
+				component += this.pokemonAvatarPicker.render();
+			}
+		} else {
+			navigation += this.getQuietPmButton(this.commandPrefix + ", " + chooseHome, "&larr; Home") +" ";
 		}
-
-		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundColorPicker, "Background",
-			{selectedAndDisabled: background});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseBackgroundBorderPicker, "Background border",
-			{selectedAndDisabled: backgroundBorder});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonColorPicker, "Buttons",
-			{selectedAndDisabled: buttons});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseButtonsBorderPicker, "Buttons border",
-			{selectedAndDisabled: buttonsBorder});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundColorPicker,
-			"Votes background color", {selectedAndDisabled: signupsBackground});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseSignupsBackgroundBorderPicker,
-			"Votes background border", {selectedAndDisabled: signupsBackgroundBorder});
-
-		html += "<br /><br />";
 
 		if (background) {
-			html += "<b>Background color</b><br />";
-			html += this.backgroundColorPicker.render();
-			html += "<br /><br />";
+			navigation += "<b>Background color</b>";
+			component += " | ";
+			component += this.backgroundColorPicker.render();
 		} else if (buttons) {
-			html += "<b>Buttons background color</b><br />";
-			html += this.buttonColorPicker.render();
-		} else if (pokemonAvatar) {
-			html += "<b>Pokemon avatar</b><br />";
-			html += this.pokemonAvatarPicker.render();
+			navigation += "<b>Buttons background color</b>";
+			component += " | ";
+			component += this.buttonColorPicker.render();
 		} else if (backgroundBorder) {
-			html += "<b>Background border</b><br />";
-			html += this.backgroundBorderStyle.render();
+			navigation += "<b>Background border</b>";
+			component += "<br /><br />";
+			component += this.backgroundBorderStyle.render();
 		} else if (buttonsBorder) {
-			html += "<b>Buttons border</b><br />";
-			html += this.buttonsBorderStyle.render();
+			navigation += "<b>Buttons border</b>";
+			component += "<br /><br />";
+			component += this.buttonsBorderStyle.render();
 		} else if (signupsBackground) {
-			html += "<b>Votes background color</b><br />";
-			html += this.signupsBackgroundColorPicker.render();
-		} else {
-			html += "<b>Votes background border</b><br />";
-			html += this.signupsBackgroundBorderStyle.render();
+			navigation += "<b>Votes background color</b>";
+			component += " | ";
+			component += this.signupsBackgroundColorPicker.render();
+		} else if (signupsBackgroundBorder) {
+			navigation += "<b>Votes background border</b>";
+			component += "<br /><br />";
+			component += this.signupsBackgroundBorderStyle.render();
 		}
+
+		html += navigation;
+
+		if (component) {
+			html += component;
+		}
+
+		html += "<br /><br />";
 
 		html += "</div>";
 		return html;
@@ -576,8 +600,8 @@ export const commands: BaseCommandDefinitions = {
 				pages[user.id].chooseBackgroundColorPicker();
 			} else if (cmd === chooseButtonColorPicker) {
 				pages[user.id].chooseButtonColorPicker();
-			} else if (cmd === choosePokemonAvatarPicker) {
-				pages[user.id].choosePokemonAvatarPicker();
+			} else if (cmd === chooseHome) {
+				pages[user.id].chooseHome();
 			} else if (cmd === chooseBackgroundBorderPicker) {
 				pages[user.id].chooseBackgroundBorderPicker();
 			} else if (cmd === chooseButtonsBorderPicker) {

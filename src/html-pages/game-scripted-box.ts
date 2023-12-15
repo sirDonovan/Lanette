@@ -127,6 +127,7 @@ class GameScriptedBox extends HtmlPageBase {
 			currentPick: typeof gameScriptedBox.background === 'string' ? gameScriptedBox.background : undefined,
 			currentPickObject: gameScriptedBox.background && typeof gameScriptedBox.background !== 'string' ?
 				gameScriptedBox.background : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -135,9 +136,11 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			button: true,
 			currentPick: typeof gameScriptedBox.buttons === 'string' ? gameScriptedBox.buttons : undefined,
 			currentPickObject: gameScriptedBox.buttons && typeof gameScriptedBox.buttons !== 'string' ?
 				gameScriptedBox.buttons : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
@@ -149,6 +152,7 @@ class GameScriptedBox extends HtmlPageBase {
 			currentPick: typeof gameScriptedBox.signupsBackground === 'string' ? gameScriptedBox.signupsBackground : undefined,
 			currentPickObject: gameScriptedBox.signupsBackground && typeof gameScriptedBox.signupsBackground !== 'string' ?
 				gameScriptedBox.signupsBackground : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsBackgroundColor(dontRender),
@@ -157,9 +161,11 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsButtonColorCommand, {
+			button: true,
 			currentPick: typeof gameScriptedBox.signupsButtons === 'string' ? gameScriptedBox.signupsButtons : undefined,
 			currentPickObject: gameScriptedBox.signupsButtons && typeof gameScriptedBox.signupsButtons !== 'string' ?
 				gameScriptedBox.signupsButtons : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsButtonsColor(dontRender),
@@ -171,6 +177,7 @@ class GameScriptedBox extends HtmlPageBase {
 			currentPick: typeof gameScriptedBox.gameBackground === 'string' ? gameScriptedBox.gameBackground : undefined,
 			currentPickObject: gameScriptedBox.gameBackground && typeof gameScriptedBox.gameBackground !== 'string' ?
 				gameScriptedBox.gameBackground : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearGameBackgroundColor(dontRender),
@@ -179,9 +186,11 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.gameButtonColorPicker = new ColorPicker(this, this.commandPrefix, setGameButtonColorCommand, {
+			button: true,
 			currentPick: typeof gameScriptedBox.gameButtons === 'string' ? gameScriptedBox.gameButtons : undefined,
 			currentPickObject: gameScriptedBox.gameButtons && typeof gameScriptedBox.gameButtons !== 'string' ?
 				gameScriptedBox.gameButtons : undefined,
+			pokemon: currentGamePokemonAvatar,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearGameButtonsColor(dontRender),
@@ -210,6 +219,7 @@ class GameScriptedBox extends HtmlPageBase {
 			maxRadius: 100,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('background', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('background'),
@@ -222,11 +232,13 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.buttonsBorderStyle = new BorderStyle(this, this.commandPrefix, setButtonBorderStyleCommand, {
+			button: true,
 			currentBorder: gameScriptedBox.buttonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('buttons', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('buttons'),
@@ -244,6 +256,7 @@ class GameScriptedBox extends HtmlPageBase {
 			maxRadius: 100,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('signups-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) =>
 				this.setBorderColor('signups-background', color, dontRender),
@@ -257,11 +270,13 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonsBorderStyle = new BorderStyle(this, this.commandPrefix, setSignupsButtonBorderStyleCommand, {
+			button: true,
 			currentBorder: gameScriptedBox.signupsButtonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('signups-buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('signups-buttons', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('signups-buttons'),
@@ -279,6 +294,7 @@ class GameScriptedBox extends HtmlPageBase {
 			maxRadius: 0,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('game-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('game-background', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('game-background'),
@@ -291,11 +307,13 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.gameButtonsBorderStyle = new BorderStyle(this, this.commandPrefix, setGameButtonBorderStyleCommand, {
+			button: true,
 			currentBorder: gameScriptedBox.gameButtonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('game-buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('game-buttons', color, dontRender),
 			onClearRadius: () => this.clearBorderRadius('game-buttons'),

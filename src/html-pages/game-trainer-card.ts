@@ -46,6 +46,7 @@ class GameTrainerCard extends HtmlPageBase {
 			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
 			currentPickObject: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
 				trainerCard.background : undefined,
+			pokemon: trainerCard && trainerCard.pokemon.length ? trainerCard.pokemon[0] : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),

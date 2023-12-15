@@ -7,6 +7,10 @@ import type { IComponentProps } from "./component-base";
 import type { HtmlPageBase } from "../html-page-base";
 
 export interface IBorderStyleProps extends IComponentProps {
+	// only used for previews
+	button?: boolean;
+	pokemon?: string;
+
 	currentBorder: ICustomBorder | undefined;
 	minRadius: number;
 	maxRadius: number;
@@ -40,10 +44,20 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IBorderStyleProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
+		this.radius = props.currentBorder ? props.currentBorder.radius : undefined;
+		this.size = props.currentBorder ? props.currentBorder.size : undefined;
+		this.type = props.currentBorder ? props.currentBorder.type : undefined;
+
 		this.colorPicker = new ColorPicker(htmlPage, this.commandPrefix, setColorCommand, {
+			border: true,
+			borderRadius: this.radius,
+			borderSize: this.size,
+			borderType: this.type,
+			button: props.button,
 			currentPick: props.currentBorder && typeof props.currentBorder.color === 'string' ? props.currentBorder.color : undefined,
 			currentPickObject: props.currentBorder && props.currentBorder.color && typeof props.currentBorder.color !== 'string' ?
 				props.currentBorder.color : undefined,
+			pokemon: props.pokemon,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickColorHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickColorLightness(dontRender),
 			onClear: (index, dontRender) => this.clearColor(dontRender),
@@ -53,10 +67,6 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		});
 
 		this.components = [this.colorPicker];
-
-		this.radius = props.currentBorder ? props.currentBorder.radius : undefined;
-		this.size = props.currentBorder ? props.currentBorder.size : undefined;
-		this.type = props.currentBorder ? props.currentBorder.type : undefined;
 
 		const borderTypes = Tools.getBorderTypes();
 		borderTypes.splice(borderTypes.indexOf('solid'), 1);
@@ -84,6 +94,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.radius === undefined) return;
 
 		this.radius = undefined;
+		this.colorPicker.parentClearBorderRadius();
 
 		this.props.onClearRadius();
 	}
@@ -92,6 +103,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.radius === radius) return;
 
 		this.radius = radius;
+		this.colorPicker.parentSetBorderRadius(radius);
 
 		this.props.onPickRadius(radius);
 	}
@@ -100,6 +112,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.size === undefined) return;
 
 		this.size = undefined;
+		this.colorPicker.parentClearBorderSize();
 
 		this.props.onClearSize();
 	}
@@ -108,6 +121,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.size === size) return;
 
 		this.size = size;
+		this.colorPicker.parentSetBorderSize(size);
 
 		this.props.onPickSize(size);
 	}
@@ -116,6 +130,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.type === undefined) return;
 
 		this.type = undefined;
+		this.colorPicker.parentClearBorderType();
 
 		this.props.onClearType();
 	}
@@ -124,6 +139,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		if (this.type === type) return;
 
 		this.type = type;
+		this.colorPicker.parentSetBorderType(type);
 
 		this.props.onPickType(type);
 	}
@@ -215,8 +231,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		}
 
 		html += "<br /><br />";
-		html += "Color:";
-		html += "<br /><br />";
+		html += "Color: ";
 		html += this.colorPicker.render();
 
 		return html;

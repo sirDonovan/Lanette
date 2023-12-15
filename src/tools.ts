@@ -377,6 +377,14 @@ export class Tools {
 		} : colorPick.hexCode;
 	}
 
+	getBlackHexCode(): HexCode {
+		return '#000000' as HexCode;
+	}
+
+	getWhiteHexCode(): HexCode {
+		return '#ffffff' as HexCode;
+	}
+
 	getBlackTextCode(): TextColorHex {
 		return '#000000';
 	}
@@ -390,7 +398,8 @@ export class Tools {
 		return color;
 	}
 
-	getHexCodeGradient(topHex: HexCode, bottomHex?: HexCode): string {
+	getHexCodeGradient(topHex?: HexCode, bottomHex?: HexCode): string {
+		if (!topHex) topHex = this.getWhiteHexCode();
 		return "linear-gradient(" + topHex + "," + (bottomHex || topHex) + ")";
 	}
 
@@ -418,7 +427,7 @@ export class Tools {
 					if (borderColor in this.hexCodes) {
 						border += this.hexCodes[borderColor]!.color;
 					} else {
-						border += "#000000";
+						border += this.getBlackHexCode();
 					}
 				} else {
 					border += borderColor.color;
@@ -458,12 +467,14 @@ export class Tools {
 		if (backgroundColor) {
 			if (typeof backgroundColor === 'string') {
 				if (backgroundColor in this.hexCodes) {
-					textColor = 'color: ' + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor || '#000000',
+					textColor = 'color: ' +
+						this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor || this.getBlackTextCode(),
 						this.hexCodes[backgroundColor]!.color) + ';';
 					background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
 				}
 			} else {
-				textColor = 'color: ' + this.getDynamicTextHexCode(backgroundColor.textColor || '#000000', backgroundColor.color) + ';';
+				textColor = 'color: ' + this.getDynamicTextHexCode(backgroundColor.textColor || this.getBlackTextCode(),
+					backgroundColor.color) + ';';
 				background = "background: " + backgroundColor.gradient + ";";
 			}
 		}
@@ -487,7 +498,7 @@ export class Tools {
 					buttonStyle += "text-shadow: none;";
 				}
 			} else {
-				buttonStyle += "color: " + this.getDynamicTextHexCode(backgroundColor.textColor || "#000000",
+				buttonStyle += "color: " + this.getDynamicTextHexCode(backgroundColor.textColor || this.getBlackTextCode(),
 					backgroundColor.color) + ";";
 				buttonStyle += "background: " + backgroundColor.gradient + ";";
 				buttonStyle += "text-shadow: none;";
@@ -502,13 +513,13 @@ export class Tools {
 					if (borderColor in this.hexCodes) {
 						buttonStyle += this.hexCodes[borderColor]!.color;
 					} else {
-						buttonStyle += "#000000";
+						buttonStyle += this.getBlackHexCode();
 					}
 				} else {
 					buttonStyle += borderColor.color;
 				}
 			} else {
-				buttonStyle += "#000000";
+				buttonStyle += this.getBlackHexCode();
 			}
 			buttonStyle += ";";
 		}
