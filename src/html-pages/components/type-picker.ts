@@ -30,7 +30,7 @@ export class TypePicker extends PickerBase {
 		if (this.TypePickerLoaded) return;
 
 		const types: string[] = [];
-		for (const key of Dex.getData().typeKeys) {
+		for (const key of Dex.getTypeKeys()) {
 			types.push(Dex.getExistingType(key).name);
 		}
 

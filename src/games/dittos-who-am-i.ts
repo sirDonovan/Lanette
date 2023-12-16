@@ -83,7 +83,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 		const resistances: string[] = [];
 		const weaknesses: string[] = [];
-		for (const key of Dex.getData().typeKeys) {
+		for (const key of Dex.getTypeKeys()) {
 			const type = Dex.getExistingType(key);
 			if (Dex.isImmune(type.name, pokemon.types)) {
 				resistances.push(type.name);

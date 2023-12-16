@@ -16,7 +16,11 @@ describe("Dex", () => {
 		assert(dexData.moveKeys.length > 1);
 		assert(dexData.natureKeys.length > 1);
 		assert(dexData.pokemonKeys.length > 1);
-		assert(dexData.typeKeys.length > 1);
+
+		const typeKeys = Dex.getTypeKeys();
+		assert(typeKeys.length > 1);
+		assert(typeKeys.includes('normal'));
+		assert(!typeKeys.includes('stellar'));
 
 		assert(Object.keys(dexData.colors).length > 1);
 		assert(Object.keys(dexData.eggGroups).length > 1);
@@ -67,7 +71,7 @@ describe("Dex", () => {
 
 		pokemon = Dex.getExistingPokemon('Smeargle');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);
-		assertStrictEqual(allPossibleMoves.length, 848);
+		assertStrictEqual(allPossibleMoves.length, 854);
 
 		pokemon = Dex.getExistingPokemon('Pikachu-Gmax');
 		allPossibleMoves = Dex.getAllPossibleMoves(pokemon);

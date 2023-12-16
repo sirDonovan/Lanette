@@ -510,7 +510,7 @@ describe("pokemon-showdown", () => {
 			Types
 		*/
 
-		const typeKeys = Dex.getData().typeKeys;
+		const typeKeys = Dex.getTypeKeys();
 		assert(typeKeys.length);
 		assert(typeKeys.includes('normal'));
 
@@ -522,6 +522,7 @@ describe("pokemon-showdown", () => {
 		const gen6TypeKeys = Dex.getDex('gen6').getData().typeKeys;
 		const gen7TypeKeys = Dex.getDex('gen7').getData().typeKeys;
 		const gen8TypeKeys = Dex.getDex('gen8').getData().typeKeys;
+		const gen9TypeKeys = Dex.getDex('gen9').getData().typeKeys;
 
 		assert(gen1TypeKeys.includes('normal'));
 		assert(gen2TypeKeys.includes('normal'));
@@ -531,6 +532,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('normal'));
 		assert(gen7TypeKeys.includes('normal'));
 		assert(gen8TypeKeys.includes('normal'));
+		assert(gen9TypeKeys.includes('normal'));
 
 		assert(!gen1TypeKeys.includes('dark'));
 		assert(gen2TypeKeys.includes('dark'));
@@ -540,6 +542,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('dark'));
 		assert(gen7TypeKeys.includes('dark'));
 		assert(gen8TypeKeys.includes('dark'));
+		assert(gen9TypeKeys.includes('dark'));
 
 		assert(!gen1TypeKeys.includes('steel'));
 		assert(gen2TypeKeys.includes('steel'));
@@ -549,6 +552,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('steel'));
 		assert(gen7TypeKeys.includes('steel'));
 		assert(gen8TypeKeys.includes('steel'));
+		assert(gen9TypeKeys.includes('steel'));
 
 		assert(!gen1TypeKeys.includes('fairy'));
 		assert(!gen2TypeKeys.includes('fairy'));
@@ -558,6 +562,9 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('fairy'));
 		assert(gen7TypeKeys.includes('fairy'));
 		assert(gen8TypeKeys.includes('fairy'));
+		assert(gen9TypeKeys.includes('fairy'));
+
+		assert(gen9TypeKeys.includes('stellar'));
 
 		for (const i of typeKeys) {
 			const type = Dex.getType(i);

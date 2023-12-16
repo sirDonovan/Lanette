@@ -105,7 +105,7 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			const resistancesDex: Dict<string[]> = {};
 
 			const typeChartKeys: string[] = [];
-			for (const key of dex.getData().typeKeys) {
+			for (const key of dex.getTypeKeys()) {
 				const type = dex.getType(key);
 				if (type) typeChartKeys.push(type.name);
 			}

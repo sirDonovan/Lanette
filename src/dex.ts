@@ -31,6 +31,7 @@ const OM_OF_THE_MONTH = 'OM of the Month';
 const ROA_SPOTLIGHT = 'RoA Spotlight';
 const OM_OF_THE_MONTH_PREFIX = 'omotm';
 const ROA_SPOTLIGHT_PREFIX = 'roas';
+const STELLAR_TYPE = 'stellar';
 
 const smogonDexGenPaths: Dict<string> = {
 	1: 'rb',
@@ -319,6 +320,7 @@ export class Dex {
 	private readonly resistancesCache: Dict<string[]> = Object.create(null);
 	private readonly typeCache: Dict<ITypeData> = Object.create(null);
 	private typesList: readonly ITypeData[] | null = null;
+	private typeKeys: readonly string[] | null = null;
 	private readonly weaknessesCache: Dict<string[]> = Object.create(null);
 	/* eslint-enable */
 
@@ -1009,11 +1011,24 @@ export class Dex {
 		return type;
 	}
 
+	getTypeKeys(): readonly string[] {
+		if (this.typeKeys) return this.typeKeys;
+
+		const keys: string[] = [];
+		for (const i of this.getData().typeKeys) {
+			if (i === STELLAR_TYPE) continue;
+			keys.push(i);
+		}
+
+		this.typeKeys = keys;
+		return keys;
+	}
+
 	getTypesList(): readonly ITypeData[] {
 		if (this.typesList) return this.typesList;
 
 		const types: ITypeData[] = [];
-		for (const i of this.getData().typeKeys) {
+		for (const i of this.getTypeKeys()) {
 			types.push(this.getExistingType(i));
 		}
 
@@ -1216,7 +1231,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.weaknessesCache, cacheKey)) return this.weaknessesCache[cacheKey];
 
 		const weaknesses: string[] = [];
-		for (const key of this.getData().typeKeys) {
+		for (const key of this.getTypeKeys()) {
 			const type = this.getExistingType(key);
 			if (this.isImmune(type.name, pokemon)) continue;
 			if (this.getEffectiveness(type.name, pokemon) >= 1) weaknesses.push(type.name);
@@ -1231,7 +1246,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.inverseWeaknessesCache, cacheKey)) return this.inverseWeaknessesCache[cacheKey];
 
 		const inverseWeaknesses: string[] = [];
-		for (const key of this.getData().typeKeys) {
+		for (const key of this.getTypeKeys()) {
 			const type = this.getExistingType(key);
 			if (this.getInverseEffectiveness(type.name, pokemon) >= 1) inverseWeaknesses.push(type.name);
 		}
@@ -1245,7 +1260,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.resistancesCache, cacheKey)) return this.resistancesCache[cacheKey];
 
 		const resistances: string[] = [];
-		for (const key of this.getData().typeKeys) {
+		for (const key of this.getTypeKeys()) {
 			const type = this.getExistingType(key);
 			if (this.isImmune(type.name, pokemon)) continue;
 			if (this.getEffectiveness(type.name, pokemon) <= -1) resistances.push(type.name);
@@ -1260,7 +1275,7 @@ export class Dex {
 		if (Object.prototype.hasOwnProperty.call(this.inverseResistancesCache, cacheKey)) return this.inverseResistancesCache[cacheKey];
 
 		const inverseResistances: string[] = [];
-		for (const key of this.getData().typeKeys) {
+		for (const key of this.getTypeKeys()) {
 			const type = this.getExistingType(key);
 			if (this.getInverseEffectiveness(type.name, pokemon) <= -1) inverseResistances.push(type.name);
 		}

@@ -22,7 +22,7 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 		}
 
 		const typeNames: Dict<string> = {};
-		const typeKeys = Dex.getData().typeKeys;
+		const typeKeys = Dex.getTypeKeys();
 		for (const key of typeKeys) {
 			typeNames[key] = Dex.getExistingType(key).name;
 		}

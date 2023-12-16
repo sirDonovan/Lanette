@@ -1420,7 +1420,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
 		} else if (this.monoType) {
-			const types = this.shuffle(Dex.getData().typeKeys);
+			const types = this.shuffle(Dex.getTypeKeys());
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
 			pokedex = this.createBasePokedex();

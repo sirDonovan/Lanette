@@ -24,7 +24,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
 	static loadData(): void {
-		for (const key of Dex.getData().typeKeys) {
+		for (const key of Dex.getTypeKeys()) {
 			data.categories.push(Dex.getExistingType(key).name + " type Pokemon");
 		}
 

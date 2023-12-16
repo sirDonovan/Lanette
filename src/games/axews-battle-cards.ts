@@ -203,7 +203,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
-				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				const typeKeys = game.shuffle(dex.getTypeKeys());
 				let usableType: string | undefined;
 				for (const typeKey of typeKeys) {
 					const typeName = dex.getExistingType(typeKey).name;
@@ -249,7 +249,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
-				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				const typeKeys = game.shuffle(dex.getTypeKeys());
 				let usableTypes: string | undefined;
 				for (let i = 0; i < typeKeys.length; i++) {
 					const typeNameA = dex.getExistingType(typeKeys[i]).name;
@@ -412,7 +412,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		super.onSignups();
 
 		const dex = this.getDex();
-		for (const key of dex.getData().typeKeys) {
+		for (const key of dex.getTypeKeys()) {
 			const type = dex.getExistingType(key);
 			this.usableTypes[type.id] = type.name;
 			this.usableTypes[type.id + 'type'] = type.name;
@@ -442,7 +442,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	alterCard(dex: typeof Dex, card: IPokemonCard): IPokemonCard {
 		if (this.hackmonsTypes) {
 			const originalKey = this.getTypingKey(card.types);
-			const typeKeys = dex.getData().typeKeys;
+			const typeKeys = dex.getTypeKeys();
 
 			let newTypes: string[] = [];
 			let newKey = '';
@@ -459,7 +459,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			card.types = newTypes;
 		} else if (this.deltaTypes) {
 			if (card.types.length <= 2 && this.random(2)) {
-				const typeKeys = dex.getData().typeKeys;
+				const typeKeys = dex.getTypeKeys();
 				const dualType = card.types.length === 2;
 				let deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
 				while (deltaType === card.types[0] || (dualType && deltaType === card.types[1])) {
@@ -547,7 +547,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	hasNoWeaknesses(dex: typeof Dex, types: readonly string[]): boolean {
-		for (const key of dex.getData().typeKeys) {
+		for (const key of dex.getTypeKeys()) {
 			const type = dex.getExistingType(key).name;
 			if (this.inverseTypes) {
 				if (dex.getInverseEffectiveness(type, types) > 0) return false;

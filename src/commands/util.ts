@@ -531,7 +531,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const typeKeys = Dex.getData().typeKeys.slice();
+			const typeKeys = Dex.getTypeKeys().slice();
 			const key = Tools.sampleOne(typeKeys);
 			const types: string[] = [Dex.getExistingType(key).name];
 			if (Tools.random(2)) {
