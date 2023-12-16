@@ -21,6 +21,8 @@ export interface IColorPick {
 }
 
 interface IColorPickerProps extends IPickerProps<IColorPick> {
+	name: string;
+
 	// only used for previews
 	border?: boolean;
 	borderRadius?: number;
@@ -72,6 +74,7 @@ const clearCustomHexCodeCommand = 'clearcustomhexcode';
 const chooseBlackTextColorCommand = 'chooseblacktextcolor';
 const chooseWhiteTextColorCommand = 'choosewhitetextcolor';
 const toggleShinyPokemonCommand = 'toggleshinypokemon';
+const copySourceCommand = 'copysource';
 
 const primaryColorName = "primaryColor";
 const secondaryColorName = "secondaryColor";
@@ -128,6 +131,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 	currentView: 'input' | 'preselected' = 'input';
 	paginations: Pagination[] = [];
+	copySources: ColorPicker[] = [];
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
@@ -157,7 +161,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
 			const hexCode = this.currentPicks[0] as HexCode;
-			this.customPrimaryColor = hexCode;
 
 			if (Tools.hexCodes[hexCode]!.category === 'shade') {
 				this.lightness = 'shade';
@@ -432,6 +435,48 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.ColorPickerLoaded = true;
 	}
 
+	registerCopySources(copySources: readonly ColorPicker[]): void {
+		this.copySources = [];
+		for (const source of copySources) {
+			if (source === this) continue;
+			this.copySources.push(source);
+		}
+	}
+
+	copySource(source: ColorPicker): void {
+		this.customPrimaryColor = source.customPrimaryColor;
+		this.customTextColor = source.customTextColor;
+
+		if (!this.props.border) this.customSecondaryColor = source.customSecondaryColor;
+
+		if (this.customPrimaryColor) {
+			this.customPrimaryColorInput.parentSetInput(this.customPrimaryColor);
+		} else {
+			this.customPrimaryColorInput.parentClearInput();
+		}
+
+		if (this.customSecondaryColor) {
+			this.customSecondaryColorInput.parentSetInput(this.customSecondaryColor);
+		} else {
+			this.customSecondaryColorInput.parentClearInput();
+		}
+
+		this.updateCustomColors();
+
+		this.currentPicks = source.currentPicks.slice();
+		this.renderChoices();
+
+		if (this.customPrimaryColor) {
+			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
+			this.parentPick(customHexCodeKey);
+		} else if (this.currentPicks.length) {
+			this.parentPick(this.currentPicks[0]);
+		} else {
+			this.currentPicks = [customHexCodeKey];
+			this.parentClear();
+		}
+	}
+
 	createColorPagination(colors: HexCode[]): Pagination {
 		const elements: IPageElement[] = [this.noPickElement];
 
@@ -662,6 +707,10 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.borderType = type;
 	}
 
+	parentSetPokemon(pokemon: string): void {
+		this.pokemon = pokemon;
+	}
+
 	tryCommand(originalTargets: readonly string[]): string | undefined {
 		const targets = originalTargets.slice();
 		const cmd = Tools.toId(targets[0]);
@@ -748,6 +797,14 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			this.shinyPokemon = !this.shinyPokemon;
 
 			this.props.reRender();
+		} else if (cmd === copySourceCommand) {
+			if (!this.copySources.length) return;
+
+			const index = parseInt(targets[0].trim());
+			if (isNaN(index) || !this.copySources[index]) return;
+
+			this.copySource(this.copySources[index]);
+			this.props.reRender();
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -805,9 +862,9 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 					Tools.getCustomButtonStyle(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize, this.borderType) +
 					"'>Button border preview</button></div>";
 			} else {
-				html += "<div style='height: 48px;width: 300px'>" +
-					Tools.getHexSpan(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize, this.borderType) +
-					"<br /><b>Border preview</b><br />&nbsp;</span></div>";
+				const span = Tools.getHexSpan(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize, this.borderType);
+				html += "<div style='height: 48px;width: 300px'>" + span + "<br /><b>Border preview</b><br />&nbsp;" +
+					(span ? "</span>" : "") + "</div>";
 			}
 		} else {
 			if (this.props.button) {
@@ -832,6 +889,17 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
 		html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + clearCustomHexCodeCommand, "Clear custom color" +
 			(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+
+		if (this.copySources.length) {
+			const sources: string[] = [];
+			for (let i = 0; i < this.copySources.length; i++) {
+				sources.push(this.getQuietPmButton(this.commandPrefix + ", " + copySourceCommand + ", " + i,
+					"Copy <b>" + this.copySources[i].props.name + "</b>"));
+			}
+
+			html += " | " + sources.join(" | ");
+		}
+
 		html += "<br /><br />";
 
 		html += this.renderColorForm('primary');
@@ -853,7 +921,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		const pokemon = Dex.getPokemon(this.pokemon || "");
 		if (pokemon) {
-			html += "<br />";
+			html += "<br /><div style='float: right'>";
 			const icon = Dex.getPokemonIcon(pokemon);
 			if (icon) {
 				html += icon;
@@ -861,6 +929,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			}
 
 			const modelGenerations = Dex.getModelGenerations();
+			let gifs = 0;
 			for (const modelGeneration of modelGenerations) {
 				if (!Dex.hasModelData(pokemon, modelGeneration)) continue;
 
@@ -868,8 +937,15 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				if (gif) {
 					html += gif;
 					html += "&nbsp;";
+
+					gifs++;
+					if (gifs === 3) {
+						html += "</div><br /><div style='float: right'>";
+						gifs = 0;
+					}
 				}
 			}
+			html += "</div>";
 		}
 
 		return html;

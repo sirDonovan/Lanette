@@ -94,6 +94,7 @@ class GameHostBox extends HtmlPageBase {
 		const colorPickerPokemon = currentPokemon && currentPokemon.length ? currentPokemon[0]?.pokemon : undefined;
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof currentBackgroundColor === 'string' ? currentBackgroundColor : undefined,
 			currentPickObject: currentBackgroundColor && typeof currentBackgroundColor !== 'string' ? currentBackgroundColor : undefined,
 			pokemon: colorPickerPokemon,
@@ -105,6 +106,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			name: "Button",
 			button: true,
 			currentPick: typeof currentButtonColor === 'string' ? currentButtonColor : undefined,
 			currentPickObject: currentButtonColor && typeof currentButtonColor !== 'string' ? currentButtonColor : undefined,
@@ -117,6 +119,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsBackgroundColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsBackgroundColorCommand, {
+			name: "Signups background",
 			currentPick: typeof currentSignupsBackgroundColor === 'string' ? currentSignupsBackgroundColor : undefined,
 			currentPickObject: currentSignupsBackgroundColor && typeof currentSignupsBackgroundColor !== 'string' ?
 				currentSignupsBackgroundColor : undefined,
@@ -129,6 +132,7 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsButtonColorCommand, {
+			name: "Signups button",
 			button: true,
 			currentPick: typeof currentSignupsButtonColor === 'string' ? currentSignupsButtonColor : undefined,
 			currentPickObject: currentSignupsButtonColor && typeof currentSignupsButtonColor !== 'string' ?

@@ -43,6 +43,7 @@ class GameTrainerCard extends HtmlPageBase {
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
 			currentPickObject: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
 				trainerCard.background : undefined,

@@ -64,6 +64,7 @@ class GameVoteBox extends HtmlPageBase {
 		const currentGamePokemonAvatar = database.gameVoteBoxes![this.userId].pokemonAvatar;
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof gameVoteBox.background === 'string' ? gameVoteBox.background : undefined,
 			currentPickObject: gameVoteBox.background && typeof gameVoteBox.background !== 'string' ?
 				gameVoteBox.background : undefined,
@@ -76,6 +77,7 @@ class GameVoteBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			name: "Buttons",
 			button: true,
 			currentPick: typeof gameVoteBox.buttons === 'string' ? gameVoteBox.buttons : undefined,
 			currentPickObject: gameVoteBox.buttons && typeof gameVoteBox.buttons !== 'string' ?
@@ -89,6 +91,7 @@ class GameVoteBox extends HtmlPageBase {
 		});
 
 		this.signupsBackgroundColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsBackgroundColorCommand, {
+			name: "Votes background",
 			currentPick: typeof gameVoteBox.signupsBackground === 'string' ? gameVoteBox.signupsBackground : undefined,
 			currentPickObject: gameVoteBox.signupsBackground && typeof gameVoteBox.signupsBackground !== 'string' ?
 				gameVoteBox.signupsBackground : undefined,
@@ -175,6 +178,11 @@ class GameVoteBox extends HtmlPageBase {
 
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.backgroundBorderStyle, this.buttonsBorderStyle,
 			this.signupsBackgroundColorPicker, this.signupsBackgroundBorderStyle, this.pokemonAvatarPicker];
+
+		const colorPickers = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker];
+		for (const colorPicker of colorPickers) {
+			colorPicker.registerCopySources(colorPickers);
+		}
 	}
 
 	getDatabase(): IDatabase {
@@ -336,10 +344,15 @@ class GameVoteBox extends HtmlPageBase {
 		this.send();
 	}
 
-	selectPokemonAvatar(pokemon: PokemonChoices): void {
+	selectPokemonAvatar(choices: PokemonChoices): void {
 		const database = this.getDatabase();
 
-		database.gameVoteBoxes![this.userId].pokemonAvatar = pokemon[0]!.pokemon;
+		const pokemon = choices[0]!.pokemon;
+		database.gameVoteBoxes![this.userId].pokemonAvatar = pokemon;
+
+		this.backgroundColorPicker.parentSetPokemon(pokemon);
+		this.buttonColorPicker.parentSetPokemon(pokemon);
+		this.signupsBackgroundColorPicker.parentSetPokemon(pokemon);
 
 		this.send();
 	}

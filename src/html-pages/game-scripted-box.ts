@@ -124,6 +124,7 @@ class GameScriptedBox extends HtmlPageBase {
 		const currentGamePokemonAvatar = database.gameScriptedBoxes![this.userId].pokemonAvatar;
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof gameScriptedBox.background === 'string' ? gameScriptedBox.background : undefined,
 			currentPickObject: gameScriptedBox.background && typeof gameScriptedBox.background !== 'string' ?
 				gameScriptedBox.background : undefined,
@@ -136,6 +137,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			name: "Button",
 			button: true,
 			currentPick: typeof gameScriptedBox.buttons === 'string' ? gameScriptedBox.buttons : undefined,
 			currentPickObject: gameScriptedBox.buttons && typeof gameScriptedBox.buttons !== 'string' ?
@@ -149,6 +151,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.signupsBackgroundColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsBackgroundColorCommand, {
+			name: "Signups background",
 			currentPick: typeof gameScriptedBox.signupsBackground === 'string' ? gameScriptedBox.signupsBackground : undefined,
 			currentPickObject: gameScriptedBox.signupsBackground && typeof gameScriptedBox.signupsBackground !== 'string' ?
 				gameScriptedBox.signupsBackground : undefined,
@@ -161,6 +164,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsButtonColorCommand, {
+			name: "Signups button",
 			button: true,
 			currentPick: typeof gameScriptedBox.signupsButtons === 'string' ? gameScriptedBox.signupsButtons : undefined,
 			currentPickObject: gameScriptedBox.signupsButtons && typeof gameScriptedBox.signupsButtons !== 'string' ?
@@ -174,6 +178,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.gameBackgroundColorPicker = new ColorPicker(this, this.commandPrefix, setGameBackgroundColorCommand, {
+			name: "Game background",
 			currentPick: typeof gameScriptedBox.gameBackground === 'string' ? gameScriptedBox.gameBackground : undefined,
 			currentPickObject: gameScriptedBox.gameBackground && typeof gameScriptedBox.gameBackground !== 'string' ?
 				gameScriptedBox.gameBackground : undefined,
@@ -186,6 +191,7 @@ class GameScriptedBox extends HtmlPageBase {
 		});
 
 		this.gameButtonColorPicker = new ColorPicker(this, this.commandPrefix, setGameButtonColorCommand, {
+			name: "Game button",
 			button: true,
 			currentPick: typeof gameScriptedBox.gameButtons === 'string' ? gameScriptedBox.gameButtons : undefined,
 			currentPickObject: gameScriptedBox.gameButtons && typeof gameScriptedBox.gameButtons !== 'string' ?

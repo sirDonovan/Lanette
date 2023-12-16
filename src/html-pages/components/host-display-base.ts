@@ -80,6 +80,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.backgroundColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof props.currentBackground === 'string' ? props.currentBackground : undefined,
 			currentPickObject: props.currentBackground && typeof props.currentBackground !== 'string' ? props.currentBackground : undefined,
 			random: props.random,

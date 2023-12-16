@@ -285,6 +285,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.headerColorPicker = new ColorPicker(this, this.commandPrefix, setHeaderColorCommand, {
+			name: "Header",
 			currentPick: trainerCard && typeof trainerCard.header === 'string' ? trainerCard.header : undefined,
 			currentPickObject: trainerCard && trainerCard.header && typeof trainerCard.header !== 'string' ? trainerCard.header : undefined,
 			pokemon: colorPickerPokemon,
@@ -297,6 +298,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.tableColorPicker = new ColorPicker(this, this.commandPrefix, setTableColorCommand, {
+			name: "Table",
 			currentPick: trainerCard && typeof trainerCard.table === 'string' ? trainerCard.table : undefined,
 			currentPickObject: trainerCard && trainerCard.table && typeof trainerCard.table !== 'string' ? trainerCard.table : undefined,
 			pokemon: colorPickerPokemon,
@@ -309,6 +311,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.footerColorPicker = new ColorPicker(this, this.commandPrefix, setFooterColorCommand, {
+			name: "Footer",
 			currentPick: trainerCard && typeof trainerCard.footer === 'string' ? trainerCard.footer : undefined,
 			currentPickObject: trainerCard && trainerCard.footer && typeof trainerCard.footer !== 'string' ? trainerCard.footer : undefined,
 			pokemon: colorPickerPokemon,
