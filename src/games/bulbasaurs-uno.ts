@@ -325,7 +325,11 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IPokemonCard, player: Player, targets: string[], cards: IPokemonCard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (card.action.getTargetErrors(this, targets, player, cards)) return false;
+		const error = card.action.getTargetErrors(this, targets, player, cards);
+		if (error) {
+			this.say(error);
+			return false;
+		}
 
 		const id = card.id as ActionCardNames;
 		let firstTimeShiny = false;
