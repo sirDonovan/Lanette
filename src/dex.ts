@@ -1376,11 +1376,11 @@ export class Dex {
 
 		if (!direction) direction = 'front';
 		if (direction === 'front') {
-			if (shiny) {
+			if (shiny && generation !== 'rb') {
 				prefix += "-shiny";
 			}
 		} else {
-			if (shiny) {
+			if (shiny && generation !== 'rb') {
 				prefix += "-back-shiny";
 			} else {
 				prefix += "-back";
