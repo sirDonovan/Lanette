@@ -90,6 +90,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 				pokemonList: lists[generation],
 				maxPokemon: 1,
 				minPokemon: 1,
+				name: "Gen " + generation + " Pokemon",
 				placeholder: "Enter Pokemon #" + (this.pickerIndex + 1),
 				submitText: "Update",
 				onClear: () => this.clearPokemonInput(),

@@ -44,6 +44,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			inputWidth: Tools.minRoomWidth,
 			maxPokemon: props.maxPokemon,
 			minPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

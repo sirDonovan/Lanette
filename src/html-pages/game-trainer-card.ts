@@ -72,6 +72,7 @@ class GameTrainerCard extends HtmlPageBase {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: maxIcons,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

@@ -244,8 +244,9 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		this.formatPicker = new FormatTextInput(this, this.commandPrefix, setFormatCommand, {
 			currentInput: format ? format.name : "",
 			inputWidth: Tools.minRoomWidth,
-			placeholder: "Enter a format",
 			maxFormats: 1,
+			name: "Format",
+			placeholder: "Enter a format",
 			onClear: () => this.clearFormatInput(),
 			onSubmit: (output) => this.submitFormatInput(output),
 			readonly: this.readonly,
@@ -276,6 +277,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		});
 
 		this.bioInput = new TextInput(this, this.commandPrefix, setBioCommand, {
+			name: "bio",
 			placeholder: "Enter bio",
 			stripHtmlCharacters: true,
 			onClear: () => this.clearBio(),
@@ -330,6 +332,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 6,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

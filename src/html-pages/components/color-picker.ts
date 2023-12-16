@@ -297,6 +297,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.customPrimaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customPrimaryHexInputCommand, {
 			currentInput: this.customPrimaryColor,
 			label: "Manual entry",
+			name: "Primary manual",
 			hideClearButton: true,
 			onSubmit: (output) => this.submitCustomPrimaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
@@ -305,6 +306,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.customSecondaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customSecondaryHexInputCommand, {
 			currentInput: this.customSecondaryColor,
 			label: "Manual entry",
+			name: "Secondary manual",
 			onClear: () => this.clearCustomSecondaryColor(),
 			onSubmit: (output) => this.submitCustomSecondaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
@@ -315,6 +317,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter a Pokemon",
 			clearText: "Clear",
 			submitText: "Update",

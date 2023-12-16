@@ -13,6 +13,7 @@ export interface ITextInputValidation<OutputType = string> {
 }
 
 export interface ITextInputProps<OutputType = string> extends IComponentProps {
+	name: string;
 	clearText?: string;
 	currentInput?: string;
 	inputWidth?: number;
@@ -29,8 +30,6 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	validateSubmission?: (input: string, output?: OutputType) => ITextInputValidation;
 }
 
-const tagName = 'textInput';
-
 export class TextInput<OutputType = string> extends ComponentBase<ITextInputProps<OutputType>> {
 	componentId: string = 'text-input';
 	afterSubmitHtml: string = "";
@@ -42,6 +41,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 
 	clearText: string;
 	submitText: string;
+	tagName: string;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITextInputProps<OutputType>) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
@@ -49,6 +49,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		if (props.currentInput) this.currentInput = props.currentInput;
 		this.clearText = props.clearText || "Clear";
 		this.submitText = props.submitText || "Submit";
+		this.tagName = Tools.toId(props.name);
 	}
 
 	updateSubmitText(text: string): void {
@@ -143,12 +144,12 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 		}
 
 		html += "<form data-submitsend='/msgroom " + this.htmlPage.room.id + ", /botmsg " + Users.self.name + ", " +
-			this.commandPrefix + ", " + this.submitCommand + ", {" + tagName + "}'>";
+			this.commandPrefix + ", " + this.submitCommand + ", {" + this.tagName + "}'>";
 
 		if (this.props.label) html += this.props.label + ":&nbsp;";
 		if (this.props.textArea) {
 			const configuration = this.props.textAreaConfiguration;
-			html += "<textarea name='" + tagName + "' rows='" + (configuration && configuration.rows ? configuration.rows : 4) +
+			html += "<textarea name='" + this.tagName + "' rows='" + (configuration && configuration.rows ? configuration.rows : 4) +
 				"' cols='" + (configuration && configuration.cols ? configuration.cols : 50) + "'" +
 				(this.props.readonly ? " disabled" : "") + ">";
 			if (this.currentInput) {
@@ -158,7 +159,7 @@ export class TextInput<OutputType = string> extends ComponentBase<ITextInputProp
 			}
 			html += "</textarea><br />";
 		} else {
-			html += "<input name='" + tagName + "'";
+			html += "<input name='" + this.tagName + "'";
 			if (this.props.placeholder) html += " placeholder='" + this.props.placeholder + "'";
 			if (this.currentInput) html += ' value="' + this.currentInput + '"';
 			if (this.props.inputWidth) html += " style='width:" + this.props.inputWidth + "px'";

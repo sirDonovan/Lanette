@@ -91,6 +91,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 		this.addPointsInput = new NumberTextInput(this, this.commandPrefix, addPointsCommand, {
 			min: 1,
+			name: "Add points",
 			label: "Add point(s)",
 			submitText: "Add",
 			onClear: () => this.onClearAddPoints(),
@@ -102,6 +103,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 		this.removePointsInput = new NumberTextInput(this, this.commandPrefix, removePointsCommand, {
 			min: 1,
+			name: "Remove points",
 			label: "Remove point(s)",
 			submitText: "Remove",
 			onClear: () => this.onClearRemovePoints(),
@@ -114,6 +116,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.storedMessageInput = new MultiTextInput(this, this.commandPrefix, storedMessageInputCommand, {
 			inputCount: 2,
 			labels: ['Key', 'Message'],
+			name: "Stored message",
 			textAreas: [false, true],
 			textAreaConfigurations: [null, {rows: 3, cols: 60}],
 			onClear: () => this.onClearStoreMessage(),
@@ -126,6 +129,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.twistInput = new TextInput(this, this.commandPrefix, twistInputCommand, {
 			currentInput: room.userHostedGame && room.userHostedGame.twist ? room.userHostedGame.twist : "",
 			label: "Enter twist",
+			name: "Twist",
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
 			onClear: () => this.onClearTwist(),

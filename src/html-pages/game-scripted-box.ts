@@ -107,9 +107,10 @@ class GameScriptedBox extends HtmlPageBase {
 		this.lastCopiedGameFormat = previewFormat;
 
 		this.gameTextInput = new GameTextInput(this, this.commandPrefix, setGameFormatCommand, {
-			currentInput: previewFormat ? Games.getExistingFormat(previewFormat).name : "",
 			allowModes: false,
 			allowVariants: false,
+			currentInput: previewFormat ? Games.getExistingFormat(previewFormat).name : "",
+			name: "Game format",
 			onClear: () => this.clearFormat(),
 			onSubmit: (output) => this.setFormat(output),
 			reRender: () => this.send(),
@@ -211,6 +212,7 @@ class GameScriptedBox extends HtmlPageBase {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 1,
+			name: "Pokemon avatar",
 			placeholder: "Enter a Pokemon",
 			clearText: "Clear",
 			submitText: "Update",

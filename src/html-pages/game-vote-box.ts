@@ -110,6 +110,7 @@ class GameVoteBox extends HtmlPageBase {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: 1,
+			name: "Pokemon avatar",
 			placeholder: "Enter a Pokemon",
 			clearText: "Clear",
 			submitText: "Update",
