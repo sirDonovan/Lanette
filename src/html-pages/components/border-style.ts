@@ -16,14 +16,15 @@ export interface IBorderStyleProps extends IComponentProps {
 	maxRadius: number;
 	minSize: number;
 	maxSize: number;
+	name: string;
 	onClearColor: (dontRender: boolean | undefined) => void;
 	onPickColor: (color: IColorPick, dontRender: boolean | undefined) => void;
-	onClearRadius: () => void;
-	onPickRadius: (radius: number) => void;
-	onClearSize: () => void;
-	onPickSize: (size: number) => void;
-	onClearType: () => void;
-	onPickType: (type: BorderType) => void;
+	onClearRadius: (dontRender: boolean | undefined) => void;
+	onPickRadius: (radius: number, dontRender: boolean | undefined) => void;
+	onClearSize: (dontRender: boolean | undefined) => void;
+	onPickSize: (size: number, dontRender: boolean | undefined) => void;
+	onClearType: (dontRender: boolean | undefined) => void;
+	onPickType: (type: BorderType, dontRender: boolean | undefined) => void;
 }
 
 const defaultValue = 'default';
@@ -31,6 +32,7 @@ const setColorCommand = 'setcolor';
 const setRadiusCommand = 'setradius';
 const setSizeCommand = 'setsize';
 const setTypeCommand = 'settype';
+const copySourceCommand = 'copysource';
 
 export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	componentId: string = 'border-style';
@@ -41,6 +43,8 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 	size: number | undefined;
 	type: BorderType | undefined;
 
+	copySources: BorderStyle[] = [];
+
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IBorderStyleProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
@@ -49,6 +53,7 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		this.type = props.currentBorder ? props.currentBorder.type : undefined;
 
 		this.colorPicker = new ColorPicker(htmlPage, this.commandPrefix, setColorCommand, {
+			name: props.name,
 			border: true,
 			borderRadius: this.radius,
 			borderSize: this.size,
@@ -74,6 +79,58 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		this.borderTypes = borderTypes;
 	}
 
+	registerCopySources(copySources: readonly BorderStyle[]): void {
+		this.copySources = [];
+
+		const colorPickers: ColorPicker[] = [this.colorPicker];
+		for (const source of copySources) {
+			if (source === this) continue;
+			this.copySources.push(source);
+			colorPickers.push(source.colorPicker);
+		}
+
+		for (const colorPicker of colorPickers) {
+			colorPicker.registerCopySources(colorPickers);
+		}
+	}
+
+	copySource(source: BorderStyle): void {
+		let radius = source.radius;
+
+		if (radius) {
+			if (radius > this.props.maxRadius) {
+				radius = this.props.maxRadius;
+			} else if (radius < this.props.minRadius) {
+				radius = this.props.minRadius;
+			}
+
+			this.setRadius(radius, true);
+		} else {
+			this.clearRadius(true);
+		}
+
+		let size = source.size;
+		if (size) {
+			if (size > this.props.maxSize) {
+				size = this.props.maxSize;
+			} else if (size < this.props.minSize) {
+				size = this.props.minSize;
+			}
+
+			this.setSize(size, true);
+		} else {
+			this.clearSize(true);
+		}
+
+		if (source.type) {
+			this.setType(source.type, true);
+		} else {
+			this.clearType(true);
+		}
+
+		this.colorPicker.copySource(source.colorPicker);
+	}
+
 	pickColorHueVariation(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
 	}
@@ -90,58 +147,62 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 		this.props.onPickColor(color, dontRender);
 	}
 
-	clearRadius(): void {
+	clearRadius(dontRender?: boolean): void {
 		if (this.radius === undefined) return;
 
 		this.radius = undefined;
 		this.colorPicker.parentClearBorderRadius();
 
-		this.props.onClearRadius();
+		this.props.onClearRadius(dontRender);
 	}
 
-	setRadius(radius: number): void {
+	setRadius(radius: number, dontRender?: boolean): void {
 		if (this.radius === radius) return;
 
 		this.radius = radius;
 		this.colorPicker.parentSetBorderRadius(radius);
 
-		this.props.onPickRadius(radius);
+		this.props.onPickRadius(radius, dontRender);
 	}
 
-	clearSize(): void {
+	clearSize(dontRender?: boolean): void {
 		if (this.size === undefined) return;
 
 		this.size = undefined;
 		this.colorPicker.parentClearBorderSize();
 
-		this.props.onClearSize();
+		this.props.onClearSize(dontRender);
 	}
 
-	setSize(size: number): void {
+	setSize(size: number, dontRender?: boolean): void {
 		if (this.size === size) return;
 
 		this.size = size;
 		this.colorPicker.parentSetBorderSize(size);
 
-		this.props.onPickSize(size);
+		this.props.onPickSize(size, dontRender);
 	}
 
-	clearType(): void {
+	clearType(dontRender?: boolean): void {
 		if (this.type === undefined) return;
 
 		this.type = undefined;
 		this.colorPicker.parentClearBorderType();
 
-		this.props.onClearType();
+		this.props.onClearType(dontRender);
 	}
 
-	setType(type: BorderType): void {
+	setType(type: BorderType, dontRender?: boolean): void {
 		if (this.type === type) return;
 
 		this.type = type;
 		this.colorPicker.parentSetBorderType(type);
 
-		this.props.onPickType(type);
+		this.props.onPickType(type, dontRender);
+	}
+
+	parentSetPokemon(pokemon: string): void {
+		this.colorPicker.parentSetPokemon(pokemon);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -181,6 +242,14 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 				}
 				this.setType(type as BorderType);
 			}
+		} else if (cmd === copySourceCommand) {
+			if (!this.copySources.length) return;
+
+			const index = parseInt(targets[0].trim());
+			if (isNaN(index) || !this.copySources[index]) return;
+
+			this.copySource(this.copySources[index]);
+			this.props.reRender();
 		} else {
 			return this.checkComponentCommands(cmd, targets);
 		}
@@ -188,6 +257,17 @@ export class BorderStyle extends ComponentBase<IBorderStyleProps> {
 
 	render(): string {
 		let html = "";
+		if (this.copySources.length) {
+			const sources: string[] = [];
+			for (let i = 0; i < this.copySources.length; i++) {
+				sources.push(this.getQuietPmButton(this.commandPrefix + ", " + copySourceCommand + ", " + i,
+					"Copy <b>" + this.copySources[i].props.name + "</b>"));
+			}
+
+			html += sources.join(" ");
+			html += "<br /><br />";
+		}
+
 		if (this.props.minRadius && this.props.maxRadius) {
 			html += "Radius:&nbsp;";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + setRadiusCommand + ", " + defaultValue, "Default",

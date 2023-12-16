@@ -153,12 +153,12 @@ export class GameHostControlPanel extends HtmlPageBase {
 			setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
 			onClearBorderColor: (dontRender) => this.clearBorderColor(dontRender),
 			onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor(color, dontRender),
-			onClearBorderRadius: () => this.clearBorderRadius(),
-			onPickBorderRadius: (radius) => this.setBorderRadius(radius),
-			onClearBorderSize: () => this.clearBorderSize(),
-			onPickBorderSize: (size) => this.setBorderSize(size),
-			onClearBorderType: () => this.clearBorderType(),
-			onPickBorderType: (type) => this.setBorderType(type),
+			onClearBorderRadius: (dontRender) => this.clearBorderRadius(dontRender),
+			onPickBorderRadius: (radius, dontRender) => this.setBorderRadius(radius, dontRender),
+			onClearBorderSize: (dontRender) => this.clearBorderSize(dontRender),
+			onPickBorderSize: (size, dontRender) => this.setBorderSize(size, dontRender),
+			onClearBorderType: (dontRender) => this.clearBorderType(dontRender),
+			onPickBorderType: (type, dontRender) => this.setBorderType(type, dontRender),
 			reRender: () => this.send(),
 		};
 
@@ -482,17 +482,17 @@ export class GameHostControlPanel extends HtmlPageBase {
 		if (!dontRender) this.send();
 	}
 
-	clearBorderRadius(): void {
+	clearBorderRadius(dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (database.gameHostDisplays![this.userId].backgroundBorder) {
 			delete database.gameHostDisplays![this.userId].backgroundBorder!.radius;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderRadius(radius: number): void {
+	setBorderRadius(radius: number, dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
@@ -500,20 +500,20 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 		database.gameHostDisplays![this.userId].backgroundBorder!.radius = radius;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderSize(): void {
+	clearBorderSize(dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (database.gameHostDisplays![this.userId].backgroundBorder) {
 			delete database.gameHostDisplays![this.userId].backgroundBorder!.size;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderSize(size: number): void {
+	setBorderSize(size: number, dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
@@ -521,20 +521,20 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 		database.gameHostDisplays![this.userId].backgroundBorder!.size = size;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderType(): void {
+	clearBorderType(dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (database.gameHostDisplays![this.userId].backgroundBorder) {
 			delete database.gameHostDisplays![this.userId].backgroundBorder!.type;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderType(type: BorderType): void {
+	setBorderType(type: BorderType, dontRender?: boolean): void {
 		const database = this.getDatabase();
 
 		if (!database.gameHostDisplays![this.userId].backgroundBorder) {
@@ -542,7 +542,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 		database.gameHostDisplays![this.userId].backgroundBorder!.type = type;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
 	setAutoSend(autoSend: boolean): void {

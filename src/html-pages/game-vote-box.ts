@@ -119,6 +119,7 @@ class GameVoteBox extends HtmlPageBase {
 		});
 
 		this.backgroundBorderStyle = new BorderStyle(this, this.commandPrefix, setBackgroudBorderStyleCommand, {
+			name: "Background",
 			currentBorder: gameVoteBox.backgroundBorder,
 			minRadius: 2,
 			maxRadius: 50,
@@ -127,16 +128,17 @@ class GameVoteBox extends HtmlPageBase {
 			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('background', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('background'),
-			onPickRadius: (radius) => this.setBorderRadius('background', radius),
-			onClearSize: () => this.clearBorderSize('background'),
-			onPickSize: (size) => this.setBorderSize('background', size),
-			onClearType: () => this.clearBorderType('background'),
-			onPickType: (type) => this.setBorderType('background', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('background', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('background', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('background', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('background', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('background', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('background', type, dontRender),
 			reRender: () => this.send(),
 		});
 
 		this.buttonsBorderStyle = new BorderStyle(this, this.commandPrefix, setButtonBorderStyleCommand, {
+			name: "Buttons",
 			button: true,
 			currentBorder: gameVoteBox.buttonsBorder,
 			minRadius: 2,
@@ -146,16 +148,17 @@ class GameVoteBox extends HtmlPageBase {
 			pokemon: currentGamePokemonAvatar,
 			onClearColor: (dontRender) => this.clearBorderColor('buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('buttons', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('buttons'),
-			onPickRadius: (radius) => this.setBorderRadius('buttons', radius),
-			onClearSize: () => this.clearBorderSize('buttons'),
-			onPickSize: (size) => this.setBorderSize('buttons', size),
-			onClearType: () => this.clearBorderType('buttons'),
-			onPickType: (type) => this.setBorderType('buttons', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('buttons', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('buttons', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('buttons', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('buttons', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('buttons', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('buttons', type, dontRender),
 			reRender: () => this.send(),
 		});
 
 		this.signupsBackgroundBorderStyle = new BorderStyle(this, this.commandPrefix, setSignupsBackgroundBorderStyleCommand, {
+			name: "Votes background",
 			currentBorder: gameVoteBox.backgroundBorder,
 			minRadius: 2,
 			maxRadius: 50,
@@ -165,12 +168,12 @@ class GameVoteBox extends HtmlPageBase {
 			onClearColor: (dontRender) => this.clearBorderColor('signups-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('signups-background', color,
 				dontRender),
-			onClearRadius: () => this.clearBorderRadius('signups-background'),
-			onPickRadius: (radius) => this.setBorderRadius('signups-background', radius),
-			onClearSize: () => this.clearBorderSize('signups-background'),
-			onPickSize: (size) => this.setBorderSize('signups-background', size),
-			onClearType: () => this.clearBorderType('signups-background'),
-			onPickType: (type) => this.setBorderType('signups-background', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('signups-background', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('signups-background', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('signups-background', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('signups-background', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('signups-background', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('signups-background', type, dontRender),
 			reRender: () => this.send(),
 		});
 
@@ -178,6 +181,11 @@ class GameVoteBox extends HtmlPageBase {
 
 		this.components = [this.backgroundColorPicker, this.buttonColorPicker, this.backgroundBorderStyle, this.buttonsBorderStyle,
 			this.signupsBackgroundColorPicker, this.signupsBackgroundBorderStyle, this.pokemonAvatarPicker];
+
+		const borderStyles = [this.backgroundBorderStyle, this.buttonsBorderStyle, this.signupsBackgroundBorderStyle];
+		for (const borderStyle of borderStyles) {
+			borderStyle.registerCopySources(borderStyles);
+		}
 
 		const colorPickers = [this.backgroundColorPicker, this.buttonColorPicker, this.signupsBackgroundColorPicker];
 		for (const colorPicker of colorPickers) {
@@ -351,8 +359,11 @@ class GameVoteBox extends HtmlPageBase {
 		database.gameVoteBoxes![this.userId].pokemonAvatar = pokemon;
 
 		this.backgroundColorPicker.parentSetPokemon(pokemon);
+		this.backgroundBorderStyle.parentSetPokemon(pokemon);
 		this.buttonColorPicker.parentSetPokemon(pokemon);
+		this.buttonsBorderStyle.parentSetPokemon(pokemon);
 		this.signupsBackgroundColorPicker.parentSetPokemon(pokemon);
+		this.signupsBackgroundBorderStyle.parentSetPokemon(pokemon);
 
 		this.send();
 	}
@@ -390,7 +401,7 @@ class GameVoteBox extends HtmlPageBase {
 		if (!dontRender) this.send();
 	}
 
-	clearBorderRadius(picker: BorderPickers): void {
+	clearBorderRadius(picker: BorderPickers, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -398,10 +409,10 @@ class GameVoteBox extends HtmlPageBase {
 			delete voteBox[databaseKey]!.radius;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderRadius(picker: BorderPickers, radius: number): void {
+	setBorderRadius(picker: BorderPickers, radius: number, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -410,10 +421,10 @@ class GameVoteBox extends HtmlPageBase {
 		}
 		voteBox[databaseKey]!.radius = radius;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderSize(picker: BorderPickers): void {
+	clearBorderSize(picker: BorderPickers, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -421,10 +432,10 @@ class GameVoteBox extends HtmlPageBase {
 			delete voteBox[databaseKey]!.size;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderSize(picker: BorderPickers, size: number): void {
+	setBorderSize(picker: BorderPickers, size: number, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -433,10 +444,10 @@ class GameVoteBox extends HtmlPageBase {
 		}
 		voteBox[databaseKey]!.size = size;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderType(picker: BorderPickers): void {
+	clearBorderType(picker: BorderPickers, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -444,10 +455,10 @@ class GameVoteBox extends HtmlPageBase {
 			delete voteBox[databaseKey]!.type;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderType(picker: BorderPickers, type: BorderType): void {
+	setBorderType(picker: BorderPickers, type: BorderType, dontRender?: boolean): void {
 		const voteBox = this.getVoteBox();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -456,7 +467,7 @@ class GameVoteBox extends HtmlPageBase {
 		}
 		voteBox[databaseKey]!.type = type;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
 	render(): string {
