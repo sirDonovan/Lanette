@@ -71,6 +71,7 @@ const submitCustomHexCodeCommand = 'submitcustomhexcode';
 const clearCustomHexCodeCommand = 'clearcustomhexcode';
 const chooseBlackTextColorCommand = 'chooseblacktextcolor';
 const chooseWhiteTextColorCommand = 'choosewhitetextcolor';
+const toggleShinyPokemonCommand = 'toggleshinypokemon';
 
 const primaryColorName = "primaryColor";
 const secondaryColorName = "secondaryColor";
@@ -97,6 +98,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	customSecondaryColor: HexCode | undefined;
 	customTextColor: TextColorHex = '#000000';
 	pokemon: string | undefined;
+	shinyPokemon: boolean = false;
 
 	// only used for previews
 	borderRadius: number | undefined;
@@ -742,6 +744,10 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			this.choices[customHexCodeKey].textColor = this.customTextColor;
 
 			this.props.reRender();
+		} else if (cmd === toggleShinyPokemonCommand) {
+			this.shinyPokemon = !this.shinyPokemon;
+
+			this.props.reRender();
 		} else {
 			return super.tryCommand(originalTargets);
 		}
@@ -842,6 +848,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		html += "Select colors from a Pokemon" + this.htmlPage.getTooltip("Click the primary" +
 			(!this.props.border ? " or secondary" : "") + " box to access the eyedropper tool");
 		html += this.pokemonPicker.render();
+		html += this.getQuietPmButton(this.commandPrefix + ", " + toggleShinyPokemonCommand,
+			(this.shinyPokemon ? "Regular" : "Shiny") + " Pokemon");
 
 		const pokemon = Dex.getPokemon(this.pokemon || "");
 		if (pokemon) {
@@ -856,7 +864,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			for (const modelGeneration of modelGenerations) {
 				if (!Dex.hasModelData(pokemon, modelGeneration)) continue;
 
-				const gif = Dex.getPokemonModel(pokemon, modelGeneration);
+				const gif = Dex.getPokemonModel(pokemon, modelGeneration, undefined, this.shinyPokemon);
 				if (gif) {
 					html += gif;
 					html += "&nbsp;";
