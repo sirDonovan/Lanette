@@ -104,6 +104,7 @@ runtime-output/*
 src/commands/private/*
 !src/commands/private/README.md
 src/config.ts
+src/html-pages/private/*
 src/local-scripts/*
 src/message-parsers/private/*
 !src/message-parsers/private/README.md
