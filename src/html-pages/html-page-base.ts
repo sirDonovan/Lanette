@@ -244,8 +244,8 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
-	getTooltip(tip: string): string {
-		return "&nbsp;<span title='" + tip + "'>&#9432;</span>";
+	getTooltip(tip: string, icon?: string): string {
+		return "&nbsp;<span title='" + tip + "'>" + (icon || "&#9432;") + "</span>";
 	}
 
 	getButtonDisabled(options?: IQuietPMButtonOptions): boolean | undefined {

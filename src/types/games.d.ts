@@ -315,6 +315,12 @@ export type PlayerList = Dict<Player> | readonly Player[] | Map<Player, any>;
 
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
 
+export interface ICustomGridUhtml {
+	html: string;
+	uhtmlName: string;
+	user: string;
+}
+
 export interface IHostDisplayUhtml {
 	html: string;
 	pokemon: IPokemonPick[];

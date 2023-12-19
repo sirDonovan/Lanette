@@ -177,10 +177,10 @@ export class UserHostedGame extends Game {
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			this.room.pmHtml(user, "To assist with your game, try using the <b>Host Control Panel</b>! It allows you to manage " +
-				"attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
-				Client.getPmSelfButton(Config.commandCharacter + CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand +
-				" " + this.room.title, "Open panel"));
+			this.room.pmUhtml(user, "control-panel-button", "To assist with your game, try using the <b>Host Control Panel</b>! It " +
+				"allows you to manage attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter +
+				CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand + " " + this.room.title, "Open panel"));
 		}
 	}
 
@@ -476,6 +476,11 @@ export class UserHostedGame extends Game {
 	}
 
 	forceEnd(user: User, reason?: string): void {
+		if (this.lastCustomGridUhtml) {
+			this.sayUhtmlChange(this.lastCustomGridUhtml.uhtmlName,
+				"<center>(removed " + this.lastCustomGridUhtml.user + "'s custom grid)</center>");
+		}
+
 		Games.removeLastUserHostTime(this.room, this.hostId);
 		this.say(this.name + " " + this.activityType + " was forcibly ended!");
 		this.room.modnote(this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));

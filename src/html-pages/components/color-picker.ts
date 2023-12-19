@@ -30,9 +30,12 @@ interface IColorPickerProps extends IPickerProps<IColorPick> {
 	borderType?: BorderType;
 	button?: boolean;
 
+	autoSubmitCustomInput?: boolean;
 	currentPickObject?: IHexCodeData;
-	random?: boolean;
+	hidePreview?: boolean;
+	onlyCustomPrimary?: boolean;
 	pokemon?: string;
+	random?: boolean;
 	onPickHueVariation: (pickerIndex: number, pick: HueVariation, dontRender: boolean | undefined) => void;
 	onPickLightness: (pickerIndex: number, pick: Lightness, dontRender: boolean | undefined) => void;
 }
@@ -126,6 +129,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	customPrimaryColorInput: HexCodeInput;
 	customSecondaryColorInput: HexCodeInput;
 	pokemonPicker: PokemonTextInput;
+	onlyCustomPrimary: boolean;
 
 	currentView: 'input' | 'preselected' = 'input';
 	paginations: Pagination[] = [];
@@ -141,12 +145,14 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.borderType = this.props.borderType;
 		this.pokemon = this.props.pokemon;
 
+		this.onlyCustomPrimary = this.props.onlyCustomPrimary || this.props.border ? true : false;
+
 		if (this.props.currentPickObject) {
 			if (this.props.currentPickObject.color) {
 				this.customPrimaryColor = this.props.currentPickObject.color;
 			}
 
-			if (this.props.currentPickObject.secondaryColor && !this.props.border) {
+			if (this.props.currentPickObject.secondaryColor && !this.onlyCustomPrimary) {
 				this.customSecondaryColor = this.props.currentPickObject.secondaryColor as HexCode;
 			}
 
@@ -456,7 +462,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.customPrimaryColor = source.customPrimaryColor;
 		this.customTextColor = source.customTextColor;
 
-		if (!this.props.border) this.customSecondaryColor = source.customSecondaryColor;
+		if (!this.onlyCustomPrimary) this.customSecondaryColor = source.customSecondaryColor;
 
 		if (this.customPrimaryColor) {
 			this.customPrimaryColorInput.parentSetInput(this.customPrimaryColor);
@@ -722,6 +728,13 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.pokemon = pokemon;
 	}
 
+	pickCustomColor(): void {
+		if (!(customHexCodeKey in this.choices)) return;
+
+		if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
+		this.pick(customHexCodeKey);
+	}
+
 	tryCommand(originalTargets: readonly string[]): string | undefined {
 		const targets = originalTargets.slice();
 		const cmd = Tools.toId(targets[0]);
@@ -748,6 +761,8 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 			this.customPrimaryColorInput.parentSetInput(validated);
 			this.submitCustomPrimaryColor(validated);
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
 		} else if (cmd === customSecondaryCommand) {
 			const validated = Tools.validateHexCode(targets[0].trim());
 			if (!validated) {
@@ -756,11 +771,15 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 			this.customSecondaryColorInput.parentSetInput(validated);
 			this.submitCustomSecondaryColor(validated);
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
 		} else if (cmd === clearCustomSecondaryCommand) {
 			if (!this.customSecondaryColor) return;
 
 			this.customSecondaryColorInput.parentClearInput();
 			this.clearCustomSecondaryColor();
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
 		} else if (cmd === hueVariationCommand) {
 			const variation = Tools.toId(targets[0]) as HueVariation | '';
 			if (variation === lowVariation || variation === standardVariation || variation === highVariation ||
@@ -778,10 +797,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				return "'" + lightness + "' is not a valid lightness.";
 			}
 		} else if (cmd === submitCustomHexCodeCommand) {
-			if (!(customHexCodeKey in this.choices)) return;
-
-			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
-			this.pick(customHexCodeKey);
+			this.pickCustomColor();
 		} else if (cmd === clearCustomHexCodeCommand) {
 			if (!this.customPrimaryColor) return;
 
@@ -864,42 +880,49 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	renderInput(): string {
-		let html = "<center>";
-		if (this.props.border) {
-			const borderColor = this.customPrimaryColor ? {color: this.customPrimaryColor} as IHexCodeData : undefined;
+		let html = "";
+		if (!this.props.hidePreview) {
+			html += "<center>";
+			if (this.props.border) {
+				const borderColor = this.customPrimaryColor ? {color: this.customPrimaryColor} as IHexCodeData : undefined;
 
-			if (this.props.button) {
-				html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" +
-					Tools.getCustomButtonStyle(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize, this.borderType) +
-					"'>Button border preview</button></div>";
+				if (this.props.button) {
+					const buttonStyle = Tools.getCustomButtonStyle(Tools.getWhiteHexCode(), borderColor, this.borderRadius,
+						this.borderSize, this.borderType);
+					html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" + buttonStyle + "'>Button " +
+						"border preview</button></div>";
+				} else {
+					const span = Tools.getHexSpan(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize,
+						this.borderType);
+					html += "<div style='height: 48px;width: 300px'>" + span + "<br /><b>Border preview</b><br />&nbsp;" +
+						(span ? "</span>" : "") + "</div>";
+				}
 			} else {
-				const span = Tools.getHexSpan(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize, this.borderType);
-				html += "<div style='height: 48px;width: 300px'>" + span + "<br /><b>Border preview</b><br />&nbsp;" +
-					(span ? "</span>" : "") + "</div>";
-			}
-		} else {
-			if (this.props.button) {
-				const customColor: IHexCodeData = {
-					color: (this.customPrimaryColor || "") as HexCode,
-					gradient: Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) as HexCode,
-					textColor: this.customTextColor,
-				};
+				if (this.props.button) {
+					const customColor: IHexCodeData = {
+						color: (this.customPrimaryColor || "") as HexCode,
+						gradient: Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) as HexCode,
+						textColor: this.customTextColor,
+					};
 
-				html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" +
-					Tools.getCustomButtonStyle(customColor) + "'>Button background preview</button></div>";
-			} else {
-				html += "<div style='color:#000000;background: " +
-				Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";color: " + this.customTextColor + ";" +
-				"height: 48px;width: 300px'><br /><b>Background preview</b></div>";
+					html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" +
+						Tools.getCustomButtonStyle(customColor) + "'>Button background preview</button></div>";
+				} else {
+					html += "<div style='color:#000000;background: " +
+						Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";color: " +
+						this.customTextColor + ";height: 48px;width: 300px'><br /><b>Background preview</b></div>";
+				}
 			}
+
+			html += "</center>";
 		}
 
-		html += "</center>";
-
-		html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
-			(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
-		html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + clearCustomHexCodeCommand, "Clear custom color" +
-			(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+		if (!this.props.autoSubmitCustomInput) {
+			html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
+				(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+			html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + clearCustomHexCodeCommand, "Clear custom color" +
+				(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+		}
 
 		if (this.copySources.length) {
 			const sources: string[] = [];
@@ -911,10 +934,10 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			html += " | " + sources.join(" | ");
 		}
 
-		html += "<br /><br />";
+		if (html) html += "<br /><br />";
 
 		html += this.renderColorForm('primary');
-		if (!this.props.border) {
+		if (!this.onlyCustomPrimary) {
 			html += "<br />";
 			html += this.renderColorForm('secondary');
 			html += "<br />";
@@ -926,7 +949,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		html += "<br /><br />";
 		html += "Select colors from a Pokemon" + this.htmlPage.getTooltip("Click the primary" +
-			(!this.props.border ? " or secondary" : "") + " box to access the eyedropper tool");
+			(!this.onlyCustomPrimary ? " or secondary" : "") + " box to access the eyedropper tool");
 		html += this.pokemonPicker.render();
 		html += this.getQuietPmButton(this.commandPrefix + ", " + toggleShinyPokemonCommand,
 			(this.shinyPokemon ? "Regular" : "Shiny") + " Pokemon");
@@ -934,7 +957,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		const pokemon = Dex.getPokemon(this.pokemon || "");
 		if (pokemon) {
 			html += "<br /><br /><br /><br />";
-			if (this.customPrimaryColor) html += "<br /><br /><br /><br />";
+			if (this.customPrimaryColor && !this.onlyCustomPrimary) html += "<br /><br /><br /><br />";
 
 			const icon = Dex.getPokemonIcon(pokemon);
 			if (icon) {

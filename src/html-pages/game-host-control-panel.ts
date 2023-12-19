@@ -15,12 +15,14 @@ import { MultiTextInput } from "./components/multi-text-input";
 import { TextInput } from "./components/text-input";
 import { NumberTextInput } from "./components/number-text-input";
 import type { IDatabase, GifIcon, IGameHostDisplay } from "../types/storage";
+import { CustomGrid } from "./components/custom-grid";
 
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
 'zygardesorders'];
 
 const baseCommand = 'gamehostcontrolpanel';
 const chooseHostInformation = 'choosehostinformation';
+const chooseCustomGrid = 'choosecustomgrid';
 const chooseCustomDisplay = 'choosecustomdisplay';
 const chooseRandomDisplay = 'chooserandomdisplay';
 const chooseGenerateHints = 'choosegeneratehints';
@@ -28,6 +30,7 @@ const addPointsCommand = 'addpoints';
 const removePointsCommand = 'removepoints';
 const storedMessageInputCommand = 'storedmessage';
 const twistInputCommand = 'twist';
+const customGridCommand = 'customgrid';
 const setCurrentPlayerCommand = 'setcurrentplayer';
 const manualHostDisplayCommand = 'manualhostdisplay';
 const randomHostDisplayCommand = 'randomhostdisplay';
@@ -56,7 +59,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	pageId = pageId;
 
 	autoSendDisplay: boolean = false;
-	currentView: 'hostinformation' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
+	currentView: 'hostinformation' | 'customgrid' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
 	currentPokemon: PokemonChoices = [];
 	currentTrainers: TrainerChoices = [];
 	currentPlayer: string = '';
@@ -69,6 +72,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	addPointsInput: NumberTextInput;
 	removePointsInput: NumberTextInput;
 
+	customGrid: CustomGrid;
 	manualHostDisplay: ManualHostDisplay;
 	randomHostDisplay: RandomHostDisplay;
 
@@ -87,7 +91,6 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 
 		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
-		const hostInformation = this.currentView === 'hostinformation';
 
 		this.addPointsInput = new NumberTextInput(this, this.commandPrefix, addPointsCommand, {
 			min: 1,
@@ -99,7 +102,6 @@ export class GameHostControlPanel extends HtmlPageBase {
 			onSubmit: (output) => this.onSubmitAddPoints(output),
 			reRender: () => this.send(),
 		});
-		this.addPointsInput.active = hostInformation;
 
 		this.removePointsInput = new NumberTextInput(this, this.commandPrefix, removePointsCommand, {
 			min: 1,
@@ -111,7 +113,6 @@ export class GameHostControlPanel extends HtmlPageBase {
 			onSubmit: (output) => this.onSubmitRemovePoints(output),
 			reRender: () => this.send(),
 		});
-		this.removePointsInput.active = hostInformation;
 
 		this.storedMessageInput = new MultiTextInput(this, this.commandPrefix, storedMessageInputCommand, {
 			inputCount: 2,
@@ -124,7 +125,6 @@ export class GameHostControlPanel extends HtmlPageBase {
 			onSubmit: (output) => this.onSubmitStoreMessage(output),
 			reRender: () => this.send(),
 		});
-		this.storedMessageInput.active = hostInformation;
 
 		this.twistInput = new TextInput(this, this.commandPrefix, twistInputCommand, {
 			currentInput: room.userHostedGame && room.userHostedGame.twist ? room.userHostedGame.twist : "",
@@ -137,7 +137,11 @@ export class GameHostControlPanel extends HtmlPageBase {
 			onSubmit: (output) => this.onSubmitTwist(output),
 			reRender: () => this.send(),
 		});
-		this.twistInput.active = hostInformation;
+
+		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
+			onSubmit: (output) => this.submitCustomGridHtml(output),
+			reRender: () => this.send(),
+		});
 
 		const hostDisplayProps: IHostDisplayProps = {
 			currentBackground: hostDisplay ? hostDisplay.background : undefined,
@@ -167,11 +171,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 		};
 
 		this.manualHostDisplay = new ManualHostDisplay(this, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
-		this.manualHostDisplay.active = !hostInformation;
 
 		this.randomHostDisplay = new RandomHostDisplay(this, this.commandPrefix, randomHostDisplayCommand,
 			Object.assign({random: true}, hostDisplayProps));
-		this.randomHostDisplay.active = false;
 
 		if (hostDisplay) {
 			this.manualHostDisplay.loadHostDisplay(hostDisplay);
@@ -179,7 +181,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
-			this.manualHostDisplay, this.randomHostDisplay];
+			this.customGrid, this.manualHostDisplay, this.randomHostDisplay];
+
+		this.toggleActiveComponents();
 	}
 
 	static loadData(): void {
@@ -204,57 +208,61 @@ export class GameHostControlPanel extends HtmlPageBase {
 	chooseHostInformation(): void {
 		if (this.currentView === 'hostinformation') return;
 
-		this.addPointsInput.active = true;
-		this.removePointsInput.active = true;
-		this.storedMessageInput.active = true;
-		this.twistInput.active = true;
-		this.randomHostDisplay.active = false;
-		this.manualHostDisplay.active = false;
 		this.currentView = 'hostinformation';
 
+		this.toggleActiveComponents();
+		this.send();
+	}
+
+	chooseCustomGrid(): void {
+		if (this.currentView === 'customgrid') return;
+
+		this.currentView = 'customgrid';
+
+		this.toggleActiveComponents();
 		this.send();
 	}
 
 	chooseManualHostDisplay(): void {
 		if (this.currentView === 'manualhostdisplay') return;
 
-		this.addPointsInput.active = false;
-		this.removePointsInput.active = false;
-		this.storedMessageInput.active = false;
-		this.twistInput.active = false;
-		this.manualHostDisplay.active = true;
-		this.randomHostDisplay.active = false;
 		this.currentView = 'manualhostdisplay';
 
+		this.toggleActiveComponents();
 		this.send();
 	}
 
 	chooseRandomHostDisplay(): void {
 		if (this.currentView === 'randomhostdisplay') return;
 
-		this.addPointsInput.active = false;
-		this.removePointsInput.active = false;
-		this.storedMessageInput.active = false;
-		this.twistInput.active = false;
-		this.randomHostDisplay.active = true;
-		this.manualHostDisplay.active = false;
 		this.currentView = 'randomhostdisplay';
 
+		this.toggleActiveComponents();
 		this.send();
 	}
 
 	chooseGenerateHints(): void {
 		if (this.currentView === 'generatehints') return;
 
-		this.addPointsInput.active = false;
-		this.removePointsInput.active = false;
-		this.storedMessageInput.active = false;
-		this.twistInput.active = false;
-		this.randomHostDisplay.active = false;
-		this.manualHostDisplay.active = false;
 		this.currentView = 'generatehints';
 
+		this.toggleActiveComponents();
 		this.send();
+	}
+
+	toggleActiveComponents(): void {
+		const hostInformation = this.currentView === 'hostinformation';
+		const customGrid = this.currentView === 'customgrid';
+		const manualDisplay = this.currentView === 'manualhostdisplay';
+		const randomDisplay = this.currentView === 'randomhostdisplay';
+
+		this.addPointsInput.active = hostInformation;
+		this.removePointsInput.active = hostInformation;
+		this.storedMessageInput.active = hostInformation;
+		this.twistInput.active = hostInformation;
+		this.customGrid.active = customGrid;
+		this.manualHostDisplay.active = manualDisplay;
+		this.randomHostDisplay.active = randomDisplay;
 	}
 
 	onClearAddPoints(): void {
@@ -614,6 +622,13 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.send();
 	}
 
+	submitCustomGridHtml(output: string): void {
+		const user = Users.get(this.userName);
+		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
+
+		this.room.userHostedGame.sayCustomGridUhtml(user, output);
+	}
+
 	render(): string {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'><center><b>" + this.room.title + ": Hosting Control " +
 			"Panel</b>";
@@ -624,6 +639,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		const currentHost = user && this.room.userHostedGame && this.room.userHostedGame.isHost(user);
 
 		const hostInformation = this.currentView === 'hostinformation';
+		const customGrid = this.currentView === 'customgrid';
 		const manualHostDisplay = this.currentView === 'manualhostdisplay';
 		const randomHostDisplay = this.currentView === 'randomhostdisplay';
 		const generateHints = this.currentView === 'generatehints';
@@ -633,9 +649,11 @@ export class GameHostControlPanel extends HtmlPageBase {
 			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHostInformation, "Host Information",
 				{selectedAndDisabled: hostInformation});
 		}
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Manual Display",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomGrid, "Customizable Grid",
+			{selectedAndDisabled: customGrid});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseCustomDisplay, "Pokemon GIFs & Trainers",
 			{selectedAndDisabled: manualHostDisplay});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Random Display",
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseRandomDisplay, "Randomized Pokemon & Trainers",
 			{selectedAndDisabled: randomHostDisplay});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseGenerateHints, "Generate Hints",
 			{selectedAndDisabled: generateHints});
@@ -771,6 +789,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 			} else {
 				html += this.randomHostDisplay.render();
 			}
+		} else if (customGrid) {
+			html += this.customGrid.render();
 		} else {
 			html += "<h3>Generate Hints</h3>";
 
@@ -826,6 +846,8 @@ export const commands: BaseCommandDefinitions = {
 
 			if (cmd === chooseHostInformation) {
 				pages[user.id].chooseHostInformation();
+			} else if (cmd === chooseCustomGrid) {
+				pages[user.id].chooseCustomGrid();
 			} else if (cmd === chooseCustomDisplay) {
 				pages[user.id].chooseManualHostDisplay();
 			} else if (cmd === chooseRandomDisplay) {

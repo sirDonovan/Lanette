@@ -1417,7 +1417,7 @@ export class Dex {
 		return '<img src="' + prefix + '/' + pokemon.spriteid + suffix + '" width="' + width + '" height="' + height + '" />';
 	}
 
-	getPokemonIcon(pokemon?: IPokemon, facingLeft?: boolean, border?: string): string {
+	getPokemonIcon(pokemon: IPokemon | undefined, facingLeft?: boolean, border?: string): string {
 		let num = pokemon ? pokemon.num : 0;
 		if (num < 0) {
 			num = 0;

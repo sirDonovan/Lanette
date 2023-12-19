@@ -3,6 +3,7 @@ import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
 import type {
+	ICustomGridUhtml,
 	IGameFormat, IGameOptions, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat,
 	PlayerList
 } from "./types/games";
@@ -50,6 +51,7 @@ export abstract class Game extends Activity {
 	gameActionType?: GameActionGames;
 	hasAssistActions?: boolean;
 	isUserHosted?: boolean;
+	lastCustomGridUhtml?: ICustomGridUhtml;
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
@@ -367,6 +369,19 @@ export abstract class Game extends Activity {
 
 	getCustomButtonsDiv(buttons: string[], player?: Player): string {
 		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"), player);
+	}
+
+	sayCustomGridUhtml(user: User, html: string): void {
+		if (this.lastCustomGridUhtml && this.lastCustomGridUhtml.html === html) return;
+
+		const uhtmlName = this.uhtmlBaseName + "-customgrid";
+		this.sayUhtmlAuto(uhtmlName, html + Client.getUserAttributionHtml(user.name));
+
+		this.lastCustomGridUhtml = {
+			html,
+			uhtmlName,
+			user: user.name,
+		};
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay, randomized?: boolean): void {
