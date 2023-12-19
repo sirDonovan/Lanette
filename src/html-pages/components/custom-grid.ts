@@ -83,7 +83,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	grid: ICellData[][] = [];
 	gridHtmlCache: string[][] = [];
 	gridHtml: string = "";
-	labels: Dict<ICellData> = {};
 	height: number = DEFAULT_HEIGHT;
 	pixelSize: number = DEFAULT_PIXELS;
 	playerLocations: Dict<ICellData> = {};
@@ -590,6 +589,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				row[i] = {};
 			}
 		}
+
+		this.playerLocations = {};
+		this.pokemonIconLocations = {};
+		this.pokemonNames = {};
 
 		this.updateGridHtml();
 		this.previewHtml = "";

@@ -90,7 +90,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 			hostDisplay = database.gameHostDisplays[this.userId];
 		}
 
-		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'manualhostdisplay';
+		this.currentView = room.userHostedGame && room.userHostedGame.isHost(user) ? 'hostinformation' : 'customgrid';
 
 		this.addPointsInput = new NumberTextInput(this, this.commandPrefix, addPointsCommand, {
 			min: 1,
