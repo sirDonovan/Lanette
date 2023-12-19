@@ -142,10 +142,12 @@ export class CommandParser {
 
 	private commandsDir: string;
 	private privateCommandsDir: string;
+	private privateHtmlPagesDir: string;
 
 	constructor() {
 		this.commandsDir = path.join(Tools.srcBuildFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
+		this.privateHtmlPagesDir = path.join(this.htmlPagesDir, 'private');
 	}
 
 	getGameHtmlPages(): IGameHtmlPages {
@@ -192,28 +194,8 @@ export class CommandParser {
 		this.loadCommandsDirectory(this.commandsDir, baseCommands);
 		this.loadCommandsDirectory(this.privateCommandsDir, baseCommands, true);
 
-		const htmlPageFiles = fs.readdirSync(this.htmlPagesDir);
-		for (const fileName of htmlPageFiles) {
-			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
-			const htmlPagePath = path.join(this.htmlPagesDir, fileName);
-
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
-			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
-
-			this.htmlPageModules[htmlPage.pageId] = htmlPage;
-			this.htmlPages[htmlPage.pageId] = htmlPage.pages;
-
-			if (htmlPage.commands) {
-				for (const i in htmlPage.commands) {
-					if (i in baseCommands) {
-						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
-					}
-				}
-
-				Object.assign(baseCommands, htmlPage.commands);
-			}
-		}
+		this.loadHtmlPagesDirectory(this.htmlPagesDir, baseCommands);
+		this.loadHtmlPagesDirectory(this.privateHtmlPagesDir, baseCommands, true);
 
 		global.Commands = this.loadCommandDefinitions(baseCommands);
 		global.BaseCommands = Tools.deepClone(global.Commands);
@@ -395,13 +377,12 @@ export class CommandParser {
 		this.loadBaseCommands();
 	}
 
-	private loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions,
-		privateDirectory?: boolean): BaseCommandDefinitions {
+	private loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): void {
 		let commandFiles: string[] = [];
 		try {
 			commandFiles = fs.readdirSync(directory);
 		} catch (e) {
-			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return allCommands;
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return;
 			throw e;
 		}
 
@@ -439,8 +420,38 @@ export class CommandParser {
 				Object.assign(allCommands, commandFile.commands);
 			}
 		}
+	}
 
-		return allCommands;
+	private loadHtmlPagesDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): void {
+		let htmlPageFiles: string[] = [];
+		try {
+			htmlPageFiles = fs.readdirSync(directory);
+		} catch (e) {
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return;
+			throw e;
+		}
+
+		for (const fileName of htmlPageFiles) {
+			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
+			const htmlPagePath = path.join(directory, fileName);
+
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
+			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
+
+			this.htmlPageModules[htmlPage.pageId] = htmlPage;
+			this.htmlPages[htmlPage.pageId] = htmlPage.pages;
+
+			if (htmlPage.commands) {
+				for (const i in htmlPage.commands) {
+					if (i in allCommands) {
+						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
+					}
+				}
+
+				Object.assign(allCommands, htmlPage.commands);
+			}
+		}
 	}
 }
 
