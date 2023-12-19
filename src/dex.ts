@@ -1421,7 +1421,7 @@ export class Dex {
 		let num = pokemon ? pokemon.num : 0;
 		if (num < 0) {
 			num = 0;
-		} else if (num > 1010) {
+		} else if (num > 1025) {
 			num = 0;
 		}
 
@@ -1441,7 +1441,7 @@ export class Dex {
 		const facingLeftStyle = facingLeft ? "transform:scaleX(-1);webkit-transform:scaleX(-1);" : "";
 		return '<span style="display: inline-block;height: ' + POKEMON_ICON_HEIGHT + 'px;width: ' + POKEMON_ICON_WIDTH + 'px;' +
 			(border ? 'border: ' + border + ';' : '') + 'image-rendering: pixelated;' +
-			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v15) no-repeat scroll -' + left +
+			'background:transparent url(https://' + Tools.mainServer + '/sprites/pokemonicons-sheet.png?v16) no-repeat scroll -' + left +
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
