@@ -24,8 +24,11 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
 	static loadData(): void {
+		const prefix = "Pokemon that is ";
+		const suffix = " type";
+
 		for (const key of Dex.getTypeKeys()) {
-			data.categories.push(Dex.getExistingType(key).name + " type Pokemon");
+			data.categories.push(prefix + Dex.getExistingType(key).name + suffix);
 		}
 
 		for (const category of data.categories) {
@@ -34,8 +37,8 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 
 		const pokedex = Games.getPokemonList();
 		for (const pokemon of pokedex) {
-			data.categoryPools[Tools.toId(pokemon.types[0] + 'typepokemon')].push(pokemon.id);
-			if (pokemon.types.length > 1) data.categoryPools[Tools.toId(pokemon.types[1] + 'typepokemon')].push(pokemon.id);
+			data.categoryPools[Tools.toId(prefix + pokemon.types[0] + suffix)].push(pokemon.id);
+			if (pokemon.types.length > 1) data.categoryPools[Tools.toId(prefix + pokemon.types[1] + suffix)].push(pokemon.id);
 		}
 
 		const items = Games.getItemsList();
@@ -311,6 +314,7 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 
 			return true;
 		},
+		aliases: ['buzz'],
 	},
 };
 
