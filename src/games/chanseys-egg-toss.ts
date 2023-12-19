@@ -186,5 +186,4 @@ export const game: IGameFile<ChanseysEggToss> = {
 	description: "Players try to get rid of the egg before it explodes!",
 	name: "Chansey's Egg Toss",
 	mascot: "Chansey",
-	scriptedOnly: true,
 };
