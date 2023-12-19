@@ -454,7 +454,7 @@ export class Websocket {
 							},
 							skipUTF8Validation: true,
 							// @ts-expect-error
-							allowMultipleEventsPerMicrotask: true,
+							allowSynchronousEvents: true,
 						};
 
 						this.ws = new ws(address, [], wsOptions);
