@@ -14,7 +14,7 @@ import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
 import { MultiTextInput } from "./components/multi-text-input";
 import { TextInput } from "./components/text-input";
 import { NumberTextInput } from "./components/number-text-input";
-import type { IDatabase, GifIcon, IGameHostDisplay } from "../types/storage";
+import type { IDatabase, GifIcon, IGameHostDisplay, ISavedCustomGridData } from "../types/storage";
 import { CustomGrid } from "./components/custom-grid";
 
 const excludedHintGames: string[] = ['hypnoshunches', 'mareaniesmarquees', 'pikachusmysterypokemon', 'smearglesmysterymoves',
@@ -139,6 +139,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 		});
 
 		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
+			savedGrids: database.gameCustomGrids && this.userId in database.gameCustomGrids ? database.gameCustomGrids[this.userId] :
+				undefined,
+			onSave: (index: number, gridData: ISavedCustomGridData) => this.saveCustomGrid(index, gridData),
 			onSubmit: (output) => this.submitCustomGridHtml(output),
 			reRender: () => this.send(),
 		});
@@ -619,6 +622,19 @@ export class GameHostControlPanel extends HtmlPageBase {
 		const database = this.getDatabase();
 		this.room.userHostedGame.sayHostDisplayUhtml(user, database.gameHostDisplays![this.userId],
 			this.currentView === 'randomhostdisplay');
+		this.send();
+	}
+
+	saveCustomGrid(index: number, gridData: ISavedCustomGridData): void {
+		const database = this.getDatabase();
+		if (!database.gameCustomGrids) database.gameCustomGrids = {};
+		if (!(this.userId in database.gameCustomGrids)) {
+			database.gameCustomGrids[this.userId] = {
+				grids: [],
+			};
+		}
+
+		database.gameCustomGrids[this.userId].grids[index] = gridData;
 		this.send();
 	}
 

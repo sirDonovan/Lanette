@@ -11,6 +11,7 @@ import { PokemonChoices } from "./pokemon-picker-base";
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation' | 'maxvariation';
 export type Lightness = 'shade' | 'lowlightness' | 'standardlightness' | 'highlightness' | 'tint';
 
+type ColorPickerView = 'input' | 'preselected';
 export interface IColorPick {
 	hexCode: HexCode;
 	hueVariation: HueVariation;
@@ -32,6 +33,7 @@ interface IColorPickerProps extends IPickerProps<IColorPick> {
 
 	autoSubmitCustomInput?: boolean;
 	currentPickObject?: IHexCodeData;
+	defaultView?: ColorPickerView;
 	hidePreview?: boolean;
 	onlyCustomPrimary?: boolean;
 	pokemon?: string;
@@ -131,7 +133,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	pokemonPicker: PokemonTextInput;
 	onlyCustomPrimary: boolean;
 
-	currentView: 'input' | 'preselected' = 'input';
+	currentView: ColorPickerView;
 	paginations: Pagination[] = [];
 	copySources: ColorPicker[] = [];
 
@@ -145,6 +147,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.borderType = this.props.borderType;
 		this.pokemon = this.props.pokemon;
 
+		this.currentView = this.props.defaultView || 'input';
 		this.onlyCustomPrimary = this.props.onlyCustomPrimary || this.props.border ? true : false;
 
 		if (this.props.currentPickObject) {
@@ -248,6 +251,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			reRender: () => this.props.reRender(),
 		});
 
+		if (this.currentView === 'preselected') this.initializePreSelected();
 		this.toggleActivePagination();
 
 		this.components = [this.customPrimaryColorInput, this.customSecondaryColorInput, this.pokemonPicker];

@@ -135,6 +135,24 @@ export interface IUserHostStatusData {
 	expirationTime: number;
 }
 
+interface ISavedCustomGridCell {
+	color?: HexCode;
+	label?: string;
+	labelColor?: HexCode;
+	pokemon?: string;
+}
+
+export interface ISavedCustomGridData {
+	grid: ISavedCustomGridCell[][];
+	height: number;
+	pixelSize: number;
+	width: number;
+}
+
+export interface ISavedCustomGrids {
+	grids: ISavedCustomGridData[];
+}
+
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
 
 export interface ILeaderboard {
@@ -237,6 +255,7 @@ export interface IDatabase {
 	cycleStartDate?: string;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
+	gameCustomGrids?: Dict<ISavedCustomGrids>;
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
 	gameHostBoxes?: Dict<IGameHostBox>;
