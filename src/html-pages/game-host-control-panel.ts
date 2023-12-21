@@ -58,23 +58,22 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 	pageId = pageId;
 
+	addPointsInput: NumberTextInput;
 	autoSendDisplay: boolean = false;
 	currentView: 'hostinformation' | 'customgrid' | 'manualhostdisplay' | 'randomhostdisplay' | 'generatehints';
 	currentPokemon: PokemonChoices = [];
 	currentTrainers: TrainerChoices = [];
 	currentPlayer: string = '';
+	customGrid: CustomGrid;
 	generateHintsGameHtml: string = '';
-	generatedAnswer: IRandomGameAnswer | undefined = undefined;
+	generatedAnswer: IRandomGameAnswer | undefined;
 	generatedAnswerErrorHtml: string = '';
+	manualHostDisplay: ManualHostDisplay | undefined;
 	pokemonGeneration: ModelGeneration = 'xy';
+	randomHostDisplay: RandomHostDisplay | undefined;
+	removePointsInput: NumberTextInput;
 	storedMessageInput: MultiTextInput;
 	twistInput: TextInput;
-	addPointsInput: NumberTextInput;
-	removePointsInput: NumberTextInput;
-
-	customGrid: CustomGrid;
-	manualHostDisplay: ManualHostDisplay;
-	randomHostDisplay: RandomHostDisplay;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
@@ -146,45 +145,49 @@ export class GameHostControlPanel extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
-		const hostDisplayProps: IHostDisplayProps = {
-			currentBackground: hostDisplay ? hostDisplay.background : undefined,
-			currentBackgroundBorder: hostDisplay ? hostDisplay.backgroundBorder : undefined,
-			maxGifs,
-			maxIcons,
-			maxTrainers,
-			clearBackgroundColor: (dontRender) => this.clearBackgroundColor(dontRender),
-			setBackgroundColor: (color, dontRender) => this.setBackgroundColor(color, dontRender),
-			clearPokemon: (index, dontRender) => this.clearPokemon(index, dontRender),
-			selectPokemon: (index, pokemon, dontRender) => this.selectPokemon(index, pokemon, dontRender),
-			clearRandomizedPokemon: () => this.clearRandomizedPokemon(),
-			randomizePokemon: (pokemon) => this.randomizePokemon(pokemon),
-			clearTrainer: (index, dontRender) => this.clearTrainer(index, dontRender),
-			selectTrainer: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
-			randomizeTrainers: (trainers) => this.randomizeTrainers(trainers),
-			setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
-			onClearBorderColor: (dontRender) => this.clearBorderColor(dontRender),
-			onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor(color, dontRender),
-			onClearBorderRadius: (dontRender) => this.clearBorderRadius(dontRender),
-			onPickBorderRadius: (radius, dontRender) => this.setBorderRadius(radius, dontRender),
-			onClearBorderSize: (dontRender) => this.clearBorderSize(dontRender),
-			onPickBorderSize: (size, dontRender) => this.setBorderSize(size, dontRender),
-			onClearBorderType: (dontRender) => this.clearBorderType(dontRender),
-			onPickBorderType: (type, dontRender) => this.setBorderType(type, dontRender),
-			reRender: () => this.send(),
-		};
-
-		this.manualHostDisplay = new ManualHostDisplay(this, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
-
-		this.randomHostDisplay = new RandomHostDisplay(this, this.commandPrefix, randomHostDisplayCommand,
-			Object.assign({random: true}, hostDisplayProps));
-
-		if (hostDisplay) {
-			this.manualHostDisplay.loadHostDisplay(hostDisplay);
-			this.randomHostDisplay.loadHostDisplay(hostDisplay);
-		}
-
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
-			this.customGrid, this.manualHostDisplay, this.randomHostDisplay];
+			this.customGrid];
+
+		if (this.room.userHostedGame && this.room.userHostedGame.isHost(user)) {
+			const hostDisplayProps: IHostDisplayProps = {
+				currentBackground: hostDisplay ? hostDisplay.background : undefined,
+				currentBackgroundBorder: hostDisplay ? hostDisplay.backgroundBorder : undefined,
+				maxGifs,
+				maxIcons,
+				maxTrainers,
+				clearBackgroundColor: (dontRender) => this.clearBackgroundColor(dontRender),
+				setBackgroundColor: (color, dontRender) => this.setBackgroundColor(color, dontRender),
+				clearPokemon: (index, dontRender) => this.clearPokemon(index, dontRender),
+				selectPokemon: (index, pokemon, dontRender) => this.selectPokemon(index, pokemon, dontRender),
+				clearRandomizedPokemon: () => this.clearRandomizedPokemon(),
+				randomizePokemon: (pokemon) => this.randomizePokemon(pokemon),
+				clearTrainer: (index, dontRender) => this.clearTrainer(index, dontRender),
+				selectTrainer: (index, trainer, dontRender) => this.selectTrainer(index, trainer, dontRender),
+				randomizeTrainers: (trainers) => this.randomizeTrainers(trainers),
+				setGifOrIcon: (gifOrIcon, currentPokemon, dontRender) => this.setGifOrIcon(gifOrIcon, currentPokemon, dontRender),
+				onClearBorderColor: (dontRender) => this.clearBorderColor(dontRender),
+				onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor(color, dontRender),
+				onClearBorderRadius: (dontRender) => this.clearBorderRadius(dontRender),
+				onPickBorderRadius: (radius, dontRender) => this.setBorderRadius(radius, dontRender),
+				onClearBorderSize: (dontRender) => this.clearBorderSize(dontRender),
+				onPickBorderSize: (size, dontRender) => this.setBorderSize(size, dontRender),
+				onClearBorderType: (dontRender) => this.clearBorderType(dontRender),
+				onPickBorderType: (type, dontRender) => this.setBorderType(type, dontRender),
+				reRender: () => this.send(),
+			};
+
+			this.manualHostDisplay = new ManualHostDisplay(this, this.commandPrefix, manualHostDisplayCommand, hostDisplayProps);
+			this.components.push(this.manualHostDisplay);
+
+			this.randomHostDisplay = new RandomHostDisplay(this, this.commandPrefix, randomHostDisplayCommand,
+				Object.assign({random: true}, hostDisplayProps));
+			this.components.push(this.randomHostDisplay);
+
+			if (hostDisplay) {
+				this.manualHostDisplay.loadHostDisplay(hostDisplay);
+				this.randomHostDisplay.loadHostDisplay(hostDisplay);
+			}
+		}
 
 		this.toggleActiveComponents();
 	}
@@ -227,7 +230,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	chooseManualHostDisplay(): void {
-		if (this.currentView === 'manualhostdisplay') return;
+		if (this.currentView === 'manualhostdisplay' || !this.manualHostDisplay) return;
 
 		this.currentView = 'manualhostdisplay';
 
@@ -236,7 +239,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	chooseRandomHostDisplay(): void {
-		if (this.currentView === 'randomhostdisplay') return;
+		if (this.currentView === 'randomhostdisplay' || !this.randomHostDisplay) return;
 
 		this.currentView = 'randomhostdisplay';
 
@@ -264,8 +267,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.storedMessageInput.active = hostInformation;
 		this.twistInput.active = hostInformation;
 		this.customGrid.active = customGrid;
-		this.manualHostDisplay.active = manualDisplay;
-		this.randomHostDisplay.active = randomDisplay;
+		if (this.manualHostDisplay) this.manualHostDisplay.active = manualDisplay;
+		if (this.randomHostDisplay) this.randomHostDisplay.active = randomDisplay;
 	}
 
 	onClearAddPoints(): void {
@@ -376,7 +379,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		database.gameHostDisplays![this.userId].background = Tools.colorPickToStorage(color);
 
 		if (this.currentView === 'randomhostdisplay') {
-			this.manualHostDisplay.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
+			this.manualHostDisplay!.setRandomizedBackgroundColor(color.hueVariation, color.lightness, color.hexCode);
 		}
 
 		if (!dontRender) {
@@ -413,7 +416,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	randomizePokemon(pokemon: PokemonChoices): void {
-		this.manualHostDisplay.loadHostDisplayPokemon(pokemon);
+		this.manualHostDisplay!.loadHostDisplayPokemon(pokemon);
 		this.currentPokemon = pokemon;
 
 		this.storePokemon();
@@ -447,7 +450,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	randomizeTrainers(trainers: TrainerChoices): void {
-		this.manualHostDisplay.loadHostDisplayTrainers(trainers);
+		this.manualHostDisplay!.loadHostDisplayTrainers(trainers);
 		this.currentTrainers = trainers;
 
 		this.storeTrainers();
@@ -466,9 +469,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 		database.gameHostDisplays![this.userId].gifOrIcon = gifOrIcon;
 
 		if (this.currentView === 'manualhostdisplay') {
-			this.randomHostDisplay.setGifOrIcon(gifOrIcon, true);
+			this.randomHostDisplay!.setGifOrIcon(gifOrIcon, true);
 		} else {
-			this.manualHostDisplay.setGifOrIcon(gifOrIcon, true);
+			this.manualHostDisplay!.setGifOrIcon(gifOrIcon, true);
 		}
 
 		this.currentPokemon = currentPokemon;
@@ -800,9 +803,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 			html += "<br /><br />";
 			if (manualHostDisplay) {
-				html += this.manualHostDisplay.render();
+				html += this.manualHostDisplay!.render();
 			} else {
-				html += this.randomHostDisplay.render();
+				html += this.randomHostDisplay!.render();
 			}
 		} else if (customGrid) {
 			html += this.customGrid.render();
