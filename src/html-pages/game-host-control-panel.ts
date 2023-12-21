@@ -635,7 +635,6 @@ export class GameHostControlPanel extends HtmlPageBase {
 		}
 
 		database.gameCustomGrids[this.userId].grids[index] = gridData;
-		this.send();
 	}
 
 	submitCustomGridHtml(output: string): void {
