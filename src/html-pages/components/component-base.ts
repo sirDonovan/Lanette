@@ -31,7 +31,18 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	abstract tryCommand(targets: readonly string[]): string | undefined;
 
 	destroy(): void {
-		if (this.timeout) clearTimeout(this.timeout);
+		// prevent accidental looping from sub-components
+		if (this.destroyed) return;
+
+		if (this.timeout) {
+			clearTimeout(this.timeout);
+			// @ts-expect-error
+			this.timeout = undefined;
+		}
+
+		for (const component of this.components) {
+			component.destroy();
+		}
 
 		this.destroyed = true;
 

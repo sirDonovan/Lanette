@@ -84,7 +84,11 @@ export abstract class HtmlPageBase {
 	destroy(): void {
 		if (this.destroyed) throw new Error(this.pageId + " page already destroyed for user " + this.userId);
 
-		if (this.expirationTimer) clearTimeout(this.expirationTimer);
+		if (this.expirationTimer) {
+			clearTimeout(this.expirationTimer);
+			// @ts-expect-error
+			this.expirationTimer = undefined;
+		}
 
 		for (const component of this.components) {
 			component.destroy();
