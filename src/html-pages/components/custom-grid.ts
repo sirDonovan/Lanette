@@ -12,6 +12,7 @@ import { ITextInputValidation, TextInput } from "./text-input";
 export interface ICustomGridProps extends IComponentProps {
 	defaultColor?: HexCode;
 	savedGrids?: ISavedCustomGrids;
+	showSubmit?: boolean;
 	onAutoSave: (index: number, gridData: ISavedCustomGridData) => void;
 	onSubmit: (output: string) => void;
 }
@@ -25,6 +26,17 @@ interface ICellData {
 	playersColor?: HexCode;
 	pokemon?: string;
 	pokemonIcon?: string;
+}
+
+interface IProcessCellUpdateOptions {
+	batchUpdate?: boolean;
+	colors?: boolean;
+	labels?: boolean;
+	players?: boolean;
+	pokemon?: boolean;
+	insert?: boolean;
+	erase?: boolean;
+	eraseAll?: boolean;
 }
 
 const DEFAULT_WIDTH = 5;
@@ -96,6 +108,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	currentPokemonIcon: string = "";
 	currentLabel: string = "";
 	filterError: string = "";
+	/**grid index -> grid */
 	grids: ICellData[][][] = [];
 	gridHtml: string = "";
 	height: number;
@@ -130,15 +143,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.defaultColor = props.defaultColor || Tools.getWhiteHexCode();
 		this.minPokemonIconPixelSize = Dex.getPokemonIconWidth();
 
-		PokemonPickerBase.loadData();
-		this.pokemonList = PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!].slice();
-
-		// initialize grid and cell caches
+		// initialize grids and attempt to load from the database
 		for (let i = 0; i < MAX_GRIDS; i++) {
 			this.grids[i] = [];
 		}
 
-		let savedGrid = false;
+		let loadedSavedGrid = false;
 		if (this.props.savedGrids && this.props.savedGrids.grids.length) {
 			this.height = this.props.savedGrids.grids[0].height;
 			this.pixelSize = this.props.savedGrids.grids[0].pixelSize;
@@ -148,7 +158,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			for (let i = 0; i < MAX_GRIDS; i++) {
 				if (this.props.savedGrids.grids[i]) {
-					savedGrid = true;
+					loadedSavedGrid = true;
 					this.loadSavedGrid(i, this.props.savedGrids.grids[i]);
 				}
 			}
@@ -162,13 +172,19 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			this.updateGridDimensions();
 		}
 
+		// initialize cell caches after saved or default grids
 		const grid = this.getGrid();
 		for (const row of grid) {
 			for (const cell of row) {
 				this.updateCellHtmlCache(cell);
 			}
 		}
-		this.updateGridHtml(!savedGrid ? true : false);
+
+		this.updateGridHtml(!loadedSavedGrid ? true : false);
+
+		// sub-components
+		PokemonPickerBase.loadData();
+		this.pokemonList = PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!].slice();
 
 		this.cellColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setCellColorCommand, {
 			name: "Current color",
@@ -276,149 +292,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
-	getGrid(index?: number): ICellData[][] {
-		if (index === undefined) index = this.currentGridIndex;
-
-		return this.grids[index];
-	}
-
-	updateGridIndex(index: number): void {
-		if (index < 0 || index > (MAX_GRIDS - 1)) return;
-
-		this.currentGridIndex = index;
-	}
-
-	loadSavedGrid(index: number, savedGrid: ISavedCustomGridData): void {
-		const grid = this.getGrid(index);
-		for (let i = 0; i < savedGrid.grid.length; i++) {
-			// the max width may have changed
-			if (!grid[i]) break;
-
-			const savedRow = savedGrid.grid[i];
-			for (let j = 0; j < savedRow.length; j++) {
-				// the max height may have changed
-				if (!grid[i][j]) break;
-
-				const savedCell = savedRow[j];
-				const cell = grid[i][j];
-				if (savedCell.color) cell.color = savedCell.color;
-				if (savedCell.label) cell.label = savedCell.label;
-				if (savedCell.labelColor) cell.labelColor = savedCell.labelColor;
-				if (savedCell.pokemon) {
-					const pokemon = Dex.getPokemon(savedCell.pokemon);
-					if (pokemon) {
-						cell.pokemon = pokemon.name;
-						cell.pokemonIcon = Dex.getPokemonIcon(pokemon);
-
-						this.pokemonNames[cell.pokemonIcon] = pokemon.name;
-						this.pokemonIconLocations[cell.pokemonIcon] = cell;
-					}
-				}
-			}
-		}
-
-		if (this.checkFilters()) {
-			for (const row of grid) {
-				for (const cell of row) {
-					cell.label = undefined;
-					cell.labelColor = undefined;
-				}
-			}
-		}
-	}
-
-	createCell(): ICellData {
-		const cell: ICellData = {};
-		this.updateCellHtmlCache(cell);
-		return cell;
-	}
-
-	chooseHomeView(): void {
-		if (this.currentView === 'home') return;
-
-		this.currentView = 'home';
-
-		this.toggleActiveComponents();
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	chooseColorsView(): void {
-		if (this.currentView === 'colors') return;
-
-		this.currentView = 'colors';
-
-		this.toggleActiveComponents();
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	choosePlayersView(): void {
-		if (this.currentView === 'players') return;
-
-		this.currentView = 'players';
-
-		this.toggleActiveComponents();
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	choosePokemonView(): void {
-		if (this.currentView === 'pokemon') return;
-
-		this.currentView = 'pokemon';
-
-		this.toggleActiveComponents();
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	chooseLabelsView(): void {
-		if (this.currentView === 'labels') return;
-
-		this.currentView = 'labels';
-
-		this.toggleActiveComponents();
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	toggleActiveComponents(): void {
-		this.cellColorPicker.active = this.currentView === 'colors';
-		this.pokemonPicker.active = this.currentView === 'pokemon';
-
-		const players = this.currentView === 'players';
-		this.playerPicker.active = players;
-		this.playerColorPicker.active = players;
-
-		const labels = this.currentView === 'labels';
-		this.labelInput.active = labels;
-		this.labelColorPicker.active = labels;
-	}
-
-	chooseInsertMode(): void {
-		if (this.currentMode === 'insert') return;
-
-		this.currentMode = 'insert';
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	chooseEraseMode(): void {
-		if (this.currentMode === 'erase') return;
-
-		this.currentMode = 'erase';
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
-
-	chooseEraseAllMode(): void {
-		if (this.currentMode === 'eraseall') return;
-
-		this.currentMode = 'eraseall';
-		this.updateGridHtml(true);
-		this.props.reRender();
-	}
+	/**
+	 * sub-component methods
+	 */
 
 	pickColorHueVariation(dontRender?: boolean): void {
 		if (!dontRender) this.props.reRender();
@@ -542,6 +418,462 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
+	/**
+	 * navidation and modes
+	 */
+
+	chooseHomeView(): void {
+		if (this.currentView === 'home') return;
+
+		this.currentView = 'home';
+
+		this.toggleActiveComponents();
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	chooseColorsView(): void {
+		if (this.currentView === 'colors') return;
+
+		this.currentView = 'colors';
+
+		this.toggleActiveComponents();
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	choosePlayersView(): void {
+		if (this.currentView === 'players') return;
+
+		this.currentView = 'players';
+
+		this.toggleActiveComponents();
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	choosePokemonView(): void {
+		if (this.currentView === 'pokemon') return;
+
+		this.currentView = 'pokemon';
+
+		this.toggleActiveComponents();
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	chooseLabelsView(): void {
+		if (this.currentView === 'labels') return;
+
+		this.currentView = 'labels';
+
+		this.toggleActiveComponents();
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	toggleActiveComponents(): void {
+		this.cellColorPicker.active = this.currentView === 'colors';
+		this.pokemonPicker.active = this.currentView === 'pokemon';
+
+		const players = this.currentView === 'players';
+		this.playerPicker.active = players;
+		this.playerColorPicker.active = players;
+
+		const labels = this.currentView === 'labels';
+		this.labelInput.active = labels;
+		this.labelColorPicker.active = labels;
+	}
+
+	chooseInsertMode(): void {
+		if (this.currentMode === 'insert') return;
+
+		this.currentMode = 'insert';
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	chooseEraseMode(): void {
+		if (this.currentMode === 'erase') return;
+
+		this.currentMode = 'erase';
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	chooseEraseAllMode(): void {
+		if (this.currentMode === 'eraseall') return;
+
+		this.currentMode = 'eraseall';
+		this.updateGridHtml(true);
+		this.props.reRender();
+	}
+
+	/**
+	 * cell methods
+	 */
+
+	createCell(): ICellData {
+		const cell: ICellData = {};
+		this.updateCellHtmlCache(cell);
+		return cell;
+	}
+
+	clearCell(cell: ICellData): boolean {
+		this.eraseColor(cell);
+		this.erasePokemon(cell);
+
+		if (cell.players) {
+			const players = cell.players.slice();
+			for (const player of players) {
+				this.erasePlayer(cell, player);
+			}
+		}
+
+		return this.eraseLabel(cell);
+	}
+
+	updateCellHtmlCache(cell: ICellData): void {
+		let html = '<td style="position: relative;background: ' + (cell.color || this.defaultColor) + '">';
+
+		let hasPlayers = false;
+		if (cell.players) {
+			const players = cell.players.length;
+			if (players) {
+				hasPlayers = true;
+
+				if (cell.playersColor) html += "<span style='color: " + cell.playersColor + "'>";
+				if (players > 1) {
+					html += "<span title='" + cell.players.join(", ") + "'>*</span>";
+				} else {
+					html += cell.players[0];
+				}
+				if (cell.playersColor) html += "</span>";
+			}
+		}
+
+		if (cell.label) {
+			if (hasPlayers) html += "<br />";
+			if (cell.labelColor) html += "<span style='color: " + cell.labelColor + "'>";
+			html += cell.label;
+			if (cell.labelColor) html += "</span>";
+		}
+
+		if (cell.pokemonIcon) {
+			if (hasPlayers || cell.label) html += "<br />";
+			html += cell.pokemonIcon;
+		}
+
+		html += '</td>';
+
+		cell.htmlCache = html;
+	}
+
+	insertColor(cell: ICellData, color: HexCode | undefined): void {
+		cell.color = color;
+	}
+
+	eraseColor(cell: ICellData): void {
+		cell.color = undefined;
+	}
+
+	/**Returns `false` if inserting triggers a filter */
+	insertLabel(cell: ICellData, label: string, labelColor: HexCode | undefined): boolean {
+		const previousValue = cell.label;
+		cell.label = label;
+		if (this.checkFilters()) {
+			cell.label = previousValue;
+			return false;
+		} else {
+			if (labelColor) cell.labelColor = labelColor;
+			return true;
+		}
+	}
+
+	/**Returns `false` if erasing triggers a filter */
+	eraseLabel(cell: ICellData): boolean {
+		const previousValue = cell.label;
+		cell.label = undefined;
+		if (this.checkFilters()) {
+			cell.label = previousValue;
+			return false;
+		} else {
+			cell.labelColor = undefined;
+			return true;
+		}
+	}
+
+	insertPokemon(cell: ICellData, pokemon: string, pokemonIcon: string, batchUpdate?: boolean): void {
+		if (cell.pokemonIcon && cell.pokemonIcon !== pokemonIcon) {
+			if (!this.allowDuplicatePokemon) delete this.pokemonNames[cell.pokemonIcon];
+			delete this.pokemonIconLocations[cell.pokemonIcon];
+		}
+
+		if (!this.allowDuplicatePokemon && pokemonIcon in this.pokemonIconLocations) {
+			const previousCell = this.pokemonIconLocations[pokemonIcon];
+			this.erasePokemon(previousCell);
+			this.updateCellHtmlCache(previousCell);
+		}
+
+		cell.pokemon = pokemon;
+		cell.pokemonIcon = pokemonIcon;
+		this.pokemonIconLocations[pokemonIcon] = cell;
+
+		if (!batchUpdate) this.checkPokemonIconCount();
+	}
+
+	erasePokemon(cell: ICellData): void {
+		if (cell.pokemonIcon) {
+			if (!this.allowDuplicatePokemon) delete this.pokemonNames[cell.pokemonIcon];
+			delete this.pokemonIconLocations[cell.pokemonIcon];
+			cell.pokemonIcon = undefined;
+		}
+
+		cell.pokemon = undefined;
+	}
+
+	insertPlayer(cell: ICellData, player: string): void {
+		if (player in this.playerLocations) {
+			const previousCell = this.playerLocations[player];
+			this.erasePlayer(this.playerLocations[player], player);
+
+			this.updateCellHtmlCache(previousCell);
+		}
+
+		if (!cell.players) cell.players = [];
+		if (!cell.players.includes(player)) cell.players.push(player);
+		this.playerLocations[player] = cell;
+
+		if (this.currentPlayerColor) cell.playersColor = this.currentPlayerColor;
+	}
+
+	erasePlayer(cell: ICellData, player: string): void {
+		if (cell.players) {
+			const index = cell.players.indexOf(player);
+			if (index !== -1) {
+				cell.players.splice(index, 1);
+				if (!cell.players.length) {
+					cell.players = undefined;
+					cell.playersColor = undefined;
+				}
+			}
+
+			delete this.playerLocations[player];
+		}
+	}
+
+	getProcessCellUpdateOptions(batchUpdate?: boolean): IProcessCellUpdateOptions {
+		return {
+			batchUpdate,
+			colors: this.currentView === 'colors',
+			labels: this.currentView === 'labels',
+			players: this.currentView === 'players',
+			pokemon: this.currentView === 'pokemon',
+			insert: this.currentMode === 'insert',
+			erase: this.currentMode === 'erase',
+			eraseAll: this.currentMode === 'eraseall',
+		};
+	}
+
+	canProcessCellUpdate(options: IProcessCellUpdateOptions): boolean {
+		if (options.erase || options.eraseAll) return true;
+
+		if ((options.players && options.batchUpdate) || (options.colors && !this.currentCellColor) ||
+			(options.labels && !this.currentLabel) ||
+			(options.pokemon && (!this.currentPokemonIcon || (options.batchUpdate && !this.allowDuplicatePokemon)))) return false;
+
+		return true;
+	}
+
+	/**Returns `false` if a batch update should stop, e.g. a label triggers a filter */
+	processCellUpdate(x: number, y: number, options: IProcessCellUpdateOptions): boolean {
+		const grid = this.getGrid();
+		const cell = grid[x][y];
+		if (options.eraseAll) {
+			if (!this.clearCell(cell)) {
+				this.updateCellHtmlCache(cell);
+				return false;
+			}
+		} else {
+			if (options.colors) {
+				if (options.erase) {
+					this.eraseColor(cell);
+				} else {
+					this.insertColor(cell, this.currentCellColor);
+				}
+			} else if (options.labels) {
+				if (options.erase) {
+					if (!this.eraseLabel(cell)) {
+						this.updateCellHtmlCache(cell);
+						return false;
+					}
+				} else {
+					if (!this.insertLabel(cell, this.currentLabel, this.currentLabelColor)) {
+						this.updateCellHtmlCache(cell);
+						return false;
+					}
+				}
+			} else if (options.players) {
+				if (options.erase) {
+					this.erasePlayer(cell, this.currentPlayer);
+				} else {
+					this.insertPlayer(cell, this.currentPlayer);
+				}
+			} else if (options.pokemon) {
+				if (options.erase) {
+					this.erasePokemon(cell);
+				} else {
+					this.insertPokemon(cell, this.currentPokemon, this.currentPokemonIcon);
+				}
+			}
+		}
+
+		this.updateCellHtmlCache(cell);
+
+		return true;
+	}
+
+	updateCell(inputX: string | undefined, inputY: string | undefined): void {
+		if (!inputX || !inputY || this.currentView === 'home') return;
+
+		const x = parseInt(inputX.trim());
+		const y = parseInt(inputY.trim());
+		if (isNaN(x) || isNaN(y) || x < 0 || y < 0 || x > this.width || y > this.height) return;
+
+		const options = this.getProcessCellUpdateOptions();
+		if (!this.canProcessCellUpdate(options)) return;
+
+		this.prepareUndo(true);
+		this.processCellUpdate(x, y, options);
+
+		this.updateGridHtml();
+		this.props.reRender();
+
+		this.saveChanges();
+	}
+
+	updateColumn(inputColumn: string | undefined): void {
+		if (!inputColumn || this.currentView === 'home') return;
+
+		const column = parseInt(inputColumn.trim());
+		if (isNaN(column) || column < 0 || column > this.width) return;
+
+		const options = this.getProcessCellUpdateOptions(true);
+		if (!this.canProcessCellUpdate(options)) return;
+
+		this.prepareUndo(true);
+
+		for (let i = 0; i < this.height; i++) {
+			if (!this.processCellUpdate(i, column, options)) break;
+		}
+
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+
+		this.updateGridHtml();
+		this.props.reRender();
+
+		this.saveChanges();
+	}
+
+	updateRow(inputRow: string | undefined): void {
+		if (!inputRow || this.currentView === 'home') return;
+
+		const row = parseInt(inputRow.trim());
+		if (isNaN(row) || row < 0 || row > this.height) return;
+
+		const options = this.getProcessCellUpdateOptions(true);
+		if (!this.canProcessCellUpdate(options)) return;
+
+		this.prepareUndo(true);
+
+		for (let i = 0; i < this.width; i++) {
+			if (!this.processCellUpdate(row, i, options)) break;
+		}
+
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+
+		this.updateGridHtml();
+		this.props.reRender();
+
+		this.saveChanges();
+	}
+
+	updateAll(): void {
+		if (this.currentView === 'home') return;
+
+		const options = this.getProcessCellUpdateOptions(true);
+		if (!this.canProcessCellUpdate(options)) return;
+
+		this.prepareUndo(true);
+
+		const grid = this.getGrid();
+
+		outer:
+		for (let i = 0; i < grid.length; i++) {
+			for (let j = 0; j < grid[i].length; j++) {
+				if (!this.processCellUpdate(i, j, options)) break outer;
+			}
+		}
+
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+
+		this.updateGridHtml();
+		this.props.reRender();
+
+		this.saveChanges();
+	}
+
+	/**
+	 * grid methods
+	 */
+
+	getGrid(index?: number): ICellData[][] {
+		if (index === undefined) index = this.currentGridIndex;
+
+		return this.grids[index];
+	}
+
+	updateGridIndex(index: number): void {
+		if (index < 0 || index > (MAX_GRIDS - 1)) return;
+
+		this.currentGridIndex = index;
+	}
+
+	loadSavedGrid(index: number, savedGrid: ISavedCustomGridData): void {
+		const grid = this.getGrid(index);
+		for (let i = 0; i < savedGrid.grid.length; i++) {
+			// the max width may have changed
+			if (!grid[i]) break;
+
+			const savedRow = savedGrid.grid[i];
+			for (let j = 0; j < savedRow.length; j++) {
+				// the max height may have changed
+				if (!grid[i][j]) break;
+
+				const savedCell = savedRow[j];
+				const cell = grid[i][j];
+				if (savedCell.color) this.insertColor(cell, savedCell.color);
+				if (savedCell.label) this.insertLabel(cell, savedCell.label, savedCell.labelColor);
+				if (savedCell.pokemon) {
+					const pokemon = Dex.getPokemon(savedCell.pokemon);
+					if (pokemon) {
+						this.insertPokemon(cell, pokemon.name, Dex.getPokemonIcon(pokemon));
+					}
+				}
+			}
+		}
+
+		// check filters again in case any saved labels were skipped
+		if (this.checkFilters()) {
+			for (const row of grid) {
+				for (const cell of row) {
+					cell.label = undefined;
+					cell.labelColor = undefined;
+				}
+			}
+		}
+	}
+
 	updateGridDimensions(index?: number): void {
 		if (!index) index = this.currentGridIndex;
 
@@ -599,6 +931,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.saveChanges();
 	}
 
+	/**Update the pixel size of the grid if it is too small for icons */
 	checkPokemonIconCount(): void {
 		const grid = this.getGrid();
 		for (const row of grid) {
@@ -614,76 +947,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
-	clearCell(cell: ICellData): boolean {
-		cell.color = undefined;
-
-		this.removePlayersFromCell(cell);
-
-		if (cell.pokemonIcon) {
-			delete this.pokemonIconLocations[cell.pokemonIcon];
-			cell.pokemonIcon = undefined;
-			cell.pokemon = undefined;
-		}
-
-		return this.eraseLabel(cell);
-	}
-
-	removePlayersFromCell(cell: ICellData): void {
-		if (cell.players) {
-			for (const player of cell.players) {
-				delete this.playerLocations[player];
-			}
-
-			cell.players = undefined;
-		}
-
-		cell.playersColor = undefined;
-	}
-
-	updateCellHtmlCache(cell: ICellData): void {
-		let html = '<td style="position: relative;background: ' + (cell.color || this.defaultColor) + '">';
-
-		let hasPlayers = false;
-		if (cell.players) {
-			const players = cell.players.length;
-			if (players) {
-				hasPlayers = true;
-
-				if (cell.playersColor) html += "<span style='color: " + cell.playersColor + "'>";
-				if (players > 1) {
-					html += "<span title='" + cell.players.join(", ") + "'>*</span>";
-				} else {
-					html += cell.players[0];
-				}
-				if (cell.playersColor) html += "</span>";
-			}
-		}
-
-		if (cell.label) {
-			if (hasPlayers) html += "<br />";
-			if (cell.labelColor) html += "<span style='color: " + cell.labelColor + "'>";
-			html += cell.label;
-			if (cell.labelColor) html += "</span>";
-		}
-
-		if (cell.pokemonIcon) {
-			if (hasPlayers || cell.label) html += "<br />";
-			html += cell.pokemonIcon;
-		}
-
-		html += '</td>';
-
-		cell.htmlCache = html;
-	}
-
-	getGridHtml(display?: boolean): string {
+	getGridHtml(roomView?: boolean): string {
 		let width = this.width;
-		if (display) {
+		if (roomView) {
 			width += 1;
 		}
 
-		const totalWidth = width * (display ? this.pixelSize : EDIT_CELL_PIXEL_SIZE);
-		const rowHeight = display ? this.pixelSize : EDIT_CELL_PIXEL_SIZE;
+		const totalWidth = width * (roomView ? this.pixelSize : EDIT_CELL_PIXEL_SIZE);
+		const rowHeight = roomView ? this.pixelSize : EDIT_CELL_PIXEL_SIZE;
 		let html = '<table align="center" border="1" ' +
 			'style="color: black;font-weight: bold;text-align: center;table-layout: fixed;border-spacing: 1px;' +
 				'width: ' + totalWidth + 'px;">';
@@ -712,18 +983,18 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			}
 		}
 
-		const fillBackground = Tools.getBlackHexCode();
-		// update all or column
-		if (!display) {
+		const batchEditBackground = Tools.getBlackHexCode();
+		// update all cells or entire column
+		if (!roomView) {
 			html += '<tr style="height:' + rowHeight + 'px">';
 			for (let i = 0; i <= this.width; i++) {
 				if (i === 0) {
-					html += '<td style="position: relative;background: ' + fillBackground + '">';
+					html += '<td style="position: relative;background: ' + batchEditBackground + '">';
 					html += this.getQuietPmButton(this.commandPrefix + ", " + updateAllCommand, UPDATE_ALL_BUTTON_TEXT,
 						{disabled: disableFills, style: EDIT_CELL_BUTTON_STYLE});
 					html += '</td>';
 				} else {
-					html += '<td style="position: relative;background: ' + fillBackground + '">';
+					html += '<td style="position: relative;background: ' + batchEditBackground + '">';
 					html += this.getQuietPmButton(this.commandPrefix + ", " + updateColumnCommand + ", " + (i - 1),
 						UPDATE_COLUMN_BUTTON_TEXT, {disabled: disableFills, style: EDIT_CELL_BUTTON_STYLE});
 					html += '</td>';
@@ -736,9 +1007,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		for (let i = 0; i < grid.length; i++) {
 			html += '<tr style="height:' + rowHeight + 'px">';
 
-			// update row
-			if (!display) {
-				html += '<td style="position: relative;background: ' + fillBackground + '">';
+			// update entire row
+			if (!roomView) {
+				html += '<td style="position: relative;background: ' + batchEditBackground + '">';
 				html += this.getQuietPmButton(this.commandPrefix + ", " + updateRowCommand + ", " + i, UPDATE_ROW_BUTTON_TEXT,
 					{disabled: disableFills, style: EDIT_CELL_BUTTON_STYLE});
 				html += '</td>';
@@ -746,7 +1017,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			const row = grid[i];
 			for (let j = 0; j < row.length; j++) {
-				if (display) {
+				if (roomView) {
 					html += row[j].htmlCache;
 				} else {
 					html += '<td style="position: relative;background: ' + (row[j].color || this.defaultColor) + '">';
@@ -864,344 +1135,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			this.props.onAutoSave(this.currentGridIndex, savedCustomGridData);
 		}, AUTO_SAVE_TIMER);
-	}
-
-	insertColor(cell: ICellData): void {
-		cell.color = this.currentCellColor;
-	}
-
-	eraseColor(cell: ICellData): void {
-		cell.color = undefined;
-	}
-
-	insertPokemon(cell: ICellData, multipleCells?: boolean): void {
-		if (cell.pokemonIcon && cell.pokemonIcon !== this.currentPokemonIcon) {
-			if (!this.allowDuplicatePokemon) delete this.pokemonNames[cell.pokemonIcon];
-			delete this.pokemonIconLocations[cell.pokemonIcon];
-		}
-
-		if (!this.allowDuplicatePokemon && this.currentPokemonIcon in this.pokemonIconLocations) {
-			this.pokemonIconLocations[this.currentPokemonIcon].pokemonIcon = "";
-			this.updateCellHtmlCache(this.pokemonIconLocations[this.currentPokemonIcon]);
-		}
-
-		cell.pokemon = this.currentPokemon;
-		cell.pokemonIcon = this.currentPokemonIcon;
-		this.pokemonIconLocations[this.currentPokemonIcon] = cell;
-
-		if (!multipleCells) this.checkPokemonIconCount();
-	}
-
-	erasePokemon(cell: ICellData): void {
-		if (cell.pokemonIcon) {
-			if (!this.allowDuplicatePokemon) delete this.pokemonNames[cell.pokemonIcon];
-			delete this.pokemonIconLocations[cell.pokemonIcon];
-			cell.pokemonIcon = undefined;
-			cell.pokemon = undefined;
-		}
-	}
-
-	insertLabel(cell: ICellData): boolean {
-		const previousValue = cell.label;
-		cell.label = this.currentLabel;
-		if (this.checkFilters()) {
-			cell.label = previousValue;
-			return false;
-		} else {
-			if (this.currentLabelColor) cell.labelColor = this.currentLabelColor;
-			return true;
-		}
-	}
-
-	eraseLabel(cell: ICellData): boolean {
-		const previousValue = cell.label;
-		cell.label = undefined;
-		if (this.checkFilters()) {
-			cell.label = previousValue;
-			return false;
-		} else {
-			cell.labelColor = undefined;
-			return true;
-		}
-	}
-
-	updateCell(inputX: string | undefined, inputY: string | undefined): void {
-		if (!inputX || !inputY || this.currentView === 'home') return;
-
-		const x = parseInt(inputX.trim());
-		const y = parseInt(inputY.trim());
-		if (isNaN(x) || isNaN(y) || x < 0 || y < 0 || x > this.width || y > this.height) return;
-
-		this.prepareUndo(true);
-
-		const grid = this.getGrid();
-		const cell = grid[x][y];
-		if (this.currentMode === 'eraseall') {
-			this.clearCell(cell);
-		} else {
-			const colors = this.currentView === 'colors';
-			const pokemon = this.currentView === 'pokemon';
-			const labels = this.currentView === 'labels';
-
-			const clear = this.currentMode === 'erase';
-			if (!clear && (
-				(colors && !this.currentCellColor) ||
-				(pokemon && !this.currentPokemonIcon) ||
-				(labels && !this.currentLabel))) return;
-
-			if (colors) {
-				if (clear) {
-					this.eraseColor(cell);
-				} else {
-					this.insertColor(cell);
-				}
-			} else if (this.currentView === 'players') {
-				if (!clear && this.currentPlayer in this.playerLocations) {
-					this.playerLocations[this.currentPlayer].players!
-						.splice(this.playerLocations[this.currentPlayer].players!.indexOf(this.currentPlayer), 1);
-
-					this.updateCellHtmlCache(this.playerLocations[this.currentPlayer]);
-				}
-
-				if (!cell.players) cell.players = [];
-
-				const index = cell.players.indexOf(this.currentPlayer);
-				if (clear) {
-					if (index !== -1) cell.players.splice(index, 1);
-					if (!cell.players.length) cell.players = undefined;
-					delete this.playerLocations[this.currentPlayer];
-				} else {
-					if (index === -1) cell.players.push(this.currentPlayer);
-					if (this.currentPlayerColor) cell.playersColor = this.currentPlayerColor;
-					this.playerLocations[this.currentPlayer] = cell;
-				}
-			} else if (pokemon) {
-				if (clear) {
-					this.erasePokemon(cell);
-				} else {
-					this.insertPokemon(cell);
-				}
-			} else if (labels) {
-				if (clear) {
-					this.eraseLabel(cell);
-				} else {
-					this.insertLabel(cell);
-				}
-			}
-		}
-
-		this.updateCellHtmlCache(cell);
-		this.updateGridHtml();
-		this.props.reRender();
-
-		this.saveChanges();
-	}
-
-	updateColumn(inputColumn: string | undefined): void {
-		if (!inputColumn || this.currentView === 'home') return;
-
-		const colors = this.currentView === 'colors';
-		const players = this.currentView === 'players';
-		const pokemon = this.currentView === 'pokemon';
-		const labels = this.currentView === 'labels';
-
-		const eraseAll = this.currentMode === 'eraseall';
-		const clear = eraseAll || this.currentMode === 'erase';
-		if (!clear && (players ||
-			(colors && !this.currentCellColor) ||
-			(pokemon && (!this.allowDuplicatePokemon || !this.currentPokemonIcon)) ||
-			(labels && !this.currentLabel))) return;
-
-		const column = parseInt(inputColumn.trim());
-		if (isNaN(column) || column < 0 || column > this.width) return;
-
-		this.prepareUndo(true);
-
-		const grid = this.getGrid();
-		for (let i = 0; i < this.height; i++) {
-			const cell = grid[i][column];
-			if (eraseAll) {
-				if (!this.clearCell(cell)) {
-					this.updateCellHtmlCache(cell);
-					break;
-				}
-			} else {
-				if (colors) {
-					if (clear) {
-						this.eraseColor(cell);
-					} else {
-						this.insertColor(cell);
-					}
-				} else if (pokemon) {
-					if (clear) {
-						this.erasePokemon(cell);
-					} else {
-						this.insertPokemon(cell, true);
-					}
-				} else if (labels) {
-					if (clear) {
-						if (!this.eraseLabel(cell)) {
-							this.updateCellHtmlCache(cell);
-							break;
-						}
-					} else {
-						if (!this.insertLabel(cell)) {
-							this.updateCellHtmlCache(cell);
-							break;
-						}
-					}
-				} else if (players) {
-					this.removePlayersFromCell(cell);
-				}
-			}
-
-			this.updateCellHtmlCache(cell);
-		}
-
-		if (pokemon && !clear) this.checkPokemonIconCount();
-
-		this.updateGridHtml();
-		this.props.reRender();
-
-		this.saveChanges();
-	}
-
-	updateRow(inputRow: string | undefined): void {
-		if (!inputRow || this.currentView === 'home') return;
-
-		const colors = this.currentView === 'colors';
-		const players = this.currentView === 'players';
-		const pokemon = this.currentView === 'pokemon';
-		const labels = this.currentView === 'labels';
-
-		const eraseAll = this.currentMode === 'eraseall';
-		const clear = eraseAll || this.currentMode === 'erase';
-		if (!clear && (players ||
-			(colors && !this.currentCellColor) ||
-			(pokemon && (!this.allowDuplicatePokemon || !this.currentPokemonIcon)) ||
-			(labels && !this.currentLabel))) return;
-
-		const row = parseInt(inputRow.trim());
-		if (isNaN(row) || row < 0 || row > this.height) return;
-
-		this.prepareUndo(true);
-
-		const grid = this.getGrid();
-		for (let i = 0; i < this.width; i++) {
-			const cell = grid[row][i];
-			if (eraseAll) {
-				if (!this.clearCell(cell)) {
-					this.updateCellHtmlCache(cell);
-					break;
-				}
-			} else {
-				if (colors) {
-					if (clear) {
-						this.eraseColor(cell);
-					} else {
-						this.insertColor(cell);
-					}
-				} else if (pokemon) {
-					if (clear) {
-						this.erasePokemon(cell);
-					} else {
-						this.insertPokemon(cell, true);
-					}
-				} else if (labels) {
-					if (clear) {
-						if (!this.eraseLabel(cell)) {
-							this.updateCellHtmlCache(cell);
-							break;
-						}
-					} else {
-						if (!this.insertLabel(cell)) {
-							this.updateCellHtmlCache(cell);
-							break;
-						}
-					}
-				} else if (players) {
-					this.removePlayersFromCell(cell);
-				}
-			}
-
-			this.updateCellHtmlCache(cell);
-		}
-
-		if (pokemon && !clear) this.checkPokemonIconCount();
-
-		this.updateGridHtml();
-		this.props.reRender();
-
-		this.saveChanges();
-	}
-
-	updateAll(): void {
-		if (this.currentView === 'home') return;
-
-		const colors = this.currentView === 'colors';
-		const players = this.currentView === 'players';
-		const pokemon = this.currentView === 'pokemon';
-		const labels = this.currentView === 'labels';
-
-		const eraseAll = this.currentMode === 'eraseall';
-		const clear = eraseAll || this.currentMode === 'erase';
-		if (!clear && (players ||
-			(colors && !this.currentCellColor) ||
-			(pokemon && (!this.allowDuplicatePokemon || !this.currentPokemonIcon)) ||
-			(labels && !this.currentLabel))) return;
-
-		this.prepareUndo(true);
-
-		const grid = this.getGrid();
-
-		outer:
-		for (const row of grid) {
-			for (const cell of row) {
-				if (eraseAll) {
-					if (!this.clearCell(cell)) {
-						this.updateCellHtmlCache(cell);
-						break outer;
-					}
-				} else {
-					if (colors) {
-						if (clear) {
-							this.eraseColor(cell);
-						} else {
-							this.insertColor(cell);
-						}
-					} else if (pokemon) {
-						if (clear) {
-							this.erasePokemon(cell);
-						} else {
-							this.insertPokemon(cell, true);
-						}
-					} else if (labels) {
-						if (clear) {
-							if (!this.eraseLabel(cell)) {
-								this.updateCellHtmlCache(cell);
-								break outer;
-							}
-						} else {
-							if (!this.insertLabel(cell)) {
-								this.updateCellHtmlCache(cell);
-								break outer;
-							}
-						}
-					} else if (players) {
-						this.removePlayersFromCell(cell);
-					}
-				}
-
-				this.updateCellHtmlCache(cell);
-			}
-		}
-
-		if (pokemon && !clear) this.checkPokemonIconCount();
-
-		this.updateGridHtml();
-		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	canFillRandomPokemon(): boolean {
@@ -1326,14 +1259,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		return gridCopy;
 	}
 
-	prepareUndo(newAction?: boolean): void {
+	prepareUndo(clearRedos?: boolean): void {
 		if (this.undoGrids.length === HISTORY_LIMIT) this.undoGrids.pop();
 
 		const grid = this.getGrid();
 		this.undoGrids.unshift(this.cloneGrid(grid));
 		this.undosAvailable = this.undoGrids.length;
 
-		if (newAction) {
+		if (clearRedos) {
 			this.redoGrids = [];
 			this.redosAvailable = 0;
 		}
@@ -1511,7 +1444,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + undoCommand, "Undo", {disabled: !this.undosAvailable});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + redoCommand, "Redo", {disabled: !this.redosAvailable});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + resetCommand, "Reset");
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + submitCommand, "Submit");
+
+		if (this.props.showSubmit) {
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + submitCommand, "Submit");
+		}
 		html += "<br /><br />";
 
 		const home = this.currentView === 'home';
@@ -1520,24 +1456,42 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const pokemon = this.currentView === 'pokemon';
 		const labels = this.currentView === 'labels';
 
-		let eraseText: string;
+		let insertEraseText: string;
+		let eraseDisabled = home || this.currentMode === 'erase';
 		if (colors) {
-			eraseText = 'color';
+			insertEraseText = 'color';
+			eraseDisabled = !this.currentCellColor;
 		} else if (players) {
-			eraseText = 'player(s)';
+			if (this.currentPlayer) {
+				insertEraseText = this.currentPlayer;
+			} else {
+				insertEraseText = 'player';
+				eraseDisabled = true;
+			}
 		} else if (pokemon) {
-			eraseText = 'Pokemon';
+			if (this.currentPokemon) {
+				insertEraseText = this.currentPokemon;
+			} else {
+				insertEraseText = 'Pokemon';
+				eraseDisabled = true;
+			}
 		} else if (labels) {
-			eraseText = 'label';
+			if (this.currentLabel) {
+				insertEraseText = "'" + this.currentLabel + "'";
+			} else {
+				insertEraseText = 'label';
+				eraseDisabled = true;
+			}
 		} else {
-			eraseText = "";
+			insertEraseText = "";
+			insertEraseText = "";
 		}
 
 		html += "<b>Edit modes</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInsertMode, "Insert",
-			{disabled: home || this.currentMode === 'insert'});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInsertMode,
+			"Insert" + (insertEraseText ? " " + insertEraseText : ""), {disabled: home || this.currentMode === 'insert'});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseMode,
-			"Erase" + (eraseText ? " " + eraseText : ""), {disabled: home || this.currentMode === 'erase'});
+			"Erase" + (insertEraseText ? " " + insertEraseText : ""), {disabled: eraseDisabled});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseAllMode, "Erase all",
 			{disabled: home || this.currentMode === 'eraseall'});
 		html += "<br /><br />";

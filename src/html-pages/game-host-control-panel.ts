@@ -137,9 +137,11 @@ export class GameHostControlPanel extends HtmlPageBase {
 			reRender: () => this.send(),
 		});
 
+		const currentHost = this.room.userHostedGame && this.room.userHostedGame.isHost(user) ? true : false;
 		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
 			savedGrids: database.gameCustomGrids && this.userId in database.gameCustomGrids ? database.gameCustomGrids[this.userId] :
 				undefined,
+			showSubmit: currentHost,
 			onAutoSave: (index: number, gridData: ISavedCustomGridData) => this.saveCustomGrid(index, gridData),
 			onSubmit: (output) => this.submitCustomGridHtml(output),
 			reRender: () => this.send(),
@@ -148,7 +150,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.components = [this.addPointsInput, this.removePointsInput, this.storedMessageInput, this.twistInput,
 			this.customGrid];
 
-		if (this.room.userHostedGame && this.room.userHostedGame.isHost(user)) {
+		if (currentHost) {
 			const hostDisplayProps: IHostDisplayProps = {
 				currentBackground: hostDisplay ? hostDisplay.background : undefined,
 				currentBackgroundBorder: hostDisplay ? hostDisplay.backgroundBorder : undefined,
