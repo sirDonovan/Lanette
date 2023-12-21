@@ -36,6 +36,7 @@ export abstract class HtmlPageBase {
 	readonly: boolean = false;
 	closingSnapshot: boolean = false;
 	showSwitchLocationButton: boolean = false;
+	sentToUser: boolean = false;
 	staffUserView: boolean = false;
 	switchLocationButtonHtml: string = "";
 	usedCommandAfterLastRender: boolean = false;
@@ -74,7 +75,8 @@ export abstract class HtmlPageBase {
 
 	expire(): void {
 		try {
-			this.send({onExpire: true});
+			if (this.sentToUser) this.send({onExpire: true});
+
 			this.destroy();
 		} catch (e) {
 			Tools.logException(e as Error, "Error expiring " + this.pageId + " page for user " + this.userId);
@@ -233,6 +235,8 @@ export abstract class HtmlPageBase {
 		if (this.onSend) this.onSend(options && options.onOpen);
 
 		if (!(options && options.onExpire)) this.setExpirationTimer();
+
+		this.sentToUser = true;
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
