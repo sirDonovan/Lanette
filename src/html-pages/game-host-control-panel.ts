@@ -138,11 +138,15 @@ export class GameHostControlPanel extends HtmlPageBase {
 		});
 
 		const currentHost = this.room.userHostedGame && this.room.userHostedGame.isHost(user) ? true : false;
+
+		if (!database.gameCustomGrids) database.gameCustomGrids = {};
+		if (!(this.userId in database.gameCustomGrids)) database.gameCustomGrids[this.userId] = {
+			grids: [],
+		};
+
 		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
-			savedGrids: database.gameCustomGrids && this.userId in database.gameCustomGrids ? database.gameCustomGrids[this.userId] :
-				undefined,
+			savedCustomGrids: database.gameCustomGrids[this.userId],
 			showSubmit: currentHost,
-			onAutoSave: (index: number, gridData: ISavedCustomGridData) => this.saveCustomGrid(index, gridData),
 			onSubmit: (output) => this.submitCustomGridHtml(output),
 			reRender: () => this.send(),
 		});

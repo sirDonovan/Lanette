@@ -11,13 +11,14 @@ import { ITextInputValidation, TextInput } from "./text-input";
 
 export interface ICustomGridProps extends IComponentProps {
 	defaultColor?: HexCode;
-	savedGrids?: ISavedCustomGrids;
+	savedCustomGrids?: ISavedCustomGrids;
 	showSubmit?: boolean;
-	onAutoSave: (index: number, gridData: ISavedCustomGridData) => void;
 	onSubmit: (output: string) => void;
 }
 
 interface ICellData {
+	x: number;
+	y: number;
 	color?: HexCode;
 	htmlCache?: string;
 	label?: string;
@@ -37,13 +38,13 @@ interface IProcessCellUpdateOptions {
 	insert?: boolean;
 	erase?: boolean;
 	eraseAll?: boolean;
+	updateAll?: boolean;
 }
 
 const DEFAULT_WIDTH = 5;
 const DEFAULT_HEIGHT = 5;
 const DEFAULT_PIXELS = 50;
 const EDIT_CELL_PIXEL_SIZE = 50;
-const AUTO_SAVE_TIMER = 2 * 1000;
 
 const MIN_PIXELS = 5;
 const MAX_PIXELS = 100;
@@ -99,7 +100,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	componentId: string = 'custom-grid';
 
 	allowDuplicatePokemon: boolean = false;
-	autoSaveTimeout: NodeJS.Timeout | null = null;
 	currentGridIndex: number = 0;
 	currentView: 'colors' | 'pokemon' | 'players' | 'labels' | 'home' = 'home';
 	currentMode: 'insert' | 'erase' | 'eraseall' = 'insert';
@@ -119,8 +119,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	previewHtml: string = "";
 	redosAvailable: number = 0;
 	redoGrids: ICellData[][][] = [];
+	redoSavedGrids: ISavedCustomGridCell[][][] = [];
 	undosAvailable: number = 0;
 	undoGrids: ICellData[][][] = [];
+	undoSavedGrids: ISavedCustomGridCell[][][] = [];
 	width: number;
 
 	currentCellColor: HexCode | undefined;
@@ -149,17 +151,17 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		let loadedSavedGrid = false;
-		if (this.props.savedGrids && this.props.savedGrids.grids.length) {
-			this.height = this.props.savedGrids.grids[0].height;
-			this.pixelSize = this.props.savedGrids.grids[0].pixelSize;
-			this.width = this.props.savedGrids.grids[0].width;
+		if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids.length) {
+			this.height = this.props.savedCustomGrids.grids[0].height;
+			this.pixelSize = this.props.savedCustomGrids.grids[0].pixelSize;
+			this.width = this.props.savedCustomGrids.grids[0].width;
 
-			this.updateGridDimensions();
+			this.updateGridDimensions(0, true);
 
 			for (let i = 0; i < MAX_GRIDS; i++) {
-				if (this.props.savedGrids.grids[i]) {
+				if (this.props.savedCustomGrids.grids[i]) {
 					loadedSavedGrid = true;
-					this.loadSavedGrid(i, this.props.savedGrids.grids[i]);
+					this.loadSavedGridCells(i, this.props.savedCustomGrids.grids[i]);
 				}
 			}
 
@@ -176,7 +178,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const grid = this.getGrid();
 		for (const row of grid) {
 			for (const cell of row) {
-				this.updateCellHtmlCache(cell);
+				this.updateCellCaches(cell);
 			}
 		}
 
@@ -282,14 +284,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			this.labelColorPicker];
 
 		this.toggleActiveComponents();
-	}
-
-	cleanupTimers(): void {
-		if (this.autoSaveTimeout) {
-			clearTimeout(this.autoSaveTimeout);
-			// @ts-expect-error
-			this.autoSaveTimeout = undefined;
-		}
 	}
 
 	/**
@@ -513,13 +507,18 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 * cell methods
 	 */
 
-	createCell(): ICellData {
-		const cell: ICellData = {};
-		this.updateCellHtmlCache(cell);
+	createCell(x: number, y: number, loadingSavedGrid?: boolean): ICellData {
+		const cell: ICellData = {x, y};
+
+		// avoid clearing a saved grid when setting dimensions on open
+		if (!loadingSavedGrid) {
+			this.updateCellCaches(cell);
+		}
+
 		return cell;
 	}
 
-	clearCell(cell: ICellData): boolean {
+	clearCell(cell: ICellData, updateAll?: boolean): boolean {
 		this.eraseColor(cell);
 		this.erasePokemon(cell);
 
@@ -530,10 +529,11 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			}
 		}
 
-		return this.eraseLabel(cell);
+		return this.eraseLabel(cell, updateAll);
 	}
 
-	updateCellHtmlCache(cell: ICellData): void {
+	updateCellCaches(cell: ICellData): void {
+		// cache html for preview
 		let html = '<td style="position: relative;background: ' + (cell.color || this.defaultColor) + '">';
 
 		let hasPlayers = false;
@@ -567,6 +567,16 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		html += '</td>';
 
 		cell.htmlCache = html;
+
+		// update saved grid cell when cache is invalidated
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) {
+			const savedCell = savedGrid.grid[cell.x][cell.y];
+			savedCell.color = cell.color;
+			savedCell.label = cell.label;
+			savedCell.labelColor = cell.labelColor;
+			savedCell.pokemon = cell.pokemon;
+		}
 	}
 
 	insertColor(cell: ICellData, color: HexCode | undefined): void {
@@ -591,10 +601,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	/**Returns `false` if erasing triggers a filter */
-	eraseLabel(cell: ICellData): boolean {
+	eraseLabel(cell: ICellData, updateAll?: boolean): boolean {
 		const previousValue = cell.label;
 		cell.label = undefined;
-		if (this.checkFilters()) {
+		if (!updateAll && this.checkFilters()) {
 			cell.label = previousValue;
 			return false;
 		} else {
@@ -612,7 +622,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (!this.allowDuplicatePokemon && pokemonIcon in this.pokemonIconLocations) {
 			const previousCell = this.pokemonIconLocations[pokemonIcon];
 			this.erasePokemon(previousCell);
-			this.updateCellHtmlCache(previousCell);
+			this.updateCellCaches(previousCell);
 		}
 
 		cell.pokemon = pokemon;
@@ -637,7 +647,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			const previousCell = this.playerLocations[player];
 			this.erasePlayer(this.playerLocations[player], player);
 
-			this.updateCellHtmlCache(previousCell);
+			this.updateCellCaches(previousCell);
 		}
 
 		if (!cell.players) cell.players = [];
@@ -662,7 +672,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
-	getProcessCellUpdateOptions(batchUpdate?: boolean): IProcessCellUpdateOptions {
+	getProcessCellUpdateOptions(batchUpdate?: boolean, updateAll?: boolean): IProcessCellUpdateOptions {
 		return {
 			batchUpdate,
 			colors: this.currentView === 'colors',
@@ -672,6 +682,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			insert: this.currentMode === 'insert',
 			erase: this.currentMode === 'erase',
 			eraseAll: this.currentMode === 'eraseall',
+			updateAll,
 		};
 	}
 
@@ -690,8 +701,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const grid = this.getGrid();
 		const cell = grid[x][y];
 		if (options.eraseAll) {
-			if (!this.clearCell(cell)) {
-				this.updateCellHtmlCache(cell);
+			if (!this.clearCell(cell, options.updateAll)) {
+				this.updateCellCaches(cell);
 				return false;
 			}
 		} else {
@@ -704,12 +715,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			} else if (options.labels) {
 				if (options.erase) {
 					if (!this.eraseLabel(cell)) {
-						this.updateCellHtmlCache(cell);
+						this.updateCellCaches(cell);
 						return false;
 					}
 				} else {
 					if (!this.insertLabel(cell, this.currentLabel, this.currentLabelColor)) {
-						this.updateCellHtmlCache(cell);
+						this.updateCellCaches(cell);
 						return false;
 					}
 				}
@@ -728,7 +739,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			}
 		}
 
-		this.updateCellHtmlCache(cell);
+		this.updateCellCaches(cell);
 
 		return true;
 	}
@@ -748,8 +759,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	updateColumn(inputColumn: string | undefined): void {
@@ -771,8 +780,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	updateRow(inputRow: string | undefined): void {
@@ -794,14 +801,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	updateAll(): void {
 		if (this.currentView === 'home') return;
 
-		const options = this.getProcessCellUpdateOptions(true);
+		const options = this.getProcessCellUpdateOptions(true, true);
 		if (!this.canProcessCellUpdate(options)) return;
 
 		this.prepareUndo(true);
@@ -819,8 +824,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	/**
@@ -833,13 +836,29 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		return this.grids[index];
 	}
 
+	getSavedGrid(index?: number): ISavedCustomGridData | undefined {
+		if (!this.props.savedCustomGrids) return;
+
+		if (index === undefined) index = this.currentGridIndex;
+		if (!this.props.savedCustomGrids.grids[index]) {
+			this.props.savedCustomGrids.grids[index] = {
+				grid: [],
+				height: this.height,
+				pixelSize: this.pixelSize,
+				width: this.width,
+			}
+		}
+
+		return this.props.savedCustomGrids.grids[index];
+	}
+
 	updateGridIndex(index: number): void {
 		if (index < 0 || index > (MAX_GRIDS - 1)) return;
 
 		this.currentGridIndex = index;
 	}
 
-	loadSavedGrid(index: number, savedGrid: ISavedCustomGridData): void {
+	loadSavedGridCells(index: number, savedGrid: ISavedCustomGridData): void {
 		const grid = this.getGrid(index);
 		for (let i = 0; i < savedGrid.grid.length; i++) {
 			// the max width may have changed
@@ -853,7 +872,13 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				const savedCell = savedRow[j];
 				const cell = grid[i][j];
 				if (savedCell.color) this.insertColor(cell, savedCell.color);
-				if (savedCell.label) this.insertLabel(cell, savedCell.label, savedCell.labelColor);
+				if (savedCell.label) {
+					if (!this.insertLabel(cell, savedCell.label, savedCell.labelColor)) {
+						savedCell.label = undefined;
+						savedCell.labelColor = undefined;
+					}
+				}
+
 				if (savedCell.pokemon) {
 					const pokemon = Dex.getPokemon(savedCell.pokemon);
 					if (pokemon) {
@@ -865,19 +890,23 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		// check filters again in case any saved labels were skipped
 		if (this.checkFilters()) {
-			for (const row of grid) {
-				for (const cell of row) {
-					cell.label = undefined;
-					cell.labelColor = undefined;
+			for (let i = 0; i < grid.length; i++) {
+				for (let j = 0; j < grid[i].length; j++) {
+					grid[i][j].label = undefined;
+					grid[i][j].labelColor = undefined;
+
+					savedGrid.grid[i][j].label = undefined;
+					savedGrid.grid[i][j].labelColor = undefined;
 				}
 			}
 		}
 	}
 
-	updateGridDimensions(index?: number): void {
+	updateGridDimensions(index?: number, loadingSavedGrid?: boolean): void {
 		if (!index) index = this.currentGridIndex;
 
 		const grid = this.getGrid(index);
+		const savedGrid = this.getSavedGrid(index);
 
 		this.maxDimensions = Math.floor(MAX_TOTAL_PIXELS / this.pixelSize);
 		// limit size of sent HTML
@@ -895,13 +924,37 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			}
 		}
 
+		if (savedGrid) {
+			const currentGridHeight = grid.length;
+			const savedGridHeight = savedGrid.grid.length;
+			if (savedGridHeight > currentGridHeight) {
+				savedGrid.grid = savedGrid.grid.slice(0, currentGridHeight);
+			} else if (savedGridHeight < currentGridHeight) {
+				for (let i = savedGridHeight; i < currentGridHeight; i++) {
+					savedGrid.grid.push([]);
+				}
+			}
+		}
+
 		for (let i = 0; i < grid.length; i++) {
+			// create saved grid cells first to avoid error while updating caches
+			if (savedGrid) {
+				const savedRowWidth = savedGrid.grid[i].length;
+				if (savedRowWidth > this.width) {
+					savedGrid.grid[i] = savedGrid.grid[i].slice(0, this.width);
+				} else if (savedRowWidth < this.width) {
+					for (let j = savedRowWidth; j < this.width; j++) {
+						savedGrid.grid[i].push({});
+					}
+				}
+			}
+
 			const rowWidth = grid[i].length;
 			if (rowWidth > this.width) {
 				this.grids[index][i] = grid[i].slice(0, this.width);
 			} else if (rowWidth < this.width) {
 				for (let j = rowWidth; j < this.width; j++) {
-					grid[i].push(this.createCell());
+					grid[i].push(this.createCell(i, j, loadingSavedGrid));
 				}
 			}
 		}
@@ -912,7 +965,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.width = width;
 		this.updateGridDimensions();
-		this.saveChanges();
+
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) savedGrid.width = width;
 	}
 
 	updateHeight(height: number): void {
@@ -920,7 +975,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.height = height;
 		this.updateGridDimensions();
-		this.saveChanges();
+
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) savedGrid.height = height;
 	}
 
 	updatePixelSize(pixels: number): void {
@@ -928,7 +985,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.pixelSize = pixels;
 		this.updateGridDimensions();
-		this.saveChanges();
+
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) savedGrid.pixelSize = pixels;
 	}
 
 	/**Update the pixel size of the grid if it is too small for icons */
@@ -1085,10 +1144,11 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	reset(): void {
 		this.prepareUndo(true);
 
+		// createCell will invalidate cache and update saved grid cells
 		const grid = this.getGrid();
-		for (const row of grid) {
-			for (let i = 0; i < row.length; i++) {
-				row[i] = this.createCell();
+		for (let i = 0; i < grid.length; i++) {
+			for (let j = 0; j < grid[i].length; j++) {
+				grid[i][j] = this.createCell(i, j);
 			}
 		}
 
@@ -1096,45 +1156,13 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.pokemonIconLocations = {};
 		this.pokemonNames = {};
 
-		this.updateGridHtml();
+		this.updateGridHtml(true);
 		this.previewHtml = "";
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	submit(): void {
 		this.props.onSubmit(this.getGridHtml(true));
-	}
-
-	saveChanges(): void {
-		if (this.autoSaveTimeout) clearTimeout(this.autoSaveTimeout);
-
-		this.autoSaveTimeout = setTimeout(() => {
-			const savedGrid: ISavedCustomGridCell[][] = [];
-			const grid = this.getGrid();
-			for (const row of grid) {
-				const savedRow: ISavedCustomGridCell[] = [];
-				for (const cell of row) {
-					savedRow.push({
-						color: cell.color,
-						pokemon: cell.pokemon,
-						label: cell.label,
-						labelColor: cell.labelColor,
-					});
-				}
-				savedGrid.push(savedRow);
-			}
-
-			const savedCustomGridData: ISavedCustomGridData = {
-				grid: savedGrid,
-				height: this.height,
-				pixelSize: this.pixelSize,
-				width: this.width,
-			}
-
-			this.props.onAutoSave(this.currentGridIndex, savedCustomGridData);
-		}, AUTO_SAVE_TIMER);
 	}
 
 	canFillRandomPokemon(): boolean {
@@ -1159,19 +1187,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				if (!species) return;
 
 				const pokemon = Dex.getExistingPokemon(species);
-				cell.pokemon = pokemon.name;
-				cell.pokemonIcon = Dex.getPokemonIcon(pokemon);
-				this.pokemonNames[cell.pokemonIcon] = pokemon.name;
-				this.pokemonIconLocations[cell.pokemonIcon] = cell;
+				this.insertPokemon(cell, pokemon.name, Dex.getPokemonIcon(pokemon));
 
-				this.updateCellHtmlCache(cell);
+				this.updateCellCaches(cell);
 			}
 		}
 
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	checkFilters(): boolean {
@@ -1236,8 +1259,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			for (const cell of row) {
 				if (cell.pokemonIcon) {
 					if (cell.pokemonIcon in countedIcons) {
-						cell.pokemonIcon = "";
-						this.updateCellHtmlCache(cell);
+						this.erasePokemon(cell);
+						this.updateCellCaches(cell);
 					} else {
 						countedIcons[cell.pokemonIcon] = true;
 					}
@@ -1259,25 +1282,51 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		return gridCopy;
 	}
 
+	cloneSavedGrid(grid: ISavedCustomGridCell[][]): ISavedCustomGridCell[][] {
+		const gridCopy: ISavedCustomGridCell[][] = [];
+		for (const row of grid) {
+			const rowCopy: ISavedCustomGridCell[] = [];
+			for (const cell of row) {
+				rowCopy.push(Object.assign({}, cell));
+			}
+			gridCopy.push(rowCopy);
+		}
+
+		return gridCopy;
+	}
+
 	prepareUndo(clearRedos?: boolean): void {
-		if (this.undoGrids.length === HISTORY_LIMIT) this.undoGrids.pop();
+		if (this.undoGrids.length === HISTORY_LIMIT) {
+			this.undoGrids.pop();
+			if (this.undoSavedGrids.length) this.undoSavedGrids.pop();
+		}
 
 		const grid = this.getGrid();
 		this.undoGrids.unshift(this.cloneGrid(grid));
 		this.undosAvailable = this.undoGrids.length;
 
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) this.undoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
+
 		if (clearRedos) {
 			this.redoGrids = [];
+			this.redoSavedGrids = [];
 			this.redosAvailable = 0;
 		}
 	}
 
 	prepareRedo(): void {
-		if (this.redoGrids.length === HISTORY_LIMIT) this.redoGrids.pop();
+		if (this.redoGrids.length === HISTORY_LIMIT) {
+			this.redoGrids.pop();
+			if (this.redoSavedGrids.length) this.redoSavedGrids.pop();
+		}
 
 		const grid = this.getGrid();
 		this.redoGrids.unshift(this.cloneGrid(grid));
 		this.redosAvailable = this.redoGrids.length;
+
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) this.redoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
 	}
 
 	redo(): void {
@@ -1290,10 +1339,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.redoGrids.shift();
 		this.redosAvailable--;
 
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) {
+			savedGrid.grid = this.cloneSavedGrid(this.redoSavedGrids[0]);
+			this.redoSavedGrids.shift();
+		}
+
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	undo(): void {
@@ -1306,10 +1359,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.undoGrids.shift();
 		this.undosAvailable--;
 
+		const savedGrid = this.getSavedGrid();
+		if (savedGrid) {
+			savedGrid.grid = this.cloneSavedGrid(this.undoSavedGrids[0]);
+			this.undoSavedGrids.shift();
+		}
+
 		this.updateGridHtml();
 		this.props.reRender();
-
-		this.saveChanges();
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -1483,7 +1540,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				eraseDisabled = true;
 			}
 		} else {
-			insertEraseText = "";
 			insertEraseText = "";
 		}
 

@@ -135,7 +135,7 @@ export interface IUserHostStatusData {
 	expirationTime: number;
 }
 
-interface ISavedCustomGridCell {
+export interface ISavedCustomGridCell {
 	color?: HexCode;
 	label?: string;
 	labelColor?: HexCode;
