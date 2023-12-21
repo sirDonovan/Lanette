@@ -34,6 +34,8 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		// prevent accidental looping from sub-components
 		if (this.destroyed) return;
 
+		if (this.cleanupTimers) this.cleanupTimers();
+
 		if (this.timeout) {
 			clearTimeout(this.timeout);
 			// @ts-expect-error
@@ -75,4 +77,6 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 		return Client.getQuietPmButton(this.htmlPage.getPmRoom(), message, label, disabled, style);
 	}
+
+	cleanupTimers?(): void;
 }

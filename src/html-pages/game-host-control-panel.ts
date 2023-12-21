@@ -141,7 +141,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
 			savedGrids: database.gameCustomGrids && this.userId in database.gameCustomGrids ? database.gameCustomGrids[this.userId] :
 				undefined,
-			onSave: (index: number, gridData: ISavedCustomGridData) => this.saveCustomGrid(index, gridData),
+			onAutoSave: (index: number, gridData: ISavedCustomGridData) => this.saveCustomGrid(index, gridData),
 			onSubmit: (output) => this.submitCustomGridHtml(output),
 			reRender: () => this.send(),
 		});
