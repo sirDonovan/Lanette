@@ -19,6 +19,7 @@ export interface ICustomGridProps extends IComponentProps {
 interface ICellData {
 	x: number;
 	y: number;
+	gridIndex: number;
 	color?: HexCode;
 	htmlCache?: string;
 	label?: string;
@@ -54,7 +55,7 @@ const MAX_FILL_POKEMON_DIMENSIONS = 7;
 const MAX_TOTAL_PIXELS = 500;
 const MAX_LABEL_LENGTH = 10;
 const HISTORY_LIMIT = 5;
-const MAX_GRIDS = 1;
+const MAX_GRIDS = 3;
 
 const EDIT_CELL_BUTTON_STYLE = 'width: 30px; height: 20px';
 const UPDATE_ALL_BUTTON_TEXT = "All";
@@ -62,6 +63,7 @@ const UPDATE_ROW_BUTTON_TEXT = "&rarr;";
 const UPDATE_COLUMN_BUTTON_TEXT = "&darr;";
 const UPDATE_CELL_BUTTON_TEXT = "&check;";
 
+const chooseGridIndexCommand = 'choosegridindex';
 const chooseColorsView = 'choosecolorsview';
 const chooseHomeView = 'choosehomeview';
 const choosePokemonView = 'choosepokemonview';
@@ -111,19 +113,22 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	/**grid index -> grid */
 	grids: ICellData[][][] = [];
 	gridHtml: string = "";
-	height: number;
-	pixelSize: number;
 	playerLocations: Dict<ICellData> = {};
 	pokemonNames: Dict<string> = {};
 	pokemonIconLocations: Dict<ICellData> = {};
 	previewHtml: string = "";
-	redosAvailable: number = 0;
-	redoGrids: ICellData[][][] = [];
-	redoSavedGrids: ISavedCustomGridCell[][][] = [];
-	undosAvailable: number = 0;
-	undoGrids: ICellData[][][] = [];
-	undoSavedGrids: ISavedCustomGridCell[][][] = [];
-	width: number;
+	/**grid index -> redos available */
+	redosAvailable: number[] = [];
+	/**grid index -> redos -> grid */
+	redoGrids: ICellData[][][][] = [];
+	/**grid index -> redos -> saved grid */
+	redoSavedGrids: ISavedCustomGridCell[][][][] = [];
+	/**grid index -> undos available */
+	undosAvailable: number[] = [];
+	/**grid index -> undos -> grid */
+	undoGrids: ICellData[][][][] = [];
+	/**grid index -> undos -> saved grid */
+	undoSavedGrids: ISavedCustomGridCell[][][][] = [];
 
 	currentCellColor: HexCode | undefined;
 	currentLabelColor: HexCode | undefined;
@@ -139,50 +144,58 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	labelInput: TextInput;
 	labelColorPicker: ColorPicker;
 
+	height!: number;
+	pixelSize!: number;
+	width!: number;
+
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ICustomGridProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.defaultColor = props.defaultColor || Tools.getWhiteHexCode();
 		this.minPokemonIconPixelSize = Dex.getPokemonIconWidth();
 
-		// initialize grids and attempt to load from the database
+		// initialize grid lists
 		for (let i = 0; i < MAX_GRIDS; i++) {
-			this.grids[i] = [];
+			this.grids.push([]);
+			this.redoGrids.push([]);
+			this.redoSavedGrids.push([]);
+			this.undoGrids.push([]);
+			this.undoSavedGrids.push([]);
+
+			this.redosAvailable.push(0);
+			this.undosAvailable.push(0);
 		}
 
-		let loadedSavedGrid = false;
-		if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids.length) {
-			this.height = this.props.savedCustomGrids.grids[0].height;
-			this.pixelSize = this.props.savedCustomGrids.grids[0].pixelSize;
-			this.width = this.props.savedCustomGrids.grids[0].width;
+		for (let i = MAX_GRIDS - 1; i >= 0; i--) {
+			// account for scenarios like only grids 1 & 3 being set
+			if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids[i]) {
+				this.height = this.props.savedCustomGrids.grids[i].height;
+				this.pixelSize = this.props.savedCustomGrids.grids[i].pixelSize;
+				this.width = this.props.savedCustomGrids.grids[i].width;
 
-			this.updateGridDimensions(0, true);
+				this.updateGridDimensions(i, true);
 
-			for (let i = 0; i < MAX_GRIDS; i++) {
-				if (this.props.savedCustomGrids.grids[i]) {
-					loadedSavedGrid = true;
-					this.loadSavedGridCells(i, this.props.savedCustomGrids.grids[i]);
+				this.loadSavedGridCells(i, this.props.savedCustomGrids.grids[i]);
+
+				this.checkPokemonIconCount(i);
+			} else {
+				this.height = DEFAULT_HEIGHT;
+				this.pixelSize = DEFAULT_PIXELS;
+				this.width = DEFAULT_WIDTH;
+
+				this.updateGridDimensions(i);
+			}
+
+			// initialize cell caches after saved or default grid is loaded
+			const grid = this.getGrid(i);
+			for (const row of grid) {
+				for (const cell of row) {
+					this.updateCellCaches(cell);
 				}
 			}
-
-			this.checkPokemonIconCount();
-		} else {
-			this.height = DEFAULT_HEIGHT;
-			this.pixelSize = DEFAULT_PIXELS;
-			this.width = DEFAULT_WIDTH;
-
-			this.updateGridDimensions();
 		}
 
-		// initialize cell caches after saved or default grids
-		const grid = this.getGrid();
-		for (const row of grid) {
-			for (const cell of row) {
-				this.updateCellCaches(cell);
-			}
-		}
-
-		this.updateGridHtml(!loadedSavedGrid ? true : false);
+		this.updateGridHtml();
 
 		// sub-components
 		PokemonPickerBase.loadData();
@@ -416,6 +429,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 * navidation and modes
 	 */
 
+	setCurrentGridIndex(index: number): void {
+		if (index === this.currentGridIndex) return;
+
+		this.currentGridIndex = index;
+		this.updateGridHtml();
+		this.props.reRender();
+	}
+
 	chooseHomeView(): void {
 		if (this.currentView === 'home') return;
 
@@ -507,8 +528,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 * cell methods
 	 */
 
-	createCell(x: number, y: number, loadingSavedGrid?: boolean): ICellData {
-		const cell: ICellData = {x, y};
+	createCell(index: number, x: number, y: number, loadingSavedGrid?: boolean): ICellData {
+		const cell: ICellData = {
+			gridIndex: index,
+			x,
+			y,
+		};
 
 		// avoid clearing a saved grid when setting dimensions on open
 		if (!loadingSavedGrid) {
@@ -569,7 +594,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		cell.htmlCache = html;
 
 		// update saved grid cell when cache is invalidated
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(cell.gridIndex);
 		if (savedGrid) {
 			const savedCell = savedGrid.grid[cell.x][cell.y];
 			savedCell.color = cell.color;
@@ -591,7 +616,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	insertLabel(cell: ICellData, label: string, labelColor: HexCode | undefined): boolean {
 		const previousValue = cell.label;
 		cell.label = label;
-		if (this.checkFilters()) {
+		if (this.checkFilters(cell.gridIndex)) {
 			cell.label = previousValue;
 			return false;
 		} else {
@@ -604,7 +629,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	eraseLabel(cell: ICellData, updateAll?: boolean): boolean {
 		const previousValue = cell.label;
 		cell.label = undefined;
-		if (!updateAll && this.checkFilters()) {
+		if (!updateAll && this.checkFilters(cell.gridIndex)) {
 			cell.label = previousValue;
 			return false;
 		} else {
@@ -629,7 +654,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		cell.pokemonIcon = pokemonIcon;
 		this.pokemonIconLocations[pokemonIcon] = cell;
 
-		if (!batchUpdate) this.checkPokemonIconCount();
+		if (!batchUpdate) this.checkPokemonIconCount(cell.gridIndex);
 	}
 
 	erasePokemon(cell: ICellData): void {
@@ -697,8 +722,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	/**Returns `false` if a batch update should stop, e.g. a label triggers a filter */
-	processCellUpdate(x: number, y: number, options: IProcessCellUpdateOptions): boolean {
-		const grid = this.getGrid();
+	processCellUpdate(index: number, x: number, y: number, options: IProcessCellUpdateOptions): boolean {
+		const grid = this.getGrid(index);
 		const cell = grid[x][y];
 		if (options.eraseAll) {
 			if (!this.clearCell(cell, options.updateAll)) {
@@ -755,7 +780,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (!this.canProcessCellUpdate(options)) return;
 
 		this.prepareUndo(true);
-		this.processCellUpdate(x, y, options);
+		this.processCellUpdate(this.currentGridIndex, x, y, options);
 
 		this.updateGridHtml();
 		this.props.reRender();
@@ -773,10 +798,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.prepareUndo(true);
 
 		for (let i = 0; i < this.height; i++) {
-			if (!this.processCellUpdate(i, column, options)) break;
+			if (!this.processCellUpdate(this.currentGridIndex, i, column, options)) break;
 		}
 
-		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
 		this.props.reRender();
@@ -794,10 +819,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.prepareUndo(true);
 
 		for (let i = 0; i < this.width; i++) {
-			if (!this.processCellUpdate(row, i, options)) break;
+			if (!this.processCellUpdate(this.currentGridIndex, row, i, options)) break;
 		}
 
-		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
 		this.props.reRender();
@@ -811,16 +836,16 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.prepareUndo(true);
 
-		const grid = this.getGrid();
+		const grid = this.getGrid(this.currentGridIndex);
 
 		outer:
 		for (let i = 0; i < grid.length; i++) {
 			for (let j = 0; j < grid[i].length; j++) {
-				if (!this.processCellUpdate(i, j, options)) break outer;
+				if (!this.processCellUpdate(this.currentGridIndex, i, j, options)) break outer;
 			}
 		}
 
-		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount();
+		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
 		this.props.reRender();
@@ -830,16 +855,13 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 * grid methods
 	 */
 
-	getGrid(index?: number): ICellData[][] {
-		if (index === undefined) index = this.currentGridIndex;
-
+	getGrid(index: number): ICellData[][] {
 		return this.grids[index];
 	}
 
-	getSavedGrid(index?: number): ISavedCustomGridData | undefined {
+	getSavedGrid(index: number): ISavedCustomGridData | undefined {
 		if (!this.props.savedCustomGrids) return;
 
-		if (index === undefined) index = this.currentGridIndex;
 		if (!this.props.savedCustomGrids.grids[index]) {
 			this.props.savedCustomGrids.grids[index] = {
 				grid: [],
@@ -850,12 +872,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		return this.props.savedCustomGrids.grids[index];
-	}
-
-	updateGridIndex(index: number): void {
-		if (index < 0 || index > (MAX_GRIDS - 1)) return;
-
-		this.currentGridIndex = index;
 	}
 
 	loadSavedGridCells(index: number, savedGrid: ISavedCustomGridData): void {
@@ -889,7 +905,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		// check filters again in case any saved labels were skipped
-		if (this.checkFilters()) {
+		if (this.checkFilters(index)) {
 			for (let i = 0; i < grid.length; i++) {
 				for (let j = 0; j < grid[i].length; j++) {
 					grid[i][j].label = undefined;
@@ -903,7 +919,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	updateGridDimensions(index?: number, loadingSavedGrid?: boolean): void {
-		if (!index) index = this.currentGridIndex;
+		if (index === undefined) index = this.currentGridIndex;
 
 		const grid = this.getGrid(index);
 		const savedGrid = this.getSavedGrid(index);
@@ -954,7 +970,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				this.grids[index][i] = grid[i].slice(0, this.width);
 			} else if (rowWidth < this.width) {
 				for (let j = rowWidth; j < this.width; j++) {
-					grid[i].push(this.createCell(i, j, loadingSavedGrid));
+					grid[i].push(this.createCell(index, i, j, loadingSavedGrid));
 				}
 			}
 		}
@@ -966,7 +982,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.width = width;
 		this.updateGridDimensions();
 
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
 		if (savedGrid) savedGrid.width = width;
 	}
 
@@ -976,7 +992,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.height = height;
 		this.updateGridDimensions();
 
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
 		if (savedGrid) savedGrid.height = height;
 	}
 
@@ -986,13 +1002,13 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.pixelSize = pixels;
 		this.updateGridDimensions();
 
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
 		if (savedGrid) savedGrid.pixelSize = pixels;
 	}
 
 	/**Update the pixel size of the grid if it is too small for icons */
-	checkPokemonIconCount(): void {
-		const grid = this.getGrid();
+	checkPokemonIconCount(index: number): void {
+		const grid = this.getGrid(index);
 		for (const row of grid) {
 			for (const cell of row) {
 				if (cell.pokemonIcon) {
@@ -1062,7 +1078,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			html += '</tr>';
 		}
 
-		const grid = this.getGrid();
+		const grid = this.getGrid(this.currentGridIndex);
 		for (let i = 0; i < grid.length; i++) {
 			html += '<tr style="height:' + rowHeight + 'px">';
 
@@ -1145,10 +1161,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.prepareUndo(true);
 
 		// createCell will invalidate cache and update saved grid cells
-		const grid = this.getGrid();
+		const grid = this.getGrid(this.currentGridIndex);
 		for (let i = 0; i < grid.length; i++) {
 			for (let j = 0; j < grid[i].length; j++) {
-				grid[i][j] = this.createCell(i, j);
+				grid[i][j] = this.createCell(this.currentGridIndex, i, j);
 			}
 		}
 
@@ -1178,7 +1194,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		const pokemonList = Tools.shuffle(this.pokemonList);
-		const grid = this.getGrid();
+		const grid = this.getGrid(this.currentGridIndex);
 		for (const row of grid) {
 			for (const cell of row) {
 				if (cell.pokemonIcon) continue;
@@ -1197,12 +1213,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.props.reRender();
 	}
 
-	checkFilters(): boolean {
+	checkFilters(index: number): boolean {
 		let allLetters = "";
 		const rows: string[] = [];
 		const columns: string[] = [];
 		const diagonals: string[] = [];
-		const grid = this.getGrid();
+		const grid = this.getGrid(index);
 		const gridLength = grid.length;
 		for (let i = 0; i < gridLength; i++) {
 			const row = grid[i];
@@ -1254,7 +1270,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 	removeDuplicatePokemon(): void {
 		const countedIcons: Dict<boolean> = {};
-		const grid = this.getGrid();
+		const grid = this.getGrid(this.currentGridIndex);
 		for (const row of grid) {
 			for (const cell of row) {
 				if (cell.pokemonIcon) {
@@ -1296,53 +1312,57 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	prepareUndo(clearRedos?: boolean): void {
-		if (this.undoGrids.length === HISTORY_LIMIT) {
-			this.undoGrids.pop();
-			if (this.undoSavedGrids.length) this.undoSavedGrids.pop();
+		const undoGrids = this.undoGrids[this.currentGridIndex];
+		const undoSavedGrids = this.undoSavedGrids[this.currentGridIndex];
+		if (undoGrids.length === HISTORY_LIMIT) {
+			undoGrids.pop();
+			if (undoSavedGrids.length) undoSavedGrids.pop();
 		}
 
-		const grid = this.getGrid();
-		this.undoGrids.unshift(this.cloneGrid(grid));
-		this.undosAvailable = this.undoGrids.length;
+		const grid = this.getGrid(this.currentGridIndex);
+		undoGrids.unshift(this.cloneGrid(grid));
+		this.undosAvailable[this.currentGridIndex] = undoGrids.length;
 
-		const savedGrid = this.getSavedGrid();
-		if (savedGrid) this.undoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
+		if (savedGrid) undoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
 
 		if (clearRedos) {
-			this.redoGrids = [];
-			this.redoSavedGrids = [];
-			this.redosAvailable = 0;
+			this.redoGrids[this.currentGridIndex] = [];
+			this.redoSavedGrids[this.currentGridIndex] = [];
+			this.redosAvailable[this.currentGridIndex] = 0;
 		}
 	}
 
 	prepareRedo(): void {
-		if (this.redoGrids.length === HISTORY_LIMIT) {
-			this.redoGrids.pop();
-			if (this.redoSavedGrids.length) this.redoSavedGrids.pop();
+		const redoGrids = this.redoGrids[this.currentGridIndex];
+		const redoSavedGrids = this.redoSavedGrids[this.currentGridIndex];
+		if (redoGrids.length === HISTORY_LIMIT) {
+			redoGrids.pop();
+			if (redoSavedGrids.length) redoSavedGrids.pop();
 		}
 
-		const grid = this.getGrid();
-		this.redoGrids.unshift(this.cloneGrid(grid));
-		this.redosAvailable = this.redoGrids.length;
+		const grid = this.getGrid(this.currentGridIndex);
+		redoGrids.unshift(this.cloneGrid(grid));
+		this.redosAvailable[this.currentGridIndex] = redoGrids.length;
 
-		const savedGrid = this.getSavedGrid();
-		if (savedGrid) this.redoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
+		if (savedGrid) redoSavedGrids.unshift(this.cloneSavedGrid(savedGrid.grid));
 	}
 
 	redo(): void {
-		if (!this.redosAvailable) return;
+		if (!this.redosAvailable[this.currentGridIndex]) return;
 
 		this.prepareUndo();
 
-		this.grids[this.currentGridIndex] = this.cloneGrid(this.redoGrids[0]);
+		this.grids[this.currentGridIndex] = this.cloneGrid(this.redoGrids[this.currentGridIndex][0]);
 
-		this.redoGrids.shift();
-		this.redosAvailable--;
+		this.redoGrids[this.currentGridIndex].shift();
+		this.redosAvailable[this.currentGridIndex]--;
 
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
 		if (savedGrid) {
-			savedGrid.grid = this.cloneSavedGrid(this.redoSavedGrids[0]);
-			this.redoSavedGrids.shift();
+			savedGrid.grid = this.cloneSavedGrid(this.redoSavedGrids[this.currentGridIndex][0]);
+			this.redoSavedGrids[this.currentGridIndex].shift();
 		}
 
 		this.updateGridHtml();
@@ -1350,19 +1370,19 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	undo(): void {
-		if (!this.undosAvailable) return;
+		if (!this.undosAvailable[this.currentGridIndex]) return;
 
 		this.prepareRedo();
 
-		this.grids[this.currentGridIndex] = this.cloneGrid(this.undoGrids[0]);
+		this.grids[this.currentGridIndex] = this.cloneGrid(this.undoGrids[this.currentGridIndex][0]);
 
-		this.undoGrids.shift();
-		this.undosAvailable--;
+		this.undoGrids[this.currentGridIndex].shift();
+		this.undosAvailable[this.currentGridIndex]--;
 
-		const savedGrid = this.getSavedGrid();
+		const savedGrid = this.getSavedGrid(this.currentGridIndex);
 		if (savedGrid) {
-			savedGrid.grid = this.cloneSavedGrid(this.undoSavedGrids[0]);
-			this.undoSavedGrids.shift();
+			savedGrid.grid = this.cloneSavedGrid(this.undoSavedGrids[this.currentGridIndex][0]);
+			this.undoSavedGrids[this.currentGridIndex].shift();
 		}
 
 		this.updateGridHtml();
@@ -1374,7 +1394,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const cmd = Tools.toId(targets[0]);
 		targets.shift();
 
-		if (cmd === chooseColorsView) {
+		if (cmd === chooseGridIndexCommand) {
+			const index = targets[0] ? parseInt(targets[0].trim()) : -1;
+			if (isNaN(index) || index < 0 || index > (this.grids.length - 1)) return;
+
+			this.setCurrentGridIndex(index);
+		} else if (cmd === chooseColorsView) {
 			this.chooseColorsView();
 		} else if (cmd === choosePlayersView) {
 			this.choosePlayersView();
@@ -1391,12 +1416,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		} else if (cmd === chooseEraseAllMode) {
 			this.chooseEraseAllMode();
 		} else if (cmd === choosePlayer) {
-			const id = targets[0].trim();
+			const id = targets[0] ? targets[0].trim() : "";
 			if (!(id in this.playerLocations)) return;
 
 			this.setPlayer(id);
 		} else if (cmd === choosePokemon) {
-			const name = targets[0].trim();
+			const name = targets[0] ? targets[0].trim() : "";
 			let icon = "";
 			for (const i in this.pokemonNames) {
 				if (this.pokemonNames[i] === name) {
@@ -1427,7 +1452,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			if (isNaN(pixels) || pixels < MIN_PIXELS || pixels > MAX_PIXELS) return;
 
 			this.updatePixelSize(pixels);
-			this.checkPokemonIconCount();
+			this.checkPokemonIconCount(this.currentGridIndex);
 			this.updateGridHtml();
 			this.props.reRender();
 		} else if (cmd === updateCellCommand) {
@@ -1474,6 +1499,17 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	render(): string {
 		let html = "";
 
+		if (this.grids.length > 1) {
+			const gridButtons: string[] = [];
+			for (let i = 0; i < MAX_GRIDS; i++) {
+				gridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + i,
+					"Go to grid " + (i + 1), {disabled: this.currentGridIndex === i}));
+			}
+
+			html += gridButtons.join(" | ");
+			html += "<br /><br />";
+		}
+
 		if (this.previewHtml) {
 			html += "<b>Preview</b>:<br />" + this.previewHtml;
 			html += "<br />";
@@ -1498,8 +1534,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		html += this.gridHtml;
 
 		html += "<b>Actions</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + undoCommand, "Undo", {disabled: !this.undosAvailable});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + redoCommand, "Redo", {disabled: !this.redosAvailable});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + undoCommand, "Undo",
+			{disabled: !this.undosAvailable[this.currentGridIndex]});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + redoCommand, "Redo",
+			{disabled: !this.redosAvailable[this.currentGridIndex]});
 		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + resetCommand, "Reset");
 
 		if (this.props.showSubmit) {
