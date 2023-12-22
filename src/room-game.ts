@@ -51,7 +51,8 @@ export abstract class Game extends Activity {
 	gameActionType?: GameActionGames;
 	hasAssistActions?: boolean;
 	isUserHosted?: boolean;
-	lastCustomGridUhtml?: ICustomGridUhtml;
+	lastCustomGridIndex?: number;
+	lastCustomGridsUhtml?: (ICustomGridUhtml | undefined)[];
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
@@ -371,17 +372,23 @@ export abstract class Game extends Activity {
 		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"), player);
 	}
 
-	sayCustomGridUhtml(user: User, html: string): void {
-		if (this.lastCustomGridUhtml && this.lastCustomGridUhtml.html === html) return;
+	sayCustomGridUhtml(user: User, gridIndex: number, html: string): void {
+		if (this.lastCustomGridIndex === gridIndex && this.lastCustomGridsUhtml && this.lastCustomGridsUhtml[gridIndex] &&
+			this.lastCustomGridsUhtml[gridIndex]!.html === html) {
+			return;
+		}
 
-		const uhtmlName = this.uhtmlBaseName + "-customgrid";
+		const uhtmlName = this.uhtmlBaseName + "-customgrid-" + gridIndex;
 		this.sayUhtmlAuto(uhtmlName, html + Client.getUserAttributionHtml(user.name));
 
-		this.lastCustomGridUhtml = {
+		if (!this.lastCustomGridsUhtml) this.lastCustomGridsUhtml = [];
+		this.lastCustomGridsUhtml[gridIndex] = {
 			html,
 			uhtmlName,
 			user: user.name,
 		};
+
+		this.lastCustomGridIndex = gridIndex;
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay, randomized?: boolean): void {

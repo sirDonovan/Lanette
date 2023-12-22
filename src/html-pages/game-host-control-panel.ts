@@ -147,7 +147,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.customGrid = new CustomGrid(this, this.commandPrefix, customGridCommand, {
 			savedCustomGrids: database.gameCustomGrids[this.userId],
 			showSubmit: currentHost,
-			onSubmit: (output) => this.submitCustomGridHtml(output),
+			onSubmit: (gridIndex, output) => this.submitCustomGridHtml(gridIndex, output),
 			reRender: () => this.send(),
 		});
 
@@ -646,11 +646,11 @@ export class GameHostControlPanel extends HtmlPageBase {
 		database.gameCustomGrids[this.userId].grids[index] = gridData;
 	}
 
-	submitCustomGridHtml(output: string): void {
+	submitCustomGridHtml(gridIndex: number, output: string): void {
 		const user = Users.get(this.userName);
 		if (!user || !this.room.userHostedGame || !this.room.userHostedGame.isHost(user)) return;
 
-		this.room.userHostedGame.sayCustomGridUhtml(user, output);
+		this.room.userHostedGame.sayCustomGridUhtml(user, gridIndex, output);
 	}
 
 	render(): string {

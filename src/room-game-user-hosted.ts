@@ -476,9 +476,11 @@ export class UserHostedGame extends Game {
 	}
 
 	forceEnd(user: User, reason?: string): void {
-		if (this.lastCustomGridUhtml) {
-			this.sayUhtmlChange(this.lastCustomGridUhtml.uhtmlName,
-				"<center>(removed " + this.lastCustomGridUhtml.user + "'s custom grid)</center>");
+		if (this.lastCustomGridsUhtml) {
+			for (const customGrid of this.lastCustomGridsUhtml) {
+				if (!customGrid) continue;
+				this.sayUhtmlChange(customGrid.uhtmlName, "<center>(removed " + customGrid.user + "'s custom grid)</center>");
+			}
 		}
 
 		Games.removeLastUserHostTime(this.room, this.hostId);

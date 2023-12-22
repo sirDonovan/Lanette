@@ -13,7 +13,7 @@ export interface ICustomGridProps extends IComponentProps {
 	defaultColor?: HexCode;
 	savedCustomGrids?: ISavedCustomGrids;
 	showSubmit?: boolean;
-	onSubmit: (output: string) => void;
+	onSubmit: (gridIndex: number, output: string) => void;
 }
 
 interface ICellData {
@@ -116,7 +116,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	playerLocations: Dict<ICellData> = {};
 	pokemonNames: Dict<string> = {};
 	pokemonIconLocations: Dict<ICellData> = {};
-	previewHtml: string = "";
+	roomViewGridHtml: string = "";
 	/**grid index -> redos available */
 	redosAvailable: number[] = [];
 	/**grid index -> redos -> grid */
@@ -1154,7 +1154,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 	updateGridHtml(controlsOnly?: boolean): void {
 		this.gridHtml = this.getGridHtml();
-		if (!controlsOnly) this.previewHtml = this.getGridHtml(true);
+		if (!controlsOnly) this.roomViewGridHtml = this.getGridHtml(true);
 	}
 
 	reset(): void {
@@ -1173,12 +1173,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.pokemonNames = {};
 
 		this.updateGridHtml(true);
-		this.previewHtml = "";
+		this.roomViewGridHtml = "";
 		this.props.reRender();
 	}
 
 	submit(): void {
-		this.props.onSubmit(this.getGridHtml(true));
+		if (this.roomViewGridHtml) this.props.onSubmit(this.currentGridIndex, this.roomViewGridHtml);
 	}
 
 	canFillRandomPokemon(): boolean {
@@ -1510,8 +1510,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			html += "<br /><br />";
 		}
 
-		if (this.previewHtml) {
-			html += "<b>Preview</b>:<br />" + this.previewHtml;
+		if (this.roomViewGridHtml) {
+			html += "<b>Preview</b>:<br />" + this.roomViewGridHtml;
 			html += "<br />";
 		} else {
 			html += "You can customize the grid with colors, player markers, Pokemon icons, and cell labels!";
