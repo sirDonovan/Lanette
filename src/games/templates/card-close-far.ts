@@ -62,7 +62,8 @@ export abstract class CardCloseFar extends CardHighLow {
 			}
 
 			html += '<center>' + this.getCardChatHtml(cards) + '</center>';
-			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the closest card" + (len > 1 ? "s" : "") + "</b>!";
+			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.closeOrFar === 'close' ? "closest" : "farthest") +
+				" card" + (len > 1 ? "s" : "") + "</b>!";
 		}
 		html += "</center>";
 
