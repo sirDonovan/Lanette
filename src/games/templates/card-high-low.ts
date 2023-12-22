@@ -255,7 +255,8 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 			const drawnCards = this.drawCard(player, this.roundDrawAmount);
 			const htmlPage = this.getHtmlPage(player);
 			htmlPage.renderCardActionsHtml();
-			htmlPage.renderPlayedCardsHtml(playedCards);
+			htmlPage.renderPlayedCardsDetailHtml(playedCards.map(x => x.name + " (" +
+				this.getCardDetail(x, this.currentCategory) + " " + this.categoryAbbreviations[this.currentCategory] + ")"));
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.renderHandHtml();
 			htmlPage.send();

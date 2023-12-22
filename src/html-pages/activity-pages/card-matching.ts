@@ -282,4 +282,13 @@ export class CardMatchingPage extends GamePageBase {
 
 		this.playedCardsHtml = html;
 	}
+
+	renderPlayedCardsDetailHtml(playedCards?: string[]): void {
+		let html = "";
+		if (playedCards) {
+			html += "You played <b>" + Tools.joinList(playedCards) + "</b>!";
+		}
+
+		this.playedCardsHtml = html;
+	}
 }
