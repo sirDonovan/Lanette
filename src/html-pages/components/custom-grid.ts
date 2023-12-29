@@ -136,6 +136,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	undoGrids: ICellData[][][][] = [];
 	/**grid index -> undos -> saved grid */
 	undoSavedGrids: ISavedCustomGridCell[][][][] = [];
+	usesHtmlSelectors: boolean = true;
 
 	controlsSelector: HtmlSelector;
 	currentCellColor: HexCode | undefined;
@@ -143,7 +144,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	currentPlayerColor: HexCode | undefined;
 	cellColorPicker: ColorPicker;
 	defaultColor: HexCode;
-	htmlSelectors: HtmlSelector[];
 	labelInput: TextInput;
 	labelColorPicker: ColorPicker;
 	maxDimensions!: number;
@@ -167,7 +167,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.previewSelector = this.newSelector(PREVIEW_SELECTOR);
 		this.controlsSelector = this.newSelector(CONTROLS_SELECTOR);
 		this.propertiesSelector = this.newSelector(PROPERTIES_SELECTOR);
-		this.htmlSelectors = [this.previewSelector, this.controlsSelector, this.propertiesSelector];
+		this.addSelector(this.previewSelector);
+		this.addSelector(this.controlsSelector);
+		this.addSelector(this.propertiesSelector);
 
 		this.defaultColor = props.defaultColor || Tools.getWhiteHexCode();
 		this.minPokemonIconPixelSize = Dex.getPokemonIconWidth();

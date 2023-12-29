@@ -79,6 +79,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 	removePointsInput: NumberTextInput;
 	storedMessageInput: MultiTextInput;
 	twistInput: TextInput;
+	usesHtmlSelectors: boolean = true;
 
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
@@ -99,7 +100,9 @@ export class GameHostControlPanel extends HtmlPageBase {
 		this.hostInformationSelector = this.newSelector("hostinformation", this.currentView === 'hostinformation');
 		this.customGridSelector = this.newSelector("customgrid", this.currentView === 'customgrid');
 		this.generateHintsSelector = this.newSelector("generatehints", false);
-		this.htmlSelectors = [this.hostInformationSelector, this.customGridSelector, this.generateHintsSelector];
+		this.addSelector(this.hostInformationSelector);
+		this.addSelector(this.customGridSelector);
+		this.addSelector(this.generateHintsSelector);
 
 		this.addPointsInput = new NumberTextInput(this, this.commandPrefix, addPointsCommand, {
 			min: 1,
@@ -194,7 +197,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 			this.manualHostDisplaySelector = this.newSelector("manualhostdisplay", false);
 			this.randomHostDisplaySelector = this.newSelector("randomhostdisplay", false);
-			this.htmlSelectors.push(this.manualHostDisplaySelector, this.randomHostDisplaySelector);
+			this.addSelector(this.manualHostDisplaySelector);
+			this.addSelector(this.randomHostDisplaySelector);
 
 			this.manualHostDisplay = new ManualHostDisplay(this, this.commandPrefix, manualHostDisplayCommand,
 				Object.assign({htmlPageSelector: this.manualHostDisplaySelector}, hostDisplayProps));

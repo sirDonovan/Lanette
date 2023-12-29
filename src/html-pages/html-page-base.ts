@@ -30,7 +30,8 @@ const EMPTY_SELECTOR_CONTENT = "<div></div>";
 const EXPIRATION_TIMEOUT_SECONDS = 30 * 60 * 1000;
 
 export class HtmlSelector {
-	components: HtmlSelector[] = [];
+	childSelectors: HtmlSelector[] | undefined;
+	hasChildSelectors: boolean = false;
 
 	active: boolean;
 	id: string;
@@ -38,6 +39,18 @@ export class HtmlSelector {
 	constructor(id: string, active?: boolean) {
 		this.active = active === undefined ? true : active;
 		this.id = id;
+	}
+
+	addChildSelector(selector: HtmlSelector): void {
+		if (!this.childSelectors) this.childSelectors = [];
+		if (!this.childSelectors.includes(selector)) this.childSelectors.push(selector);
+
+		if (!this.hasChildSelectors) this.hasChildSelectors = true;
+	}
+
+	includesChildSelector(selector: HtmlSelector): boolean {
+		if (!this.childSelectors) return false;
+		return this.childSelectors.includes(selector);
 	}
 }
 
@@ -59,8 +72,6 @@ export abstract class HtmlPageBase {
 	globalRoomPage: boolean = false;
 	/**If selectors are enabled, displays HTML at the top of the page */
 	headerSelector: HtmlSelector | null = null;
-	/**The list of page selectors (excluding components) in the desired render order */
-	htmlSelectors: HtmlSelector[] | null = null;
 	initializedSelectorDivs: boolean = false;
 	/**Store the last rendered HTML to avoid unnecessary messages */
 	lastRender: string = '';
@@ -75,6 +86,10 @@ export abstract class HtmlPageBase {
 	/**When `true`, the last render is not compared before sending */
 	usedCommandAfterLastRender: boolean = false;
 	useExpirationTimer: boolean = true;
+	usesHtmlSelectors: boolean = false;
+
+	/**The list of selectors in the desired render order */
+	private htmlSelectors: HtmlSelector[] = [];
 
 	baseCommand: string;
 	commandPrefix: string;
@@ -107,8 +122,8 @@ export abstract class HtmlPageBase {
 
 	expire(): void {
 		try {
-				if (this.htmlSelectors) {
 			if (this.successfullyOpenedPage) {
+				if (this.usesHtmlSelectors) {
 					this.expireSelector!.active = true;
 					this.sendSelector(this.expireSelector!, {onExpire: true});
 				} else {
@@ -142,7 +157,7 @@ export abstract class HtmlPageBase {
 	}
 
 	open(): void {
-		if (this.htmlSelectors) {
+		if (this.usesHtmlSelectors) {
 			this.initializeSelectors();
 		}
 
@@ -182,7 +197,7 @@ export abstract class HtmlPageBase {
 
 			const user = Users.get(this.userId);
 			if (user) {
-				if (this.htmlSelectors) {
+				if (this.usesHtmlSelectors) {
 					const room = this.getPmRoom();
 					for (const selector of this.htmlSelectors) {
 						room.changeHtmlPageSelector(user, this.pageId, selector.id, this.renderSelector!(selector));
@@ -265,24 +280,29 @@ export abstract class HtmlPageBase {
 		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render!());
 	}
 
+	addSelector(selector: HtmlSelector): void {
+		this.htmlSelectors.push(selector);
+	}
+
 	newSelector(id: string, active?: boolean): HtmlSelector {
 		return new HtmlSelector(id, active);
 	}
 
 	newComponentSelector(selector: HtmlSelector, id: string, active?: boolean): HtmlSelector {
 		const componentSelector = new HtmlSelector(selector.id + "-" + id, active);
-		selector.components.push(componentSelector);
+		selector.addChildSelector(componentSelector);
 
 		return componentSelector;
 	}
 
 	send(options?: ISendOptions): void {
-		if (this.htmlSelectors) {
 		if (this.destroyed) return;
 
+		if (this.usesHtmlSelectors) {
 			// send any selectors that have updated
 			for (const selector of this.htmlSelectors) {
-				if (selector.components.length) continue;
+				// don't try to render components with child selectors
+				if (selector.hasChildSelectors) continue;
 
 				this.sendSelector(selector, options);
 			}
@@ -338,9 +358,9 @@ export abstract class HtmlPageBase {
 		this.footerSelector = this.newSelector(FOOTER_SELECTOR);
 		this.expireSelector = this.newSelector(EXPIRE_SELECTOR, false);
 
-		this.htmlSelectors!.push(this.footerSelector);
-		this.htmlSelectors!.unshift(this.headerSelector);
-		this.htmlSelectors!.unshift(this.expireSelector);
+		this.htmlSelectors.push(this.footerSelector);
+		this.htmlSelectors.unshift(this.headerSelector);
+		this.htmlSelectors.unshift(this.expireSelector);
 	}
 
 	/**Send <div> elements for all selectors that can be on the page, regardless of active status */
@@ -350,9 +370,9 @@ export abstract class HtmlPageBase {
 		divs.push(this.getInitialSelectorDiv(this.expireSelector!) + "</div>");
 		divs.push(this.getInitialSelectorDiv(this.headerSelector!) + "</div>");
 
-		for (const selector of this.htmlSelectors!) {
+		for (const selector of this.htmlSelectors) {
 			// don't create divs for components with multiple selectors
-			if (selector.components.length) continue;
+			if (selector.hasChildSelectors) continue;
 
 			const div = this.getInitialSelectorDiv(selector) + "</div>";
 			if (!divs.includes(div)) divs.push(div);
@@ -428,7 +448,7 @@ export abstract class HtmlPageBase {
 	checkComponentSelectors(selector: HtmlSelector): string {
 		for (const component of this.components) {
 			if (component.props.htmlPageSelector &&
-				(component.props.htmlPageSelector === selector || component.props.htmlPageSelector.components.includes(selector))) {
+				(component.props.htmlPageSelector === selector || component.props.htmlPageSelector.includesChildSelector(selector))) {
 				let render = "";
 				if (component.renderSelector) {
 					render = component.renderSelector(selector);
@@ -475,8 +495,8 @@ export abstract class HtmlPageBase {
 		}
 	}
 
-		if (this.showSwitchLocationButton && !this.htmlSelectors) {
 	setSwitchLocationButtonHtml(): void {
+		if (this.showSwitchLocationButton && !this.usesHtmlSelectors) {
 			this.switchLocationButtonHtml = this.getQuietPmButton(this.commandPrefix + (this.globalRoomPage ? " " : ", ") +
 			SWITCH_LOCATION_COMMAND, "Move to " + (this.chatUhtmlName ? "HTML page" : "chat"));
 		} else {

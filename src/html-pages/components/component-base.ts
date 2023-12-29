@@ -11,9 +11,11 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	active: boolean = true;
 	components: ComponentBase[] = [];
 	destroyed: boolean = false;
-	/**The list of component selectors in render order */
-	htmlSelectors: HtmlSelector[] | null = null;
 	timeout: NodeJS.Timeout | null = null;
+	usesHtmlSelectors: boolean = false;
+
+	/**The list of selectors in the desired render order */
+	private htmlSelectors: HtmlSelector[] = [];
 
 	commandPrefix: string;
 	componentCommand: string;
@@ -53,6 +55,10 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		Tools.unrefProperties(this, ['destroyed']);
 	}
 
+	addSelector(selector: HtmlSelector): void {
+		this.htmlSelectors.push(selector);
+	}
+
 	newSelector(id: string, active?: boolean): HtmlSelector {
 		if (!this.props.htmlPageSelector) throw new Error("Missing HTML page selector");
 
@@ -63,7 +69,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		const divs: string[] = [];
 
 		// the component can have its own selectors or be configured as a selector for its HTML page
-		if (this.htmlSelectors) {
+		if (this.usesHtmlSelectors) {
 			for (const selector of this.htmlSelectors) {
 				const div = this.htmlPage.getInitialSelectorDiv(selector) + "</div>";
 				if (!divs.includes(div)) divs.push(div);
@@ -84,7 +90,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	}
 
 	send(): void {
-		if (this.htmlSelectors) {
+		if (this.usesHtmlSelectors) {
 			for (const selector of this.htmlSelectors) {
 				this.htmlPage.sendSelector(selector);
 			}
@@ -95,7 +101,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 	/**Show all selectors of this component that are currently active */
 	show(): void {
-		if (this.htmlSelectors) {
+		if (this.usesHtmlSelectors) {
 			for (const selector of this.htmlSelectors) {
 				this.htmlPage.sendSelector(selector, {forceSend: true});
 			}
@@ -107,7 +113,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	/**Hide all selectors of this component*/
 	hide(): void {
 		// don't delete initialized <div> elements
-		if (this.htmlSelectors) {
+		if (this.usesHtmlSelectors) {
 			// reverse order for less jarring updating
 			for (let i = this.htmlSelectors.length - 1; i >= 0; i--) {
 				this.htmlPage.hideSelector(this.htmlSelectors[i]);
@@ -123,7 +129,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		this.active = active;
 
 		if (active) {
-			if (this.htmlSelectors) {
+			if (this.usesHtmlSelectors) {
 				for (const selector of this.htmlSelectors) {
 					selector.active = true;
 				}
@@ -136,7 +142,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 			this.hide();
 
 			// change active status after to bypass check in htmlPage.sendSelector()
-			if (this.htmlSelectors) {
+			if (this.usesHtmlSelectors) {
 				for (const selector of this.htmlSelectors) {
 					selector.active = false;
 				}
