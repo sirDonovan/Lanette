@@ -28,6 +28,7 @@ interface ICellData {
 	playersColor?: HexCode;
 	pokemon?: string;
 	pokemonIcon?: string;
+	randomPokemon?: boolean;
 }
 
 interface IProcessCellUpdateOptions {
@@ -169,6 +170,18 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.defaultColor = props.defaultColor || Tools.getWhiteHexCode();
 		this.minPokemonIconPixelSize = Dex.getPokemonIconWidth();
 
+		PokemonPickerBase.loadData();
+		const includedPokemonNumbers: number[] = [];
+		this.pokemonList = PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!].slice()
+			.filter(x => {
+				const pokemon = Dex.getExistingPokemon(x);
+				if (pokemon.num > 0 && !includedPokemonNumbers.includes(pokemon.num)) {
+					includedPokemonNumbers.push(pokemon.num);
+					return true;
+				}
+				return false;
+			});
+
 		// initialize grid lists
 		for (let i = 0; i < MAX_GRIDS; i++) {
 			this.grids.push([]);
@@ -190,6 +203,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 				this.updateGridDimensions(i, true);
 
+				this.allowDuplicatePokemon = this.props.savedCustomGrids.grids[i].allowDuplicatePokemon || false;
 				this.loadSavedGridCells(i, this.props.savedCustomGrids.grids[i]);
 
 				this.checkPokemonIconCount(i);
@@ -213,9 +227,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.updateGridHtml();
 
 		// sub-components
-		PokemonPickerBase.loadData();
-		this.pokemonList = PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!].slice();
-
 		this.cellColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setCellColorCommand, {
 			name: "Current color",
 			autoSubmitCustomInput: true,
@@ -415,7 +426,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const pokemon = Dex.getExistingPokemon(species);
 		this.currentPokemon = pokemon.name;
 		this.currentPokemonIcon = Dex.getPokemonIcon(pokemon);
-		this.pokemonNames[this.currentPokemonIcon] = pokemon.name;
 
 		this.cellColorPicker.parentSetPokemon(pokemon.name);
 		this.updateGridHtml(true);
@@ -616,6 +626,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			savedCell.label = cell.label;
 			savedCell.labelColor = cell.labelColor;
 			savedCell.pokemon = cell.pokemon;
+			savedCell.randomPokemon = cell.randomPokemon;
 		}
 	}
 
@@ -668,6 +679,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		cell.pokemon = pokemon;
 		cell.pokemonIcon = pokemonIcon;
 		this.pokemonIconLocations[pokemonIcon] = cell;
+		this.pokemonNames[pokemonIcon] = pokemon;
 
 		if (!batchUpdate) this.checkPokemonIconCount(cell.gridIndex);
 	}
@@ -680,6 +692,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		cell.pokemon = undefined;
+		cell.randomPokemon = undefined;
 	}
 
 	insertPlayer(cell: ICellData, player: string): void {
@@ -912,8 +925,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 				if (savedCell.pokemon) {
 					const pokemon = Dex.getPokemon(savedCell.pokemon);
-					if (pokemon) {
+					if (pokemon && this.pokemonList.includes(pokemon.name)) {
 						this.insertPokemon(cell, pokemon.name, Dex.getPokemonIcon(pokemon));
+						cell.randomPokemon = savedCell.randomPokemon;
 					}
 				}
 			}
@@ -1203,13 +1217,19 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	fillRandomPokemon(): void {
 		if (this.currentView !== 'pokemon' || !this.canFillRandomPokemon()) return;
 
+		const grid = this.getGrid(this.currentGridIndex);
+		for (const row of grid) {
+			for (const cell of row) {
+				if (cell.randomPokemon) this.erasePokemon(cell);
+			}
+		}
+
 		const usedPokemon: string[] = [];
 		for (const i in this.pokemonNames) {
 			usedPokemon.push(this.pokemonNames[i]);
 		}
 
 		const pokemonList = Tools.shuffle(this.pokemonList);
-		const grid = this.getGrid(this.currentGridIndex);
 		for (const row of grid) {
 			for (const cell of row) {
 				if (cell.pokemonIcon) continue;
@@ -1218,11 +1238,16 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				if (!species) return;
 
 				const pokemon = Dex.getExistingPokemon(species);
-				this.insertPokemon(cell, pokemon.name, Dex.getPokemonIcon(pokemon));
+				const icon = Dex.getPokemonIcon(pokemon);
+				this.insertPokemon(cell, pokemon.name, icon);
+				cell.randomPokemon = true;
 
 				this.updateCellCaches(cell);
 			}
 		}
+
+		this.currentPokemon = "";
+		this.currentPokemonIcon = "";
 
 		this.updateGridHtml();
 		this.send();
@@ -1482,11 +1507,15 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			if (this.allowDuplicatePokemon) return;
 
 			this.allowDuplicatePokemon = true;
+			const savedGrid = this.getSavedGrid(this.currentGridIndex);
+			if (savedGrid) savedGrid.allowDuplicatePokemon = true;
 			this.send();
 		} else if (cmd === disallowDuplicatePokemonCommand) {
 			if (!this.allowDuplicatePokemon) return;
 
 			this.allowDuplicatePokemon = false;
+			const savedGrid = this.getSavedGrid(this.currentGridIndex);
+			if (savedGrid) savedGrid.allowDuplicatePokemon = false;
 
 			this.removeDuplicatePokemon();
 			this.updateGridHtml();

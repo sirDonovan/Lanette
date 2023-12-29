@@ -140,6 +140,7 @@ export interface ISavedCustomGridCell {
 	label?: string;
 	labelColor?: HexCode;
 	pokemon?: string;
+	randomPokemon?: boolean;
 }
 
 export interface ISavedCustomGridData {
@@ -147,6 +148,7 @@ export interface ISavedCustomGridData {
 	height: number;
 	pixelSize: number;
 	width: number;
+	allowDuplicatePokemon?: boolean;
 }
 
 export interface ISavedCustomGrids {
