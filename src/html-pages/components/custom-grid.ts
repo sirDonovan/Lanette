@@ -61,6 +61,7 @@ const MAX_TOTAL_PIXELS = 580;
 const MAX_LABEL_LENGTH = 10;
 const HISTORY_LIMIT = 5;
 const MAX_GRIDS = 3;
+const SCRATCH_GRID_INDEX = MAX_GRIDS;
 
 const EDIT_CELL_BUTTON_STYLE = 'width: 30px; height: 20px';
 const UPDATE_ALL_BUTTON_TEXT = "All";
@@ -69,6 +70,7 @@ const UPDATE_COLUMN_BUTTON_TEXT = "&darr;";
 const UPDATE_CELL_BUTTON_TEXT = "&check;";
 
 const chooseGridIndexCommand = 'choosegridindex';
+const copyToGridIndexCommand = 'copytogridindex';
 const chooseColorsView = 'choosecolorsview';
 const chooseHomeView = 'choosehomeview';
 const choosePokemonView = 'choosepokemonview';
@@ -128,6 +130,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	redoGrids: ICellData[][][][] = [];
 	/**grid index -> redos -> saved grid */
 	redoSavedGrids: ISavedCustomGridCell[][][][] = [];
+	scratchGrid: ICellData[][] = [];
 	/**grid index -> undos available */
 	undosAvailable: number[] = [];
 	/**grid index -> undos -> grid */
@@ -183,7 +186,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			});
 
 		// initialize grid lists
-		for (let i = 0; i < MAX_GRIDS; i++) {
+		for (let i = 0; i <= SCRATCH_GRID_INDEX; i++) {
 			this.grids.push([]);
 			this.redoGrids.push([]);
 			this.redoSavedGrids.push([]);
@@ -194,7 +197,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			this.undosAvailable.push(0);
 		}
 
-		for (let i = MAX_GRIDS - 1; i >= 0; i--) {
+		for (let i = SCRATCH_GRID_INDEX; i >= 0; i--) {
 			// account for scenarios like only grids 1 & 3 being set
 			if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids[i]) {
 				this.height = this.props.savedCustomGrids.grids[i].height;
@@ -460,6 +463,26 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.currentGridIndex = index;
 		this.updateGridHtml();
 		this.send();
+	}
+
+	copyCurrentGridToIndex(index: number): void {
+		if (index === this.currentGridIndex) return;
+
+		const clonedGrid = this.cloneGrid(this.grids[this.currentGridIndex]);
+		if (index === SCRATCH_GRID_INDEX) {
+			this.scratchGrid = clonedGrid;
+			return;
+		}
+
+		this.grids[index] = clonedGrid;
+		if (this.props.savedCustomGrids) {
+			const savedGrids = this.props.savedCustomGrids.grids;
+			savedGrids[index].grid = this.cloneSavedGrid(savedGrids[this.currentGridIndex].grid);
+			savedGrids[index].allowDuplicatePokemon = savedGrids[this.currentGridIndex].allowDuplicatePokemon;
+			savedGrids[index].height = savedGrids[this.currentGridIndex].height;
+			savedGrids[index].pixelSize = savedGrids[this.currentGridIndex].pixelSize;
+			savedGrids[index].width = savedGrids[this.currentGridIndex].width;
+		}
 	}
 
 	chooseHomeView(): void {
@@ -884,11 +907,15 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 */
 
 	getGrid(index: number): ICellData[][] {
+		if (index === SCRATCH_GRID_INDEX) {
+			return this.scratchGrid;
+		}
+
 		return this.grids[index];
 	}
 
 	getSavedGrid(index: number): ISavedCustomGridData | undefined {
-		if (!this.props.savedCustomGrids) return;
+		if (!this.props.savedCustomGrids || index === SCRATCH_GRID_INDEX) return;
 
 		if (!this.props.savedCustomGrids.grids[index]) {
 			this.props.savedCustomGrids.grids[index] = {
@@ -1446,8 +1473,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (cmd === chooseGridIndexCommand) {
 			const index = targets[0] ? parseInt(targets[0].trim()) : -1;
-			if (isNaN(index) || index < 0 || index > (this.grids.length - 1)) return;
+			if (isNaN(index) || index < 0 || index > SCRATCH_GRID_INDEX) return;
 
+			this.setCurrentGridIndex(index);
+		} else if (cmd === copyToGridIndexCommand) {
+			const index = targets[0] ? parseInt(targets[0].trim()) : -1;
+			if (isNaN(index) || index < 0 || index > SCRATCH_GRID_INDEX) return;
+
+			this.copyCurrentGridToIndex(index);
 			this.setCurrentGridIndex(index);
 		} else if (cmd === chooseColorsView) {
 			this.chooseColorsView();
@@ -1561,8 +1594,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 						"Go to grid " + (i + 1), {disabled: this.currentGridIndex === i}));
 				}
 
+				goToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + SCRATCH_GRID_INDEX,
+						"Go to sratch grid", {disabled: this.currentGridIndex === SCRATCH_GRID_INDEX}));
 
-		html += this.gridHtml;
 				html += goToGridButtons.join(" | ");
 				html += "<br /><br />";
 
@@ -1574,6 +1608,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 						"Copy to grid " + (i + 1)));
 				}
 
+				if (this.currentGridIndex !== SCRATCH_GRID_INDEX) {
+					copyToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + copyToGridIndexCommand + ", " +
+						SCRATCH_GRID_INDEX, "Copy to scratch grid"));
+				}
 
 				html += copyToGridButtons.join(" | ");
 				html += "<br /><br />";
