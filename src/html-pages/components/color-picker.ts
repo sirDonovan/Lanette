@@ -251,12 +251,12 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			reRender: () => this.props.reRender(),
 		});
 
-		if (this.currentView === 'preselected') this.initializePreSelected();
-		this.toggleActivePagination();
-
 		this.components = [this.customPrimaryColorInput, this.customSecondaryColorInput, this.pokemonPicker];
 
-		this.paginations = this.components.slice() as Pagination[];
+		if (this.currentView === 'preselected') {
+			this.initializePreSelected();
+			this.toggleActivePagination();
+		}
 	}
 
 	static loadData(): void {
@@ -442,14 +442,15 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.highLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.highLightnessMaxVariation);
 		this.tintPagination = this.createColorPagination(ColorPicker.tints);
 
-		this.components = [this.shadePagination, this.lowLightnessLowVariationPagination, this.lowLightnessStandardVariationPagination,
+		this.paginations = [this.shadePagination, this.lowLightnessLowVariationPagination, this.lowLightnessStandardVariationPagination,
 			this.lowLightnessHighVariationPagination, this.lowLightnessMaxVariationPagination,
 			this.standardLightnessLowVariationPagination, this.standardLightnessStandardVariationPagination,
 			this.standardLightnessHighVariationPagination, this.standardLightnessMaxVariationPagination,
 			this.highLightnessLowVariationPagination, this.highLightnessStandardVariationPagination,
 			this.highLightnessHighVariationPagination, this.highLightnessMaxVariationPagination, this.tintPagination,
-			this.customPrimaryColorInput, this.customSecondaryColorInput, this.pokemonPicker,
 		];
+
+		this.components = this.components.concat(this.paginations);
 
 		this.initializedPreSelected = true;
 	}
