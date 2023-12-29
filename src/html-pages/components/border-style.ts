@@ -25,6 +25,7 @@ export interface IBorderStyleProps extends IComponentProps {
 	onPickSize: (size: number, dontRender: boolean | undefined) => void;
 	onClearType: (dontRender: boolean | undefined) => void;
 	onPickType: (type: BorderType, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const defaultValue = 'default';

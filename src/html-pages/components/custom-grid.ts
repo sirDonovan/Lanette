@@ -1,6 +1,6 @@
 import { ISavedCustomGridData, ISavedCustomGridCell, ISavedCustomGrids } from "../../types/storage";
 import { HexCode } from "../../types/tools";
-import type { HtmlPageBase } from "../html-page-base";
+import type { HtmlPageBase, HtmlSelector } from "../html-page-base";
 import { ColorPicker, IColorPick } from "./color-picker";
 import type { IComponentProps } from "./component-base";
 import { ComponentBase } from "./component-base";
@@ -41,6 +41,10 @@ interface IProcessCellUpdateOptions {
 	eraseAll?: boolean;
 	updateAll?: boolean;
 }
+
+const PREVIEW_SELECTOR = 'preview';
+const CONTROLS_SELECTOR = 'controls';
+const PROPERTIES_SELECTOR = 'properties';
 
 const DEFAULT_WIDTH = 5;
 const DEFAULT_HEIGHT = 5;
@@ -130,19 +134,23 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	/**grid index -> undos -> saved grid */
 	undoSavedGrids: ISavedCustomGridCell[][][][] = [];
 
+	controlsSelector: HtmlSelector;
 	currentCellColor: HexCode | undefined;
 	currentLabelColor: HexCode | undefined;
 	currentPlayerColor: HexCode | undefined;
 	cellColorPicker: ColorPicker;
 	defaultColor: HexCode;
+	htmlSelectors: HtmlSelector[];
+	labelInput: TextInput;
+	labelColorPicker: ColorPicker;
 	maxDimensions!: number;
 	minPokemonIconPixelSize: number;
 	playerPicker: NumberTextInput;
 	playerColorPicker: ColorPicker;
 	pokemonPicker: PokemonTextInput;
 	pokemonList: string[];
-	labelInput: TextInput;
-	labelColorPicker: ColorPicker;
+	previewSelector: HtmlSelector;
+	propertiesSelector: HtmlSelector;
 
 	height!: number;
 	pixelSize!: number;
@@ -150,6 +158,11 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ICustomGridProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
+
+		this.previewSelector = this.newSelector(PREVIEW_SELECTOR);
+		this.controlsSelector = this.newSelector(CONTROLS_SELECTOR);
+		this.propertiesSelector = this.newSelector(PROPERTIES_SELECTOR);
+		this.htmlSelectors = [this.previewSelector, this.controlsSelector, this.propertiesSelector];
 
 		this.defaultColor = props.defaultColor || Tools.getWhiteHexCode();
 		this.minPokemonIconPixelSize = Dex.getPokemonIconWidth();
@@ -212,7 +225,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			onClear: (index, dontRender) => this.clearCellColor(dontRender),
 			onPick: (index, color, dontRender) => this.setCellColor(color, dontRender),
 			readonly: this.props.readonly,
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.playerPicker = new NumberTextInput(htmlPage, this.commandPrefix, setPlayerCommand, {
@@ -221,9 +234,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			name: "Player",
 			label: "Enter player number",
 			onClear: () => this.clearPlayer(),
-			onErrors: () => this.props.reRender(),
+			onErrors: () => this.send(),
 			onSubmit: (output) => this.setPlayer(PLAYER_SYMBOL + output),
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.playerColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setPlayerColorCommand, {
@@ -237,7 +250,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			onClear: (index, dontRender) => this.clearPlayerColor(dontRender),
 			onPick: (index, color, dontRender) => this.setPlayerColor(color, dontRender),
 			readonly: this.props.readonly,
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.pokemonPicker = new PokemonTextInput(htmlPage, this.commandPrefix, setPokemonCommand, {
@@ -251,7 +264,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			submitText: "Update",
 			onClear: () => this.clearPokemon(),
 			onSubmit: (output) => this.setPokemon(output),
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.labelInput = new TextInput(htmlPage, this.commandPrefix, setLabelCommand, {
@@ -274,9 +287,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 				return {currentOutput: input};
 			},
 			onClear: () => this.clearLabel(),
-			onErrors: () => this.props.reRender(),
+			onErrors: () => this.send(),
 			onSubmit: (output) => this.setLabel(output),
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.labelColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setLabelColorCommand, {
@@ -290,7 +303,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			onClear: (index, dontRender) => this.clearLabelColor(dontRender),
 			onPick: (index, color, dontRender) => this.setLabelColor(color, dontRender),
 			readonly: this.props.readonly,
-			reRender: () => this.props.reRender(),
+			reRender: () => this.send(),
 		});
 
 		this.components = [this.cellColorPicker, this.playerPicker, this.playerColorPicker, this.pokemonPicker, this.labelInput,
@@ -304,11 +317,11 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 */
 
 	pickColorHueVariation(dontRender?: boolean): void {
-		if (!dontRender) this.props.reRender();
+		if (!dontRender) this.send();
 	}
 
 	pickColorLightness(dontRender?: boolean): void {
-		if (!dontRender) this.props.reRender();
+		if (!dontRender) this.send();
 	}
 
 	clearCellColor(dontRender?: boolean): void {
@@ -316,7 +329,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -325,7 +338,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -334,7 +347,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -343,7 +356,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -352,7 +365,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -361,7 +374,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -370,7 +383,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -379,7 +392,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -388,7 +401,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -404,7 +417,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.cellColorPicker.parentSetPokemon(pokemon.name);
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	clearLabel(dontRender?: boolean): void {
@@ -412,7 +425,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -421,7 +434,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (!dontRender) {
 			this.updateGridHtml(true);
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -434,7 +447,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.currentGridIndex = index;
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	chooseHomeView(): void {
@@ -444,7 +457,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.toggleActiveComponents();
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	chooseColorsView(): void {
@@ -454,7 +467,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.toggleActiveComponents();
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	choosePlayersView(): void {
@@ -464,7 +477,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.toggleActiveComponents();
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	choosePokemonView(): void {
@@ -474,7 +487,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.toggleActiveComponents();
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	chooseLabelsView(): void {
@@ -484,7 +497,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.toggleActiveComponents();
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	toggleActiveComponents(): void {
@@ -505,7 +518,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.currentMode = 'insert';
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	chooseEraseMode(): void {
@@ -513,7 +526,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.currentMode = 'erase';
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	chooseEraseAllMode(): void {
@@ -521,7 +534,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.currentMode = 'eraseall';
 		this.updateGridHtml(true);
-		this.props.reRender();
+		this.send();
 	}
 
 	/**
@@ -783,7 +796,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		this.processCellUpdate(this.currentGridIndex, x, y, options);
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	updateColumn(inputColumn: string | undefined): void {
@@ -804,7 +817,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	updateRow(inputRow: string | undefined): void {
@@ -825,7 +838,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	updateAll(): void {
@@ -848,7 +861,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	/**
@@ -1174,7 +1187,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.updateGridHtml(true);
 		this.roomViewGridHtml = "";
-		this.props.reRender();
+		this.send();
 	}
 
 	submit(): void {
@@ -1210,7 +1223,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	checkFilters(index: number): boolean {
@@ -1366,7 +1379,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	undo(): void {
@@ -1386,7 +1399,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		this.updateGridHtml();
-		this.props.reRender();
+		this.send();
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -1439,14 +1452,14 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			this.updateWidth(width);
 			this.updateGridHtml();
-			this.props.reRender();
+			this.send();
 		} else if (cmd === setHeightCommand) {
 			const height = parseInt(targets[0] ? targets[0].trim() : "");
 			if (isNaN(height) || height < MIN_DIMENSION || height > this.maxDimensions) return;
 
 			this.updateHeight(height);
 			this.updateGridHtml();
-			this.props.reRender();
+			this.send();
 		} else if (cmd === setPixelsCommand) {
 			const pixels = parseInt(targets[0] ? targets[0].trim() : "");
 			if (isNaN(pixels) || pixels < MIN_PIXELS || pixels > MAX_PIXELS) return;
@@ -1454,7 +1467,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			this.updatePixelSize(pixels);
 			this.checkPokemonIconCount(this.currentGridIndex);
 			this.updateGridHtml();
-			this.props.reRender();
+			this.send();
 		} else if (cmd === updateCellCommand) {
 			this.updateCell(targets[0], targets[1]);
 		} else if (cmd === updateColumnCommand) {
@@ -1467,7 +1480,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			if (this.allowDuplicatePokemon) return;
 
 			this.allowDuplicatePokemon = true;
-			this.props.reRender();
+			this.send();
 		} else if (cmd === disallowDuplicatePokemonCommand) {
 			if (!this.allowDuplicatePokemon) return;
 
@@ -1475,7 +1488,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			this.removeDuplicatePokemon();
 			this.updateGridHtml();
-			this.props.reRender();
+			this.send();
 		} else if (cmd === randomPokemonCommand) {
 			const randomPokemon = Tools.sampleOne(this.pokemonList);
 
@@ -1496,200 +1509,216 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
-	render(): string {
+	renderSelector(selector: HtmlSelector): string {
 		let html = "";
 
-		if (this.grids.length > 1) {
-			const gridButtons: string[] = [];
-			for (let i = 0; i < MAX_GRIDS; i++) {
-				gridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + i,
-					"Go to grid " + (i + 1), {disabled: this.currentGridIndex === i}));
-			}
+		if (selector === this.previewSelector) {
+			if (this.grids.length > 1) {
+				const goToGridButtons: string[] = [];
+				for (let i = 0; i < MAX_GRIDS; i++) {
+					goToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + i,
+						"Go to grid " + (i + 1), {disabled: this.currentGridIndex === i}));
+				}
 
-			html += gridButtons.join(" | ");
-			html += "<br /><br />";
-		}
-
-		if (this.roomViewGridHtml) {
-			html += "<b>Preview</b>:<br />" + this.roomViewGridHtml;
-			html += "<br />";
-		} else {
-			html += "You can customize the grid with colors, player markers, Pokemon icons, and cell labels!";
-			html += "<br /><br />";
-			html += "Choose a property, enter a value, make sure you're in the desired edit mode, and then click one of the edit " +
-				"buttons:";
-			html += "<ul>";
-			html += "<li><button class='button'>" + UPDATE_ALL_BUTTON_TEXT + "</button> - edit the entire grid</li>";
-			html += "<li><button class='button'>" + UPDATE_ROW_BUTTON_TEXT + "</button> - edit that row</li>";
-			html += "<li><button class='button'>" + UPDATE_COLUMN_BUTTON_TEXT + "</button> - edit that column</li>";
-			html += "<li><button class='button'>" + UPDATE_CELL_BUTTON_TEXT + "</button> - edit that cell</li>";
-			html += "</ul>";
-		}
-
-		if (this.filterError) {
-			html += "<b>" + this.filterError + "</b>";
-			html += "<br />";
-		}
 
 		html += this.gridHtml;
+				html += goToGridButtons.join(" | ");
+				html += "<br /><br />";
 
-		html += "<b>Actions</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + undoCommand, "Undo",
-			{disabled: !this.undosAvailable[this.currentGridIndex]});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + redoCommand, "Redo",
-			{disabled: !this.redosAvailable[this.currentGridIndex]});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + resetCommand, "Reset");
+				const copyToGridButtons: string[] = [];
+				for (let i = 0; i < MAX_GRIDS; i++) {
+					if (i === this.currentGridIndex) continue;
 
-		if (this.props.showSubmit) {
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + submitCommand, "Submit");
-		}
-		html += "<br /><br />";
+					copyToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + copyToGridIndexCommand + ", " + i,
+						"Copy to grid " + (i + 1)));
+				}
 
-		const home = this.currentView === 'home';
-		const colors = this.currentView === 'colors';
-		const players = this.currentView === 'players';
-		const pokemon = this.currentView === 'pokemon';
-		const labels = this.currentView === 'labels';
 
-		let insertEraseText: string;
-		let eraseDisabled = home || this.currentMode === 'erase';
-		if (colors) {
-			insertEraseText = 'color';
-			eraseDisabled = !this.currentCellColor;
-		} else if (players) {
-			if (this.currentPlayer) {
-				insertEraseText = this.currentPlayer;
-			} else {
-				insertEraseText = 'player';
-				eraseDisabled = true;
+				html += copyToGridButtons.join(" | ");
+				html += "<br /><br />";
 			}
-		} else if (pokemon) {
-			if (this.currentPokemon) {
-				insertEraseText = this.currentPokemon;
+
+			if (this.roomViewGridHtml) {
+				html += "<b>Preview</b>:<br />" + this.roomViewGridHtml;
+				html += "<br />";
 			} else {
-				insertEraseText = 'Pokemon';
-				eraseDisabled = true;
+				html += "You can customize the grid with colors, player markers, Pokemon icons, and cell labels!";
+				html += "<br /><br />";
+				html += "Choose a property, enter a value, make sure you're in the desired edit mode, and then click one of the edit " +
+					"buttons:";
+				html += "<ul>";
+				html += "<li><button class='button'>" + UPDATE_ALL_BUTTON_TEXT + "</button> - edit the entire grid</li>";
+				html += "<li><button class='button'>" + UPDATE_ROW_BUTTON_TEXT + "</button> - edit that row</li>";
+				html += "<li><button class='button'>" + UPDATE_COLUMN_BUTTON_TEXT + "</button> - edit that column</li>";
+				html += "<li><button class='button'>" + UPDATE_CELL_BUTTON_TEXT + "</button> - edit that cell</li>";
+				html += "</ul>";
 			}
-		} else if (labels) {
-			if (this.currentLabel) {
-				insertEraseText = "'" + this.currentLabel + "'";
-			} else {
-				insertEraseText = 'label';
-				eraseDisabled = true;
+
+			if (this.filterError) {
+				html += "<b>" + this.filterError + "</b>";
+				html += "<br />";
 			}
+		} else if (selector === this.controlsSelector) {
+			html += this.gridHtml;
 		} else {
-			insertEraseText = "";
-		}
+			html += "<b>Actions</b>:";
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + undoCommand, "Undo",
+				{disabled: !this.undosAvailable[this.currentGridIndex]});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + redoCommand, "Redo",
+				{disabled: !this.redosAvailable[this.currentGridIndex]});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + resetCommand, "Reset");
 
-		html += "<b>Edit modes</b>:";
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInsertMode,
-			"Insert" + (insertEraseText ? " " + insertEraseText : ""), {disabled: home || this.currentMode === 'insert'});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseMode,
-			"Erase" + (insertEraseText ? " " + insertEraseText : ""), {disabled: eraseDisabled});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseAllMode, "Erase all",
-			{disabled: home || this.currentMode === 'eraseall'});
-		html += "<br /><br />";
-
-		html += "<b>Navigation</b>:"
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHomeView, "Home", {selectedAndDisabled: home});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseColorsView, "Colors", {selectedAndDisabled: colors});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePlayersView, "Players",
-			{selectedAndDisabled: players});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon icons",
-			{selectedAndDisabled: pokemon});
-		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLabelsView, "Labels", {selectedAndDisabled: labels});
-
-		html += "<hr />";
-
-		if (home) {
-			html += "<b>Number of columns</b>";
-			for (let i = MIN_DIMENSION; i <= this.maxDimensions; i++) {
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setWidthCommand + ", " + i, "" + i,
-					{selectedAndDisabled: this.width === i});
+			if (this.props.showSubmit) {
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + submitCommand, "Submit");
 			}
-
 			html += "<br /><br />";
 
-			html += "<b>Number of rows</b>";
-			for (let i = MIN_DIMENSION; i <= this.maxDimensions; i++) {
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setHeightCommand + ", " + i, "" + i,
-					{selectedAndDisabled: this.height === i});
-			}
+			const home = this.currentView === 'home';
+			const colors = this.currentView === 'colors';
+			const players = this.currentView === 'players';
+			const pokemon = this.currentView === 'pokemon';
+			const labels = this.currentView === 'labels';
 
-			html += "<br /><br />";
-
-			html += "<b>Cell size</b> (in pixels)";
-			for (let i = MIN_PIXELS; i <= MAX_PIXELS; i += 5) {
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setPixelsCommand + ", " + i, "" + i,
-					{selectedAndDisabled: this.pixelSize === i});
-			}
-		} else if (colors) {
-			html += "<b>Cell fill color</b> ";
-			html += this.cellColorPicker.render();
-		} else if (players) {
-			html += "<b>Cell player marker</b>";
-			if (this.currentPlayer) {
-				html += ": <span";
-				if (this.currentPlayerColor) html += " style='color: " + this.currentPlayerColor + "'";
-				html += ">" + this.currentPlayer + "</span>";
-			}
-
-			const currentPlayers: string[] = [];
-			for (const i in this.playerLocations) {
-				currentPlayers.push(this.getQuietPmButton(this.commandPrefix + ", " + choosePlayer + ", " + i, i,
-					{selectedAndDisabled: i === this.currentPlayer}));
-			}
-
-			if (currentPlayers.length) {
-				html += "<br />";
-				html += currentPlayers.join(" ");
-			}
-
-			html += this.playerPicker.render();
-			html += "<br /><br />";
-			html += "<b>Marker color</b> ";
-			html += this.playerColorPicker.render();
-		} else if (pokemon) {
-			html += "<b>Pokemon icons</b>";
-			if (this.currentPokemonIcon) html += ": " + this.currentPokemonIcon;
-
-			if (this.allowDuplicatePokemon) {
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + disallowDuplicatePokemonCommand,
-					"Disallow duplicate Pokemon");
+			let insertEraseText: string;
+			let eraseDisabled = home || this.currentMode === 'erase';
+			if (colors) {
+				insertEraseText = 'color';
+				eraseDisabled = !this.currentCellColor;
+			} else if (players) {
+				if (this.currentPlayer) {
+					insertEraseText = this.currentPlayer;
+				} else {
+					insertEraseText = 'player';
+					eraseDisabled = true;
+				}
+			} else if (pokemon) {
+				if (this.currentPokemon) {
+					insertEraseText = this.currentPokemon;
+				} else {
+					insertEraseText = 'Pokemon';
+					eraseDisabled = true;
+				}
+			} else if (labels) {
+				if (this.currentLabel) {
+					insertEraseText = "'" + this.currentLabel + "'";
+				} else {
+					insertEraseText = 'label';
+					eraseDisabled = true;
+				}
 			} else {
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + allowDuplicatePokemonCommand,
-					"Allow duplicate Pokemon");
-			}
-			html += "<br />";
-
-			const currentIcons: string[] = [];
-			for (const i in this.pokemonIconLocations) {
-				currentIcons.push(this.getQuietPmButton(this.commandPrefix + ", " + choosePokemon + ", " + this.pokemonNames[i],
-					this.pokemonNames[i], {selectedAndDisabled: i === this.currentPokemonIcon}));
+				insertEraseText = "";
 			}
 
-			if (currentIcons.length) {
+			html += "<b>Edit modes</b>:";
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseInsertMode,
+				"Insert" + (insertEraseText ? " " + insertEraseText : ""), {disabled: home || this.currentMode === 'insert'});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseMode,
+				"Erase" + (insertEraseText ? " " + insertEraseText : ""), {disabled: eraseDisabled});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseEraseAllMode, "Erase all",
+				{disabled: home || this.currentMode === 'eraseall'});
+			html += "<br /><br />";
+
+			html += "<b>Navigation</b>:";
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseHomeView, "Home", {selectedAndDisabled: home});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseColorsView, "Colors", {selectedAndDisabled: colors});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePlayersView, "Players",
+				{selectedAndDisabled: players});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePokemonView, "Pokemon icons",
+				{selectedAndDisabled: pokemon});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseLabelsView, "Labels", {selectedAndDisabled: labels});
+
+			html += "<hr />";
+
+			if (home) {
+				html += "<b>Number of columns</b>";
+				for (let i = MIN_DIMENSION; i <= this.maxDimensions; i++) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setWidthCommand + ", " + i, "" + i,
+						{selectedAndDisabled: this.width === i});
+				}
+
+				html += "<br /><br />";
+
+				html += "<b>Number of rows</b>";
+				for (let i = MIN_DIMENSION; i <= this.maxDimensions; i++) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setHeightCommand + ", " + i, "" + i,
+						{selectedAndDisabled: this.height === i});
+				}
+
+				html += "<br /><br />";
+
+				html += "<b>Cell size</b> (in pixels)";
+				for (let i = MIN_PIXELS; i <= MAX_PIXELS; i += 5) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + setPixelsCommand + ", " + i, "" + i,
+						{selectedAndDisabled: this.pixelSize === i});
+				}
+			} else if (colors) {
+				html += "<b>Cell fill color</b> ";
+				html += this.cellColorPicker.render();
+			} else if (players) {
+				html += "<b>Cell player marker</b>";
+				if (this.currentPlayer) {
+					html += ": <span";
+					if (this.currentPlayerColor) html += " style='color: " + this.currentPlayerColor + "'";
+					html += ">" + this.currentPlayer + "</span>";
+				}
+
+				const currentPlayers: string[] = [];
+				for (const i in this.playerLocations) {
+					currentPlayers.push(this.getQuietPmButton(this.commandPrefix + ", " + choosePlayer + ", " + i, i,
+						{selectedAndDisabled: i === this.currentPlayer}));
+				}
+
+				if (currentPlayers.length) {
+					html += "<br />";
+					html += currentPlayers.join(" ");
+				}
+
+				html += this.playerPicker.render();
+				html += "<br /><br />";
+				html += "<b>Marker color</b> ";
+				html += this.playerColorPicker.render();
+			} else if (pokemon) {
+				html += "<b>Pokemon icons</b>";
+				if (this.currentPokemonIcon) html += ": " + this.currentPokemonIcon;
+
+				if (this.allowDuplicatePokemon) {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + disallowDuplicatePokemonCommand,
+						"Disallow duplicate Pokemon");
+				} else {
+					html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + allowDuplicatePokemonCommand,
+						"Allow duplicate Pokemon");
+				}
 				html += "<br />";
-				html += currentIcons.join(" ");
-			}
 
-			html += "<br /><br />";
-			html += this.getQuietPmButton(this.commandPrefix + ", " + randomPokemonCommand, "Single random Pokemon");
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + fillRandomPokemonCommand, "Fill with random Pokemon",
-				{disabled: !this.canFillRandomPokemon()});
-			html += this.pokemonPicker.render();
-		} else if (labels) {
-			html += "<b>Cell label</b>";
-			if (this.currentLabel) {
-				html += ": <span";
-				if (this.currentLabelColor) html += " style='color: " + this.currentLabelColor + "'";
-				html += "><b>" + this.currentLabel + "</b></span>";
-			}
+				const currentIcons: string[] = [];
+				for (const i in this.pokemonIconLocations) {
+					currentIcons.push(this.getQuietPmButton(this.commandPrefix + ", " + choosePokemon + ", " + this.pokemonNames[i],
+						this.pokemonNames[i], {selectedAndDisabled: i === this.currentPokemonIcon}));
+				}
 
-			html += this.labelInput.render();
-			html += "<br /><br />";
-			html += "<b>Label color</b> ";
-			html += this.labelColorPicker.render();
+				if (currentIcons.length) {
+					html += "<br />";
+					html += currentIcons.join(" ");
+				}
+
+				html += "<br /><br />";
+				html += this.getQuietPmButton(this.commandPrefix + ", " + randomPokemonCommand, "Single random Pokemon");
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + fillRandomPokemonCommand, "Fill with random Pokemon",
+					{disabled: !this.canFillRandomPokemon()});
+				html += this.pokemonPicker.render();
+			} else if (labels) {
+				html += "<b>Cell label</b>";
+				if (this.currentLabel) {
+					html += ": <span";
+					if (this.currentLabelColor) html += " style='color: " + this.currentLabelColor + "'";
+					html += "><b>" + this.currentLabel + "</b></span>";
+				}
+
+				html += this.labelInput.render();
+				html += "<br /><br />";
+				html += "<b>Label color</b> ";
+				html += this.labelColorPicker.render();
+			}
 		}
 
 		return html;

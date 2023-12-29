@@ -1,22 +1,24 @@
-import type { HtmlPageBase, IQuietPMButtonOptions } from "../html-page-base";
+import type { HtmlPageBase, HtmlSelector, IQuietPMButtonOptions } from "../html-page-base";
 
 export interface IComponentProps {
 	readonly?: boolean;
-	reRender: () => void;
+	htmlPageSelector?: HtmlSelector;
 }
 
 export abstract class ComponentBase<PropsType extends IComponentProps = IComponentProps> {
 	abstract componentId: string;
 
 	active: boolean = true;
-	destroyed: boolean = false;
 	components: ComponentBase[] = [];
+	destroyed: boolean = false;
+	/**The list of component selectors in render order */
+	htmlSelectors: HtmlSelector[] | null = null;
 	timeout: NodeJS.Timeout | null = null;
 
-	htmlPage: HtmlPageBase;
 	commandPrefix: string;
-	parentCommandPrefix: string;
 	componentCommand: string;
+	htmlPage: HtmlPageBase;
+	parentCommandPrefix: string;
 	props: PropsType;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: PropsType) {
@@ -27,7 +29,6 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		this.props = props;
 	}
 
-	abstract render(onOpen?: boolean): string;
 	abstract tryCommand(targets: readonly string[]): string | undefined;
 
 	destroy(): void {
@@ -50,6 +51,99 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 		Tools.unrefProperties(this.props);
 		Tools.unrefProperties(this, ['destroyed']);
+	}
+
+	newSelector(id: string, active?: boolean): HtmlSelector {
+		if (!this.props.htmlPageSelector) throw new Error("Missing HTML page selector");
+
+		return this.htmlPage.newComponentSelector(this.props.htmlPageSelector, id, active);
+	}
+
+	initializeSelectors(): string[] {
+		const divs: string[] = [];
+
+		// the component can have its own selectors or be configured as a selector for its HTML page
+		if (this.htmlSelectors) {
+			for (const selector of this.htmlSelectors) {
+				const div = this.htmlPage.getInitialSelectorDiv(selector) + "</div>";
+				if (!divs.includes(div)) divs.push(div);
+			}
+
+			for (const component of this.components) {
+				const componentDivs = component.initializeSelectors();
+				for (const div of componentDivs) {
+					if (!divs.includes(div)) divs.push(div);
+				}
+			}
+		} else if (this.props.htmlPageSelector) {
+			const div = this.htmlPage.getInitialSelectorDiv(this.props.htmlPageSelector) + "</div>";
+			if (!divs.includes(div)) divs.push(div);
+		}
+
+		return divs;
+	}
+
+	send(): void {
+		if (this.htmlSelectors) {
+			for (const selector of this.htmlSelectors) {
+				this.htmlPage.sendSelector(selector);
+			}
+		} else {
+			this.htmlPage.send();
+		}
+	}
+
+	/**Show all selectors of this component that are currently active */
+	show(): void {
+		if (this.htmlSelectors) {
+			for (const selector of this.htmlSelectors) {
+				this.htmlPage.sendSelector(selector, {forceSend: true});
+			}
+		} else if (this.props.htmlPageSelector) {
+			this.htmlPage.sendSelector(this.props.htmlPageSelector, {forceSend: true});
+		}
+	}
+
+	/**Hide all selectors of this component*/
+	hide(): void {
+		// don't delete initialized <div> elements
+		if (this.htmlSelectors) {
+			// reverse order for less jarring updating
+			for (let i = this.htmlSelectors.length - 1; i >= 0; i--) {
+				this.htmlPage.hideSelector(this.htmlSelectors[i]);
+			}
+		} else if (this.props.htmlPageSelector) {
+			this.htmlPage.hideSelector(this.props.htmlPageSelector);
+		}
+	}
+
+	toggleActive(active: boolean, onOpen?: boolean): void {
+		if (this.active === active && !onOpen) return;
+
+		this.active = active;
+
+		if (active) {
+			if (this.htmlSelectors) {
+				for (const selector of this.htmlSelectors) {
+					selector.active = true;
+				}
+			} else if (this.props.htmlPageSelector) {
+				this.props.htmlPageSelector.active = true;
+			}
+
+			this.show();
+		} else {
+			this.hide();
+
+			// change active status after to bypass check in htmlPage.sendSelector()
+			if (this.htmlSelectors) {
+				for (const selector of this.htmlSelectors) {
+					selector.active = false;
+				}
+			} else if (this.props.htmlPageSelector) {
+				this.props.htmlPageSelector.active = false;
+			}
+		}
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
@@ -79,4 +173,6 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	}
 
 	cleanupTimers?(): void;
+	render?(onOpen?: boolean): string;
+	renderSelector?(selector: HtmlSelector, onOpen?: boolean): string;
 }

@@ -10,6 +10,7 @@ export interface IBattleEliminationTeambuilderProps extends IComponentProps {
 	player: Player;
 	rerollCommand: string;
 	modelGeneration: ModelGeneration;
+	reRender: () => void;
 }
 
 const addPokemonCommand = 'addpokemon';

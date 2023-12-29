@@ -17,6 +17,7 @@ export interface IMultiTextInputProps<OutputType = string[]> extends IComponentP
 	onClear?: () => void;
 	onErrors?: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
+	reRender: () => void;
 }
 
 export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiTextInputProps<OutputType>> {

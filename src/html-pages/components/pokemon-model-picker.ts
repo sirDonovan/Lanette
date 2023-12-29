@@ -14,6 +14,7 @@ export interface IPokemonModelPickerProps extends IComponentProps {
 	submitAllPokemon: (pokemon: PokemonChoices) => void;
 	clearPokemon: (index: number, dontRender: boolean | undefined) => void;
 	selectPokemon: (index: number, pokemon: IPokemonPick, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const setGenerationCommand = 'setgeneration';

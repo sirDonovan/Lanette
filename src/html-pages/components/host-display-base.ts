@@ -38,6 +38,7 @@ export interface IHostDisplayProps extends IComponentProps {
 	onPickBorderSize: (size: number, dontRender: boolean | undefined) => void;
 	onClearBorderType: (dontRender: boolean | undefined) => void;
 	onPickBorderType: (type: BorderType, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const setBackgroundColorCommand = 'setbackgroundcolor';

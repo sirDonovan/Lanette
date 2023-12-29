@@ -27,6 +27,7 @@ export interface ITextInputProps<OutputType = string> extends IComponentProps {
 	onClear?: () => void;
 	onErrors?: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
+	reRender: () => void;
 	validateSubmission?: (input: string, output?: OutputType) => ITextInputValidation;
 }
 

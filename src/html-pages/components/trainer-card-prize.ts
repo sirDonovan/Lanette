@@ -15,6 +15,7 @@ export interface ITrainerCardPrizeProps extends IComponentProps {
 	onUpdateSource: (source: string) => void;
 	onUpdateWidth: (width: number) => void;
 	onUpdateHeight: (width: number) => void;
+	reRender: () => void;
 }
 
 export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
