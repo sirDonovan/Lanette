@@ -38,7 +38,8 @@ class TaurosSafariZone extends ScriptedGame {
 	static loadData(): void {
 		const listWithFormes: IPokemon[] = [];
 		for (const pokemon of Games.getPokemonList()) {
-			if (pokemon.id === 'voltorb' || pokemon.id === 'electrode' || !Dex.hasModelData(pokemon)) continue;
+			if (Tools.toId(pokemon.baseSpecies) === 'voltorb' || Tools.toId(pokemon.baseSpecies) === 'electrode' ||
+				!Dex.hasModelData(pokemon)) continue;
 
 			listWithFormes.push(pokemon);
 
