@@ -42,7 +42,7 @@ export class CardMatchingPage extends GamePageBase {
 		if (options.showEggGroups) this.showEggGroups = true;
 		if (options.showTypings) this.showTypings = true;
 
-		this.setSwitchLocationButton();
+		this.setSwitchLocationButtonHtml();
 
 		this.actionCardInput = new TextInput(this, this.commandPrefix, actionCardInputCommand, {
 			hideClearButton: true,

@@ -79,7 +79,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		this.targetUserId = (options && options.targetUserId) || this.userId;
 		this.viewAllMode = options && options.viewAllMode ? true : false;
 		this.readonly = this.viewAllMode;
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
 		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);
@@ -110,7 +110,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 		this.trainerCardUserIdPicker.active = this.viewAllMode;
 
 		this.loadTournamentTrainerCard();
-		this.setCloseButton({enabledReadonly: true});
+		this.setCloseButtonHtml({enabledReadonly: true});
 	}
 
 	getDatabase(): IDatabase {

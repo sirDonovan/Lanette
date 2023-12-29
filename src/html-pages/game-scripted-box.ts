@@ -91,7 +91,7 @@ class GameScriptedBox extends HtmlPageBase {
 
 		this.pokemonAvatar = pokemonAvatar;
 		this.currentPicker = pokemonAvatar ? 'pokemon-avatar' : 'background';
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = this.getDatabase();
 

@@ -63,7 +63,7 @@ class GameHostBox extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let currentBackgroundColor: HexCode | IHexCodeData | undefined;

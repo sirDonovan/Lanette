@@ -36,7 +36,7 @@ class GameTrainerCard extends HtmlPageBase {
 	constructor(room: Room, user: User, maxIcons: number) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;

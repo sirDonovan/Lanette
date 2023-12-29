@@ -85,7 +85,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 		GameHostControlPanel.loadData();
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let hostDisplay: IGameHostDisplay | undefined;

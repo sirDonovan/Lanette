@@ -19,7 +19,7 @@ export class CardHighLowPage extends CardMatchingPage {
 		if (options.showEggGroups) this.showEggGroups = true;
 		if (options.showTypings) this.showTypings = true;
 
-		this.setSwitchLocationButton();
+		this.setSwitchLocationButtonHtml();
 	}
 
 	getCardsPrivateHtml(cards: ICard[]): string {

@@ -53,7 +53,7 @@ class GameVoteBox extends HtmlPageBase {
 
 		this.pokemonAvatar = pokemonAvatar;
 		this.currentPicker = 'home';
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		this.resetComponents();
 	}

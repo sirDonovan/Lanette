@@ -50,7 +50,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const formatList = Games.getTournamentFormatList();
 		for (const format of formatList) {

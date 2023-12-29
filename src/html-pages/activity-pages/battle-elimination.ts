@@ -35,7 +35,7 @@ export class BattleEliminationPage extends GamePageBase {
 		this.rulesHtml = options.rulesHtml;
 		if (options.showBracket) this.showBracket = options.showBracket;
 
-		this.setSwitchLocationButton();
+		this.setSwitchLocationButtonHtml();
 
 		this.battleEliminationTeambuilder = new BattleEliminationTeambuilder(this, this.commandPrefix,
 			battleEliminationTeambuilderCommand, {

@@ -67,7 +67,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
 		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);

@@ -53,7 +53,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const date = new Date();
 		this.currentYear = date.getFullYear();

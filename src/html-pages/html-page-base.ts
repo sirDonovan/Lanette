@@ -45,27 +45,34 @@ export abstract class HtmlPageBase {
 	abstract pageId: string;
 
 	baseChatUhtmlName: string = "";
+	/**Only has a value when the page is currently displaying in chat */
 	chatUhtmlName: string = "";
 	closed: boolean = false;
 	closeButtonHtml: string = "";
-	closingSnapshot: boolean = false;
 	components: ComponentBase[] = [];
 	destroyed: boolean = false;
+	/**If selectors are enabled, displays the expire message at the top of the page */
 	expireSelector: HtmlSelector | null = null;
 	expirationTimer: NodeJS.Timeout | null = null;
+	/**If selectors are enabled, displays HTML at the bottom of the page */
 	footerSelector: HtmlSelector | null = null;
 	globalRoomPage: boolean = false;
+	/**If selectors are enabled, displays HTML at the top of the page */
 	headerSelector: HtmlSelector | null = null;
 	/**The list of page selectors (excluding components) in the desired render order */
 	htmlSelectors: HtmlSelector[] | null = null;
 	initializedSelectorDivs: boolean = false;
+	/**Store the last rendered HTML to avoid unnecessary messages */
 	lastRender: string = '';
+	/**If selectors are enabled, store the last rendered HTML for each one to avoid unnecessary messages */
 	lastSelectorRenders: Dict<string> = {};
 	readonly: boolean = false;
+	sentClosingSnapshot: boolean = false;
 	showSwitchLocationButton: boolean = false;
-	sentToUser: boolean = false;
 	staffUserView: boolean = false;
+	successfullyOpenedPage: boolean = false;
 	switchLocationButtonHtml: string = "";
+	/**When `true`, the last render is not compared before sending */
 	usedCommandAfterLastRender: boolean = false;
 	useExpirationTimer: boolean = true;
 
@@ -100,8 +107,8 @@ export abstract class HtmlPageBase {
 
 	expire(): void {
 		try {
-			if (this.sentToUser) {
 				if (this.htmlSelectors) {
+			if (this.successfullyOpenedPage) {
 					this.expireSelector!.active = true;
 					this.sendSelector(this.expireSelector!, {onExpire: true});
 				} else {
@@ -131,7 +138,7 @@ export abstract class HtmlPageBase {
 		delete this.pageList[this.userId];
 
 		this.destroyed = true;
-		Tools.unrefProperties(this, ['closed', 'closingSnapshot', 'destroyed', 'pageId', 'userName', 'userId']);
+		Tools.unrefProperties(this, ['closed', 'sentClosingSnapshot', 'destroyed', 'pageId', 'userName', 'userId']);
 	}
 
 	open(): void {
@@ -145,7 +152,7 @@ export abstract class HtmlPageBase {
 	}
 
 	close(): void {
-		if (!this.closed && !this.closingSnapshot) {
+		if (!this.closed && !this.sentClosingSnapshot) {
 			this.closed = true;
 			this.initializedSelectorDivs = false;
 
@@ -158,6 +165,7 @@ export abstract class HtmlPageBase {
 		this.destroy();
 	}
 
+	/**Close the HTML page while moving it to the chat */
 	temporarilyClose(): void {
 		if (!this.closed) {
 			this.closed = true;
@@ -169,8 +177,8 @@ export abstract class HtmlPageBase {
 	}
 
 	sendClosingSnapshot(): void {
-		if (!this.closed && !this.closingSnapshot) {
-			this.closingSnapshot = true;
+		if (!this.closed && !this.sentClosingSnapshot) {
+			this.sentClosingSnapshot = true;
 
 			const user = Users.get(this.userId);
 			if (user) {
@@ -203,8 +211,8 @@ export abstract class HtmlPageBase {
 		}
 
 		this.usedCommandAfterLastRender = true;
-		this.setSwitchLocationButton();
-		this.setCloseButton();
+		this.setSwitchLocationButtonHtml();
+		this.setCloseButtonHtml();
 
 		const user = Users.get(this.userId);
 		if (user) {
@@ -270,12 +278,16 @@ export abstract class HtmlPageBase {
 
 	send(options?: ISendOptions): void {
 		if (this.htmlSelectors) {
+		if (this.destroyed) return;
+
+			// send any selectors that have updated
 			for (const selector of this.htmlSelectors) {
 				if (selector.components.length) continue;
 
 				this.sendSelector(selector, options);
 			}
 		} else {
+			// send the whole HTML page
 			this.sendSinglePage(options);
 		}
 	}
@@ -313,13 +325,14 @@ export abstract class HtmlPageBase {
 
 		if (!expire) this.setExpirationTimer();
 
-		this.sentToUser = true;
+		this.successfullyOpenedPage = true;
 	}
 
 	getInitialSelectorDiv(selector: HtmlSelector): string {
 		return "<div id='" + selector.id + "'>";
 	}
 
+	/**Create default selectors and add to the page's list */
 	initializeSelectors(): void {
 		this.headerSelector = this.newSelector(HEADER_SELECTOR);
 		this.footerSelector = this.newSelector(FOOTER_SELECTOR);
@@ -330,7 +343,7 @@ export abstract class HtmlPageBase {
 		this.htmlSelectors!.unshift(this.expireSelector);
 	}
 
-	/**Create <div> elements for all selectors that can be on the page, regardless of active status */
+	/**Send <div> elements for all selectors that can be on the page, regardless of active status */
 	initializeSelectorDivs(user: User): void {
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'>";
 		const divs: string[] = [];
@@ -395,7 +408,7 @@ export abstract class HtmlPageBase {
 
 		if (!expire) this.setExpirationTimer();
 
-		this.sentToUser = true;
+		this.successfullyOpenedPage = true;
 	}
 
 	checkComponentCommands(componentCommand: string, targets: readonly string[]): string | undefined {
@@ -411,6 +424,7 @@ export abstract class HtmlPageBase {
 		return "Unknown sub-command '" + componentCommand + "'.";
 	}
 
+	/**Get the render for the selector or component */
 	checkComponentSelectors(selector: HtmlSelector): string {
 		for (const component of this.components) {
 			if (component.props.htmlPageSelector &&
@@ -434,7 +448,7 @@ export abstract class HtmlPageBase {
 	}
 
 	getButtonDisabled(options?: IQuietPMButtonOptions): boolean | undefined {
-		let disabled = this.closingSnapshot || this.staffUserView || (options && (options.disabled || options.selectedAndDisabled));
+		let disabled = this.sentClosingSnapshot || this.staffUserView || (options && (options.disabled || options.selectedAndDisabled));
 		if (!disabled && options && !options.enabledReadonly && this.readonly) disabled = true;
 
 		return disabled;
@@ -452,7 +466,7 @@ export abstract class HtmlPageBase {
 		return Client.getQuietPmButton(this.getPmRoom(), message, label, disabled, style);
 	}
 
-	setCloseButton(options?: IQuietPMButtonOptions): void {
+	setCloseButtonHtml(options?: IQuietPMButtonOptions): void {
 		if (this.chatUhtmlName) {
 			this.closeButtonHtml = "";
 		} else {
@@ -461,8 +475,8 @@ export abstract class HtmlPageBase {
 		}
 	}
 
-	setSwitchLocationButton(): void {
 		if (this.showSwitchLocationButton && !this.htmlSelectors) {
+	setSwitchLocationButtonHtml(): void {
 			this.switchLocationButtonHtml = this.getQuietPmButton(this.commandPrefix + (this.globalRoomPage ? " " : ", ") +
 			SWITCH_LOCATION_COMMAND, "Move to " + (this.chatUhtmlName ? "HTML page" : "chat"));
 		} else {

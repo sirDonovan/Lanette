@@ -1012,17 +1012,16 @@ export class Tools {
 		return clone as DeepMutable<T>;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	unrefProperties(objectInstance: any, skippedKeys?: string[]): void {
+	unrefProperties<T>(objectInstance: T, skippedKeys?: (keyof T)[]): void {
 		if (!objectInstance) return;
 
 		const keys = Object.getOwnPropertyNames(objectInstance);
 		for (const key of keys) {
-			if (skippedKeys && skippedKeys.includes(key)) continue;
+			if (skippedKeys && skippedKeys.includes(key as keyof T)) continue;
 
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-				objectInstance[key] = undefined;
+				// @ts-expect-error
+				objectInstance[key as keyof T] = undefined;
 			} catch (e) {} // eslint-disable-line no-empty
 		}
 	}

@@ -22,7 +22,7 @@ export abstract class ActivityPageBase extends HtmlPageBase {
         this.baseChatUhtmlName = options.baseChatUhtmlName || this.activity.uhtmlBaseName + "-page";
 		if (options.sendToChat) this.chatUhtmlName = this.baseChatUhtmlName;
 
-        this.setCloseButton();
+        this.setCloseButtonHtml();
 	}
 
     abstract tryCommand(command: string, targets: string[]): void;

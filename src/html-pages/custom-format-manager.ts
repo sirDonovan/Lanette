@@ -98,7 +98,7 @@ class CustomFormatManager extends HtmlPageBase {
 		super(room, user, baseCommandAlias, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		this.formatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
 			submitText: "Set format",
