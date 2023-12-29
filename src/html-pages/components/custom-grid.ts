@@ -130,7 +130,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	redoGrids: ICellData[][][][] = [];
 	/**grid index -> redos -> saved grid */
 	redoSavedGrids: ISavedCustomGridCell[][][][] = [];
-	scratchGrid: ICellData[][] = [];
 	/**grid index -> undos available */
 	undosAvailable: number[] = [];
 	/**grid index -> undos -> grid */
@@ -468,14 +467,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	copyCurrentGridToIndex(index: number): void {
 		if (index === this.currentGridIndex) return;
 
-		const clonedGrid = this.cloneGrid(this.grids[this.currentGridIndex]);
-		if (index === SCRATCH_GRID_INDEX) {
-			this.scratchGrid = clonedGrid;
-			return;
-		}
+		this.grids[index] = this.cloneGrid(this.grids[this.currentGridIndex]);
 
-		this.grids[index] = clonedGrid;
-		if (this.props.savedCustomGrids) {
+		if (this.props.savedCustomGrids && index !== SCRATCH_GRID_INDEX) {
 			const savedGrids = this.props.savedCustomGrids.grids;
 			savedGrids[index].grid = this.cloneSavedGrid(savedGrids[this.currentGridIndex].grid);
 			savedGrids[index].allowDuplicatePokemon = savedGrids[this.currentGridIndex].allowDuplicatePokemon;
@@ -907,10 +901,6 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	 */
 
 	getGrid(index: number): ICellData[][] {
-		if (index === SCRATCH_GRID_INDEX) {
-			return this.scratchGrid;
-		}
-
 		return this.grids[index];
 	}
 
