@@ -2364,7 +2364,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 		command(target, room, user) {
 			const id = Tools.toId(target);
 			if (id) {
-				if (!user.isDeveloper() && !user.hasRank(this.room, 'driver')) return false;
+				if (!user.hasRank(this.room, 'driver')) return false;
 				if (user.id in this.players && !(this.players[user.id].eliminated && user.isDeveloper())) {
 					user.say("You cannot use this command while participating in the tournament.");
 					return false;

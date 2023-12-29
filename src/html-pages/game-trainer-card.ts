@@ -248,7 +248,7 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("Game trainer cards are not enabled for " + targetRoom.title + ".");
 			}
 
-			const checkBits = !user.hasRank(targetRoom, 'voice') && !user.isDeveloper();
+			const checkBits = !user.hasRank(targetRoom, 'voice');
 			const database = Storage.getDatabase(targetRoom);
 			const annualBits = Storage.getAnnualPoints(targetRoom, Storage.gameLeaderboard, user.name);
 			if (checkBits && Config.gameTrainerCardRequirements[targetRoom.id].trainer > 0) {

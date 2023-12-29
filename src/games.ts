@@ -1236,7 +1236,7 @@ export class Games {
 	}
 
 	canUseRestrictedCommand(room: Room, user: User, infoCommand?: boolean): boolean {
-		if (user.hasRank(room, infoCommand ? 'star' : 'voice') || user.isDeveloper()) return true;
+		if (user.hasRank(room, infoCommand ? 'star' : 'voice')) return true;
 
 		const database = Storage.getDatabase(room);
 		if (database.gameManagers && database.gameManagers.includes(user.id)) return true;

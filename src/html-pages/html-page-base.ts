@@ -223,7 +223,7 @@ export abstract class HtmlPageBase {
 		this.userId = userOrPlayer.id;
 
 		const user = Users.get(userOrPlayer.name);
-		this.isRoomStaff = user ? user.hasRank(this.room, 'driver') || user.isDeveloper() : false;
+		this.isRoomStaff = user ? user.hasRank(this.room, 'driver') : false;
 	}
 
 	onRenameUser(userOrPlayer: User | Player, oldId: string): void {

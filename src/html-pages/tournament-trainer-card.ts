@@ -686,13 +686,13 @@ export const commands: BaseCommandDefinitions = {
 			} else if (cmd === chooseFormatPicker) {
 				pages[user.id].chooseFormatPicker();
 			} else if (cmd === chooseBadgesView) {
-				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'driver')) return;
 				pages[user.id].chooseBadgesView();
 			} else if (cmd === chooseRibbonsView) {
-				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'driver')) return;
 				pages[user.id].chooseRibbonsView();
 			} else if (cmd === chooseBioView) {
-				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'driver')) return;
 				pages[user.id].chooseBioView();
 			} else if (cmd === CLOSE_COMMAND) {
 				if (user.id in pages) pages[user.id].close();
@@ -705,7 +705,7 @@ export const commands: BaseCommandDefinitions = {
 
 				new TournamentTrainerCard(targetRoom, user, baseCommandAlias, {targetUserId, viewAllMode: true}).open();
 			} else if (cmd === staffEditCommand) {
-				if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'driver')) return;
 
 				const targetUserId = Tools.toId(targets[0]);
 				if (!Tools.isUsernameLength(targetUserId)) return this.say(CommandParser.getErrorText(['invalidUsernameLength']));

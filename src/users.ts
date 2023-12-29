@@ -126,6 +126,8 @@ export class User {
 	}
 
 	hasRank(room: Room, targetRank: GroupName, roomAuth?: boolean): boolean {
+		if (this.isDeveloper()) return true;
+
 		if (!this.rooms.has(room) || (roomAuth && !this.isRoomauth(room))) return false;
 		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
 	}

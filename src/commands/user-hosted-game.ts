@@ -774,7 +774,7 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room)) return;
 			let game: ScriptedGame | UserHostedGame | undefined;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
+				if (!user.hasRank(room, 'voice')) return;
 				game = room.game;
 			} else if (room.userHostedGame) {
 				if (!room.userHostedGame.isHost(user)) return;

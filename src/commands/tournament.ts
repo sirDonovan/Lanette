@@ -227,8 +227,7 @@ export const commands: BaseCommandDefinitions = {
 				const targetRoom = Rooms.search(targets[0]);
 				if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 				targets.shift();
-				if (!user.hasRank(targetRoom, 'moderator') && !Tournaments.canCreateTournament(targetRoom, user) &&
-					!user.isDeveloper()) return;
+				if (!user.hasRank(targetRoom, 'moderator') && !Tournaments.canCreateTournament(targetRoom, user)) return;
 				if (!Config.allowTournaments || !Config.allowTournaments.includes(targetRoom.id)) {
 					return this.sayError(['disabledTournamentFeatures', targetRoom.title]);
 				}

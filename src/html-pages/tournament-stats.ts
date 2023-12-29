@@ -27,7 +27,7 @@ class TournamentStats extends HtmlPageBase {
 
 		this.setCloseButton();
 
-		const showPreviousCycles = user.isDeveloper() || user.hasRank(room, 'voice');
+		const showPreviousCycles = user.hasRank(room, 'voice');
 		this.tournamentLeaderboard = new TournamentLeaderboard(this, this.commandPrefix, leaderboardCommand, {
 			showPreviousCycles,
 			reRender: () => this.send(),
