@@ -55,9 +55,9 @@ const EDIT_CELL_PIXEL_SIZE = 50;
 const MIN_PIXELS = 5;
 const MAX_PIXELS = 100;
 const MIN_DIMENSION = 1;
-const MAX_DIMENSION = 10;
-const MAX_FILL_POKEMON_DIMENSIONS = 7;
-const MAX_TOTAL_PIXELS = 500;
+const MAX_DIMENSION = 11;
+const MAX_FILL_POKEMON_DIMENSIONS = 11;
+const MAX_TOTAL_PIXELS = 580;
 const MAX_LABEL_LENGTH = 10;
 const HISTORY_LIMIT = 5;
 const MAX_GRIDS = 3;
@@ -962,6 +962,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		const height = grid.length;
 		if (height > this.height) {
+			for (let x = this.height; x < height; x++) {
+				for (let y = 0; y < this.width; y++) {
+					this.clearCell(grid[x][y]);
+				}
+			}
+
 			this.grids[index] = grid.slice(0, this.height);
 		} else if (height < this.height) {
 			for (let x = height; x < this.height; x++) {
@@ -996,6 +1002,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 			const rowWidth = grid[x].length;
 			if (rowWidth > this.width) {
+				for (let y = this.width; y < rowWidth; y++) {
+					this.clearCell(grid[x][y]);
+				}
+
 				this.grids[index][x] = grid[x].slice(0, this.width);
 			} else if (rowWidth < this.width) {
 				for (let y = rowWidth; y < this.width; y++) {
