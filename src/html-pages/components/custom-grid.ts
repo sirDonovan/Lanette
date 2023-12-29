@@ -152,8 +152,10 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	previewSelector: HtmlSelector;
 	propertiesSelector: HtmlSelector;
 
+	/**x */
 	height!: number;
 	pixelSize!: number;
+	/**y */
 	width!: number;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ICustomGridProps) {
@@ -787,7 +789,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		const x = parseInt(inputX.trim());
 		const y = parseInt(inputY.trim());
-		if (isNaN(x) || isNaN(y) || x < 0 || y < 0 || x > this.width || y > this.height) return;
+		if (isNaN(x) || isNaN(y) || x < 0 || y < 0 || x > this.height || y > this.width) return;
 
 		const options = this.getProcessCellUpdateOptions();
 		if (!this.canProcessCellUpdate(options)) return;
@@ -810,8 +812,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.prepareUndo(true);
 
-		for (let i = 0; i < this.height; i++) {
-			if (!this.processCellUpdate(this.currentGridIndex, i, column, options)) break;
+		for (let x = 0; x < this.height; x++) {
+			if (!this.processCellUpdate(this.currentGridIndex, x, column, options)) break;
 		}
 
 		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
@@ -831,8 +833,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.prepareUndo(true);
 
-		for (let i = 0; i < this.width; i++) {
-			if (!this.processCellUpdate(this.currentGridIndex, row, i, options)) break;
+		for (let y = 0; y < this.width; y++) {
+			if (!this.processCellUpdate(this.currentGridIndex, row, y, options)) break;
 		}
 
 		if (options.pokemon && !options.erase && !options.eraseAll) this.checkPokemonIconCount(this.currentGridIndex);
@@ -852,9 +854,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const grid = this.getGrid(this.currentGridIndex);
 
 		outer:
-		for (let i = 0; i < grid.length; i++) {
-			for (let j = 0; j < grid[i].length; j++) {
-				if (!this.processCellUpdate(this.currentGridIndex, i, j, options)) break outer;
+		for (let x = 0; x < grid.length; x++) {
+			for (let y = 0; y < grid[x].length; y++) {
+				if (!this.processCellUpdate(this.currentGridIndex, x, y, options)) break outer;
 			}
 		}
 
@@ -889,17 +891,17 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 	loadSavedGridCells(index: number, savedGrid: ISavedCustomGridData): void {
 		const grid = this.getGrid(index);
-		for (let i = 0; i < savedGrid.grid.length; i++) {
+		for (let x = 0; x < savedGrid.grid.length; x++) {
 			// the max width may have changed
-			if (!grid[i]) break;
+			if (!grid[x]) break;
 
-			const savedRow = savedGrid.grid[i];
-			for (let j = 0; j < savedRow.length; j++) {
+			const savedRow = savedGrid.grid[x];
+			for (let y = 0; y < savedRow.length; y++) {
 				// the max height may have changed
-				if (!grid[i][j]) break;
+				if (!grid[x][y]) break;
 
-				const savedCell = savedRow[j];
-				const cell = grid[i][j];
+				const savedCell = savedRow[y];
+				const cell = grid[x][y];
 				if (savedCell.color) this.insertColor(cell, savedCell.color);
 				if (savedCell.label) {
 					if (!this.insertLabel(cell, savedCell.label, savedCell.labelColor)) {
@@ -919,13 +921,13 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		// check filters again in case any saved labels were skipped
 		if (this.checkFilters(index)) {
-			for (let i = 0; i < grid.length; i++) {
-				for (let j = 0; j < grid[i].length; j++) {
-					grid[i][j].label = undefined;
-					grid[i][j].labelColor = undefined;
+			for (let x = 0; x < grid.length; x++) {
+				for (let y = 0; y < grid[x].length; y++) {
+					grid[x][y].label = undefined;
+					grid[x][y].labelColor = undefined;
 
-					savedGrid.grid[i][j].label = undefined;
-					savedGrid.grid[i][j].labelColor = undefined;
+					savedGrid.grid[x][y].label = undefined;
+					savedGrid.grid[x][y].labelColor = undefined;
 				}
 			}
 		}
@@ -948,7 +950,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		if (height > this.height) {
 			this.grids[index] = grid.slice(0, this.height);
 		} else if (height < this.height) {
-			for (let i = height; i < this.height; i++) {
+			for (let x = height; x < this.height; x++) {
 				grid.push([]);
 			}
 		}
@@ -959,31 +961,31 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			if (savedGridHeight > currentGridHeight) {
 				savedGrid.grid = savedGrid.grid.slice(0, currentGridHeight);
 			} else if (savedGridHeight < currentGridHeight) {
-				for (let i = savedGridHeight; i < currentGridHeight; i++) {
+				for (let x = savedGridHeight; x < currentGridHeight; x++) {
 					savedGrid.grid.push([]);
 				}
 			}
 		}
 
-		for (let i = 0; i < grid.length; i++) {
+		for (let x = 0; x < grid.length; x++) {
 			// create saved grid cells first to avoid error while updating caches
 			if (savedGrid) {
-				const savedRowWidth = savedGrid.grid[i].length;
+				const savedRowWidth = savedGrid.grid[x].length;
 				if (savedRowWidth > this.width) {
-					savedGrid.grid[i] = savedGrid.grid[i].slice(0, this.width);
+					savedGrid.grid[x] = savedGrid.grid[x].slice(0, this.width);
 				} else if (savedRowWidth < this.width) {
-					for (let j = savedRowWidth; j < this.width; j++) {
-						savedGrid.grid[i].push({});
+					for (let y = savedRowWidth; y < this.width; y++) {
+						savedGrid.grid[x].push({});
 					}
 				}
 			}
 
-			const rowWidth = grid[i].length;
+			const rowWidth = grid[x].length;
 			if (rowWidth > this.width) {
-				this.grids[index][i] = grid[i].slice(0, this.width);
+				this.grids[index][x] = grid[x].slice(0, this.width);
 			} else if (rowWidth < this.width) {
-				for (let j = rowWidth; j < this.width; j++) {
-					grid[i].push(this.createCell(index, i, j, loadingSavedGrid));
+				for (let y = rowWidth; y < this.width; y++) {
+					grid[x].push(this.createCell(index, x, y, loadingSavedGrid));
 				}
 			}
 		}
@@ -1092,65 +1094,65 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		const grid = this.getGrid(this.currentGridIndex);
-		for (let i = 0; i < grid.length; i++) {
+		for (let x = 0; x < grid.length; x++) {
 			html += '<tr style="height:' + rowHeight + 'px">';
 
 			// update entire row
 			if (!roomView) {
 				html += '<td style="position: relative;background: ' + batchEditBackground + '">';
-				html += this.getQuietPmButton(this.commandPrefix + ", " + updateRowCommand + ", " + i, UPDATE_ROW_BUTTON_TEXT,
+				html += this.getQuietPmButton(this.commandPrefix + ", " + updateRowCommand + ", " + x, UPDATE_ROW_BUTTON_TEXT,
 					{disabled: disableFills, style: EDIT_CELL_BUTTON_STYLE});
 				html += '</td>';
 			}
 
-			const row = grid[i];
-			for (let j = 0; j < row.length; j++) {
+			const row = grid[x];
+			for (let y = 0; y < row.length; y++) {
 				if (roomView) {
-					html += row[j].htmlCache;
+					html += row[y].htmlCache;
 				} else {
-					html += '<td style="position: relative;background: ' + (row[j].color || this.defaultColor) + '">';
+					html += '<td style="position: relative;background: ' + (row[y].color || this.defaultColor) + '">';
 
 					let hasPlayers = false;
-					if (row[j].players) {
-						const players = row[j].players!.length;
+					if (row[y].players) {
+						const players = row[y].players!.length;
 						if (players) {
 							hasPlayers = true;
-							if (row[j].playersColor) html += "<span style='color: " + row[j].playersColor + "'>";
+							if (row[y].playersColor) html += "<span style='color: " + row[y].playersColor + "'>";
 							if (players > 1) {
-								html += "<span title='" + row[j].players!.join(", ") + "'>*</span>";
+								html += "<span title='" + row[y].players!.join(", ") + "'>*</span>";
 							} else {
-								html += row[j].players![0];
+								html += row[y].players![0];
 							}
-							if (row[j].playersColor) html += "</span>";
+							if (row[y].playersColor) html += "</span>";
 						}
 					}
 
-					if (row[j].label) {
+					if (row[y].label) {
 						if (hasPlayers) html += "<br />";
-						if (row[j].labelColor) html += "<span style='color: " + row[j].labelColor + "'>";
-						html += row[j].label;
-						if (row[j].labelColor) html += "</span>";
+						if (row[y].labelColor) html += "<span style='color: " + row[y].labelColor + "'>";
+						html += row[y].label;
+						if (row[y].labelColor) html += "</span>";
 					}
 
-					if (row[j].pokemonIcon) {
-						if (hasPlayers || row[j].label) html += "<br />";
-						html += row[j].pokemonIcon;
+					if (row[y].pokemonIcon) {
+						if (hasPlayers || row[y].label) html += "<br />";
+						html += row[y].pokemonIcon;
 					}
 
 					let disableCell = false;
 					if (clear && !disableAllCells) {
 						if (colors) {
-							if (!row[j].color) disableCell = true;
+							if (!row[y].color) disableCell = true;
 						} else if (pokemon) {
-							if (!row[j].pokemonIcon) disableCell = true;
+							if (!row[y].pokemonIcon) disableCell = true;
 						} else if (players) {
-							if (!row[j].players || !row[j].players!.includes(this.currentPlayer)) disableCell = true;
+							if (!row[y].players || !row[y].players!.includes(this.currentPlayer)) disableCell = true;
 						} else if (labels) {
-							if (!row[j].label) disableCell = true;
+							if (!row[y].label) disableCell = true;
 						}
 					}
 
-					html += this.getQuietPmButton(this.commandPrefix + ", " + updateCellCommand + ", " + i + ", " + j,
+					html += this.getQuietPmButton(this.commandPrefix + ", " + updateCellCommand + ", " + x + ", " + y,
 						UPDATE_CELL_BUTTON_TEXT, {disabled: disableAllCells || disableCell, style: EDIT_CELL_BUTTON_STYLE});
 
 					html += '</td>';
@@ -1175,9 +1177,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		// createCell will invalidate cache and update saved grid cells
 		const grid = this.getGrid(this.currentGridIndex);
-		for (let i = 0; i < grid.length; i++) {
-			for (let j = 0; j < grid[i].length; j++) {
-				grid[i][j] = this.createCell(this.currentGridIndex, i, j);
+		for (let x = 0; x < grid.length; x++) {
+			for (let y = 0; y < grid[x].length; y++) {
+				grid[x][y] = this.createCell(this.currentGridIndex, x, y);
 			}
 		}
 
@@ -1233,25 +1235,25 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		const diagonals: string[] = [];
 		const grid = this.getGrid(index);
 		const gridLength = grid.length;
-		for (let i = 0; i < gridLength; i++) {
-			const row = grid[i];
+		for (let x = 0; x < gridLength; x++) {
+			const row = grid[x];
 			let word = "";
 
-			for (let j = 0; j < row.length; j++) {
-				if (row[j].label) {
+			for (let y = 0; y < row.length; y++) {
+				if (row[y].label) {
 					// whole grid
-					allLetters += row[j].label;
+					allLetters += row[y].label;
 
 					// row
-					word += row[j].label;
+					word += row[y].label;
 
 					// column
-					if (!columns[j]) columns[j] = "";
-					columns[j] += row[j].label;
+					if (!columns[y]) columns[y] = "";
+					columns[y] += row[y].label;
 
 					// diagonal
-					let diagonal = row[j].label!;
-					for (let diagonalRow = i + 1, diagonalColumn = j + 1; diagonalRow < gridLength; diagonalRow++, diagonalColumn++) {
+					let diagonal = row[y].label!;
+					for (let diagonalRow = x + 1, diagonalColumn = y + 1; diagonalRow < gridLength; diagonalRow++, diagonalColumn++) {
 						if (grid[diagonalRow][diagonalColumn] && grid[diagonalRow][diagonalColumn].label) {
 							diagonal += grid[diagonalRow][diagonalColumn].label!;
 						}
