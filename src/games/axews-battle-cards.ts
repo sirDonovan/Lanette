@@ -674,7 +674,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
 			const htmlPage = this.getHtmlPage(player);
 			htmlPage.renderHandHtml();
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsHtml([card]);
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.send();

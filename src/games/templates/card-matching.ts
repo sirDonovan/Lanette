@@ -331,7 +331,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		this.eliminatePlayer(player);
 
 		const htmlPage = this.getHtmlPage(player);
-		htmlPage.renderCardActionsHtml();
+		htmlPage.clearCardActionsHtml();
 		htmlPage.send();
 
 		if (autoPlay) {
@@ -464,8 +464,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			turnCards = this.getTurnCards(player!);
 			const htmlPage = this.getHtmlPage(player!);
 			htmlPage.renderCardActionsHtml(turnCards.action, turnCards.group, turnCards.single);
-			htmlPage.renderDrawnCardsHtml();
-			htmlPage.renderPlayedCardsHtml();
+			htmlPage.clearPlayedAndDrawnHtml();
 			htmlPage.send();
 			player!.sendHighlight("It is your turn!");
 
@@ -485,7 +484,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);
 
-								htmlPage.renderCardActionsHtml();
+								htmlPage.clearCardActionsHtml();
 								htmlPage.send();
 
 								const newFinalPlayer = this.getFinalPlayer();
@@ -646,7 +645,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			}
 
 			const htmlPage = this.getHtmlPage(player);
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsHtml(playedCards);
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.renderHandHtml();

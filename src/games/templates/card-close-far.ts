@@ -115,8 +115,7 @@ export abstract class CardCloseFar extends CardHighLow {
 				if (!this.players[i].eliminated) {
 					const htmlPage = this.getHtmlPage(this.players[i]);
 					htmlPage.renderHandHtml();
-					htmlPage.renderPlayedCardsHtml();
-					htmlPage.renderDrawnCardsHtml();
+					htmlPage.clearPlayedAndDrawnHtml();
 					htmlPage.send();
 				}
 			}

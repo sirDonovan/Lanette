@@ -431,7 +431,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 		if (!player.eliminated) {
 			const htmlPage = this.getHtmlPage(player);
 			htmlPage.renderHandHtml();
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsHtml([card]);
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.send();
@@ -449,7 +449,7 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 			this.currentPlayer = null; // prevent Draw Wizard from activating on a draw
 			const drawnCards = this.drawCard(this.players[user.id]);
 			const htmlPage = this.getHtmlPage(this.players[user.id]);
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.renderHandHtml();
 			htmlPage.send();

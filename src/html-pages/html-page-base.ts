@@ -72,6 +72,7 @@ export abstract class HtmlPageBase {
 	globalRoomPage: boolean = false;
 	/**If selectors are enabled, displays HTML at the top of the page */
 	headerSelector: HtmlSelector | null = null;
+	initializedSelectors: boolean = false;
 	initializedSelectorDivs: boolean = false;
 	/**Store the last rendered HTML to avoid unnecessary messages */
 	lastRender: string = '';
@@ -157,10 +158,6 @@ export abstract class HtmlPageBase {
 	}
 
 	open(): void {
-		if (this.usesHtmlSelectors) {
-			this.initializeSelectors();
-		}
-
 		this.send({onOpen: true});
 
 		if (this.onOpen) this.onOpen();
@@ -238,7 +235,7 @@ export abstract class HtmlPageBase {
 			}
 		}
 
-		this.send();
+		this.send({forceSend: true});
 	}
 
 	setUser(userOrPlayer: User | Player): void {
@@ -298,7 +295,10 @@ export abstract class HtmlPageBase {
 	send(options?: ISendOptions): void {
 		if (this.destroyed) return;
 
-		if (this.usesHtmlSelectors) {
+		// selectors currently can't be used in the chat
+		if (this.usesHtmlSelectors && !this.chatUhtmlName) {
+			this.initializeSelectors();
+
 			// send any selectors that have updated
 			for (const selector of this.htmlSelectors) {
 				// don't try to render components with child selectors
@@ -354,6 +354,8 @@ export abstract class HtmlPageBase {
 
 	/**Create default selectors and add to the page's list */
 	initializeSelectors(): void {
+		if (this.initializedSelectors) return;
+
 		this.headerSelector = this.newSelector(HEADER_SELECTOR);
 		this.footerSelector = this.newSelector(FOOTER_SELECTOR);
 		this.expireSelector = this.newSelector(EXPIRE_SELECTOR, false);
@@ -361,10 +363,14 @@ export abstract class HtmlPageBase {
 		this.htmlSelectors.push(this.footerSelector);
 		this.htmlSelectors.unshift(this.headerSelector);
 		this.htmlSelectors.unshift(this.expireSelector);
+
+		this.initializedSelectors = true;
 	}
 
 	/**Send <div> elements for all selectors that can be on the page, regardless of active status */
 	initializeSelectorDivs(user: User): void {
+		if (this.initializedSelectorDivs) return;
+
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'>";
 		const divs: string[] = [];
 		divs.push(this.getInitialSelectorDiv(this.expireSelector!) + "</div>");
@@ -391,6 +397,7 @@ export abstract class HtmlPageBase {
 		html += divs.join("") + "</div>";
 
 		this.getPmRoom().sendHtmlPage(user, this.pageId, html);
+		this.initializedSelectorDivs = true;
 	}
 
 	hideSelector(selector: HtmlSelector): void {
@@ -398,7 +405,8 @@ export abstract class HtmlPageBase {
 	}
 
 	sendSelector(selector: HtmlSelector, options?: ISendOptions): void {
-		if (!selector.active || this.destroyed) return;
+		// check if the page is in the chat for activity pages clearing selectors
+		if (!selector.active || this.destroyed || this.chatUhtmlName) return;
 
 		const onOpen = options && options.onOpen;
 		if (this.beforeSendSelector && !this.beforeSendSelector(selector, onOpen)) return;
@@ -406,18 +414,18 @@ export abstract class HtmlPageBase {
 		const user = Users.get(this.userId);
 		if (!user) return;
 
-		// re-initialize after closing if necessary
-		if (!this.initializedSelectorDivs) {
-			this.initializeSelectorDivs(user);
-			this.initializedSelectorDivs = true;
-		}
+		// initialize after closing or moving from chat
+		this.initializeSelectorDivs(user);
 
 		if (!(selector.id in this.lastSelectorRenders)) this.lastSelectorRenders[selector.id] = EMPTY_SELECTOR_CONTENT;
 
 		const expire = options && options.onExpire;
 		const hideSelector = options && options.hideSelector;
-		const render = expire ? EXPIRE_MESSAGE : hideSelector ? EMPTY_SELECTOR_CONTENT : this.renderSelector!(selector, onOpen);
-		if (!render || (render === this.lastSelectorRenders[selector.id] && !this.closed && !(options && options.forceSend))) return;
+
+		let render = expire ? EXPIRE_MESSAGE : hideSelector ? EMPTY_SELECTOR_CONTENT : this.renderSelector!(selector, onOpen);
+		if (!render) render = EMPTY_SELECTOR_CONTENT;
+
+		if (render === this.lastSelectorRenders[selector.id] && !this.closed && !(options && options.forceSend)) return;
 
 		this.lastSelectorRenders[selector.id] = render;
 		this.closed = false;
@@ -496,7 +504,7 @@ export abstract class HtmlPageBase {
 	}
 
 	setSwitchLocationButtonHtml(): void {
-		if (this.showSwitchLocationButton && !this.usesHtmlSelectors) {
+		if (this.showSwitchLocationButton) {
 			this.switchLocationButtonHtml = this.getQuietPmButton(this.commandPrefix + (this.globalRoomPage ? " " : ", ") +
 			SWITCH_LOCATION_COMMAND, "Move to " + (this.chatUhtmlName ? "HTML page" : "chat"));
 		} else {

@@ -185,8 +185,7 @@ export abstract class CardHighLow extends CardGame {
 				if (!this.players[i].eliminated) {
 					const htmlPage = this.getHtmlPage(this.players[i]);
 					htmlPage.renderHandHtml();
-					htmlPage.renderPlayedCardsHtml();
-					htmlPage.renderDrawnCardsHtml();
+					htmlPage.clearPlayedAndDrawnHtml();
 					htmlPage.send();
 				}
 			}
@@ -254,7 +253,7 @@ const commands: GameCommandDefinitions<CardHighLow> = {
 
 			const drawnCards = this.drawCard(player, this.roundDrawAmount);
 			const htmlPage = this.getHtmlPage(player);
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsDetailHtml(playedCards.map(x => x.name + " (" +
 				this.getCardDetail(x, this.currentCategory) + " " + this.categoryAbbreviations[this.currentCategory] + ")"));
 			htmlPage.renderDrawnCardsHtml(drawnCards);

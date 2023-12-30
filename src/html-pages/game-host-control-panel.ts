@@ -228,6 +228,8 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	initializeSelectors(): void {
+		if (this.initializedSelectors) return;
+
 		super.initializeSelectors();
 
 		this.sendSelector(this.headerSelector!);
