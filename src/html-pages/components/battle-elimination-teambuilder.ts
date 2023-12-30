@@ -413,14 +413,13 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 					html += "If you are not satisfied with your starting team, you have 1 chance to reroll but you must keep " +
 						"whatever you receive! " + Client.getPmSelfButton(Config.commandCharacter + this.props.rerollCommand,
 						"Reroll Pokemon");
-					html += "<br /><br />";
 				}
 			}
 
 			if (!this.props.player.eliminated && !this.props.game.eliminationEnded && this.props.player.round === 2 &&
 				this.props.game.firstRoundByes.has(this.props.player)) {
-				html += "<b>NOTE</b>: you were given a first round bye so you must follow any team changes below for your first " +
-					"battle!<br /><br />";
+				html += "<br /><br /><b>NOTE</b>: you were given a first round bye so you must follow any team changes below " +
+					"for your first battle!";
 			}
 		} else if (selector === this.roundSelector) {
 			const roundRequirements: string[] = [];
@@ -462,15 +461,14 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 						this.remainingRoundDrops || this.remainingRoundEvolutions) || (!this.roundRequirements.additionsThisRound &&
 						!this.roundRequirements.dropsThisRound && !this.roundRequirements.evolutionsThisRound)) ? true : false}) + "&nbsp;";
 				}
-				html += "<br /><br />";
 			}
 
 			if (this.moreRoundsAvailableMessage) {
-				html += this.moreRoundsAvailableMessage + "<br /><br />";
+				html += "<br /><br />" + this.moreRoundsAvailableMessage;
 			}
 
 			if (roundRequirements.length) {
-				html += "Round " + this.currentRound + " requirements:<br /><ul>" + roundRequirements.join("") + "</ul>";
+				html += "<br /><br />Round " + this.currentRound + " requirements:<br /><ul>" + roundRequirements.join("") + "</ul>";
 			}
 		} else if (selector === this.teamSelector) {
 			const slotsHtml: string[] = [];

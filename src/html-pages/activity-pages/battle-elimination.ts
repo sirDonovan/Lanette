@@ -147,7 +147,6 @@ export class BattleEliminationPage extends GamePageBase {
 				} else {
 					html += "<h3>The tournament has ended!</h3>";
 				}
-				html += "<br />";
 			} else {
 				html += this.rulesHtml;
 			}
@@ -156,10 +155,9 @@ export class BattleEliminationPage extends GamePageBase {
 		} else if (selector === this.bracketSelector) {
 			if (this.showBracket) {
 				html += "<h3><u>" + (this.activity.eliminationEnded ? "Final bracket" : "Bracket") + "</u></h3>" +
-					(this.bracketHtml || "The bracket will be created once the tournament starts.") + "<br /><br />";
+					(this.bracketHtml || "The bracket will be created once the tournament starts.");
 			}
 		} else if (selector === this.allTeamChangesSelector) {
-			html += "<br /><br />";
 			html += "Select view: ";
 			html += this.getQuietPmButton(this.commandPrefix + ", " + hideAllTeamChangesCommand, "Teambuilder",
 				{selectedAndDisabled: !this.showAllTeamChanges});
@@ -167,7 +165,7 @@ export class BattleEliminationPage extends GamePageBase {
 				{selectedAndDisabled: this.showAllTeamChanges});
 
 			if (this.showAllTeamChanges) {
-				html += "<br /><br />";
+				html += "<br />";
 				html += this.allTeamChangesHtml;
 			}
 		} else {
