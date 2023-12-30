@@ -31,7 +31,6 @@ const EXPIRATION_TIMEOUT_SECONDS = 30 * 60 * 1000;
 
 export class HtmlSelector {
 	childSelectors: HtmlSelector[] | undefined;
-	hasChildSelectors: boolean = false;
 
 	active: boolean;
 	id: string;
@@ -44,8 +43,6 @@ export class HtmlSelector {
 	addChildSelector(selector: HtmlSelector): void {
 		if (!this.childSelectors) this.childSelectors = [];
 		if (!this.childSelectors.includes(selector)) this.childSelectors.push(selector);
-
-		if (!this.hasChildSelectors) this.hasChildSelectors = true;
 	}
 
 	includesChildSelector(selector: HtmlSelector): boolean {
@@ -301,10 +298,14 @@ export abstract class HtmlPageBase {
 
 			// send any selectors that have updated
 			for (const selector of this.htmlSelectors) {
-				// don't try to render components with child selectors
-				if (selector.hasChildSelectors) continue;
-
-				this.sendSelector(selector, options);
+				// components with child selectors are rendered indivudually
+				if (selector.childSelectors) {
+					for (const childSelector of selector.childSelectors) {
+						this.sendSelector(childSelector, options);
+					}
+				} else {
+					this.sendSelector(selector, options);
+				}
 			}
 		} else {
 			// send the whole HTML page
@@ -377,8 +378,8 @@ export abstract class HtmlPageBase {
 		divs.push(this.getInitialSelectorDiv(this.headerSelector!) + "</div>");
 
 		for (const selector of this.htmlSelectors) {
-			// don't create divs for components with multiple selectors
-			if (selector.hasChildSelectors) continue;
+			// don't create divs for components with child selectors
+			if (selector.childSelectors) continue;
 
 			const div = this.getInitialSelectorDiv(selector) + "</div>";
 			if (!divs.includes(div)) divs.push(div);
