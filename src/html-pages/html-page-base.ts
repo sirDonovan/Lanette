@@ -31,6 +31,7 @@ const EXPIRATION_TIMEOUT_SECONDS = 30 * 60 * 1000;
 
 export class HtmlSelector {
 	childSelectors: HtmlSelector[] | undefined;
+	component: ComponentBase | undefined;
 
 	active: boolean;
 	id: string;
@@ -38,6 +39,10 @@ export class HtmlSelector {
 	constructor(id: string, active?: boolean) {
 		this.active = active === undefined ? true : active;
 		this.id = id;
+	}
+
+	setComponent(component: ComponentBase): void {
+		this.component = component;
 	}
 
 	addChildSelector(selector: HtmlSelector): void {
@@ -349,8 +354,42 @@ export abstract class HtmlPageBase {
 		this.successfullyOpenedPage = true;
 	}
 
-	getInitialSelectorDiv(selector: HtmlSelector): string {
-		return "<div id='" + selector.id + "'>";
+	getSelectorDiv(selector: HtmlSelector): string {
+		// create parent divs for components and child divs if needed
+		if (selector.component) return this.getComponentSelectorDiv(selector);
+
+		return "<div id='" + selector.id + "'></div>";
+	}
+
+	getComponentSelectorDiv(selector: HtmlSelector): string {
+		let div = "<div id='" + selector.id + "'>";
+		if (selector.childSelectors) {
+			div += this.getChildSelectorDivs(selector).join("");
+		}
+		div += "</div>";
+
+		return div;
+	}
+
+	getChildSelectorDivs(selector: HtmlSelector): string[] {
+		const divs: string[] = [];
+		for (const childSelector of selector.childSelectors!) {
+			const div = this.getSelectorDiv(childSelector);
+			if (!divs.includes(div)) divs.push(div);
+		}
+
+		return divs;
+	}
+
+	getEmptySelectorDiv(selector: HtmlSelector): string {
+		let div: string;
+		if (selector.childSelectors) {
+			div = this.getChildSelectorDivs(selector).join("");
+		} else {
+			div = EMPTY_SELECTOR_CONTENT;
+		}
+
+		return div;
 	}
 
 	/**Create default selectors and add to the page's list */
@@ -374,25 +413,15 @@ export abstract class HtmlPageBase {
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'>";
 		const divs: string[] = [];
-		divs.push(this.getInitialSelectorDiv(this.expireSelector!) + "</div>");
-		divs.push(this.getInitialSelectorDiv(this.headerSelector!) + "</div>");
+		divs.push(this.getSelectorDiv(this.expireSelector!));
+		divs.push(this.getSelectorDiv(this.headerSelector!));
 
 		for (const selector of this.htmlSelectors) {
-			// don't create divs for components with child selectors
-			if (selector.childSelectors) continue;
-
-			const div = this.getInitialSelectorDiv(selector) + "</div>";
+			const div = this.getSelectorDiv(selector);
 			if (!divs.includes(div)) divs.push(div);
 		}
 
-		for (const component of this.components) {
-			const componentDivs = component.initializeSelectors();
-			for (const div of componentDivs) {
-				if (!divs.includes(div)) divs.push(div);
-			}
-		}
-
-		const div = this.getInitialSelectorDiv(this.footerSelector!) + "</div>";
+		const div = this.getSelectorDiv(this.footerSelector!);
 		if (!divs.includes(div)) divs.push(div);
 
 		html += divs.join("") + "</div>";
@@ -402,7 +431,8 @@ export abstract class HtmlPageBase {
 	}
 
 	hideSelector(selector: HtmlSelector): void {
-		this.sendSelector(selector, {hideSelector: true});
+		// force send for component selectors
+		this.sendSelector(selector, {forceSend: true, hideSelector: true});
 	}
 
 	sendSelector(selector: HtmlSelector, options?: ISendOptions): void {
@@ -423,8 +453,15 @@ export abstract class HtmlPageBase {
 		const expire = options && options.onExpire;
 		const hideSelector = options && options.hideSelector;
 
-		let render = expire ? EXPIRE_MESSAGE : hideSelector ? EMPTY_SELECTOR_CONTENT : this.renderSelector!(selector, onOpen);
-		if (!render) render = EMPTY_SELECTOR_CONTENT;
+		let render: string;
+		if (expire) {
+			render = EXPIRE_MESSAGE;
+		} else if (hideSelector) {
+			render = this.getEmptySelectorDiv(selector);
+		} else {
+			render = this.renderSelector!(selector, onOpen);
+			if (!render) render = EMPTY_SELECTOR_CONTENT;
+		}
 
 		if (render === this.lastSelectorRenders[selector.id] && !this.closed && !(options && options.forceSend)) return;
 

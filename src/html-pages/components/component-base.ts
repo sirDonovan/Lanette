@@ -12,7 +12,6 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	components: ComponentBase[] = [];
 	destroyed: boolean = false;
 	timeout: NodeJS.Timeout | null = null;
-	usesHtmlSelectors: boolean = false;
 
 	/**The list of selectors in the desired render order */
 	private htmlSelectors: HtmlSelector[] = [];
@@ -29,6 +28,8 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		this.componentCommand = componentCommand;
 		this.commandPrefix = parentCommandPrefix + ", " + componentCommand;
 		this.props = props;
+
+		if (props.htmlPageSelector) props.htmlPageSelector.setComponent(this);
 	}
 
 	abstract tryCommand(targets: readonly string[]): string | undefined;
@@ -56,6 +57,8 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 	}
 
 	addSelector(selector: HtmlSelector): void {
+		if (!this.props.htmlPageSelector) throw new Error("Missing HTML page selector");
+
 		this.htmlSelectors.push(selector);
 	}
 
@@ -65,35 +68,13 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		return this.htmlPage.newComponentSelector(this.props.htmlPageSelector, id, active);
 	}
 
-	initializeSelectors(): string[] {
-		const divs: string[] = [];
-
-		// the component can have its own selectors or be configured as a selector for its HTML page
-		if (this.usesHtmlSelectors) {
-			for (const selector of this.htmlSelectors) {
-				const div = this.htmlPage.getInitialSelectorDiv(selector) + "</div>";
-				if (!divs.includes(div)) divs.push(div);
-			}
-
-			for (const component of this.components) {
-				const componentDivs = component.initializeSelectors();
-				for (const div of componentDivs) {
-					if (!divs.includes(div)) divs.push(div);
-				}
-			}
-		} else if (this.props.htmlPageSelector) {
-			const div = this.htmlPage.getInitialSelectorDiv(this.props.htmlPageSelector) + "</div>";
-			if (!divs.includes(div)) divs.push(div);
-		}
-
-		return divs;
-	}
-
 	send(): void {
-		if (this.usesHtmlSelectors) {
+		if (this.htmlSelectors.length) {
 			for (const selector of this.htmlSelectors) {
 				this.htmlPage.sendSelector(selector);
 			}
+		} else if (this.props.htmlPageSelector) {
+			this.htmlPage.sendSelector(this.props.htmlPageSelector);
 		} else {
 			this.htmlPage.send();
 		}
@@ -101,7 +82,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 	/**Show all selectors of this component that are currently active */
 	show(): void {
-		if (this.usesHtmlSelectors) {
+		if (this.htmlSelectors.length) {
 			for (const selector of this.htmlSelectors) {
 				this.htmlPage.sendSelector(selector, {forceSend: true});
 			}
@@ -112,13 +93,7 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 
 	/**Hide all selectors of this component*/
 	hide(): void {
-		// don't delete initialized <div> elements
-		if (this.usesHtmlSelectors) {
-			// reverse order for less jarring updating
-			for (let i = this.htmlSelectors.length - 1; i >= 0; i--) {
-				this.htmlPage.hideSelector(this.htmlSelectors[i]);
-			}
-		} else if (this.props.htmlPageSelector) {
+		if (this.props.htmlPageSelector) {
 			this.htmlPage.hideSelector(this.props.htmlPageSelector);
 		}
 	}
@@ -129,11 +104,10 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 		this.active = active;
 
 		if (active) {
-			if (this.usesHtmlSelectors) {
-				for (const selector of this.htmlSelectors) {
-					selector.active = true;
-				}
-			} else if (this.props.htmlPageSelector) {
+			for (const selector of this.htmlSelectors) {
+				selector.active = true;
+			}
+			if (this.props.htmlPageSelector) {
 				this.props.htmlPageSelector.active = true;
 			}
 
@@ -142,11 +116,10 @@ export abstract class ComponentBase<PropsType extends IComponentProps = ICompone
 			this.hide();
 
 			// change active status after to bypass check in htmlPage.sendSelector()
-			if (this.usesHtmlSelectors) {
-				for (const selector of this.htmlSelectors) {
-					selector.active = false;
-				}
-			} else if (this.props.htmlPageSelector) {
+			for (const selector of this.htmlSelectors) {
+				selector.active = false;
+			}
+			if (this.props.htmlPageSelector) {
 				this.props.htmlPageSelector.active = false;
 			}
 		}

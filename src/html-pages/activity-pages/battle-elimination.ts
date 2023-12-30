@@ -44,7 +44,7 @@ export class BattleEliminationPage extends GamePageBase {
 		this.bracketSelector = this.newSelector("bracket");
 		this.opponentSelector = this.newSelector("opponent");
 		this.rulesSelector = this.newSelector("rules");
-		this.battleEliminationTeambuilderSelector = this.newSelector("allteamchanges");
+		this.battleEliminationTeambuilderSelector = this.newSelector("teambuilder");
 
 		this.addSelector(this.rulesSelector);
 		this.addSelector(this.opponentSelector);
@@ -101,14 +101,14 @@ export class BattleEliminationPage extends GamePageBase {
 			if (this.showAllTeamChanges) return;
 
 			this.showAllTeamChanges = true;
-			this.battleEliminationTeambuilder.toggleActive(false);
 			this.send();
+			this.battleEliminationTeambuilder.toggleActive(false);
 		} else if (command === hideAllTeamChangesCommand) {
 			if (!this.showAllTeamChanges) return;
 
 			this.showAllTeamChanges = false;
-			this.battleEliminationTeambuilder.toggleActive(true);
 			this.send();
+			this.battleEliminationTeambuilder.toggleActive(true);
 		} else {
 			this.checkComponentCommands(command, targets);
 		}
