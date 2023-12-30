@@ -405,7 +405,7 @@ export abstract class HtmlPageBase {
 	}
 
 	sendSelector(selector: HtmlSelector, options?: ISendOptions): void {
-		// check if the page is in the chat for activity pages clearing selectors
+		// ignore toggled selectors from activity pages that were moved to the chat
 		if (!selector.active || this.destroyed || this.chatUhtmlName) return;
 
 		const onOpen = options && options.onOpen;

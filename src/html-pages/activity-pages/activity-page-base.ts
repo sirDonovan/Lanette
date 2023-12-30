@@ -1,6 +1,6 @@
 import type { Activity, Player } from "../../room-activity";
 import type { Room } from "../../rooms";
-import { CLOSE_COMMAND, HtmlPageBase, SWITCH_LOCATION_COMMAND } from "../html-page-base";
+import { CLOSE_COMMAND, HtmlPageBase, HtmlSelector, SWITCH_LOCATION_COMMAND } from "../html-page-base";
 
 export interface IActivityPageOptions {
 	baseChatUhtmlName?: string;
@@ -48,6 +48,11 @@ export abstract class ActivityPageBase extends HtmlPageBase {
             this.player.sentPrivateHtml = false;
             this.player.sentHtmlPage = this.pageId;
         }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onSendSelector(selector: HtmlSelector): void {
+        this.onSend();
     }
 
     getPmRoom(): Room {

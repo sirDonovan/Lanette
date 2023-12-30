@@ -47,6 +47,7 @@ export class CardMatchingPage extends GamePageBase {
 		this.cardActionsSelector = this.newSelector("cardactions");
 		this.handSelector = this.newSelector("hand");
 		this.playedAndDrawnSelector = this.newSelector("playedanddrawn");
+
 		this.addSelector(this.handSelector);
 		this.addSelector(this.cardActionsSelector);
 		this.addSelector(this.actionCardSelector);
@@ -308,6 +309,8 @@ export class CardMatchingPage extends GamePageBase {
 		} else if (selector === this.playedAndDrawnSelector) {
 			if (this.playedCardsHtml) html += this.playedCardsHtml + "<br />";
 			if (this.drawnCardsHtml) html += this.drawnCardsHtml + "<br />";
+		} else {
+			html += this.checkComponentSelectors(selector);
 		}
 
 		return html;
