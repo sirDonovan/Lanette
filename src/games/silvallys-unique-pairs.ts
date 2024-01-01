@@ -89,6 +89,7 @@ export const game: IGameFile<SilvallysUniquePairs> = Games.copyTemplatePropertie
 	commands,
 	defaultOptions: ['points'],
 	description: "Players try to figure out two moves learned in combination only by the given Pokemon (excluding signature moves)!",
+	disabled: true,
 	freejoin: true,
 	formerNames: ["Silvally's Single Solutions"],
 	name: "Silvally's Unique Pairs",
