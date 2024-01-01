@@ -1444,8 +1444,8 @@ export class Client {
 				}
 
 				room.say(messageArguments.error);
-				if (room.id in Tournaments.createListeners && Tournaments.createListeners[room.id].game) {
-					Tournaments.createListeners[room.id].game!.forceEnd(Users.self);
+				if (room.id in Tournaments.createListeners && Tournaments.createListeners[room.id]!.game) {
+					Tournaments.createListeners[room.id]!.game!.forceEnd(Users.self);
 				}
 			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
 				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {

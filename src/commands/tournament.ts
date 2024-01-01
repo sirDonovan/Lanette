@@ -199,7 +199,7 @@ export const commands: BaseCommandDefinitions = {
 				tournamentRoom = room;
 			}
 
-			const officialTournament = nextOfficialTournaments[tournamentRoom.id];
+			const officialTournament = nextOfficialTournaments[tournamentRoom.id]!;
 			const format = Tournaments.getFormat(officialTournament.format, tournamentRoom);
 			if (!format) return this.say("The scheduled official tournament is no longer playable.");
 
@@ -299,10 +299,10 @@ export const commands: BaseCommandDefinitions = {
 			if (id === 'scheduled' || id === 'official') {
 				if (!(room.id in nextOfficialTournaments)) return this.say("There is no official tournament schedule for this room.");
 				official = true;
-				format = Tournaments.getFormat(nextOfficialTournaments[room.id].format, room);
+				format = Tournaments.getFormat(nextOfficialTournaments[room.id]!.format, room);
 				if (!format) return this.say("The scheduled official tournament is no longer playable.");
 			} else {
-				if (room.id in nextOfficialTournaments && Date.now() > nextOfficialTournaments[room.id].time) {
+				if (room.id in nextOfficialTournaments && Date.now() > nextOfficialTournaments[room.id]!.time) {
 					return this.say("The official tournament is delayed so you must wait until after it starts.");
 				}
 
@@ -329,7 +329,7 @@ export const commands: BaseCommandDefinitions = {
 
 			let time: number = 0;
 			if (official) {
-				time = nextOfficialTournaments[room.id].time;
+				time = nextOfficialTournaments[room.id]!.time;
 			} else if (!room.tournament) {
 				const now = Date.now();
 				if (database.lastTournamentTime) {
@@ -348,7 +348,7 @@ export const commands: BaseCommandDefinitions = {
 				formatid: format.customFormatName ? format.customFormatName : Dex.joinNameAndCustomRules(format, format.customRules),
 				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
 				official,
-				endOfCycle: nextOfficialTournaments[room.id].endOfCycle,
+				endOfCycle: nextOfficialTournaments[room.id] && nextOfficialTournaments[room.id]!.endOfCycle,
 				time,
 				tournamentName: format.tournamentName || format.customFormatName,
 			};

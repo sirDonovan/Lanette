@@ -55,7 +55,7 @@ describe("Tournaments", () => {
 		Tournaments.loadRoomSchedule(room.id, true);
 
 		// @ts-expect-error
-		let officialTournaments = Tournaments.officialTournaments[room.id];
+		let officialTournaments = Tournaments.officialTournaments[room.id]!;
 		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		let day = 1;
