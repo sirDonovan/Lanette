@@ -175,8 +175,14 @@ export class BattleEliminationPage extends GamePageBase {
 		return html;
 	}
 
-    renderDetails(): string {
-		// not used due to showSwitchLocationButton being false
-        return "";
-    }
+	// only used for staff view
+	renderDetails(): string {
+		let html = "";
+		const selectors = this.getSelectors();
+		for (const selector of selectors) {
+			html += this.renderSelector(selector);
+		}
+
+		return html;
+	}
 }

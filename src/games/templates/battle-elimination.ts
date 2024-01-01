@@ -1065,6 +1065,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			pageName: this.htmlPageGameName,
 		});
 
+		CommandParser.onCreateActivityPage(page, player);
 		this.htmlPages.set(player, page);
 
 		return page;
@@ -2285,7 +2286,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 	check: {
 		command(target, room, user) {
 			if (this.subRoom) {
-				user.say("This command is not necessary in group chat tournaments.");
+				user.say("This command is not necessary due to the server tournament being used.");
 				return false;
 			}
 

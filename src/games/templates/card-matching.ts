@@ -169,6 +169,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			showTypings: this.usesTypings,
 		});
 
+		CommandParser.onCreateActivityPage(page, player);
 		this.htmlPages.set(player, page);
 
 		return page;

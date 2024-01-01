@@ -83,6 +83,7 @@ export abstract class CardHighLow extends CardGame {
 			showTypings: false,
 		});
 
+		CommandParser.onCreateActivityPage(page, player);
 		this.htmlPages.set(player, page);
 
 		return page;

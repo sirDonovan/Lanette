@@ -48,6 +48,8 @@ export class Player {
 	}
 
 	destroy(): void {
+		CommandParser.onDestroyPlayer(this);
+
 		Tools.unrefProperties(this, ["id", "name", "eliminated"]);
 	}
 

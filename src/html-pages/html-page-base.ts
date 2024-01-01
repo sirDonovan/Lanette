@@ -266,6 +266,13 @@ export abstract class HtmlPageBase {
 		delete this.pageList[oldId];
 	}
 
+	// allow the full page to be re-sent to the user after disconnecting
+	onDestroyUser(): void {
+		this.lastRender = "";
+		this.lastSelectorRenders = {};
+		this.initializedSelectorDivs = false;
+	}
+
 	getPmRoom(): Room {
 		return this.room;
 	}
@@ -277,6 +284,10 @@ export abstract class HtmlPageBase {
 		}
 
 		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render!());
+	}
+
+	getSelectors(): readonly HtmlSelector[] {
+		return this.htmlSelectors;
 	}
 
 	addSelector(selector: HtmlSelector): void {

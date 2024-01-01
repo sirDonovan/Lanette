@@ -7,10 +7,12 @@ import { GameHostControlPanel } from './html-pages/game-host-control-panel';
 
 import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
+import type { Player } from "./room-activity";
 import type {
 	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, ICommandGuide, IHtmlPageFile, LoadedCommands
 } from "./types/command-parser";
 import type { User } from "./users";
+import { ActivityPageBase } from './html-pages/activity-pages/activity-page-base';
 
 interface IGameHtmlPages {
 	cardMatching: typeof CardMatchingPage;
@@ -128,6 +130,7 @@ export class CommandContext {
 }
 
 export class CommandParser {
+	private activityHtmlPages: Dict<Map<Player, ActivityPageBase>> = {};
 	private commandGuides: Dict<Dict<ICommandGuide>> = {};
 	private commandModules: ICommandFile[] = [];
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
@@ -259,6 +262,33 @@ export class CommandParser {
 		for (const i in this.htmlPages) {
 			if (id in this.htmlPages[i]) {
 				this.htmlPages[i][id].destroy();
+			}
+		}
+
+		for (const pageId in this.activityHtmlPages) {
+			this.activityHtmlPages[pageId].forEach((page, player) => {
+				if (player.id === id) page.onDestroyUser();
+			})
+		}
+	}
+
+	onCreateActivityPage(page: ActivityPageBase, player: Player): void {
+		if (!(page.pageId in this.activityHtmlPages)) this.activityHtmlPages[page.pageId] = new Map();
+		if (!this.activityHtmlPages[page.pageId].has(player)) {
+			this.activityHtmlPages[page.pageId].set(player, page);
+		}
+	}
+
+	onDestroyPlayer(player: Player): void {
+		const pageIds = Object.keys(this.activityHtmlPages);
+		for (const pageId of pageIds) {
+			const page = this.activityHtmlPages[pageId].get(player);
+			if (page) {
+				// the page may be destroyed already by onDestroyUser or the activity
+				if (!page.destroyed) page.destroy();
+
+				this.activityHtmlPages[pageId].delete(player);
+				if (!this.activityHtmlPages[pageId].size) delete this.activityHtmlPages[pageId];
 			}
 		}
 	}

@@ -447,7 +447,7 @@ export abstract class CardGame<ActionCardsType extends object = Dict<IActionCard
 
 	getPlayerSummary(player: Player): void {
 		if (player.eliminated) return;
-		this.sendHtmlPage(player);
+		this.sendHtmlPage(player, true);
 	}
 
 	destroyPlayers(): void {
