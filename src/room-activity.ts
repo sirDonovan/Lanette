@@ -358,12 +358,12 @@ export abstract class Activity {
 		// @ts-expect-error
 		player.name = name;
 
-		const htmlPage = this.htmlPages.get(player);
-		if (htmlPage) htmlPage.onRenameUser(player, oldId);
-
 		if (player.id === id) return;
 		// @ts-expect-error
 		player.id = id;
+
+		const htmlPage = this.htmlPages.get(player);
+		if (htmlPage) htmlPage.onRenameUser(player, oldId);
 
 		delete this.players[oldId];
 		delete this.pastPlayers[oldId];
