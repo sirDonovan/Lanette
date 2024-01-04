@@ -267,7 +267,7 @@ export class CommandParser {
 
 		for (const pageId in this.activityHtmlPages) {
 			this.activityHtmlPages[pageId].forEach((page, player) => {
-				if (player.id === id) page.onDestroyUser();
+				if (player.id === id) page.onUserLeaveRoom();
 			})
 		}
 	}

@@ -15,6 +15,7 @@ export interface ISendOptions {
 	hideSelector?: boolean;
 	onExpire?: boolean;
 	onOpen?: boolean;
+	forceInitializedSelectorDivs?: boolean;
 	forceSend?: boolean;
 }
 
@@ -266,8 +267,8 @@ export abstract class HtmlPageBase {
 		delete this.pageList[oldId];
 	}
 
-	// allow the full page to be re-sent to the user after disconnecting
-	onDestroyUser(): void {
+	// allow the full page to be re-sent to the user after leaving the room
+	onUserLeaveRoom(): void {
 		this.lastRender = "";
 		this.lastSelectorRenders = {};
 		this.initializedSelectorDivs = false;
@@ -311,6 +312,10 @@ export abstract class HtmlPageBase {
 		// selectors currently can't be used in the chat
 		if (this.usesHtmlSelectors && !this.chatUhtmlName) {
 			this.initializeSelectors();
+
+			if (options && options.forceSend) {
+				options.forceInitializedSelectorDivs = true;
+			}
 
 			// send any selectors that have updated
 			for (const selector of this.htmlSelectors) {
@@ -419,8 +424,8 @@ export abstract class HtmlPageBase {
 	}
 
 	/**Send <div> elements for all selectors that can be on the page, regardless of active status */
-	initializeSelectorDivs(user: User): void {
-		if (this.initializedSelectorDivs) return;
+	initializeSelectorDivs(user: User, forceInitializedSelectorDivs?: boolean): void {
+		if (this.initializedSelectorDivs && !forceInitializedSelectorDivs) return;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'>";
 		const divs: string[] = [];
@@ -456,8 +461,14 @@ export abstract class HtmlPageBase {
 		const user = Users.get(this.userId);
 		if (!user) return;
 
+		let forceInitializedSelectorDivs = false;
+		if (options && options.forceInitializedSelectorDivs) {
+			forceInitializedSelectorDivs = true;
+			options.forceInitializedSelectorDivs = false;
+		}
+
 		// initialize after closing or moving from chat
-		this.initializeSelectorDivs(user);
+		this.initializeSelectorDivs(user, forceInitializedSelectorDivs);
 
 		if (!(selector.id in this.lastSelectorRenders)) this.lastSelectorRenders[selector.id] = EMPTY_SELECTOR_CONTENT;
 

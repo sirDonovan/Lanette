@@ -180,6 +180,8 @@ export class BattleEliminationPage extends GamePageBase {
 		let html = "";
 		const selectors = this.getSelectors();
 		for (const selector of selectors) {
+			if (selector === this.headerSelector) continue;
+
 			html += this.renderSelector(selector);
 		}
 

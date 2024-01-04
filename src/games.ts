@@ -102,7 +102,6 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 			}
 			return true;
 		},
-		pmOnly: true,
 	},
 	repost: {
 		command(target, room, user) {

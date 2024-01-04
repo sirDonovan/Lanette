@@ -419,7 +419,11 @@ export abstract class Activity {
 
 	onUserLeaveRoom(room: Room, user: User): void {
 		if (user.id in this.players) {
-			this.players[user.id].offline = true;
+			const player = this.players[user.id];
+			const htmlPage = this.getHtmlPage ? this.getHtmlPage(player) : this.htmlPages.get(player);
+			if (htmlPage) htmlPage.onUserLeaveRoom();
+
+			player.offline = true;
 		}
 	}
 
