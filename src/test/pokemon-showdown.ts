@@ -37,7 +37,7 @@ describe("pokemon-showdown", () => {
 
 		const isBreakableAbility = Dex.getAbility("Aroma Veil");
 		assert(isBreakableAbility);
-		assertStrictEqual(isBreakableAbility.isBreakable, true);
+		assert(isBreakableAbility.flags.breakable);
 
 		const suppressWeatherAbility = Dex.getAbility("Air Lock");
 		assert(suppressWeatherAbility);
