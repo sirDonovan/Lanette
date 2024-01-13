@@ -22,6 +22,7 @@ import type { HexCode, IHexCodeData } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
+import { UniquePairsWorker } from './workers/unique-pairs';
 
 type Achievements = Dict<IGameAchievement>;
 type Formats = Dict<LoadedGameFile>;
@@ -156,6 +157,7 @@ export class Games {
 	private readonly workers: IGamesWorkers = {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
+		uniquePairs: new UniquePairsWorker(),
 	};
 
 	private nextOfficialGames: Dict<IOfficialGame> = {};

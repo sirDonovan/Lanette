@@ -8,11 +8,13 @@ import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
+import { UniquePairsWorker } from "../workers/unique-pairs";
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
+	uniquePairs: UniquePairsWorker;
 }
 
 export type GameCommandReturnType = boolean;
