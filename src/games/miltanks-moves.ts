@@ -12,7 +12,7 @@ class MiltanksMoves extends QuestionAndAnswer {
 
 	allAnswersAchievement = MiltanksMoves.achievements.mootronome;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const categories: string[] = [];
 		const categoryHints: Dict<Dict<string[]>> = {};
 		const categoryHintKeys: Dict<string[]> = {};

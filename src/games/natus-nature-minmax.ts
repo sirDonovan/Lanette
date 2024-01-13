@@ -12,7 +12,7 @@ class NatusNatureMinMax extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
     allowMisType = true;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

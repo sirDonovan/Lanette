@@ -17,7 +17,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHints: Dict<Dict<string[]>> = {

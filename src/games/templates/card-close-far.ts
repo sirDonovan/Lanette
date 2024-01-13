@@ -72,13 +72,13 @@ export abstract class CardCloseFar extends CardHighLow {
 			if (ended) {
 				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
 			this.end();

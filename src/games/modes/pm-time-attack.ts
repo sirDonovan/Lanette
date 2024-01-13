@@ -81,8 +81,8 @@ const tests: GameFileTests<PMTimeAttackThis> = {
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
-			addPlayers(game);
-			game.start();
+			await addPlayers(game);
+			await game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			game.canGuess = true;

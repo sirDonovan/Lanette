@@ -80,11 +80,11 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.say("Use ``" + Config.commandCharacter + "swim [up/down]`` to swim to a higher/lower wheel, ``" +
 			Config.commandCharacter + "tread`` to remain on your current wheel, or ``" + Config.commandCharacter + "stay`` to stop with " +
 			"your current score any round!");
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	spinWheel(player: Player): void {
@@ -170,7 +170,7 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		this.sendPlayerActions(player, this.getCustomBoxDiv("<center>" + this.getActionButtonsHtml(player) + "</center>", player));
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.offCommands(this.actionCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canSwim = false;
@@ -203,9 +203,10 @@ class MagikarpsWaterWheel extends ScriptedGame {
 				if (!this.getRemainingPlayerCount()) return this.end();
 			}
 
-			this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
+			this.onCommands(this.actionCommands, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+				() => void  this.nextRound());
 
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

@@ -15,18 +15,14 @@ class FalinksFormations extends ScriptedGame {
 	formationsRound: number = 0;
 
 	onRemovePlayer(player: Player): void {
-		if (this.currentPlayer === player) this.nextRound();
-	}
-
-	onStart(): void {
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		if (this.currentPlayer === player) void this.nextRound();
 	}
 
 	getDisplayedRoundNumber(): number {
 		return this.formationsRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
 			this.say(this.currentPlayer.name + " did not guess a number and has been eliminated from the game!");
 			this.eliminatePlayer(this.currentPlayer);
@@ -45,7 +41,7 @@ class FalinksFormations extends ScriptedGame {
 			const html = this.getRoundHtml(players => this.getPlayerPoints(players));
 			this.onUhtml(uhtmlName, html, () => {
 				this.playerList = this.shufflePlayers();
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.sayUhtml(uhtmlName, html);
 
@@ -60,7 +56,7 @@ class FalinksFormations extends ScriptedGame {
 		this.on(text, () => {
 			this.canGuess = true;
 			this.currentPlayer = currentPlayer;
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.say(text);
 
@@ -105,7 +101,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 				this.say("Only " + falinksText + " " + this.currentPlayer.name + " has been eliminated from the game.");
 				this.eliminatePlayer(player);
 				this.currentPlayer = null;
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			} else {
 				const points = this.addPoints(player, guess);
 				if (points >= this.options.points!) {
@@ -120,7 +116,7 @@ const commands: GameCommandDefinitions<FalinksFormations> = {
 						(points > 1 ? "s" : "") + ".");
 					this.points.set(this.currentPlayer, points);
 					this.currentPlayer = null;
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				}
 			}
 

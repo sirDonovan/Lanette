@@ -203,8 +203,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		Tournaments.createTournament(this.subRoom, {format: this.battleFormat, cap: this.playerCap, name: this.name});
 	}
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 
 		this.debugLog("Original Pokedex size: " + this.pokedex.length);
 
@@ -252,7 +252,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			user = Users.add(tournamentPlayer.name, tournamentPlayer.id);
 		}
 
-		this.addPlayer(user, true);
+		void this.addPlayer(user, true);
 		if (expiredUser) Users.remove(user);
 	}
 
@@ -385,7 +385,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
 
-			this.start(true);
+			void this.start(true);
 		}
 	}
 

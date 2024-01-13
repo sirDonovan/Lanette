@@ -440,7 +440,7 @@ export class ScriptedGame extends Game {
 		return Games.getScriptedGameHighlight() + " " + this.format.mode.id;
 	}
 
-	signups(): void {
+	async signups(): Promise<void> {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
 
@@ -462,7 +462,7 @@ export class ScriptedGame extends Game {
 
 		if (this.onSignups) {
 			try {
-				this.onSignups();
+				await this.onSignups();
 			} catch (e) {
 				console.log(e);
 				Tools.logException(e as NodeJS.ErrnoException, this.name + " onSignups()");
@@ -485,24 +485,28 @@ export class ScriptedGame extends Game {
 					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 					this.startTimer = setTimeout(() => {
-						if (!this.start()) {
-							this.startTimer = setTimeout(() => {
-								if (!this.start()) {
-									this.inactivityEnd();
-								}
-							}, startTimer);
-						}
+						void (async() => {
+							if (!await this.start()) {
+								this.startTimer = setTimeout(() => {
+									void (async() => {
+										if (!await this.start()) {
+											this.inactivityEnd();
+										}
+									})();
+								}, startTimer);
+							}
+						})();
 					}, startTimer);
 				}, startTimer);
 			}
 		}
 
 		if (this.isMiniGame && !this.internalGame) {
-			this.nextRound();
+			await this.nextRound();
 		}
 	}
 
-	start(tournamentStart?: boolean): boolean {
+	async start(tournamentStart?: boolean): Promise<boolean> {
 		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
 			(this.usesTournamentStart && !tournamentStart)) return false;
 
@@ -535,18 +539,20 @@ export class ScriptedGame extends Game {
 
 		if (this.onStart) {
 			try {
-				this.onStart();
+				await this.onStart();
 			} catch (e) {
 				console.log(e);
 				Tools.logException(e as NodeJS.ErrnoException, this.name + " onStart()");
 				this.errorEnd();
 			}
+		} else {
+			await this.nextRound();
 		}
 
 		return true;
 	}
 
-	nextRound(): void {
+	async nextRound(): Promise<void> {
 		if (this.ended) throw new Error("nextRound() called after game ended");
 		if (this.timeout) clearTimeout(this.timeout);
 
@@ -594,7 +600,7 @@ export class ScriptedGame extends Game {
 
 		if (this.onNextRound) {
 			try {
-				this.onNextRound();
+				await this.onNextRound();
 			} catch (e) {
 				console.log(e);
 				Tools.logException(e as NodeJS.ErrnoException, this.name + " onNextRound()");
@@ -878,7 +884,7 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+	async addPlayer(user: User, tournamentJoin?: boolean): Promise<Player | undefined> {
 		if (this.managedPlayers) return;
 
 		if (this.usesTournamentJoin && !tournamentJoin) return;
@@ -938,7 +944,7 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		const onSuccessfulJoin = (): Player | undefined => {
+		const onSuccessfulJoin = async (): Promise<Player | undefined> => {
 			let addPlayerResult: boolean | undefined = true;
 			if (this.onAddPlayer) {
 				try {
@@ -1007,7 +1013,7 @@ export class ScriptedGame extends Game {
 			} else {
 				if (this.playerCap && this.playerCount >= this.playerCap) {
 					if (this.canLateJoin) this.canLateJoin = false;
-					this.start();
+					await this.start();
 				}
 			}
 
@@ -1015,10 +1021,10 @@ export class ScriptedGame extends Game {
 		};
 
 		if (this.requiresAutoconfirmed && user.autoconfirmed === null) {
-			this.checkPlayerAutoconfirmed(player, onSuccessfulJoin);
+			this.checkPlayerAutoconfirmed(player, () => void onSuccessfulJoin());
 			return player;
 		} else {
-			return onSuccessfulJoin();
+			return await onSuccessfulJoin();
 		}
 	}
 
@@ -1560,10 +1566,10 @@ export class ScriptedGame extends Game {
 	onDeallocate?(forceEnd: boolean): void;
 	onEliminatePlayer?(player: Player, eliminator?: Player | null): void;
 	onMaxRound?(): void;
-	onNextRound?(): void;
+	async onNextRound?(): Promise<void>;
 	onRemovePlayer?(player: Player, notAutoconfirmed?: boolean): void;
-	onSignups?(): void;
-	onStart?(): void;
+	async onSignups?(): Promise<void>;
+	async onStart?(): Promise<void>;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
 	onTournamentEnd?(forceEnd?: boolean): void;

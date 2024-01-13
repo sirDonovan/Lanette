@@ -6,7 +6,7 @@ const options = getRunOptions(__filename);
 module.exports = (async() => {
     await initializeSrc();
 
-	initializeTests(options);
+	await initializeTests(options);
 })().catch((error) => {
 	console.error(error);
 	process.exit(1);

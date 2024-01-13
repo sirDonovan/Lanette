@@ -373,7 +373,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	usesEggGroups = true;
 	usesTypings = false;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const eggGroupsData = Dex.getData().eggGroups;
 		for (const i in eggGroupsData) {
 			let bannedEggGroup = false;
@@ -419,7 +419,7 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			if (this.topCard.action && this.topCard.action.drawCards) {
 				delete this.topCard.action;
 			}
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -553,7 +553,7 @@ const commands: GameCommandDefinitions<BlisseysEggCards> = {
 			htmlPage.renderHandHtml();
 			htmlPage.send();
 
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 		chatOnly: true,
@@ -562,11 +562,14 @@ const commands: GameCommandDefinitions<BlisseysEggCards> = {
 
 const tests: GameFileTests<BlisseysEggCards> = {
 	'action cards - waveincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const waveincense = game.actionCards.waveincense;
 			assert(waveincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(waveincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!waveincense.getTargetErrors(game, [], player), true);
@@ -581,11 +584,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - seaincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const seaincense = game.actionCards.seaincense;
 			assert(seaincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(seaincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!seaincense.getTargetErrors(game, [], player), true);
@@ -600,11 +606,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - roseincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const roseincense = game.actionCards.roseincense;
 			assert(roseincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(roseincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!roseincense.getTargetErrors(game, [], player), true);
@@ -619,11 +628,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - rockincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const rockincense = game.actionCards.rockincense;
 			assert(rockincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(rockincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!rockincense.getTargetErrors(game, [], player), true);
@@ -638,11 +650,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - oddincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const oddincense = game.actionCards.oddincense;
 			assert(oddincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(oddincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!oddincense.getTargetErrors(game, [], player), true);
@@ -657,11 +672,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - laxincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const laxincense = game.actionCards.laxincense;
 			assert(laxincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(laxincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!laxincense.getTargetErrors(game, [], player), true);
@@ -676,11 +694,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - fullincense': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const fullincense = game.actionCards.fullincense;
 			assert(fullincense);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Rattata"));
 			assert(fullincense.getAutoPlayTarget(game, player));
 			assertStrictEqual(!fullincense.getTargetErrors(game, [], player), true);
@@ -695,11 +716,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - happiny': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const happiny = game.actionCards.happiny;
 			assert(happiny);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(happiny.getAutoPlayTarget(game, player));
 			assertStrictEqual(!happiny.getTargetErrors(game, ["Monster"], player), true);
@@ -715,11 +739,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - magmar': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const chansey = game.actionCards.chansey;
 			assert(chansey);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(chansey.getAutoPlayTarget(game, player));
 			assertStrictEqual(!chansey.getTargetErrors(game, ["Field", "Fairy"], player), true);
@@ -732,11 +759,14 @@ const tests: GameFileTests<BlisseysEggCards> = {
 		},
 	},
 	'action cards - destinyknot': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const destinyknot = game.actionCards.destinyknot;
 			assert(destinyknot);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Blissey"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Abomasnow")), game.pokemonToCard(Dex.getExistingPokemon("Aggron")),
 				game.pokemonToCard(Dex.getExistingPokemon("Tangela"))];

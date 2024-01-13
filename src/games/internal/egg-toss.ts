@@ -53,7 +53,7 @@ class EggToss extends ScriptedGame {
 		this.explodeEgg("for changing their away status");
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.explodeTimeout = setTimeout(() => this.explodeEgg(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
 	}
 

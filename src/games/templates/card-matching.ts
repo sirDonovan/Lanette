@@ -186,7 +186,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		this.topCard.played = true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.createDeckPool();
 		this.createDeck();
 
@@ -210,7 +210,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		}
 
 		this.storePreviouslyPlayedCard({card: this.topCard.name, player: Users.self.name});
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	isPlayableCard(card: ICard, otherCard: ICard): boolean {
@@ -338,7 +338,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		if (autoPlay) {
 			player.useCommand('play', autoPlay);
 		} else {
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -346,7 +346,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		return this.cardRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		this.canPlay = false;
 		if (this.currentPlayer) {
 			this.lastPlayer = this.currentPlayer;
@@ -456,7 +456,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 					delete this.topCard.action;
 				}
 
-				this.nextRound();
+				void this.nextRound();
 				return;
 			}
 
@@ -499,7 +499,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 							this.autoPlay(player!, turnCards);
 						}
 					} else {
-						this.nextRound();
+						void this.nextRound();
 					}
 				}, timeAfterWarning);
 			}, this.turnPmWarningTime);
@@ -728,7 +728,7 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			} else if (this.finitePlayerCards && cards.length === this.minimumPlayedCards) {
 				this.say(user.name + " has " + this.minimumPlayedCards + " card" + (this.minimumPlayedCards > 1 ? "s" : "") + " left!");
 			}
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 		eliminatedGameCommand: true,
@@ -740,27 +740,36 @@ commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
-		test(game): void {
-			addPlayers(game, game.maxPlayers || 15);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, game.maxPlayers || 15);
+			await game.start();
 			assert(game.deck.length);
 			assert(game.currentPlayer);
 			assert(game.awaitingCurrentPlayerCard);
 		},
 	},
 	'it should create unique regular cards': {
-		test(game): void {
-			addPlayers(game, game.maxPlayers || 15);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, game.maxPlayers || 15);
+			await game.start();
 			assert(game.deck.length);
 			assert(game.currentPlayer);
 			assert(game.awaitingCurrentPlayerCard);
 		},
 	},
 	'it should create unique action cards': {
-		test(game): void {
-			addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
+			await game.start();
 			const actionCards = Object.keys(game.actionCards);
 			for (const actionCard of actionCards) {
 				const cardData = game.actionCards[actionCard];

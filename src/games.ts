@@ -39,6 +39,7 @@ interface IPokemonListOptions {
 }
 
 interface ICreateGameOptions {
+	childGame?: boolean;
 	minigame?: boolean;
 	official?: boolean;
 	pmRoom?: Room;
@@ -83,6 +84,8 @@ const categoryNames: GameCategoryNames = {
 
 const numberGameOptions: GameNumberOptions[] = ['points', 'teamPoints', 'freejoin', 'cards', 'operands', 'names', 'gen', 'params',
 	'ports', 'teams'];
+
+const excludedTiers: string[] = ["Illegal", "Unreleased", "(Uber)", "(OU)", "(UU)", "(RU)", "(NU)", "(PU)", "(ZU)", "(LC)"];
 
 const sharedCommandDefinitions: GameCommandDefinitions = {
 	summary: {
@@ -199,6 +202,10 @@ export class Games {
 
 	getAliases(): Readonly<Dict<string>> {
 		return this.aliases;
+	}
+
+	getExcludedTiers(): readonly string[] {
+		return excludedTiers;
 	}
 
 	getFormats(): Readonly<Formats> {
@@ -442,13 +449,15 @@ export class Games {
 
 		this.scheduledGameTimerData[room.id] = {formatid: format.inputTarget, startTime, official};
 		this.scheduledGameTimers[room.id] = setTimeout(() => {
-			if (room.game) return;
-			const game = global.Games.createGame(room, format, {official});
-			if (game) {
-				game.signups();
-			}
+			void (async () => {
+				if (room.game) return;
+				const game = await global.Games.createGame(room, format, {official});
+				if (game) {
+					await game.signups();
+				}
 
-			delete this.scheduledGameTimers[room.id];
+				delete this.scheduledGameTimers[room.id];
+			})();
 		}, timer);
 	}
 
@@ -837,8 +846,10 @@ export class Games {
 					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
-					const game = global.Games.createGame(room, format, {pmRoom, minigame: true});
-					if (game) game.signups();
+					void (async () => {
+						const game = await global.Games.createGame(room, format, {pmRoom, minigame: true});
+						if (game) await game.signups();
+					})();
 				},
 			};
 
@@ -1345,7 +1356,7 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): ScriptedGame | undefined {
+	async createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): Promise<ScriptedGame | undefined> {
 		const minigame = options && options.minigame;
 		const official = options && options.official;
 		if (!minigame) this.clearAutoCreateTimer(room as Room);
@@ -1354,7 +1365,7 @@ export class Games {
 			if (format.nonTrivialLoadData) {
 				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			}
-			format.class.loadData(room);
+			await format.class.loadData(room);
 			format.class.loadedData = true;
 		}
 
@@ -1362,7 +1373,8 @@ export class Games {
 		if (minigame) game.isMiniGame = true;
 		if (official) game.official = true;
 
-		if (game.initialize(format)) {
+		// prevent duplicate games while loading data
+		if ((!room.game || (options && options.childGame)) && game.initialize(format)) {
 			if (minigame) {
 				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
 				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
@@ -1380,8 +1392,9 @@ export class Games {
 		}
 	}
 
-	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame | undefined {
-		const childGame = this.createGame(parentGame.room, format, {
+	async createChildGame(format: IGameFormat, parentGame: ScriptedGame): Promise<ScriptedGame | undefined> {
+		const childGame = await this.createGame(parentGame.room, format, {
+			childGame: true,
 			pmRoom: parentGame.pmRoom,
 			initialSeed: parentGame.prng.seed.slice() as PRNGSeed,
 		});
@@ -1413,17 +1426,20 @@ export class Games {
 		return room.userHostedGame;
 	}
 
-	createSearchChallenge(room: Room, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): ScriptedGame {
+	async createSearchChallenge(room: Room, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): Promise<ScriptedGame> {
 		if (format.class.loadData && !format.class.loadedData) {
 			if (format.nonTrivialLoadData) {
 				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			}
-			format.class.loadData(room);
+			await format.class.loadData(room);
 			format.class.loadedData = true;
 		}
 
-		room.searchChallenge = new format.class(room, pmRoom, initialSeed) as SearchChallenge;
-		room.searchChallenge.initialize(format);
+		// prevent duplicate challenges while loading data
+		if (!room.searchChallenge) {
+			room.searchChallenge = new format.class(room, pmRoom, initialSeed) as SearchChallenge;
+			room.searchChallenge.initialize(format);
+		}
 
 		return room.searchChallenge;
 	}
@@ -1760,7 +1776,7 @@ export class Games {
 	}
 
 	isIncludedPokemonTier(tier: string): boolean {
-		return tier !== 'Illegal' && tier !== 'Unreleased' && !tier.startsWith('(');
+		return !excludedTiers.includes(tier);
 	}
 
 	getTrainerCardHtml(room: Room, name: string, format?: IGameFormat | IUserHostedFormat): string {

@@ -27,7 +27,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const pokemon of Games.getPokemonList()) {
 			if (!pokemon.types.includes("Water") || !Dex.hasModelData(pokemon)) continue;
 
@@ -41,9 +41,9 @@ class WishiwashisStatFishing extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
-			this.setTimeout(() => this.nextRound(), 10 * 1000);
+			this.setTimeout(() => void this.nextRound(), 10 * 1000);
 		}
 	}
 
@@ -72,7 +72,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 				this.inactivityEnd();
 			} else {
 				const text = "No one reeled in!";
-				this.on(text, () => this.nextRound());
+				this.on(text, () => void this.nextRound());
 				this.setTimeout(() => this.say(text), 5000);
 			}
 			return;
@@ -113,7 +113,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 			if (points >= this.maxPoints) {
 				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
@@ -121,7 +121,7 @@ class WishiwashisStatFishing extends ScriptedGame {
 		if (shinyPokemon) this.unlockAchievement(firstPlayer, WishiwashisStatFishing.achievements.sunkentreasure);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.roundReels.clear();
 		this.queue = [];
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));

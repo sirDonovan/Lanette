@@ -24,7 +24,7 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],

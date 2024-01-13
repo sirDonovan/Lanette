@@ -1676,13 +1676,15 @@ export const commands: BaseCommandDefinitions = {
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 
-			const game = Games.createGame(room, format, {pmRoom});
-			if (game) {
-				const randomAnswer = game.getRandomAnswer!();
-				this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
-					"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
-				game.deallocate(true);
-			}
+			void (async () => {
+				const game = await Games.createGame(room, format, {pmRoom});
+				if (game) {
+					const randomAnswer = game.getRandomAnswer!();
+					this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
+						"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
+					game.deallocate(true);
+				}
+			})();
 		},
 		pmOnly: true,
 		aliases: ['rhint', 'randanswer', 'ranswer', 'randomhint', 'randhint'],

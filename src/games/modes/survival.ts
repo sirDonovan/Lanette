@@ -48,14 +48,14 @@ class Survival {
 	}
 
 	onStart(this: SurvivalThis): void {
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	getDisplayedRoundNumber(this: SurvivalThis): number {
 		return this.survivalRound;
 	}
 
-	beforeNextRound(this: SurvivalThis, newAnswer: boolean): boolean | string {
+	async beforeNextRound(this: SurvivalThis, newAnswer: boolean): Promise<boolean | string> {
 		if (!newAnswer) return true;
 		if (this.currentPlayer) {
 			this.eliminatePlayer(this.currentPlayer, "You did not guess the answer in time!");
@@ -135,7 +135,7 @@ const commandDefinitions: GameCommandDefinitions<SurvivalThis> = {
 			this.say("**" + player.name + "** advances to the next round!");
 			this.displayAnswers(answer);
 			this.answers = [];
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			return true;
 		},
 		aliases: ['g'],
@@ -164,8 +164,8 @@ const tests: GameFileTests<SurvivalThis> = {
 		async test(game): Promise<void> {
 			this.timeout(15000);
 
-			addPlayers(game);
-			game.start();
+			await addPlayers(game);
+			await game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			game.increaseDifficulty();
@@ -179,8 +179,8 @@ const tests: GameFileTests<SurvivalThis> = {
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
-			addPlayers(game);
-			game.start();
+			await addPlayers(game);
+			await game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			const currentPlayer = game.currentPlayer;
@@ -200,8 +200,8 @@ const tests: GameFileTests<SurvivalThis> = {
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
-			addPlayers(game);
-			game.start();
+			await addPlayers(game);
+			await game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			const currentPlayer = game.currentPlayer;

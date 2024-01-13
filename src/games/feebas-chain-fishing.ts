@@ -50,13 +50,13 @@ class FeebasChainFishing extends ScriptedGame {
 	roundReels = new Map<Player, boolean>();
 	queue: Player[] = [];
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		}
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canReel = false;
 		if (this.round > 1) {
 			let highestPoints = 0;
@@ -127,7 +127,7 @@ class FeebasChainFishing extends ScriptedGame {
 			const reelUhtmlName = this.uhtmlBaseName + '-reel';
 			this.onUhtml(reelUhtmlName, reelHtml, () => {
 				this.canReel = true;
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			const time = this.sampleOne([8000, 9000, 10000]);
 			this.setTimeout(() => this.sayUhtml(reelUhtmlName, reelHtml), time);

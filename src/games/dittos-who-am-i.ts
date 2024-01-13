@@ -44,7 +44,7 @@ class DittosWhoAmI extends ScriptedGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.pokemonList = this.shuffle(Games.getPokemonList({filter: x => {
 			const color = Tools.toId(x.color);
 			if (!this.colors.includes(color)) this.colors.push(color);
@@ -72,7 +72,7 @@ class DittosWhoAmI extends ScriptedGame {
 		const text = "Each round, you must guess a parameter with ``" + Config.commandCharacter + "g [parameter]``. If you believe you " +
 			"know what Pokemon you are, you may guess that instead with ``" + Config.commandCharacter + "g [Pokemon]``!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
 	}
@@ -371,7 +371,7 @@ class DittosWhoAmI extends ScriptedGame {
 			"weaknesses, resistances, or stats.";
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
 			if (this.incrementPlayerInactiveRound(this.currentPlayer)) {
 				this.say(this.currentPlayer.name + " did not guess a parameter or their Pokemon and has been eliminated from the game!");
@@ -410,7 +410,7 @@ class DittosWhoAmI extends ScriptedGame {
 			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.getRemainingPlayers(this.playerOrder),
 				"Round " + this.dittoRound);
 			this.onUhtml(uhtmlName, html, () => {
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.sayUhtml(uhtmlName, html);
 
@@ -430,7 +430,7 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		if (currentPlayer.eliminated) {
-			this.nextRound();
+			await this.nextRound();
 			return;
 		}
 
@@ -451,7 +451,7 @@ class DittosWhoAmI extends ScriptedGame {
 				currentPlayer.sayPrivateUhtml(html, this.actionsUhtmlName);
 			}
 
-			this.setTimeout(() => this.nextRound(), this.roundTime);
+			this.setTimeout(() => void this.nextRound(), this.roundTime);
 		});
 		this.say(text);
 	}
@@ -539,7 +539,7 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 				}
 			}
 
-			this.setTimeout(() => this.nextRound(), 3 * 1000);
+			this.setTimeout(() => void this.nextRound(), 3 * 1000);
 
 			return true;
 		},

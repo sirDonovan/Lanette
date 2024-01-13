@@ -87,7 +87,7 @@ class StakatakasCardTower extends CardMatching<ActionCardsType> {
 			if (this.topCard.action && this.topCard.action.drawCards) {
 				delete this.topCard.action;
 			}
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -190,7 +190,7 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 			htmlPage.renderHandHtml();
 			htmlPage.send();
 
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 		chatOnly: true,
@@ -199,10 +199,13 @@ const commands: GameCommandDefinitions<StakatakasCardTower> = {
 
 const tests: GameFileTests<StakatakasCardTower> = {
 	'it should only allow cards to be played once per turn': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			let newCards = [game.pokemonToCard(Dex.getExistingPokemon("Stunfisk")),
 				game.pokemonToCard(Dex.getExistingPokemon("Eevee")), game.pokemonToCard(Dex.getExistingPokemon("Pidgey")),
@@ -244,10 +247,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly detect possible chains': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Charmander")),
 				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle")),
@@ -275,10 +281,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should not create new card arrays for actions': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			const newCards = [game.pokemonToCard(Dex.getExistingPokemon("Charmander")),
 				game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur")), game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
@@ -297,10 +306,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 1 remaining': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			const cards = [game.pokemonToCard(Dex.getExistingPokemon("Ampharos")),
 				game.pokemonToCard(Dex.getExistingPokemon("Archen")), game.pokemonToCard(Dex.getExistingPokemon("Beautifly")),
@@ -315,10 +327,13 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should properly handle card counts - 0 remaining': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			const cards = [game.pokemonToCard(Dex.getExistingPokemon("Ampharos")),
 				game.pokemonToCard(Dex.getExistingPokemon("Archen")), game.pokemonToCard(Dex.getExistingPokemon("Beautifly")),
@@ -333,7 +348,10 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'action cards - pachirisu': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const manaphy = game.actionCards.manaphy;
 			assert(manaphy);
 
@@ -343,7 +361,7 @@ const tests: GameFileTests<StakatakasCardTower> = {
 			const pachirisu = game.actionCards.pachirisu;
 			assert(pachirisu);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [game.pokemonToCard(Dex.getExistingPokemon("Pikachu"))]), true);
 			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [manaphy.getCard(game)]), false);
 			assertStrictEqual(!pachirisu.getTargetErrors(game, [], player, [phione.getCard(game)]), false);
@@ -351,15 +369,18 @@ const tests: GameFileTests<StakatakasCardTower> = {
 		},
 	},
 	'it should not try to find pairs for action cards when Pachirisu is played': {
-		test(game): void {
-			addPlayers(game, 4);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
 			const manaphy = game.actionCards.manaphy;
 			assert(manaphy);
 			const pachirisu = game.actionCards.pachirisu;
 			assert(pachirisu);
 
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Pikachu"));
-			game.start();
+			await game.start();
 			const player = game.currentPlayer!;
 			const cards = [manaphy.getCard(game), pachirisu.getCard(game)];
 			game.playerCards.set(player, cards);

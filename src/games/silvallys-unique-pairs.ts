@@ -6,7 +6,7 @@ class SilvallysUniquePairs extends QuestionAndAnswer {
 	roundTime: number = 5 * 60 * 1000;
 	hintPrefix: string = "Silvally wants a unique pair for";
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const allPossibleMovesCache: Dict<readonly string[]> = {};
 		const pokemonList = Games.getPokemonList({filter: x => {
 			if (x.id === 'smeargle') return false;

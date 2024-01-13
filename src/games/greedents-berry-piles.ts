@@ -72,7 +72,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return berryPiles;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.say("If you grab more than " + this.maxBerryTotal + " berries, the Greedent will notice!");
 		this.nextSubGame();
 	}
@@ -123,7 +123,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 			this.showBerryPiles(this.players[i]);
 		}
 
-		this.setTimeout(() => this.nextRound(), 3 * 1000);
+		this.setTimeout(() => void this.nextRound(), 3 * 1000);
 	}
 
 	giveStartingBerries(player: Player): void {
@@ -203,7 +203,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return this.subGameRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canGrab = false;
 		this.offCommands(ACTION_COMMANDS);
 
@@ -255,8 +255,9 @@ class GreedentsBerryPiles extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;
-			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
-			this.setTimeout(() => this.nextRound(), 15 * 1000);
+			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+				() => void this.nextRound());
+			this.setTimeout(() => void this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 

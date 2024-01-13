@@ -50,10 +50,6 @@ class ChanseysEggToss extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
 	giveEgg(player: Player): void {
 		const previousHolder = this.currentHolder;
 
@@ -82,10 +78,10 @@ class ChanseysEggToss extends ScriptedGame {
 		}
 
 		if (this.getRemainingPlayerCount() < 2) return this.end();
-		this.setTimeout(() => this.nextRound(), 5000);
+		this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) {
 			return this.end();

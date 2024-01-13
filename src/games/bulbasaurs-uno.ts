@@ -284,8 +284,8 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 	usableTypes: Dict<string> = {};
 	usesColors: boolean = true;
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 
 		const dex = this.getDex();
 		for (const key of dex.getTypeKeys()) {
@@ -302,7 +302,7 @@ class BulbasaursUno extends CardMatching<ActionCardsType> {
 			if (this.topCard.action && this.topCard.action.drawCards) {
 				delete this.topCard.action;
 			}
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -454,7 +454,7 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 			htmlPage.renderHandHtml();
 			htmlPage.send();
 
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 		chatOnly: true,
@@ -463,11 +463,14 @@ const commands: GameCommandDefinitions<BulbasaursUno> = {
 
 const tests: GameFileTests<BulbasaursUno> = {
 	'action cards - greninja': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const greninja = game.actionCards.greninja;
 			assert(greninja);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(greninja.getAutoPlayTarget(game, player));
 			assertStrictEqual(!greninja.getTargetErrors(game, ["Grass"], player), true);
@@ -482,11 +485,14 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - kecleon': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const kecleon = game.actionCards.kecleon;
 			assert(kecleon);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(kecleon.getAutoPlayTarget(game, player));
 			assertStrictEqual(!kecleon.getTargetErrors(game, ["Red"], player), true);
@@ -496,11 +502,14 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - magnemite': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const magnemite = game.actionCards.magnemite;
 			assert(magnemite);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Magnemite")), game.pokemonToCard(Dex.getExistingPokemon("Ivysaur"))];
 			assert(magnemite.getAutoPlayTarget(game, player, hand));
@@ -527,55 +536,70 @@ const tests: GameFileTests<BulbasaursUno> = {
 		},
 	},
 	'action cards - doduo': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const doduo = game.actionCards.doduo;
 			assert(doduo);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(doduo.getAutoPlayTarget(game, player));
 			assertStrictEqual(!doduo.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - machamp': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const machamp = game.actionCards.machamp;
 			assert(machamp);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(machamp.getAutoPlayTarget(game, player));
 			assertStrictEqual(!machamp.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - inkay': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const inkay = game.actionCards.inkay;
 			assert(inkay);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(inkay.getAutoPlayTarget(game, player));
 			assertStrictEqual(!inkay.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - slaking': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const slaking = game.actionCards.slaking;
 			assert(slaking);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(slaking.getAutoPlayTarget(game, player));
 			assertStrictEqual(!slaking.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - spinda': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			const spinda = game.actionCards.spinda;
 			assert(spinda);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(spinda.getAutoPlayTarget(game, player));
 			assertStrictEqual(!spinda.getTargetErrors(game, [], player), true);

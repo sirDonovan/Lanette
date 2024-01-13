@@ -35,7 +35,7 @@ class TaurosSafariZone extends ScriptedGame {
 	roundTime: number = 5 * 1000;
 	winners = new Map<Player, number>();
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const listWithFormes: IPokemon[] = [];
 		for (const pokemon of Games.getPokemonList()) {
 			if (Tools.toId(pokemon.baseSpecies) === 'voltorb' || Tools.toId(pokemon.baseSpecies) === 'electrode' ||
@@ -62,10 +62,10 @@ class TaurosSafariZone extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
 			this.setTimeout(() => {
-				this.nextRound();
+				void this.nextRound();
 			}, 5000);
 		}
 	}
@@ -106,12 +106,12 @@ class TaurosSafariZone extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canCatch = true;
-			this.setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canCatch = false;
 		if (this.round > 1) {
 			let highestPoints = 0;

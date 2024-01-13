@@ -23,7 +23,7 @@ export class SweetThief extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.takeBackTimeout = setTimeout(() => this.takeBackSweets(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
 	}
 

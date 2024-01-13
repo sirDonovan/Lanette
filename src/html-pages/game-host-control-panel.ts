@@ -634,28 +634,30 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 		if (user.game) user.game.deallocate(true);
 
-		const game = Games.createGame(user, format, {pmRoom: this.room, minigame: true});
-		if (game) {
-			this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
-			this.generatedAnswer = game.getRandomAnswer!();
-
-			let attempts = 0;
-			while (this.exceedsMessageSizeLimit() && attempts < 100) {
-				attempts++;
+		void (async () => {
+			const game = await Games.createGame(user, format, {pmRoom: this.room, minigame: true});
+			if (game) {
+				this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
 				this.generatedAnswer = game.getRandomAnswer!();
+
+				let attempts = 0;
+				while (this.exceedsMessageSizeLimit() && attempts < 100) {
+					attempts++;
+					this.generatedAnswer = game.getRandomAnswer!();
+				}
+
+				if (this.exceedsMessageSizeLimit()) {
+					this.generatedAnswer = undefined;
+					this.generatedAnswerErrorHtml = "A random answer could not be generated. Please try again!";
+				} else {
+					this.generatedAnswerErrorHtml = "";
+				}
+
+				game.deallocate(true);
 			}
 
-			if (this.exceedsMessageSizeLimit()) {
-				this.generatedAnswer = undefined;
-				this.generatedAnswerErrorHtml = "A random answer could not be generated. Please try again!";
-			} else {
-				this.generatedAnswerErrorHtml = "";
-			}
-
-			game.deallocate(true);
-		}
-
-		this.send();
+			this.send();
+		})();
 
 		return true;
 	}

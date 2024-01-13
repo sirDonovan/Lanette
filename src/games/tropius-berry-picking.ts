@@ -114,7 +114,7 @@ class TropiusBerryPicking extends ScriptedGame {
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const types: string[] = [];
 		for (const key of Dex.getTypeKeys()) {
 			types.push(Dex.getExistingType(key).name);
@@ -124,15 +124,11 @@ class TropiusBerryPicking extends ScriptedGame {
 			!move.id.startsWith('hiddenpower')).map(x => x.name);
 	}
 
-	onSignups(): void {
-		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5 * 1000);
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canEat = false;
 
 		const answers: string[] = [];
@@ -252,7 +248,7 @@ class TropiusBerryPicking extends ScriptedGame {
 		this.on(smeargleText, () => {
 			this.canEat = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(smeargleText, [], true);
-			this.setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 		});
 
 		if (this.options.freejoin) {
@@ -352,7 +348,7 @@ const commands: GameCommandDefinitions<TropiusBerryPicking> = {
 					return true;
 				}
 				this.roundEffect = noEffect;
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			} else {
 				if (this.roundBerries.has(player)) return false;
 				this.roundBerries.set(player, berry);

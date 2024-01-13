@@ -50,15 +50,15 @@ function testMascots(format: IGameFormat | IUserHostedFormat): void {
 	}
 }
 
-function createIndividualTestGame(format: IGameFormat): ScriptedGame {
+async function createIndividualTestGame(format: IGameFormat): Promise<ScriptedGame> {
 	const room = createTestRoom();
-	const game = Games.createGame(room, format, {pmRoom: room, initialSeed});
+	const game = await Games.createGame(room, format, {pmRoom: room, initialSeed});
 	if (!game) {
 		console.log(Client.getOutgoingMessageQueue());
 		throw new Error("Game not created for " + format.nameWithOptions);
 	}
 
-	game.signups();
+	await game.signups();
 	if (game.timeout) clearTimeout(game.timeout);
 
 	return game;
@@ -90,7 +90,7 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 				it(test, async function(this: Mocha.Context) {
 					this.timeout(5000);
 
-					const game = createIndividualTestGame(testFormat);
+					const game = await createIndividualTestGame(testFormat);
 					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
@@ -111,10 +111,10 @@ function createIndividualTests(format: IGameFormat, tests: GameFileTests): void 
 					}
 				});
 			} else {
-				it(test, function(this: Mocha.Context) {
+				it(test, async function(this: Mocha.Context) {
 					this.timeout(5000);
 
-					const game = createIndividualTestGame(testFormat);
+					const game = await createIndividualTestGame(testFormat);
 					const roomid = game.room.id;
 					game.requiresAutoconfirmed = false;
 					// console.log(game.name + " '" + test + "': initial seed = " + game.initialSeed);
@@ -201,7 +201,7 @@ describe("Games", () => {
 		assert(Object.keys(Games.getUserHostedAliases()).length);
 	});
 
-	it('should export valid data from files', () => {
+	it('should export valid data from files', async () => {
 		const categories = Games.getCategoryNames();
 		for (const format of formatsToTest) {
 			testMascots(format);
@@ -218,7 +218,7 @@ describe("Games", () => {
 
 			if (format.canGetRandomAnswer) {
 				const room = createTestRoom();
-				const game = Games.createGame(room, format, {pmRoom: room, initialSeed});
+				const game = await Games.createGame(room, format, {pmRoom: room, initialSeed});
 				assert(game);
 				assertStrictEqual(typeof game.getRandomAnswer, 'function');
 				game.deallocate(true);
@@ -251,13 +251,13 @@ describe("Games", () => {
 		}
 	});
 
-	it('should create games properly', function() {
+	it('should create games properly', async function() {
 		this.timeout(5000);
 
 		for (const format of formatsToTest) {
 			const room = createTestRoom();
 			try {
-				Games.createGame(room, format, {pmRoom: room, initialSeed});
+				await Games.createGame(room, format, {pmRoom: room, initialSeed});
 			} catch (e) {
 				console.log(e);
 				fail((e as Error).message + (room.game ? " (" + format.name + "; initial seed = " +
@@ -281,7 +281,7 @@ describe("Games", () => {
 				const format = Games.getExistingFormat(formatId + "," + mode);
 				const room = createTestRoom();
 				try {
-					Games.createGame(room, format, {pmRoom: room, initialSeed});
+					await Games.createGame(room, format, {pmRoom: room, initialSeed});
 				} catch (e) {
 					console.log(e);
 					fail((e as Error).message + (room.game ? " (" + format.nameWithOptions + "; initial seed = " +
@@ -293,20 +293,20 @@ describe("Games", () => {
 		}
 	});
 
-	it('should properly deallocate games', function() {
+	it('should properly deallocate games', async function() {
 		this.timeout(10000);
 
 		const room = createTestRoom();
 		for (const format of formatsToTest) {
-			const game = Games.createGame(room, format);
+			const game = await Games.createGame(room, format);
 			assert(game);
 			assert(room.game === game);
 			assert(!game.ended);
 
 			if (!format.freejoin && !game.managedPlayers && !game.usesTournamentJoin) {
-				game.signups();
-				const players = addPlayers(game, game.maxPlayers);
-				if (!game.started) game.start();
+				await game.signups();
+				const players = await addPlayers(game, game.maxPlayers);
+				if (!game.started) await game.start();
 
 				game.removePlayer(players[0].name);
 			}
@@ -331,9 +331,9 @@ describe("Games", () => {
 		Rooms.remove(room);
 	});
 
-	it('should properly deallocate PM games', () => {
+	it('should properly deallocate PM games', async () => {
 		const room = createTestRoom();
-		Games.createGame(Users.self, Games.getExistingFormat('trivia'), {pmRoom: room, minigame: true});
+		await Games.createGame(Users.self, Games.getExistingFormat('trivia'), {pmRoom: room, minigame: true});
 		assert(Users.self.game);
 		Users.self.game.on("text", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
 		Users.self.game.onHtml("html", () => {}); // eslint-disable-line @typescript-eslint/no-empty-function
@@ -382,13 +382,13 @@ describe("Games", () => {
 		runCommand("rhint", "trivia", Users.self, Users.self);
 	});
 
-	it('should support setting the initial PRNG seed', function() {
+	it('should support setting the initial PRNG seed', async function() {
 		this.timeout(10000);
 
 		const room = createTestRoom();
 		const prng = new PRNG();
 		for (const format of formatsToTest) {
-			const game = Games.createGame(room, format, {pmRoom: room, initialSeed: prng.initialSeed.slice() as PRNGSeed})!;
+			const game = (await Games.createGame(room, format, {pmRoom: room, initialSeed: prng.initialSeed.slice() as PRNGSeed}))!;
 			for (let i = 0; i < game.prng.initialSeed.length; i++) {
 				assert(game.prng.initialSeed[i] === prng.initialSeed[i], format.name);
 			}
@@ -489,7 +489,7 @@ describe("Games", () => {
 		assertStrictEqual(nameUserHostedFormat[1], name);
 	});
 
-	it('should start signups for scripted games', () => {
+	it('should start signups for scripted games', async () => {
 		const room = createTestRoom();
 		const roomPrefix = room.id + "|";
 		for (const format of formatsToTest) {
@@ -497,13 +497,13 @@ describe("Games", () => {
 
 			const startingSendQueueIndex = Client.getOutgoingMessageQueue().length;
 			const gameLog: string[] = [];
-			const game = Games.createGame(room, format);
+			const game = await Games.createGame(room, format);
 			assert(game, format.name);
 			assert(!game.signupsStarted, format.name);
 			assert(!game.started, format.name);
 			assertStrictEqual(game.format.name, format.name);
 			if (game.mascot) game.shinyMascot = true;
-			game.signups();
+			await game.signups();
 			gameLog.push(roomPrefix + "/adduhtml " + game.uhtmlBaseName + "-description" + ", " + game.getSignupsHtml());
 			gameLog.push(roomPrefix + "/notifyrank all,Mocha scripted game," + game.name + "," + game.getHighlightPhrase());
 			if (game.mascot) gameLog.push(roomPrefix + game.mascot.name + " is shiny so bits will be doubled!");
@@ -548,7 +548,7 @@ describe("Games", () => {
 		Rooms.remove(room);
 	});
 
-	it('should properly start one vs. one challenges', () => {
+	it('should properly start one vs. one challenges', async () => {
 		const room = createTestRoom();
 		const challenger = Users.add("Challenger", "challenger");
 		const defender = Users.add("Defender", "defender");
@@ -560,7 +560,7 @@ describe("Games", () => {
 		for (const format of formatsToTest) {
 			if (!format.challengeSettings || !format.challengeSettings.onevsone || !format.challengeSettings.onevsone.enabled) continue;
 
-			const parentGame = Games.createGame(room, oneVsOneFormat) as OneVsOne;
+			const parentGame = await Games.createGame(room, oneVsOneFormat) as OneVsOne;
 			assert(parentGame, format.name);
 			assert(!parentGame.signupsStarted, format.name);
 			assert(!parentGame.started, format.name);
@@ -581,9 +581,9 @@ describe("Games", () => {
 
 			parentGame.canAcceptChallenge = true;
 			assert(parentGame.acceptChallenge(defender), format.name);
-			parentGame.startChallenge();
+			await parentGame.startChallenge();
 			assert(parentGame.started, format.name);
-			parentGame.nextRound();
+			await parentGame.nextRound();
 			const childGame = room.game;
 			assert(childGame, format.name);
 			assertStrictEqual(childGame.parentGame, parentGame);
@@ -591,7 +591,7 @@ describe("Games", () => {
 			assertStrictEqual(childGame.players[challengerPlayer.id], challengerPlayer);
 			assertStrictEqual(childGame.players[defenderPlayer.id], defenderPlayer);
 			assert(childGame.inheritedPlayers, format.name);
-			if (!format.freejoin) childGame.start();
+			if (!format.freejoin) await childGame.start();
 
 			childGame.deallocate(true);
 		}
@@ -599,7 +599,7 @@ describe("Games", () => {
 		Rooms.remove(room);
 	});
 
-	it('should properly start bot challenges', () => {
+	it('should properly start bot challenges', async () => {
 		const room = createTestRoom();
 		const challenger = Users.add("Challenger", "challenger");
 		room.onUserJoin(challenger, ' ');
@@ -610,7 +610,7 @@ describe("Games", () => {
 			if (!format.challengeSettings || !format.challengeSettings.botchallenge ||
 				!format.challengeSettings.botchallenge.enabled) continue;
 
-			const parentGame = Games.createGame(room, botChallengeFormat) as OneVsOne;
+			const parentGame = await Games.createGame(room, botChallengeFormat) as OneVsOne;
 			assert(parentGame, format.name);
 			assert(!parentGame.signupsStarted, format.name);
 			assert(!parentGame.started, format.name);
@@ -625,7 +625,7 @@ describe("Games", () => {
 			assert(!parentGame.started, format.name);
 
 			parentGame.acceptChallenge(Users.self);
-			parentGame.startChallenge();
+			await parentGame.startChallenge();
 			const childGame = room.game;
 			assert(childGame, format.name);
 			assertStrictEqual(childGame.parentGame, parentGame);
@@ -633,7 +633,7 @@ describe("Games", () => {
 			assertStrictEqual(childGame.players[challengerPlayer.id], challengerPlayer);
 			assertStrictEqual(childGame.players[defenderPlayer.id], defenderPlayer);
 			assert(childGame.inheritedPlayers, format.name);
-			if (!format.freejoin) childGame.start();
+			if (!format.freejoin) await childGame.start();
 
 			childGame.deallocate(true);
 		}
@@ -641,13 +641,20 @@ describe("Games", () => {
 		Rooms.remove(room);
 	});
 
-	it('should properly set options', () => {
+	it('should properly set options', async () => {
 		const room = createTestRoom();
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia'))!.name, "Slowking's Trivia");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities'))!.name, "Slowking's Ability Trivia");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, survival'))!.name, "Slowking's Trivia Survival");
-		assertStrictEqual(Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival'))!.name,
+		assertStrictEqual((await Games.createGame(room, Games.getExistingFormat('trivia')))!.name, "Slowking's Trivia");
+		room.game!.deallocate(true);
+
+		assertStrictEqual((await Games.createGame(room, Games.getExistingFormat('trivia, abilities')))!.name, "Slowking's Ability Trivia");
+		room.game!.deallocate(true);
+
+		assertStrictEqual((await Games.createGame(room, Games.getExistingFormat('trivia, survival')))!.name, "Slowking's Trivia Survival");
+		room.game!.deallocate(true);
+
+		assertStrictEqual((await Games.createGame(room, Games.getExistingFormat('trivia, abilities, survival')))!.name,
 			"Slowking's Ability Trivia Survival");
+		room.game!.deallocate(true);
 
 		assertStrictEqual(Games.createUserHostedGame(room, Games.getExistingUserHostedFormat('floettes forum game, name: Mocha Test Game'),
 			Users.self.name).name, Users.self.name + "'s Mocha Test Game");

@@ -39,7 +39,7 @@ class PanchamPairs extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundTime: number = 15 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const pokemon of Games.getPokemonList()) {
 			dataKeys['Pokemon'].push(pokemon.name); // eslint-disable-line @typescript-eslint/dot-notation
 			const abilities: string[] = [];
@@ -77,21 +77,17 @@ class PanchamPairs extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin && !this.isMiniGame) {
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		}
-	}
-
-	onStart(): void {
-		this.nextRound();
 	}
 
 	listPossiblePairs(): void {
 		if (!this.options.freejoin) {
 			this.pairRound++;
 			if (this.pairRound >= 4) {
-				this.nextRound();
+				void this.nextRound();
 				return;
 			}
 
@@ -167,7 +163,7 @@ class PanchamPairs extends ScriptedGame {
 		return this.getAnswers("");
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canPair = false;
 
 		const eliminated: Player[] = [];
@@ -362,14 +358,14 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 					this.end();
 					return true;
 				}
-				this.nextRound();
+				void this.nextRound();
 			} else {
 				this.paired.add(player);
 				player.say("You have paired " + pair[0] + " & " + pair[1] + " and advanced to the next round!");
 				this.currentList.splice(this.currentList.indexOf(pair[0]), 1);
 				this.currentList.splice(this.currentList.indexOf(pair[1]), 1);
 				if (this.paired.size === this.getRemainingPlayerCount()) {
-					this.nextRound();
+					void this.nextRound();
 				} else {
 					let hasPair = false;
 					for (let i = 0, len = this.currentList.length; i < len; i++) {
@@ -383,7 +379,7 @@ const commands: GameCommandDefinitions<PanchamPairs> = {
 					}
 					if (!hasPair) {
 						this.say("No pairs Left! Moving to next round!");
-						this.nextRound();
+						void this.nextRound();
 					}
 				}
 			}

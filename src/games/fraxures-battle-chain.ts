@@ -9,7 +9,7 @@ const data: {types: string[]} = {
 class FraxuresBattleChain extends Chain {
 	linkEndCache: Dict<string[]> = {};
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const typeKeys = Dex.getTypeKeys();
 		for (let i = 0; i < typeKeys.length; i++) {
 			const outerType = Dex.getExistingType(typeKeys[i]).name;

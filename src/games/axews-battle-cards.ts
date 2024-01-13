@@ -408,8 +408,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	usableTypes: Dict<string> = {};
 	weaknessLimit: number = 5;
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 
 		const dex = this.getDex();
 		for (const key of dex.getTypeKeys()) {
@@ -423,7 +423,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer && this.canPlay) {
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -709,13 +709,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - soak': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const soak = game.actionCards.soak;
 			assert(soak);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(soak.getAutoPlayTarget(game, player));
 			assertStrictEqual(!soak.getTargetErrors(game, [], player), true);
@@ -730,13 +733,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - trickortreat': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const trickortreat = game.actionCards.trickortreat;
 			assert(trickortreat);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(trickortreat.getAutoPlayTarget(game, player));
 			assertStrictEqual(!trickortreat.getTargetErrors(game, [], player), true);
@@ -751,13 +757,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - forestscurse': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const forestscurse = game.actionCards.forestscurse;
 			assert(forestscurse);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
 			assert(forestscurse.getAutoPlayTarget(game, player));
 			assertStrictEqual(!forestscurse.getTargetErrors(game, [], player), true);
@@ -772,13 +781,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - magicpowder': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const magicpowder = game.actionCards.magicpowder;
 			assert(magicpowder);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(magicpowder.getAutoPlayTarget(game, player));
 			assertStrictEqual(!magicpowder.getTargetErrors(game, [], player), true);
@@ -793,13 +805,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - batonpass': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(batonpass.getAutoPlayTarget(game, player, hand));
@@ -813,13 +828,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - allyswitch': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(allyswitch.getAutoPlayTarget(game, player, hand));
@@ -833,13 +851,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion.getAutoPlayTarget(game, player));
 			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"], player), true);
@@ -854,13 +875,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion2': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion2 = game.actionCards['conversion2']; // eslint-disable-line @typescript-eslint/dot-notation
 			assert(conversion2);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion2.getAutoPlayTarget(game, player));
 			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water", "Fire"], player), true);
@@ -871,14 +895,17 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - transform': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes || game.requiredGen) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
 			assert(transform);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(transform.getAutoPlayTarget(game, player));
 			assertStrictEqual(!transform.getTargetErrors(game, ["Squirtle"], player), true);
@@ -887,39 +914,48 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - protect': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const protect = game.actionCards.protect;
 			assert(protect);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(protect.getAutoPlayTarget(game, player));
 			assertStrictEqual(!protect.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - teeterdance': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(teeterdance.getAutoPlayTarget(game, player));
 			assertStrictEqual(!teeterdance.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - topsyturvy': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(topsyturvy.getAutoPlayTarget(game, player));
 			assertStrictEqual(!topsyturvy.getTargetErrors(game, [], player), true);

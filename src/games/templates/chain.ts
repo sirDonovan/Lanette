@@ -41,7 +41,7 @@ export abstract class Chain extends ScriptedGame {
 		return [end];
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const pool: Dict<Link> = {};
 		const keys: string[] = [];
 		if (this.linksType === 'move') {
@@ -104,11 +104,7 @@ export abstract class Chain extends ScriptedGame {
 			this.linkEnds[i] = linkEndsByName[i].length;
 		}
 
-		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5000);
-	}
-
-	onStart(): void {
-		this.nextRound();
+		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
 	filterUnusableLinkStarts(links: string[]): string[] {
@@ -173,7 +169,7 @@ export abstract class Chain extends ScriptedGame {
 		return this.options.freejoin ? this.round : this.survivalRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		let text;
 		if (this.options.freejoin) {
 			this.resetLinkCounts();
@@ -183,7 +179,7 @@ export abstract class Chain extends ScriptedGame {
 				if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(this.currentLink.name, [], true);
 				this.setTimeout(() => {
 					this.say("Time is up!");
-					this.nextRound();
+					void this.nextRound();
 				}, this.getRoundTime());
 			});
 		} else {
@@ -200,7 +196,7 @@ export abstract class Chain extends ScriptedGame {
 				const html = this.getRoundHtml(players => this.getPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
 				return;
@@ -211,7 +207,7 @@ export abstract class Chain extends ScriptedGame {
 				currentPlayer = this.playerList.shift();
 			}
 			if (!currentPlayer || currentPlayer.eliminated) {
-				this.onNextRound();
+				await this.onNextRound();
 				return;
 			}
 
@@ -222,7 +218,7 @@ export abstract class Chain extends ScriptedGame {
 					this.say("Time is up! " + this.currentPlayer!.name + " has been eliminated from the game.");
 					this.eliminatePlayer(this.currentPlayer!);
 					this.currentPlayer = null;
-					this.nextRound();
+					void this.nextRound();
 				}, this.getRoundTime());
 			});
 		}
@@ -335,11 +331,11 @@ const commands: GameCommandDefinitions<Chain> = {
 					this.end();
 					return true;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			} else {
 				this.currentPlayer = null;
 				this.setLink(guess);
-				this.nextRound();
+				void this.nextRound();
 			}
 			return true;
 		},

@@ -20,7 +20,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 		this.renameDQs.push(player);
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.teams = this.generateTeams(2);
 		for (const i in this.teams) {
 			const players = this.teams[i].players;
@@ -29,10 +29,10 @@ class JigglypuffsDodgeball extends ScriptedGame {
 			}
 		}
 
-		this.nextRound();
+		await this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.throwTime = false;
 		if (this.round > 1) {
 			this.shields.clear();
@@ -75,7 +75,7 @@ class JigglypuffsDodgeball extends ScriptedGame {
 			const text = "**THROW**";
 			this.on(text, () => {
 				this.throwTime = true;
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.setTimeout(() => this.say(text), time);
 		});

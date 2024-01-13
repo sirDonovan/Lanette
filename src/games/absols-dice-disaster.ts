@@ -20,13 +20,16 @@ class AbsolsDiceDisaster extends ScriptedGame {
 	roundDiceRoll: number = 0;
 	roundTimer: number = 20 * 1000;
 
-	onStart(): void {
-		this.say("Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
-			" and " + senseRolls.fortune + " based on Absol's senses!");
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		const text = "Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
+			" and " + senseRolls.fortune + " based on Absol's senses!";
+		this.on(text, () => {
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
+		});
+		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;
@@ -69,7 +72,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 				this.inactivityEnd();
 				return;
 			}
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		} else {
 			if (this.inactiveRounds) this.inactiveRounds = 0;
 
@@ -88,7 +91,7 @@ class AbsolsDiceDisaster extends ScriptedGame {
 					} else {
 						this.say(diceText + " **" + this.bestPlayer!.name + "** has been eliminated from the game.");
 						this.bestPlayer!.eliminated = true;
-						this.setTimeout(() => this.nextRound(), 5 * 1000);
+						this.setTimeout(() => void this.nextRound(), 5 * 1000);
 					}
 				}, 5 * 1000);
 			});

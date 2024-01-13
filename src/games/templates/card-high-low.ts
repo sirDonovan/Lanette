@@ -48,11 +48,11 @@ export abstract class CardHighLow extends CardGame {
 		this.deck = this.shuffle(this.deckPool.map(x => Tools.deepClone(x)));
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (!this.format.inputOptions.points) this.options.points = 5;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.createDeckPool();
 		this.createDeck();
 
@@ -62,7 +62,7 @@ export abstract class CardHighLow extends CardGame {
 			this.sendHtmlPage(this.players[i]);
 		}
 
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	getCardChatDetails(card: ICard): string {
@@ -148,13 +148,13 @@ export abstract class CardHighLow extends CardGame {
 			if (ended) {
 				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
 			this.end();

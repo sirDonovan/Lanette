@@ -22,12 +22,12 @@ class PluslesAdditiveParameters extends ScriptedGame {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-	static loadData(): void {
 		Games.getWorkers().parameters.init();
 	}
 
 	onStart(): void {
 		this.nextRound();
+	static async loadData(): Promise<void> {
 	}
 
 	getDisplayedRoundNumber(): number {
@@ -78,7 +78,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			this.prng = new PRNG(result.prngSeed);
 
 			this.onUhtml(uhtmlName, html, () => {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.sayUhtmlAuto(uhtmlName, html);
 			return;
@@ -108,11 +108,11 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			const text = currentPlayer!.name + " you are up!";
 			this.on(text, () => {
 				this.canAdd = true;
-				this.onCommands(['add'], {max: 1}, () => this.nextRound());
+				this.onCommands(['add'], {max: 1}, () => void this.nextRound());
 				this.currentPlayer = currentPlayer!;
 				this.setTimeout(() => {
 					this.say("Time is up!");
-					this.nextRound();
+					void this.nextRound();
 				}, this.roundTime);
 			});
 			this.say(text);

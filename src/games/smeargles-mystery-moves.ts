@@ -20,7 +20,7 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 
@@ -82,12 +82,12 @@ class SmearglesMysteryMoves extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.say(text);
 			return;
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 

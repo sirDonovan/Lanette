@@ -17,8 +17,8 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(): void {
 		Games.getWorkers().portmanteaus.init();
+	static async loadData(): Promise<void> {
 	}
 
 	async customGenerateHint(): Promise<void> {

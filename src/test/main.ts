@@ -12,7 +12,7 @@ const moduleTests = fs.readdirSync(modulesDir).filter(x => x.endsWith('.js'));
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
 const nonTrivialGameLoadTime = 200;
 
-export function initializeTests(inputOptions: RunOptions): void {
+export async function initializeTests(inputOptions: RunOptions): Promise<void> {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	const noOp = (): void => {};
 	const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
@@ -100,7 +100,7 @@ export function initializeTests(inputOptions: RunOptions): void {
 				const format = Games.getExistingFormat(i);
 				if (format.class.loadData) {
 					const start = process.hrtime();
-					format.class.loadData(room);
+					await format.class.loadData(room);
 					const end = process.hrtime(start);
 					const loadTime = (end[0] * 1000000000 + end[1]) / 1000000;
 					if (loadTime > nonTrivialGameLoadTime && !format.nonTrivialLoadData) {

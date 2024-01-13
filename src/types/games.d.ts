@@ -72,7 +72,7 @@ interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	achievements?: Dict<IGameAchievement>;
 	cachedData?: IGameCachedData;
-	loadData?: (room: Room | User, extendedClass?: boolean) => void;
+	loadData?: (room: Room | User, extendedClass?: boolean) => Promise<void>;
 	loadedData?: boolean;
 }
 

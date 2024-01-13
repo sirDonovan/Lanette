@@ -142,7 +142,7 @@ export abstract class MapGame extends ScriptedGame {
 
 	abstract onEnd(): void;
 	abstract onMaxRound(): void;
-	abstract onNextRound(): void;
+	abstract onNextRound(): Promise<void>;
 
 	coordinatesToString(x: number, y: number): string {
 		return x + ', ' + y;

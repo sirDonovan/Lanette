@@ -23,7 +23,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const prefix = "Pokemon that is ";
 		const suffix = " type";
 
@@ -61,7 +61,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.playerOrder = this.shufflePlayers();
 		this.resetCount();
 	}
@@ -103,14 +103,14 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 			this.setTimeout(() => {
 				const text = "Replace every multiple of **" + this.firstMultiple + "** with a " + firstCategory + " and replace every " +
 					"multiple of **" + this.secondMultiple + "** with a " + secondCategory + "!";
-				this.on(text, () => this.setTimeout(() => this.nextRound(), 10 * 1000));
+				this.on(text, () => this.setTimeout(() => void this.nextRound(), 10 * 1000));
 				this.say(text);
 			}, 5000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.currentPlayer) {
 			this.currentPlayer.eliminated = true;
 			this.currentPlayer = null;
@@ -151,7 +151,7 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		const text = player.name + " you are up! | Current number: " + this.currentNumber;
 		this.on(text, () => {
 			this.currentPlayer = player;
-			this.setTimeout(() => this.nextRound(), 10 * 1000);
+			this.setTimeout(() => void this.nextRound(), 10 * 1000);
 		});
 		this.say(text);
 	}
@@ -299,7 +299,7 @@ const commands: GameCommandDefinitions<BuzzwolesFizzBuzz> = {
 				if (this.currentNumber === this.maxNumber) {
 					this.resetCount();
 				} else {
-					this.nextRound();
+					void this.nextRound();
 				}
 			} else {
 				this.say(user.name + " was eliminated from the game!");

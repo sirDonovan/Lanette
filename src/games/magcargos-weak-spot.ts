@@ -19,7 +19,7 @@ class MagcargosWeakSpot extends QuestionAndAnswer {
 	roundGuesses = new Map<Player, boolean>();
     allowMisType = true;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const types: string[] = [];
 		for (const key of Dex.getTypeKeys()) {
 			types.push(Dex.getExistingType(key).name);

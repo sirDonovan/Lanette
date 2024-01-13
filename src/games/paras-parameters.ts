@@ -32,8 +32,8 @@ export class ParasParameters extends QuestionAndAnswer {
 
 	noIncorrectAnswersMinigameAchievement = ParasParameters.achievements.dexsearchhero;
 
-	static loadData(): void {
 		Games.getWorkers().parameters.init();
+	static async loadData(): Promise<void> {
 	}
 
 	getMinigameDescription(): string {

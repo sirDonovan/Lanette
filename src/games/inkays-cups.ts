@@ -21,8 +21,8 @@ class InkaysCups extends ScriptedGame {
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(): void {
 		const parametersData = Games.getWorkers().parameters.getData();
+	static async loadData(): Promise<void> {
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
@@ -41,16 +41,16 @@ class InkaysCups extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin && !this.isMiniGame) {
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const text = "The game will be played in Gen " + gameGen + " (use ``/nds``)!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
@@ -109,12 +109,12 @@ class InkaysCups extends ScriptedGame {
 			this.canGrab = true;
 			if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint(Tools.joinList(paramNames), this.answers, true);
 
-			this.setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canGrab = false;
 
@@ -211,7 +211,7 @@ const commands: GameCommandDefinitions<InkaysCups> = {
 					this.end();
 					return true;
 				}
-				this.nextRound();
+				void this.nextRound();
 			} else {
 				const answers = this.answers.slice();
 				answers.splice(answerIndex, 1);

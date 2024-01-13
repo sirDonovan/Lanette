@@ -26,8 +26,8 @@ class MalamarsBowls extends QuestionAndAnswer {
 	updateHintTime = 5000;
 	usesWorkers: boolean = true;
 
-	static loadData(): void {
 		const parametersData = Games.getWorkers().parameters.getData();
+	static async loadData(): Promise<void> {
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
@@ -148,11 +148,11 @@ class MalamarsBowls extends QuestionAndAnswer {
 						this.end();
 						return;
 					}
-					this.setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => void this.nextRound(), 5000);
 				});
 				this.say(text);
 			} else {
-				this.nextRound();
+				void this.nextRound();
 			}
 		}, this.updateHintTime);
 	}

@@ -16,16 +16,16 @@ class GolemsGalvanicMine extends ScriptedGame {
 	roundStones: Dict<number> = {};
 	roundTime: number = 7000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		data.stones = Games.getItemsList(x => !!(x.megaStone || x.zMove), gen).map(x => x.name);
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (!this.format.inputOptions.points) this.options.points = 30;
-		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 10000);
+		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 10000);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canMine = false;
 		if (this.round > 1) {
 			if (this.roundMines.size) {
@@ -85,7 +85,7 @@ class GolemsGalvanicMine extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-stones';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canMine = true;
-			this.setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

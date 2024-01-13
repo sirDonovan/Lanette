@@ -26,7 +26,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundTime = 15 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const move of Games.getMovesList()) {
 			const moveParameters: string[] = [move.category, "Generation " + move.gen, move.pp + " Power Points", move.type + " Type"];
 			if (move.accuracy === true) {
@@ -87,11 +87,11 @@ class SerperiorLengthyChains extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
-		this.setTimeout(() => this.nextRound(), 10 * 1000);
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		this.setTimeout(() => void this.nextRound(), 10 * 1000);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canChain = false;
 		if (this.round > 1) {
 			if (!this.bestPlayer) {
@@ -127,7 +127,7 @@ class SerperiorLengthyChains extends ScriptedGame {
 			const text = "Make a chain of **" + this.category + "** " + (this.dataType === 'moves' ? "moves" : "Pokemon") + "!";
 			this.on(text, () => {
 				this.canChain = true;
-				this.setTimeout(() => this.nextRound(), this.getRoundTime());
+				this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 			});
 			this.setTimeout(() => this.say(text), 5000);
 		});
