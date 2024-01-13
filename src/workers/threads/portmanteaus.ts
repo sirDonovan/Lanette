@@ -3,12 +3,97 @@ import worker_threads = require('worker_threads');
 import type { PRNGSeed } from '../../lib/prng';
 import { PRNG } from '../../lib/prng';
 import * as tools from '../../tools';
-import type { IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausWorkerData, PoolType, PortmanteausId } from '../portmanteaus';
+import type {
+	IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausThreadData, IPortmanteausWorkerData, PoolType, PortmanteausId
+} from '../portmanteaus';
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
-const data = worker_threads.workerData as IPortmanteausWorkerData;
-const portTypes = Object.keys(data.pool) as PoolType[];
+const workerData = worker_threads.workerData as IPortmanteausWorkerData;
+const data: IPortmanteausThreadData = {
+	pool: {
+		"Pokemon": {},
+		// "Item": {},
+		"Move": {},
+	},
+	portCategories: {
+		"Pokemon": ['tier', 'color', 'type', 'gen', 'egggroup'],
+		// "Item": ['type'],
+		"Move": ['type'],
+	},
+};
+let portTypes: PoolType[];
+
+let loadedData = false;
+function loadData(): void {
+	if (loadedData) return;
+
+	portTypes = Object.keys(data.pool) as PoolType[];
+
+	for (const type of portTypes) {
+		for (const category of data.portCategories[type]) {
+			data.pool[type][category] = {};
+		}
+	}
+
+	/* eslint-disable @typescript-eslint/dot-notation */
+	/*
+	data.pool['Item']['type']['Berry'] = [];
+	data.pool['Item']['type']['Plate'] = [];
+	data.pool['Item']['type']['Drive'] = [];
+
+	// /is shows all items
+	for (const item of workerData.itemsList) {
+		if (item.isBerry) {
+			data.pool['Item']['type']['Berry'].push(item.name.substr(0, item.name.indexOf(' Berry')));
+		}
+		if (item.onPlate) {
+			data.pool['Item']['type']['Plate'].push(item.name.substr(0, item.name.indexOf(' Plate')));
+		} else if (item.onDrive) {
+			data.pool['Item']['type']['Drive'].push(item.name.substr(0, item.name.indexOf(' Drive')));
+		}
+	}
+	*/
+
+	for (const move of workerData.movesList) {
+		if (!(move.type in data.pool['Move']['type'])) data.pool['Move']['type'][move.type] = [];
+		data.pool['Move']['type'][move.type].push(move.name);
+	}
+
+	const disallowedFormes: string[] = ["Gmax", "Rapid-Strike-Gmax", "Low-Key-Gmax", "Eternamax"];
+	for (const pokemon of workerData.pokemonList) {
+		if (pokemon.forme && disallowedFormes.includes(pokemon.forme)) continue;
+
+		if (!workerData.excludedTiers.includes(pokemon.tier)) {
+			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
+			data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.name);
+		}
+
+		if (workerData.pseudoLCPokemon.includes(pokemon.id)) {
+			if (!('LC' in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier']['LC'] = [];
+			data.pool['Pokemon']['tier']['LC'].push(pokemon.name);
+		}
+
+		if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
+		data.pool['Pokemon']['color'][pokemon.color].push(pokemon.name);
+
+		if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
+		data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.name);
+
+		for (const type of pokemon.types) {
+			if (!(type in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][type] = [];
+			data.pool['Pokemon']['type'][type].push(pokemon.name);
+		}
+
+		for (const eggGroup of pokemon.eggGroups) {
+			if (!(eggGroup in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][eggGroup] = [];
+			data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
+		}
+	}
+	/* eslint-enable */
+
+	loadedData = true;
+}
 
 function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausResponse {
 	const customPort = options.customPortTypes || options.customPortCategories || options.customPortDetails ? true : false;
@@ -127,13 +212,18 @@ function search(options: IPortmanteausSearchMessage, prng: PRNG): IPortmanteausR
 }
 
 worker_threads.parentPort!.on('message', (incomingMessage: string) => {
+	loadData();
+
 	const parts = incomingMessage.split("|");
 	const messageNumber = parts[0];
 	const id = parts[1] as PortmanteausId;
 	const message = parts.slice(2).join("|");
 	let response: IPortmanteausResponse | null = null;
 	try {
-		if (id === 'memory-usage') {
+		if (id === 'initialize-thread') {
+			// @ts-expect-error
+			response = {data};
+		} else if (id === 'memory-usage') {
 			const memUsage = process.memoryUsage();
 			// @ts-expect-error
 			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];

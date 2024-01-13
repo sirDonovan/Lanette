@@ -5,7 +5,7 @@ interface IWorkerQueueItem<T> {
 	messageNumber: number;
 }
 
-export type WorkerBaseMessageId = 'memory-usage';
+export type WorkerBaseMessageId = 'memory-usage' | 'initialize-thread';
 
 export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNames = string> {
 	abstract threadPath: string;
@@ -24,12 +24,10 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	private sendMessages: boolean = true;
 	private unrefTimer: NodeJS.Timeout | undefined = undefined;
 
-	abstract loadData(): WorkerData;
-
 	async sendMessage(id: MessageId, message?: string, workerNumber?: number): Promise<ThreadResponse | null> {
 		if (!this.sendMessages) return Promise.resolve(null);
 
-		this.init();
+		this.initialize();
 
 		if (workerNumber) {
 			if (!this.workerNames) throw new Error("Worker number passed to sendMessage() for a single worker");
@@ -56,12 +54,13 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	}
 
 	getData(): WorkerData {
-		this.init();
+		this.initialize();
 		return this.workerData!;
 	}
 
-	init(): void {
-		if (!this.workerData) this.workerData = this.loadData();
+	initialize(): void {
+		if (this.loadData && !this.workerData) this.workerData = this.loadData();
+
 		if (!this.workers) {
 			this.workers = [];
 
@@ -114,6 +113,11 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}
 	}
 
+	async initializeThread(): Promise<void> {
+		// @ts-expect-error
+		await this.sendMessage('initialize-thread');
+	}
+
 	async getMemoryUsage(): Promise<ThreadResponse | null> {
 		// @ts-expect-error
 		return this.sendMessage('memory-usage');
@@ -147,4 +151,6 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		this.workerBusy[workerNumber] = true;
 		this.workers![workerNumber].postMessage(message);
 	}
+
+	loadData?(): WorkerData;
 }

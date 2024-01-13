@@ -1,7 +1,7 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, IGameFile } from "../types/games";
-import type { IParam, IParametersWorkerData } from './../workers/parameters';
+import type { IParam, IParametersThreadData } from './../workers/parameters';
 
 const gameGen = 9;
 const genString = 'gen' + gameGen;
@@ -10,7 +10,7 @@ type ParamType = 'color' | 'letter' | 'tier' | 'type';
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 
-const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
+const searchTypes: (keyof IParametersThreadData)[] = ['pokemon'];
 
 class InkaysCups extends ScriptedGame {
 	answers: readonly string[] = [];
@@ -21,8 +21,9 @@ class InkaysCups extends ScriptedGame {
 	roundTime: number = 15 * 1000;
 	usesWorkers: boolean = true;
 
-		const parametersData = Games.getWorkers().parameters.getData();
 	static async loadData(): Promise<void> {
+		await Games.getWorkers().parameters.initializeThread();
+		const parametersData = Games.getWorkers().parameters.getThreadData();
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
@@ -69,7 +70,7 @@ class InkaysCups extends ScriptedGame {
 			attempts++;
 			for (const paramType of roundParamTypes) {
 				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
-				params.push(workers.parameters.getData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
+				params.push(workers.parameters.getThreadData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 
 			const intersection = workers.parameters.intersect({

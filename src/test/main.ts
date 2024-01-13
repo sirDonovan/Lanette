@@ -72,8 +72,8 @@ export async function initializeTests(inputOptions: RunOptions): Promise<void> {
 		if (!loadGames && loadWorkers) {
 			console.log("Loading worker data for tests...");
 			const workers = Games.getWorkers();
-			workers.parameters.init();
-			workers.portmanteaus.init();
+			await workers.parameters.initializeThread();
+			await workers.portmanteaus.initializeThread();
 			console.log("Loaded worker data");
 		}
 

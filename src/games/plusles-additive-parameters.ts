@@ -22,12 +22,8 @@ class PluslesAdditiveParameters extends ScriptedGame {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-		Games.getWorkers().parameters.init();
-	}
-
-	onStart(): void {
-		this.nextRound();
 	static async loadData(): Promise<void> {
+		await Games.getWorkers().parameters.initializeThread();
 	}
 
 	getDisplayedRoundNumber(): number {
@@ -136,7 +132,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		const params: IParam[] = [];
 
 		for (const paramType of paramTypes) {
-			const pool = Games.getWorkers().parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramType];
+			const pool = Games.getWorkers().parameters.getThreadData().pokemon.gens[GEN_STRING].paramTypePools[paramType];
 			for (const i in pool) {
 				if (i === input) {
 					params.push(pool[i]);
@@ -167,7 +163,7 @@ const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 			const workers = Games.getWorkers();
 			const inputParam = params[0];
 			if (inputParam.type === 'move' &&
-				workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
+				workers.parameters.getThreadData().pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
 				Games.getMaxMoveAvailability()) {
 				user.say("You cannot add a move learned by " + Games.getMaxMoveAvailability() + " or more Pokemon.");
 				return false;
