@@ -2103,7 +2103,7 @@ export class Games {
 
 			if (!staticSprites && choice.generation !== 'xy' && choice.generation !== 'bw') staticSprites = true;
 
-			gifsOrIcons.push(pokemonIcons ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
+			gifsOrIcons.push(pokemonIcons ? Dex.getPokemonIcon(pokemon) + pokemon.name :
 				Dex.getPokemonModel(pokemon, choice.generation, undefined, choice.shiny));
 		}
 

@@ -256,7 +256,6 @@ describe("Dex", () => {
 			Dex.getItemCopy(item);
 			Dex.getItemCopy(i);
 			Dex.getItemIcon(item);
-			Dex.getPSItemIcon(item);
 		}
 
 		for (const i of dexData.formatKeys) {
@@ -305,7 +304,6 @@ describe("Dex", () => {
 				Dex.getPokemonModel(pokemon);
 			}
 			Dex.getPokemonIcon(pokemon);
-			Dex.getPSPokemonIcon(pokemon);
 		}
 	});
 	it('should set custom attributes for formats', () => {

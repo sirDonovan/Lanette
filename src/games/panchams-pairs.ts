@@ -107,7 +107,7 @@ class PanchamPairs extends ScriptedGame {
 		if (this.dataType === 'Pokemon') {
 			for (const name of this.currentList) {
 				const pokemon = Dex.getExistingPokemon(name);
-				dataHtmlParts.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+				dataHtmlParts.push(Dex.getPokemonIcon(pokemon) + pokemon.name);
 			}
 		} else {
 			dataHtmlParts.push(this.currentList.join(", "));

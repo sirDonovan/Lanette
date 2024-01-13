@@ -206,7 +206,7 @@ export const commands: BaseCommandDefinitions = {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" : "") + " gif.");
 				}
 				pokemonList.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 			}
 
 			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");
@@ -298,7 +298,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				usedPokemon.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 				if (gifsOrIcons.length === amount) break;
 			}
 

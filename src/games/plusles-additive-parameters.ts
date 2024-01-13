@@ -98,7 +98,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		const pokemonIcons: string[] = [];
 		for (const name of this.pokemon) {
 			const pokemon = Dex.getExistingPokemon(name);
-			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+			pokemonIcons.push(Dex.getPokemonIcon(pokemon) + pokemon.name);
 		}
 
 		const html = "<div class='infobox'><span style='color: #999999'>" + this.params.length + " parameters (Generation " +

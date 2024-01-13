@@ -1445,10 +1445,6 @@ export class Dex {
 			'px -' + top + 'px;' + facingLeftStyle + '"></span>';
 	}
 
-	getPSPokemonIcon(pokemon: IPokemon): string {
-		return '<psicon pokemon="' + pokemon.id + '" style="vertical-align: -7px;margin: -2px" />';
-	}
-
 	getItemIcon(item: IItem): string {
 		let num = 0;
 		if (item.spritenum) num = item.spritenum;
@@ -1460,10 +1456,6 @@ export class Dex {
 		return '<span style="display: inline-block;height: ' + height + 'px;width: ' + width + 'px;image-rendering: pixelated;' +
 			'background:transparent url(https://' + Tools.mainServer + '/sprites/itemicons-sheet.png?v1) no-repeat scroll -' + left +
 			'px -' + top + 'px;"></span>';
-	}
-
-	getPSItemIcon(item: IItem): string {
-		return '<psicon item="' + item.id + '" style="vertical-align: -7px;margin: -2px" />';
 	}
 
 	getMoveCategoryIcon(move: IMove): string {
@@ -3330,7 +3322,8 @@ export const instantiate = (): void => {
 	}
 
 	if (oldDex) {
-		Games.unrefDex();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (global.Games) Games.unrefDex();
 
 		// @ts-expect-error
 		global.Dex.onReload(oldDex);

@@ -119,7 +119,7 @@ export class ParasParameters extends QuestionAndAnswer {
 			const pokemonIcons: string[] = [];
 			for (const name of result.pokemon) {
 				const pokemon = Dex.getExistingPokemon(name);
-				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+				pokemonIcons.push(Dex.getPokemonIcon(pokemon) + pokemon.name);
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
