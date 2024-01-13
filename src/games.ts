@@ -1376,7 +1376,7 @@ export class Games {
 		if (official) game.official = true;
 
 		// prevent duplicate games while loading data
-		if ((!room.game || (options && options.childGame)) && game.initialize(format)) {
+		if (!(room as Room).userHostedGame && (!room.game || (options && options.childGame)) && game.initialize(format)) {
 			if (minigame) {
 				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
 				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
