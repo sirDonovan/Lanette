@@ -38,12 +38,18 @@ export class UniquePairsWorker extends WorkerBase<IUniquePairsWorkerData, Unique
 		}
 
 		const allPossibleMoves: Dict<readonly string[]> = {};
-		const pokemon = Games.getPokemonList();
 		const pokemonList: IPokemon[] = [];
-		for (const species of pokemon) {
-			pokemonList.push(JSON.parse(JSON.stringify(species)) as IPokemon);
-			allPossibleMoves[species.id] = Dex.getAllPossibleMoves(species);
-		}
+		Games.getPokemonList({filter: x => {
+			if (x.id === 'smeargle') return false;
+
+			const pokemonPossibleMoves = Dex.getAllPossibleMoves(x);
+			if (pokemonPossibleMoves.length < 2) return false;
+
+			allPossibleMoves[x.id] = pokemonPossibleMoves;
+			pokemonList.push(JSON.parse(JSON.stringify(x)) as IPokemon);
+
+			return true;
+		}});
 
 		const data: IUniquePairsWorkerData = {
 			allPossibleMoves,
