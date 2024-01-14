@@ -163,7 +163,7 @@ export const commands: BaseCommandDefinitions = {
 		description: ["starts a new scripted game vote"],
 	},
 	egg: {
-		command(target, room, user) {
+		command(target, room, user, alias, time) {
 			if (this.isPm(room)) return;
 			if (room.game) {
 				this.run('toss');
@@ -197,9 +197,9 @@ export const commands: BaseCommandDefinitions = {
 				const game = await Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
 				if (game) {
 					await game.signups();
-					const canEgg = this.run('toss') as boolean;
+					const canEgg = CommandParser.parse(room, user, Config.commandCharacter + "toss " + targetUser.name, time);
 					if (canEgg) {
-						this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
+						room.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
 							Config.commandCharacter + "toss [user]`` before it explodes!");
 					} else {
 						game.end();
@@ -265,7 +265,7 @@ export const commands: BaseCommandDefinitions = {
 				await game.signups();
 				game.currentHolder = game.createPlayer(targetUser)!;
 
-				this.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
+				room.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
 					Config.commandCharacter + "steal [user]`` before Thievul returns!");
 			})();
 		},
