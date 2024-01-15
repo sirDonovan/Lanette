@@ -518,8 +518,9 @@ export class Dex {
 			Tools.fetchUrl('https://' + Tools.mainServer + '/data/' + fileName)
 				.then(file => {
 					if (file) {
-						if (typeof file !== 'string') {
-							Tools.warningLog("Unexpected response for client file " + fileName + ": " + file.message);
+						if (typeof file !== 'string' || file.toLowerCase().startsWith('error')) {
+							Tools.warningLog("Unexpected response for client file " + fileName + ": " +
+								(typeof file !== 'string' ? file.message : file));
 						} else {
 							Tools.safeWriteFile(path.join(this.clientDataDirectory, fileName), file)
 								.then(() => {
