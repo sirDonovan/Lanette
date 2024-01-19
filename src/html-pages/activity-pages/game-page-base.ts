@@ -1,6 +1,7 @@
 import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import type { IGameCustomBox } from "../../types/storage";
+import { HexCode, IHexCodeData } from "../../types/tools";
 import type { HtmlSelector, IQuietPMButtonOptions } from "../html-page-base";
 import { ActivityPageBase, type IActivityPageOptions } from "./activity-page-base";
 
@@ -21,7 +22,18 @@ export abstract class GamePageBase extends ActivityPageBase {
         this.customBox = options.customBox;
         this.pageName = options.pageName;
 
-        if (this.customBox) this.setCloseButtonHtml();
+        if (this.customBox) {
+            let background: HexCode | IHexCodeData | undefined;
+			if (this.customBox.gameBackground) {
+				background = this.customBox.gameBackground;
+			} else if (this.customBox.background) {
+				background = this.customBox.background;
+			}
+
+            if (background) this.selectorDivsSpan = Tools.getHexSpan(background);
+
+            this.setCloseButtonHtml({style: Games.getCustomBoxButtonStyle(this.customBox, "game")});
+        }
     }
 
     initializeSelectors(): void {

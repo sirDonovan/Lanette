@@ -82,6 +82,7 @@ export abstract class HtmlPageBase {
 	/**If selectors are enabled, store the last rendered HTML for each one to avoid unnecessary messages */
 	lastSelectorRenders: Dict<string> = {};
 	readonly: boolean = false;
+	selectorDivsSpan: string = "";
 	sentClosingSnapshot: boolean = false;
 	showSwitchLocationButton: boolean = false;
 	staffUserView: boolean = false;
@@ -428,6 +429,8 @@ export abstract class HtmlPageBase {
 		if (this.initializedSelectorDivs && !forceInitializedSelectorDivs) return;
 
 		let html = "<div class='chat' style='margin-top: 4px;margin-left: 4px'>";
+		if (this.selectorDivsSpan) html += this.selectorDivsSpan;
+
 		const divs: string[] = [];
 		divs.push(this.getSelectorDiv(this.expireSelector!));
 		divs.push(this.getSelectorDiv(this.headerSelector!));
@@ -440,7 +443,9 @@ export abstract class HtmlPageBase {
 		const div = this.getSelectorDiv(this.footerSelector!);
 		if (!divs.includes(div)) divs.push(div);
 
-		html += divs.join("") + "</div>";
+		html += divs.join("");
+		if (this.selectorDivsSpan) html += "</span>";
+		html += "</div>";
 
 		this.getPmRoom().sendHtmlPage(user, this.pageId, html);
 		this.initializedSelectorDivs = true;
