@@ -212,6 +212,7 @@ export class CommandParser {
 		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
+	/**Returns `true` if a command was detected and ran successfully */
 	parse(room: Room | User, user: User, message: string, timestamp: number): boolean {
 		if (user.locked || !this.isCommandMessage(message)) return false;
 

@@ -197,7 +197,7 @@ export const commands: BaseCommandDefinitions = {
 				const game = await Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
 				if (game) {
 					await game.signups();
-					const canEgg = CommandParser.parse(room, user, Config.commandCharacter + "toss " + targetUser.name, time);
+					const canEgg = game.tryCommand(targetUser.name, room, user, "toss", time);
 					if (canEgg) {
 						room.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
 							Config.commandCharacter + "toss [user]`` before it explodes!");
