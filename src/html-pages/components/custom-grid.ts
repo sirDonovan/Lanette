@@ -61,7 +61,7 @@ const MAX_TOTAL_PIXELS = 580;
 const MAX_LABEL_LENGTH = 10;
 const HISTORY_LIMIT = 5;
 const MAX_GRIDS = 3;
-const SCRATCH_GRID_INDEX = MAX_GRIDS;
+const TEMPORARY_GRID_INDEX = MAX_GRIDS;
 
 const EDIT_CELL_BUTTON_STYLE = 'width: 30px; height: 20px';
 const UPDATE_ALL_BUTTON_TEXT = "All";
@@ -191,7 +191,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			});
 
 		// initialize grid lists
-		for (let i = 0; i <= SCRATCH_GRID_INDEX; i++) {
+		for (let i = 0; i <= TEMPORARY_GRID_INDEX; i++) {
 			this.allowDuplicatePokemon.push(false);
 			this.filterError.push("");
 			this.playerLocations.push({});
@@ -210,8 +210,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 			this.width.push(DEFAULT_WIDTH);
 		}
 
-		// initialize saved grids + scratch grid with defaults
-		for (let i = SCRATCH_GRID_INDEX; i >= 0; i--) {
+		// initialize saved grids + temp grid with defaults
+		for (let i = TEMPORARY_GRID_INDEX; i >= 0; i--) {
 			// account for scenarios like only grids 1 & 3 being set
 			if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids[i]) {
 				this.height[i] = this.props.savedCustomGrids.grids[i].height;
@@ -481,15 +481,18 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	copyCurrentGridToIndex(index: number): void {
 		if (index === this.currentGridIndex) return;
 
-		this.grids[index] = this.cloneGrid(this.grids[this.currentGridIndex]);
+		this.grids[index] = this.cloneGrid(this.grids[this.currentGridIndex], index);
 
-		if (this.props.savedCustomGrids && index !== SCRATCH_GRID_INDEX) {
+		if (this.props.savedCustomGrids && this.props.savedCustomGrids.grids[this.currentGridIndex] &&
+			index !== TEMPORARY_GRID_INDEX) {
 			const savedGrids = this.props.savedCustomGrids.grids;
-			savedGrids[index].grid = this.cloneSavedGrid(savedGrids[this.currentGridIndex].grid);
-			savedGrids[index].allowDuplicatePokemon = savedGrids[this.currentGridIndex].allowDuplicatePokemon;
-			savedGrids[index].height = savedGrids[this.currentGridIndex].height;
-			savedGrids[index].pixelSize = savedGrids[this.currentGridIndex].pixelSize;
-			savedGrids[index].width = savedGrids[this.currentGridIndex].width;
+			savedGrids[index] = {
+				grid: this.cloneSavedGrid(savedGrids[this.currentGridIndex].grid),
+				allowDuplicatePokemon: savedGrids[this.currentGridIndex].allowDuplicatePokemon,
+				height: savedGrids[this.currentGridIndex].height,
+				pixelSize: savedGrids[this.currentGridIndex].pixelSize,
+				width: savedGrids[this.currentGridIndex].width,
+			};
 		}
 	}
 
@@ -922,7 +925,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 	}
 
 	getSavedGrid(index: number): ISavedCustomGridData | undefined {
-		if (!this.props.savedCustomGrids || index === SCRATCH_GRID_INDEX) return;
+		if (!this.props.savedCustomGrids || index === TEMPORARY_GRID_INDEX) return;
 
 		if (!this.props.savedCustomGrids.grids[index]) {
 			this.props.savedCustomGrids.grids[index] = {
@@ -1369,12 +1372,16 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 	}
 
-	cloneGrid(grid: ICellData[][]): ICellData[][] {
+	cloneGrid(grid: ICellData[][], targetGridIndex: number): ICellData[][] {
 		const gridCopy: ICellData[][] = [];
 		for (const row of grid) {
 			const rowCopy: ICellData[] = [];
 			for (const cell of row) {
-				rowCopy.push(Object.assign({}, cell));
+				const cellCopy = Object.assign({}, cell);
+				// update gridIndex to prevent sync issues
+				cellCopy.gridIndex = targetGridIndex;
+
+				rowCopy.push(cellCopy);
 			}
 			gridCopy.push(rowCopy);
 		}
@@ -1404,7 +1411,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		const grid = this.getGrid(this.currentGridIndex);
-		undoGrids.unshift(this.cloneGrid(grid));
+		undoGrids.unshift(this.cloneGrid(grid, this.currentGridIndex));
 		this.undosAvailable[this.currentGridIndex] = undoGrids.length;
 
 		const savedGrid = this.getSavedGrid(this.currentGridIndex);
@@ -1426,7 +1433,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		}
 
 		const grid = this.getGrid(this.currentGridIndex);
-		redoGrids.unshift(this.cloneGrid(grid));
+		redoGrids.unshift(this.cloneGrid(grid, this.currentGridIndex));
 		this.redosAvailable[this.currentGridIndex] = redoGrids.length;
 
 		const savedGrid = this.getSavedGrid(this.currentGridIndex);
@@ -1438,7 +1445,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.prepareUndo();
 
-		this.grids[this.currentGridIndex] = this.cloneGrid(this.redoGrids[this.currentGridIndex][0]);
+		this.grids[this.currentGridIndex] = this.cloneGrid(this.redoGrids[this.currentGridIndex][0], this.currentGridIndex);
 
 		this.redoGrids[this.currentGridIndex].shift();
 		this.redosAvailable[this.currentGridIndex]--;
@@ -1458,7 +1465,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		this.prepareRedo();
 
-		this.grids[this.currentGridIndex] = this.cloneGrid(this.undoGrids[this.currentGridIndex][0]);
+		this.grids[this.currentGridIndex] = this.cloneGrid(this.undoGrids[this.currentGridIndex][0], this.currentGridIndex);
 
 		this.undoGrids[this.currentGridIndex].shift();
 		this.undosAvailable[this.currentGridIndex]--;
@@ -1480,12 +1487,12 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 
 		if (cmd === chooseGridIndexCommand) {
 			const index = targets[0] ? parseInt(targets[0].trim()) : -1;
-			if (isNaN(index) || index < 0 || index > SCRATCH_GRID_INDEX) return;
+			if (isNaN(index) || index < 0 || index > TEMPORARY_GRID_INDEX) return;
 
 			this.setCurrentGridIndex(index);
 		} else if (cmd === copyToGridIndexCommand) {
 			const index = targets[0] ? parseInt(targets[0].trim()) : -1;
-			if (isNaN(index) || index < 0 || index > SCRATCH_GRID_INDEX) return;
+			if (isNaN(index) || index < 0 || index > TEMPORARY_GRID_INDEX) return;
 
 			this.copyCurrentGridToIndex(index);
 			this.setCurrentGridIndex(index);
@@ -1594,6 +1601,7 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 		let html = "";
 
 		if (selector === this.previewSelector) {
+			const temporaryGrid = this.currentGridIndex === TEMPORARY_GRID_INDEX;
 			if (this.grids.length > 1) {
 				const goToGridButtons: string[] = [];
 				for (let i = 0; i < MAX_GRIDS; i++) {
@@ -1601,8 +1609,8 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 						"Go to grid " + (i + 1), {disabled: this.currentGridIndex === i}));
 				}
 
-				goToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + SCRATCH_GRID_INDEX,
-						"Go to sratch grid", {disabled: this.currentGridIndex === SCRATCH_GRID_INDEX}));
+				goToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + chooseGridIndexCommand + ", " + TEMPORARY_GRID_INDEX,
+						"Go to temporary grid", {disabled: temporaryGrid}));
 
 				html += goToGridButtons.join(" | ");
 				html += "<br /><br />";
@@ -1615,9 +1623,9 @@ export class CustomGrid extends ComponentBase<ICustomGridProps> {
 						"Copy to grid " + (i + 1)));
 				}
 
-				if (this.currentGridIndex !== SCRATCH_GRID_INDEX) {
+				if (!temporaryGrid) {
 					copyToGridButtons.push(this.getQuietPmButton(this.commandPrefix + ", " + copyToGridIndexCommand + ", " +
-						SCRATCH_GRID_INDEX, "Copy to scratch grid"));
+						TEMPORARY_GRID_INDEX, "Copy to temporary grid"));
 				}
 
 				html += copyToGridButtons.join(" | ");
