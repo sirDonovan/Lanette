@@ -1678,7 +1678,7 @@ export class Dex {
 		}
 
 		if (format.id in formatLinks) {
-			const links = formatLinks[format.id]!;
+			const links = formatLinks[format.id];
 			if (links.info) {
 				format['info-official'] = info;
 				format.info = links.info;

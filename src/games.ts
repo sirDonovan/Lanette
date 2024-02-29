@@ -2629,7 +2629,7 @@ export class Games {
 	private loadFileAchievements(file: DeepImmutable<IGameFile>): void {
 		if (!file.class.achievements) return;
 		for (const key in file.class.achievements) {
-			const achievement = file.class.achievements[key]!;
+			const achievement = file.class.achievements[key];
 			if (Tools.toId(achievement.name) !== key) {
 				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" +
 					Tools.toId(achievement.name) + "'");

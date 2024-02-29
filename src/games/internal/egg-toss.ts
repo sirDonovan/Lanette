@@ -64,7 +64,7 @@ class EggToss extends ScriptedGame {
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**" + (reason ? " " + reason : "") + "!");
 			if (this.lastHolder && this.currentHolder.id === Users.self.id) {
-				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem!);
+				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem);
 			}
 		}
 		this.end();
