@@ -145,7 +145,7 @@ export async function reloadModules(username: string, targets: string[], formats
 	}
 
 	const buildScript = path.join(Tools.rootBuildFolder, 'build-src.js');
-	return (require(buildScript) as typeof import('../build-src')).buildSrc(buildOptions).then(() => {
+	return (require(buildScript) as typeof import('../build-src')).buildSrc(buildOptions).then(async() => {
 		for (const moduleId of modules) {
 			const modulePath = path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js');
 
@@ -180,7 +180,7 @@ export async function reloadModules(username: string, targets: string[], formats
 				dex.instantiate();
 				if (!modules.includes('games')) global.Games.setReloadInProgress(false);
 			} else if (moduleId === 'games') {
-				global.Games.unrefWorkers();
+				await global.Games.unrefWorkers();
 
 				global.Tools.unrefProperties(games);
 

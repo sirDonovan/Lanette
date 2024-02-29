@@ -218,6 +218,7 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	const messageNumber = parts[0];
 	const id = parts[1] as PortmanteausId;
 	const message = parts.slice(2).join("|");
+	const unref = id === 'unref';
 	let response: IPortmanteausResponse | null = null;
 	try {
 		if (id === 'initialize-thread') {
@@ -227,6 +228,11 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 			const memUsage = process.memoryUsage();
 			// @ts-expect-error
 			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (unref) {
+			Tools.unrefProperties(workerData);
+			Tools.unrefProperties(global.Tools);
+			// @ts-expect-error
+			response = {data};
 		} else if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
@@ -239,4 +245,5 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
+	if (unref) worker_threads.parentPort!.removeAllListeners();
 });

@@ -73,14 +73,19 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	const parts = incomingMessage.split("|");
 	const messageNumber = parts[0];
 	const id = parts[1] as UniquePairsId;
+	const unref = id === 'unref';
 	let response: IUniquePairsResponse | null = null;
 	try {
 		if (id === 'initialize-thread') {
 			response = {data};
-		} else if (id === 'memory-usage') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'memory-usage') {
 			const memUsage = process.memoryUsage();
 			// @ts-expect-error
 			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (unref) {
+			Tools.unrefProperties(workerData);
+			Tools.unrefProperties(global.Tools);
+			response = {data};
 		}
 	} catch (e) {
 		console.log(e);
@@ -88,4 +93,5 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
+	if (unref) worker_threads.parentPort!.removeAllListeners();
 });

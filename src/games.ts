@@ -278,11 +278,18 @@ export class Games {
 		this.reloadInProgress = state;
 	}
 
-	unrefWorkers(): void {
+	async unrefWorkers(): Promise<void> {
 		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
 		for (const worker of workers) {
-			this.workers[worker].unref();
+			await this.workers[worker].unref();
 			delete this.workers[worker];
+		}
+	}
+
+	exitWorkers(): void {
+		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
+		for (const worker of workers) {
+			this.workers[worker].exit();
 		}
 	}
 

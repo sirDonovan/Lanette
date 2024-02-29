@@ -149,4 +149,9 @@ export class ParametersWorker extends WorkerBase<IParametersWorkerData, Paramete
 			pokemon: intersection,
 		};
 	}
+
+	async unref(): Promise<void> {
+		await super.unref();
+		Tools.unrefProperties(this.threadData);
+	}
 }

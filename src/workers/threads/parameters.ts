@@ -525,6 +525,7 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	const messageNumber = parts[0];
 	const id = parts[1] as ParametersId;
 	const message = parts.slice(2).join("|");
+	const unref = id === 'unref';
 	let response: IParametersResponse | null = null;
 	try {
 		if (id === 'initialize-thread') {
@@ -533,6 +534,10 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 			const memUsage = process.memoryUsage();
 			// @ts-expect-error
 			response = [memUsage.rss, memUsage.heapUsed, memUsage.heapTotal];
+		} else if (unref) {
+			Tools.unrefProperties(workerData);
+			Tools.unrefProperties(global.Tools);
+			response = {params: [], pokemon: [], data};
 		} else if (id === 'search') {
 			const options = JSON.parse(message) as IParametersSearchMessage;
 			const prng = new PRNG(options.prngSeed);
@@ -548,4 +553,5 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 	}
 
 	worker_threads.parentPort!.postMessage(messageNumber + "|" + id + "|" + JSON.stringify(response || ""));
+	if (unref) worker_threads.parentPort!.removeAllListeners();
 });

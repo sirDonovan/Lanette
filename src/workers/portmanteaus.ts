@@ -87,4 +87,9 @@ export class PortmanteausWorker extends WorkerBase<IPortmanteausWorkerData, Port
 	async search(options: IPortmanteausSearchOptions): Promise<IPortmanteausResponse | null> {
 		return this.sendMessage('search', JSON.stringify(options));
 	}
+
+	async unref(): Promise<void> {
+		await super.unref();
+		Tools.unrefProperties(this.threadData);
+	}
 }

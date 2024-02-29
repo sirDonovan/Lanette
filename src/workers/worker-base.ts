@@ -5,7 +5,7 @@ interface IWorkerQueueItem<T> {
 	messageNumber: number;
 }
 
-export type WorkerBaseMessageId = 'memory-usage' | 'initialize-thread';
+export type WorkerBaseMessageId = 'memory-usage' | 'initialize-thread' | 'unref';
 
 export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNames = string> {
 	abstract threadPath: string;
@@ -123,7 +123,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		return this.sendMessage('memory-usage');
 	}
 
-	unref(): void {
+	async unref(): Promise<void> {
 		this.sendMessages = false;
 
 		if (this.unrefTimer) {
@@ -132,19 +132,33 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}
 
 		if (this.pendingResolves.length) {
-			this.unrefTimer = setTimeout(() => this.unref(), 100);
+			this.unrefTimer = setTimeout(() => void this.unref(), 100);
 			return;
 		}
 
 		if (this.workers) {
-			for (const worker of this.workers) {
-				void worker.terminate().then(() => worker.unref());
+			for (let i = 0; i < this.workers.length; i++) {
+				// @ts-expect-error
+				await this.sendMessage('unref', "", this.workerNames ? i : undefined);
+				await this.workers[i].terminate();
+				this.workers[i].removeAllListeners();
+				this.workers[i].unref();
+				Tools.unrefProperties(this.workers[i]);
 			}
+
 			this.workers = undefined;
 		}
 
 		Tools.unrefProperties(this.workerData);
 		Tools.unrefProperties(this);
+	}
+
+	exit(): void {
+		if (this.workers) {
+			for (const worker of this.workers) {
+				void worker.terminate();
+			}
+		}
 	}
 
 	private postMessage(workerNumber: number, message: string): void {

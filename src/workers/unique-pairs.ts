@@ -72,4 +72,9 @@ export class UniquePairsWorker extends WorkerBase<IUniquePairsWorkerData, Unique
 		return this.threadData!;
 	}
 
+	async unref(): Promise<void> {
+		await super.unref();
+		Tools.unrefProperties(this.threadData);
+	}
+
 }

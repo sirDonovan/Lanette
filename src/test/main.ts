@@ -143,23 +143,25 @@ export async function initializeTests(inputOptions: RunOptions): Promise<void> {
 
 		const runMocha = (): void => {
 			mocha.run(failures => {
-				if (failures) process.exit(1);
+				void (async() => {
+					if (failures) process.exit(1);
 
-				mochaRuns++;
-				if (mochaRuns === maxMochaRuns) {
-					Games.unrefWorkers();
-					process.exit(failures ? 1 : 0);
-				}
+					mochaRuns++;
+					if (mochaRuns === maxMochaRuns) {
+						await Games.unrefWorkers();
+						process.exit(failures ? 1 : 0);
+					}
 
-				mocha.unloadFiles();
-				runMocha();
+					mocha.unloadFiles();
+					runMocha();
+				})();
 			});
 		};
 
 		runMocha();
 	} catch (e) {
 		console.log(e);
-		Games.unrefWorkers();
+		Games.exitWorkers();
 		process.exit(1);
 	}
 }
