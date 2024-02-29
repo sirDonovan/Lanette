@@ -2819,6 +2819,14 @@ export class Dex {
 
 			Tools.unrefProperties(previousDexes[mod].pokemonShowdownTags);
 
+			Tools.unrefProperties(previousDexes[mod].abilityCache);
+			Tools.unrefProperties(previousDexes[mod].itemCache);
+			Tools.unrefProperties(previousDexes[mod].moveCache);
+			Tools.unrefProperties(previousDexes[mod].natureCache);
+			Tools.unrefProperties(previousDexes[mod].pokemonCache);
+			Tools.unrefProperties(previousDexes[mod].typeCache);
+			Tools.unrefProperties(previousDexes[mod].dataCache);
+
 			if (previousDexes[mod] !== previous) {
 				Tools.unrefProperties(previousDexes[mod]);
 			}
