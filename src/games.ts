@@ -2588,15 +2588,26 @@ export class Games {
 			}
 		}
 
+		for (const i in previous.formats) {
+			const format = previous.formats[i];
+			if (format.class.cachedData) Tools.unrefProperties(format.class.cachedData);
+		}
+
 		for (const formatModule of previous.formatModules) {
 			Tools.unrefProperties(formatModule);
 		}
+		Tools.unrefProperties(previous.userHosted);
 
 		for (const i in previous.workers) {
 			// @ts-expect-error
 			Tools.unrefProperties(previous.workers[i]);
 		}
 
+		Tools.unrefProperties(previous.abilitiesLists);
+		Tools.unrefProperties(previous.itemsLists);
+		Tools.unrefProperties(previous.movesLists);
+		Tools.unrefProperties(previous.nationalDexPokemonLists);
+		Tools.unrefProperties(previous.pokemonLists);
 		Tools.unrefProperties(previous);
 
 		this.loadFormats();
