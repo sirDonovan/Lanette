@@ -2588,11 +2588,6 @@ export class Games {
 			}
 		}
 
-		for (const i in previous.formats) {
-			const format = previous.formats[i];
-			if (format.class.cachedData) Tools.unrefProperties(format.class.cachedData);
-		}
-
 		for (const formatModule of previous.formatModules) {
 			Tools.unrefProperties(formatModule);
 		}
