@@ -15,6 +15,7 @@ const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "sp
 
 class DittosWhoAmI extends ScriptedGame {
 	canLateJoin: boolean = true;
+	cooperative: boolean = false;
 	tiers: string[] = [];
 	colors: string[] = [];
 	eggGroups: string[] = [];
@@ -138,9 +139,20 @@ class DittosWhoAmI extends ScriptedGame {
 			}
 
 			if (pokemon.name === playerPokemon.name) {
-				this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " This is now the final round of the game." : ""));
-				this.finalRound = true;
 				this.points.set(this.currentPlayer!, 1);
+
+				if (this.cooperative) {
+					this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " The final round of the game will now " +
+						"begin." : ""));
+					if (!this.finalRound) {
+						this.finalRound = true;
+						this.maxDittoRounds++;
+						this.playerOrder = [];
+					}
+				} else {
+					this.say("**Correct!**");
+					this.end();
+				}
 			} else {
 				this.say("**Incorrect!** You were " + playerPokemon.name + ". " + this.currentPlayer!.name + " has been " +
 					"eliminated from the game!");
@@ -149,7 +161,7 @@ class DittosWhoAmI extends ScriptedGame {
 
 			return true;
 		} else if (this.finalRound) {
-			return "This is the final round so you must guess your Pokemon.";
+			return "This is the final round so you must guess your assigned Pokemon.";
 		}
 
 		let correctGuess: boolean | undefined;
@@ -383,14 +395,6 @@ class DittosWhoAmI extends ScriptedGame {
 		}
 
 		if (!this.playerOrder.length) {
-			for (const id in this.players) {
-				if (this.players[id].eliminated) continue;
-				if (this.points.get(this.players[id])) {
-					this.end();
-					return;
-				}
-			}
-
 			this.dittoRound++;
 			if (this.dittoRound > this.maxDittoRounds) {
 				this.say("Time is up!");
@@ -398,13 +402,18 @@ class DittosWhoAmI extends ScriptedGame {
 				return;
 			}
 
-			if (!this.getRemainingPlayerCount()) {
-				this.say("All players have been eliminated!");
+			const remainingPlayers: Player[] = [];
+			for (const id in this.players) {
+				if (this.players[id].eliminated || this.points.get(this.players[id])) continue;
+				remainingPlayers.push(this.players[id]);
+			}
+
+			if (!remainingPlayers.length) {
 				this.end();
 				return;
 			}
 
-			this.playerOrder = this.shufflePlayers();
+			this.playerOrder = this.shufflePlayers(remainingPlayers);
 
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			const html = this.getRoundHtml(players => this.getPlayerNames(players), this.getRemainingPlayers(this.playerOrder),
@@ -414,9 +423,10 @@ class DittosWhoAmI extends ScriptedGame {
 			});
 			this.sayUhtml(uhtmlName, html);
 
-			if (this.dittoRound === this.maxDittoRounds) {
+			if (this.dittoRound === this.maxDittoRounds) this.finalRound = true;
+			if (this.finalRound) {
 				this.say("**This is the final round**! You must use ``" + Config.commandCharacter + "g [Pokemon]`` now to " +
-					"have a chance at winning.");
+					"guess your assigned Pokemon.");
 			}
 
 			return;
@@ -558,8 +568,18 @@ export const game: IGameFile<DittosWhoAmI> = {
 	class: DittosWhoAmI,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'g [parameter]', Config.commandCharacter + 'g [Pokemon]'],
-	description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask 'yes' or 'no' " +
-		"questions to guess which Pokemon they were assigned!",
+	description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask 'Yes' or " +
+		"'No' questions to guess which Pokemon they were assigned. The first player to guess correctly wins!",
 	name: "Ditto's Who Am I",
 	mascot: "Ditto",
+	variants: [
+		{
+			name: "Ditto's Cooperative Who Am I",
+			description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask " +
+				"'Yes' or 'No' questions to guess which Pokemon they were assigned. Once a player guesses correctly, all " +
+				"remaining players will have 1 final round to guess!",
+			cooperative: true,
+			variantAliases: ["coop", "cooperative"],
+		},
+	],
 };
