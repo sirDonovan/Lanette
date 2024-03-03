@@ -31,10 +31,10 @@ jobs:
         cache: 'npm'
     - name: Cache ESLint
       id: cache-eslint
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .eslintcache
-        key: ${{ matrix.node-version }}-eslint
+        key: ${{ matrix.platform }}-${{ matrix.node-version }}-eslint
     - run: npm ci
     - run: cp src/config-example.ts src/config.ts
     - run: npm run test
