@@ -15,12 +15,13 @@ const USABLE_STATS	 = ["hp", "hitpoints", "atk", "attack", "def", "defense", "sp
 
 class DittosWhoAmI extends ScriptedGame {
 	canLateJoin: boolean = true;
-	cooperative: boolean = false;
-	tiers: string[] = [];
 	colors: string[] = [];
-	eggGroups: string[] = [];
 	dittoRound: number = 0;
+	eggGroups: string[] = [];
+	finalRound: boolean = false;
 	includedPokemon: string[] = [];
+	maxDittoRounds: number = 20;
+	nextRoundFinal: boolean = false;
 	playerInactiveRoundLimit = 2;
 	playerOrder: Player[] = [];
 	points = new Map<Player, number>();
@@ -29,9 +30,9 @@ class DittosWhoAmI extends ScriptedGame {
 	playerPokemon = new Map<Player, IPokemon>();
 	playerWeaknesses = new Map<Player, string[]>();
 	playerResistances = new Map<Player, string[]>();
-	maxDittoRounds: number = 20;
 	roundTime: number = 30 * 1000;
-	finalRound: boolean = false;
+	solo: boolean = false;
+	tiers: string[] = [];
 
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
@@ -141,17 +142,16 @@ class DittosWhoAmI extends ScriptedGame {
 			if (pokemon.name === playerPokemon.name) {
 				this.points.set(this.currentPlayer!, 1);
 
-				if (this.cooperative) {
-					this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound ? " The final round of the game will now " +
-						"begin." : ""));
-					if (!this.finalRound) {
-						this.finalRound = true;
-						this.maxDittoRounds++;
-						this.playerOrder = [];
-					}
-				} else {
+				if (this.solo) {
 					this.say("**Correct!**");
 					this.end();
+				} else {
+					this.say("**Correct!**" + (this.playerOrder.length && !this.finalRound && !this.nextRoundFinal ?
+						" The next round will be the final one!" : ""));
+					if (!this.nextRoundFinal) {
+						this.nextRoundFinal = true;
+						this.maxDittoRounds++;
+					}
 				}
 			} else {
 				this.say("**Incorrect!** You were " + playerPokemon.name + ". " + this.currentPlayer!.name + " has been " +
@@ -423,8 +423,8 @@ class DittosWhoAmI extends ScriptedGame {
 			});
 			this.sayUhtml(uhtmlName, html);
 
-			if (this.dittoRound === this.maxDittoRounds) this.finalRound = true;
-			if (this.finalRound) {
+			if (this.nextRoundFinal || this.dittoRound === this.maxDittoRounds) {
+				this.finalRound = true;
 				this.say("**This is the final round**! You must use ``" + Config.commandCharacter + "g [Pokemon]`` now to " +
 					"guess your assigned Pokemon.");
 			}
@@ -560,26 +560,26 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 export const game: IGameFile<DittosWhoAmI> = {
 	aliases: ["dittos", "who am i"],
 	category: 'puzzle',
-	challengeSettings: {
-		onevsone: {
-			enabled: true,
-		},
-	},
 	class: DittosWhoAmI,
 	commands,
 	commandDescriptions: [Config.commandCharacter + 'g [parameter]', Config.commandCharacter + 'g [Pokemon]'],
-	description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask 'Yes' or " +
-		"'No' questions to guess which Pokemon they were assigned. The first player to guess correctly wins!",
+	description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask " +
+				"'Yes' or 'No' questions to guess which Pokemon they were assigned. Once a player guesses correctly, " +
+				"there will be one final round for all remaining players!",
 	name: "Ditto's Who Am I",
 	mascot: "Ditto",
 	variants: [
 		{
-			name: "Ditto's Cooperative Who Am I",
-			description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask " +
-				"'Yes' or 'No' questions to guess which Pokemon they were assigned. Once a player guesses correctly, all " +
-				"remaining players will have 1 final round to guess!",
-			cooperative: true,
-			variantAliases: ["coop", "cooperative"],
+			name: "Ditto's Solo Who Am I",
+			description: "At the start of the game, all players are assigned a different Pokemon. Each round, players must ask 'Yes'" +
+				" or 'No' questions to guess which Pokemon they were assigned. The first player to guess correctly wins!",
+			challengeSettings: {
+				onevsone: {
+					enabled: true,
+				},
+			},
+			solo: true,
+			variantAliases: ["solo"],
 		},
 	],
 };
