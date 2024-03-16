@@ -274,6 +274,7 @@ export class Tournaments {
 				const createListener = this.createListeners[room.id]!;
 				if (createListener.official) {
 					tournament.official = true;
+					room.nameTournament(tournament.name + ' (official)');
 					this.setOfficialTournament(room);
 				}
 
