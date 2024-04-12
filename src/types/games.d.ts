@@ -8,11 +8,13 @@ import type { Room } from "../rooms";
 import type { User } from "../users";
 import type { ParametersWorker } from '../workers/parameters';
 import type { PortmanteausWorker } from '../workers/portmanteaus';
+import { UniquePairsWorker } from "../workers/unique-pairs";
 import type { CommandDefinitions, LoadedCommands } from "./command-parser";
 
 export interface IGamesWorkers {
 	parameters: ParametersWorker;
 	portmanteaus: PortmanteausWorker;
+	uniquePairs: UniquePairsWorker;
 }
 
 export type GameCommandReturnType = boolean;
@@ -72,7 +74,7 @@ interface IGameClass<T extends ScriptedGame = ScriptedGame> {
 	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 	achievements?: Dict<IGameAchievement>;
 	cachedData?: IGameCachedData;
-	loadData?: (room: Room | User, extendedClass?: boolean) => void;
+	loadData?: (room: Room | User, extendedClass?: boolean) => Promise<void>;
 	loadedData?: boolean;
 }
 
@@ -314,6 +316,12 @@ export interface IGameMode<T = ScriptedGame, U extends ScriptedGame = ScriptedGa
 export type PlayerList = Dict<Player> | readonly Player[] | Map<Player, any>;
 
 export type LoadedGameFile = DeepImmutable<IGameFormatData>;
+
+export interface ICustomGridUhtml {
+	html: string;
+	uhtmlName: string;
+	user: string;
+}
 
 export interface IHostDisplayUhtml {
 	html: string;

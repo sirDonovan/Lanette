@@ -29,6 +29,7 @@ export class ManualHostDisplay extends HostDisplayBase {
 			pokemonList: [],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

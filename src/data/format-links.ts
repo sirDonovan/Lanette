@@ -561,7 +561,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen1stadiumou': {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen1stadiumou',
 	},
-	'gen1nintendocup1997': {
+	'gen1nc1997': {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen1nintendocup1997',
 	},
 	'gen1nu': {

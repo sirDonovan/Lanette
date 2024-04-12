@@ -717,7 +717,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	clearleaderboard: {
 		command(target, room, user) {
-			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper() && user !== Users.self)) return;
+			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && user !== Users.self)) return;
 			const database = Storage.getDatabase(room);
 			let leaderboards = 0;
 			for (const type of Storage.allLeaderboardTypes) {
@@ -749,7 +749,7 @@ export const commands: BaseCommandDefinitions = {
 						currentRoom.say("An error occurred while clearing the leaderboard" + (leaderboards > 1 ? "s" : "") + ".");
 					}
 
-					Tools.logError(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
+					Tools.logException(e, Config.commandCharacter + "clearleaderboard " + target + " in " + room.id);
 				});
 		},
 		chatOnly: true,
@@ -758,7 +758,7 @@ export const commands: BaseCommandDefinitions = {
 	},
 	clearleaderboardpoints: {
 		command(target, room, user) {
-			if (this.isPm(room) || (!user.hasRank(room, 'roomowner') && !user.isDeveloper())) return;
+			if (this.isPm(room) || !user.hasRank(room, 'roomowner')) return;
 			const database = Storage.getDatabase(room);
 			let leaderboards = 0;
 			for (const type of Storage.allLeaderboardTypes) {
@@ -796,7 +796,7 @@ export const commands: BaseCommandDefinitions = {
 			const targets = target.split(',');
 			const targetRoom = Rooms.search(targets[0]);
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
-			if (!user.isDeveloper() && !user.hasRank(targetRoom, 'roomowner')) return;
+			if (!user.hasRank(targetRoom, 'roomowner')) return;
 			const source = targets[1].trim();
 			const destination = targets[2].trim();
 			if (!Storage.transferData(targetRoom.id, source, destination)) return;

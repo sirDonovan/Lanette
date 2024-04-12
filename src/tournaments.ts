@@ -29,14 +29,14 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<ITournamentCreateListener> = {};
-	private nextOfficialTournaments: Dict<IOfficialTournament> = {};
-	private officialTournaments: Dict<IOfficialTournament[]> = {};
-	private tournamentTimerData: Dict<ITournamentTimerData> = {};
-	private tournamentTimers: Dict<NodeJS.Timeout> = {};
-	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timeout> = {};
+	createListeners: Dict<ITournamentCreateListener | undefined> = {};
+	private nextOfficialTournaments: Dict<IOfficialTournament | undefined> = {};
+	private officialTournaments: Dict<IOfficialTournament[] | undefined> = {};
+	private tournamentTimerData: Dict<ITournamentTimerData | undefined> = {};
+	private tournamentTimers: Dict<NodeJS.Timeout | undefined> = {};
+	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timeout | undefined> = {};
 
-	getNextOfficialTournaments(): DeepImmutable<Dict<IOfficialTournament>> {
+	getNextOfficialTournaments(): DeepImmutable<Dict<IOfficialTournament | undefined>> {
 		return this.nextOfficialTournaments;
 	}
 
@@ -46,7 +46,7 @@ export class Tournaments {
 			try {
 				this.loadRoomSchedule(room, loadAll);
 			} catch (e) {
-				Tools.logError(e as Error, "Failed to load tournament schedule for room " + room);
+				Tools.logException(e as Error, "Failed to load tournament schedule for room " + room);
 			}
 		}
 	}
@@ -199,7 +199,12 @@ export class Tournaments {
 				}
 
 				date.setHours(scheduleDays[scheduleDay]!.times[i][0], scheduleDays[scheduleDay]!.times[i][1], 0, 0);
-				this.officialTournaments[room].push({format, time: date.getTime(), official: true});
+				this.officialTournaments[room]!.push({
+					format,
+					time: date.getTime(),
+					official: true,
+					endOfCycle: scheduleDays[scheduleDay]!.endOfCycle && scheduleDays[scheduleDay]!.endOfCycle![i],
+				});
 			}
 
 			if (!rolledOverDay) {
@@ -207,7 +212,7 @@ export class Tournaments {
 			}
 		}
 
-		this.officialTournaments[room].sort((a, b) => a.time - b.time);
+		this.officialTournaments[room]!.sort((a, b) => a.time - b.time);
 	}
 
 	getFormat(formatId: string, room?: Room, roomid?: string): IFormat | undefined {
@@ -265,27 +270,28 @@ export class Tournaments {
 		} else {
 			let updatedDatabase = false;
 
-			if (room.id in this.createListeners && format.id === this.createListeners[room.id].format.id) {
-				if (this.createListeners[room.id].official) {
+			if (room.id in this.createListeners && format.id === this.createListeners[room.id]!.format.id) {
+				const createListener = this.createListeners[room.id]!;
+				if (createListener.official) {
 					tournament.official = true;
 					this.setOfficialTournament(room);
 				}
 
-				if (this.createListeners[room.id].endOfCycle) {
+				if (createListener.endOfCycle) {
 					tournament.endOfCycle = true;
 				}
 
-				if (this.createListeners[room.id].game) {
-					tournament.battleRoomGame = this.createListeners[room.id].game;
+				if (createListener.game) {
+					tournament.battleRoomGame = createListener.game;
 				}
 
-				tournament.format = this.createListeners[room.id].format;
+				tournament.format = createListener.format;
 
-				const name = this.createListeners[room.id].name || tournament.format.customFormatName;
+				const name = createListener.name || tournament.format.customFormatName;
 				if (name) {
 					tournament.name = name;
 					tournament.manuallyNamed = true;
-					if (!this.createListeners[room.id].name) room.nameTournament(name);
+					if (!createListener.name) room.nameTournament(name);
 				}
 
 				if (tournament.format.customRules) {
@@ -293,8 +299,8 @@ export class Tournaments {
 					room.setTournamentRules(tournament.format.customRules.join(","));
 				}
 
-				if (this.createListeners[room.id].callback) {
-					this.createListeners[room.id].callback!();
+				if (createListener.callback) {
+					createListener.callback();
 				}
 
 				const database = Storage.getDatabase(room);
@@ -716,7 +722,7 @@ export class Tournaments {
 
 		const database = Storage.getDatabase(room);
 		if (database.queuedTournament && (!(room.id in this.nextOfficialTournaments) ||
-			database.queuedTournament.time < this.nextOfficialTournaments[room.id].time)) {
+			database.queuedTournament.time < this.nextOfficialTournaments[room.id]!.time)) {
 			const format = this.getFormat(database.queuedTournament.formatid, room);
 			if (format && format.effectType === 'Format') {
 				const now = Date.now();
@@ -736,8 +742,8 @@ export class Tournaments {
 		const now = Date.now();
 		let nextOfficialIndex = -1;
 
-		for (let i = 0; i < this.officialTournaments[room.id].length; i++) {
-			if (this.officialTournaments[room.id][i].time >= now) {
+		for (let i = 0; i < this.officialTournaments[room.id]!.length; i++) {
+			if (this.officialTournaments[room.id]![i].time >= now) {
 				nextOfficialIndex = i;
 				break;
 			}
@@ -746,37 +752,37 @@ export class Tournaments {
 		if (nextOfficialIndex === -1) return;
 
 		if (nextOfficialIndex > 0) {
-			this.officialTournaments[room.id] = this.officialTournaments[room.id].slice(nextOfficialIndex);
+			this.officialTournaments[room.id] = this.officialTournaments[room.id]!.slice(nextOfficialIndex);
 		}
 
-		this.nextOfficialTournaments[room.id] = this.officialTournaments[room.id][0];
+		this.nextOfficialTournaments[room.id] = this.officialTournaments[room.id]![0];
 		this.setOfficialTournamentTimer(room);
 	}
 
 	setOfficialTournamentTimer(room: Room): void {
 		if (!(room.id in this.nextOfficialTournaments)) return;
 
-		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
+		const format = this.getFormat(this.nextOfficialTournaments[room.id]!.format, room) ||
 			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
 
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, {format, cap: this.maxPlayerCap,
-			official: true, endOfCycle: this.nextOfficialTournaments[room.id].endOfCycle, name: format.customFormatName});
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id]!.time, {format, cap: this.maxPlayerCap,
+			official: true, endOfCycle: this.nextOfficialTournaments[room.id]!.endOfCycle, name: format.customFormatName});
 	}
 
 	canSetRandomTournament(room: Room): boolean {
 		if (!(room.id in this.nextOfficialTournaments)) return true;
-		return this.nextOfficialTournaments[room.id].time - Date.now() > OFFICIAL_TOURNAMENT_BUFFER_TIME;
+		return this.nextOfficialTournaments[room.id]!.time - Date.now() > OFFICIAL_TOURNAMENT_BUFFER_TIME;
 	}
 
 	canSetRandomQuickTournament(room: Room): boolean {
 		if (!(room.id in this.nextOfficialTournaments)) return true;
-		return this.nextOfficialTournaments[room.id].time - Date.now() > OFFICIAL_TOURNAMENT_QUICK_BUFFER_TIME;
+		return this.nextOfficialTournaments[room.id]!.time - Date.now() > OFFICIAL_TOURNAMENT_QUICK_BUFFER_TIME;
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number, quickFormat?: boolean): void {
 		let officialFormat: IFormat | undefined;
 		if (room.id in this.nextOfficialTournaments) {
-			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id].format, room);
+			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id]!.format, room);
 		}
 
 		const database = Storage.getDatabase(room);
@@ -873,7 +879,7 @@ export class Tournaments {
 
 		// may be set by a non-tournament activity
 		if (room.id in this.createListeners) {
-			if (options.name && !this.createListeners[room.id].name) this.createListeners[room.id].name = options.name;
+			if (options.name && !this.createListeners[room.id]!.name) this.createListeners[room.id]!.name = options.name;
 		} else {
 			this.createListeners[room.id] = options;
 		}
@@ -889,7 +895,7 @@ export class Tournaments {
 
 	onTournamentEnd(room: Room, now: number): void {
 		// delayed official tournament
-		if (room.id in this.nextOfficialTournaments && this.nextOfficialTournaments[room.id].time <= now) {
+		if (room.id in this.nextOfficialTournaments && this.nextOfficialTournaments[room.id]!.time <= now) {
 			this.setOfficialTournamentTimer(room);
 		} else {
 			const database = Storage.getDatabase(room);
@@ -1313,7 +1319,6 @@ export class Tournaments {
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
-				// @ts-expect-error
 				previous.tournamentTimers[i] = undefined;
 			}
 		}
@@ -1323,7 +1328,6 @@ export class Tournaments {
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(previous.userHostedTournamentNotificationTimeouts[i]);
-				// @ts-expect-error
 				previous.userHostedTournamentNotificationTimeouts[i] = undefined;
 
 				const room = Rooms.get(i);
@@ -1334,7 +1338,7 @@ export class Tournaments {
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
 			if (room.id in this.officialTournaments && (!(room.id in this.nextOfficialTournaments) ||
-				now < this.nextOfficialTournaments[room.id].time)) {
+				now < this.nextOfficialTournaments[room.id]!.time)) {
 				this.setOfficialTournament(room);
 			}
 		});
@@ -1343,7 +1347,7 @@ export class Tournaments {
 			for (const i in previous.tournamentTimerData) {
 				const room = Rooms.get(i);
 				if (room) {
-					const data = previous.tournamentTimerData[i];
+					const data = previous.tournamentTimerData[i]!;
 					const format = this.getFormat(data.formatid, room);
 					if (format && format.effectType === 'Format') {
 						this.setTournamentTimer(room, data.startTime, {format, cap: data.cap,

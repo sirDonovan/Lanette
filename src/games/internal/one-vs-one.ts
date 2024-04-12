@@ -68,10 +68,10 @@ export class OneVsOne extends ScriptedGame {
 		}
 
 		if (this.defenderPromotedName || this.challengerPromotedName) {
-			this.startTimer = setTimeout(() => this.startChallenge(),
+			this.startTimer = setTimeout(() => void this.startChallenge(),
 				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 2)));
 		} else {
-			this.startChallenge();
+			void this.startChallenge();
 		}
 		return true;
 	}
@@ -98,9 +98,9 @@ export class OneVsOne extends ScriptedGame {
 		return true;
 	}
 
-	startChallenge(): void {
+	async startChallenge(): Promise<void> {
 		this.room.setRoomModchat("+");
-		this.start();
+		await this.start();
 	}
 
 	onRoomVoiceError(userid: string): void {
@@ -117,11 +117,7 @@ export class OneVsOne extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (!this.challenger || !this.defender) throw new Error("nextRound() called without challenger and defender");
 
 		if (this.defender.eliminated) {
@@ -135,7 +131,7 @@ export class OneVsOne extends ScriptedGame {
 			return;
 		}
 
-		const game = Games.createChildGame(this.challengeFormat, this);
+		const game = await Games.createChildGame(this.challengeFormat, this);
 		if (!game) {
 			this.say("An error occurred while starting the challenge.");
 			this.deallocate(true);
@@ -155,16 +151,16 @@ export class OneVsOne extends ScriptedGame {
 		}
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
-		game.signups();
+		await game.signups();
 		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.options.freejoin) {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.defender);
 				game.sendJoinNotice(this.challenger);
-				this.setTimeout(() => game.start(), 5 * 1000);
+				this.setTimeout(() => void game.start(), 5 * 1000);
 			} else {
-				game.start();
+				await game.start();
 			}
 		}
 	}

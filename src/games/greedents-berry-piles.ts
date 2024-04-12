@@ -28,6 +28,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 	readonly perfectForageBonuses = new Map<Player, number>();
 	readonly playerBerryPiles = new Map<Player, IBerryPile[]>();
 	readonly playerTotals = new Map<Player, number>();
+	queueLateJoins: boolean = false;
 	readonly roundActions = new Set<Player>();
 	readonly roundLimit: number = 20;
 	readonly startingPiles: number = 2;
@@ -71,7 +72,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return berryPiles;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.say("If you grab more than " + this.maxBerryTotal + " berries, the Greedent will notice!");
 		this.nextSubGame();
 	}
@@ -111,13 +112,18 @@ class GreedentsBerryPiles extends ScriptedGame {
 			this.greedentTotalForaged = total;
 		}
 
-		this.canLateJoin = false;
+		this.queueLateJoins = true;
+		if (this.lateJoinQueue.length) {
+			this.processLateJoinQueue(this.lateJoinQueue);
+		}
+
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			this.giveStartingBerries(this.players[i]);
 			this.showBerryPiles(this.players[i]);
 		}
-		this.setTimeout(() => this.nextRound(), 3 * 1000);
+
+		this.setTimeout(() => void this.nextRound(), 3 * 1000);
 	}
 
 	giveStartingBerries(player: Player): void {
@@ -179,6 +185,10 @@ class GreedentsBerryPiles extends ScriptedGame {
 		this.showBerryPiles(player);
 	}
 
+	getLateJoinQueueMessage(): string {
+		return "Please wait for the next game to receive your first berries!";
+	}
+
 	nextSubGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
 		for (const i in this.players) {
@@ -193,7 +203,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return this.subGameRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canGrab = false;
 		this.offCommands(ACTION_COMMANDS);
 
@@ -218,7 +228,8 @@ class GreedentsBerryPiles extends ScriptedGame {
 		if (!playersLeft || this.subGameRound > this.roundLimit) {
 			const finishedText = "All players have finished their turns!";
 			this.on(finishedText, () => {
-				this.canLateJoin = true;
+				this.queueLateJoins = false;
+
 				this.setTimeout(() => {
 					let greedentText: string;
 					if (this.greedentTotalForaged > this.maxBerryTotal) {
@@ -230,9 +241,11 @@ class GreedentsBerryPiles extends ScriptedGame {
 					this.on(greedentText, () => {
 						this.setTimeout(() => this.endSubGame(), 3 * 1000);
 					});
+
 					this.say(greedentText);
 				}, 3 * 1000);
 			});
+
 			this.say(finishedText);
 			return;
 		}
@@ -242,8 +255,9 @@ class GreedentsBerryPiles extends ScriptedGame {
 		const uhtmlName = this.uhtmlBaseName + '-round-html';
 		this.onUhtml(uhtmlName, html, () => {
 			this.canGrab = true;
-			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
-			this.setTimeout(() => this.nextRound(), 15 * 1000);
+			this.onCommands(ACTION_COMMANDS, {max: this.getRemainingPlayerCount(), remainingPlayersMax: true},
+				() => void this.nextRound());
+			this.setTimeout(() => void this.nextRound(), 15 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 
@@ -254,6 +268,7 @@ class GreedentsBerryPiles extends ScriptedGame {
 
 	endSubGame(): void {
 		if (this.timeout) clearTimeout(this.timeout);
+
 		this.canGrab = false;
 		const perfectForages: Player[] = [];
 		const gameWinners: string[] = [];

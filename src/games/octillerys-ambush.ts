@@ -15,9 +15,9 @@ class OctillerysAmbush extends ScriptedGame {
 	roundActions = new Map<Player, boolean>();
 	shields = new Map<Player, boolean>();
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.say("Prepare your Remoraid!");
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	onRenamePlayer(player: Player): void {
@@ -26,7 +26,7 @@ class OctillerysAmbush extends ScriptedGame {
 		this.say(player.name + " was DQed for changing names!");
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.fireTime = false;
 		if (this.round > 1) {
 			this.shields.clear();
@@ -60,7 +60,7 @@ class OctillerysAmbush extends ScriptedGame {
 			const text = "**FIRE**";
 			this.on(text, () => {
 				this.fireTime = true;
-				this.setTimeout(() => this.nextRound(), (3 * 1000) + time);
+				this.setTimeout(() => void this.nextRound(), (3 * 1000) + time);
 			});
 			this.setTimeout(() => this.say(text), time);
 		});

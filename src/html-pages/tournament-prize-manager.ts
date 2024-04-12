@@ -67,7 +67,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const trainerCardRoom = Tournaments.getTrainerCardRoom(room);
 		if (!trainerCardRoom) throw new Error("No trainer card room for " + room.title);
@@ -528,7 +528,7 @@ export const commands: BaseCommandDefinitions = {
 			if (!targetRoom) return this.sayError(['invalidBotRoom', targets[0]]);
 			targets.shift();
 
-			if (!user.hasRank(targetRoom, 'driver') && !user.isDeveloper()) return;
+			if (!user.hasRank(targetRoom, 'driver')) return;
 
 			const cmd = Tools.toId(targets[0]);
 			targets.shift();

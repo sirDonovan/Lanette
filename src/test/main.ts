@@ -12,7 +12,7 @@ const moduleTests = fs.readdirSync(modulesDir).filter(x => x.endsWith('.js'));
 const pokemonShowdownTestFile = 'pokemon-showdown.js';
 const nonTrivialGameLoadTime = 200;
 
-export function initializeTests(inputOptions: RunOptions): void {
+export async function initializeTests(inputOptions: RunOptions): Promise<void> {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	const noOp = (): void => {};
 	const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
@@ -72,8 +72,8 @@ export function initializeTests(inputOptions: RunOptions): void {
 		if (!loadGames && loadWorkers) {
 			console.log("Loading worker data for tests...");
 			const workers = Games.getWorkers();
-			workers.parameters.init();
-			workers.portmanteaus.init();
+			await workers.parameters.initializeThread();
+			await workers.portmanteaus.initializeThread();
 			console.log("Loaded worker data");
 		}
 
@@ -100,7 +100,7 @@ export function initializeTests(inputOptions: RunOptions): void {
 				const format = Games.getExistingFormat(i);
 				if (format.class.loadData) {
 					const start = process.hrtime();
-					format.class.loadData(room);
+					await format.class.loadData(room);
 					const end = process.hrtime(start);
 					const loadTime = (end[0] * 1000000000 + end[1]) / 1000000;
 					if (loadTime > nonTrivialGameLoadTime && !format.nonTrivialLoadData) {
@@ -143,23 +143,25 @@ export function initializeTests(inputOptions: RunOptions): void {
 
 		const runMocha = (): void => {
 			mocha.run(failures => {
-				if (failures) process.exit(1);
+				void (async() => {
+					if (failures) process.exit(1);
 
-				mochaRuns++;
-				if (mochaRuns === maxMochaRuns) {
-					Games.unrefWorkers();
-					process.exit(failures ? 1 : 0);
-				}
+					mochaRuns++;
+					if (mochaRuns === maxMochaRuns) {
+						await Games.unrefWorkers();
+						process.exit(failures ? 1 : 0);
+					}
 
-				mocha.unloadFiles();
-				runMocha();
+					mocha.unloadFiles();
+					runMocha();
+				})();
 			});
 		};
 
 		runMocha();
 	} catch (e) {
 		console.log(e);
-		Games.unrefWorkers();
+		Games.exitWorkers();
 		process.exit(1);
 	}
 }

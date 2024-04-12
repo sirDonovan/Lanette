@@ -4,7 +4,7 @@ import url = require('url');
 import ws = require('ws');
 
 import type { Room } from './../rooms';
-import type { ILoginOptions, IOutgoingMessage, IParsedIncomingMessage, IServerConfig } from './../types/client';
+import type { ILoginServerRequestOptions, IOutgoingMessage, IParsedIncomingMessage, IServerConfig } from './../types/client';
 import type { User } from './../users';
 
 type IncomingMessageHandler = (room: Room, message: IParsedIncomingMessage, now: number) => void;
@@ -17,9 +17,29 @@ interface IWebsocketOptions {
 	onIncomingMessage: IncomingMessageHandler;
 }
 
+type LoginServerAction = 'upkeep' | 'login' | 'getassertion';
+const LOGIN_SERVER_ACTION_PATHS: KeyedDict<LoginServerAction, LoginServerAction> = {
+	upkeep: "upkeep",
+	login: "login",
+	getassertion: "getassertion",
+};
+
+interface ILoginResponse {
+	actionsuccess: boolean;
+	assertion: string;
+	curuser?: {loggedin: boolean, username: string, userid: string};
+}
+
+interface IUpkeepResponse {
+	assertion: string;
+	username: string;
+	loggedin: boolean;
+}
+
 const MAIN_HOST = "sim3.psim.us";
 const CHALLSTR_TIMEOUT_SECONDS = 15;
 const RELOGIN_SECONDS = 60;
+const UPKEEP_LOGIN_SECONDS = 15;
 const LOGIN_TIMEOUT_SECONDS = 150;
 const SERVER_RESTART_CONNECTION_TIME = 10 * 1000;
 const REGULAR_MESSAGE_THROTTLE = 600;
@@ -43,7 +63,10 @@ export class Websocket {
 	onConnect: () => void;
 	onFailedPing: () => void;
 	onIncomingMessage: IncomingMessageHandler;
+	private loginServerHosts: KeyedDict<LoginServerAction, string>;
+	private loginServerPaths: KeyedDict<LoginServerAction, string>;
 
+	private averageOutgoingMessageMeasurements: number[] = [];
 	private challstr: string = '';
 	private challstrTimeout: NodeJS.Timeout | undefined = undefined;
 	private connectionAttempts: number = 0;
@@ -55,15 +78,15 @@ export class Websocket {
 	private lastSendTimeoutAfterMeasure: number = 0;
 	private lastOutgoingMessage: IOutgoingMessage | null = null;
 	private lastProcessingTimeCheck: number = 0;
-	private loginServerHostname: string = '';
-	private loginServerPath: string = '';
 	private loginTimeout: NodeJS.Timeout | undefined = undefined;
 	private outgoingMessageQueue: IOutgoingMessage[] = [];
 	private outgoingMessageMeasurements: number[] = [];
+	private outgoingMessageMeasurementsLimit: number = 30;
 	private outgoingMessageMeasurementsInfo: string[] = [];
 	private pausedIncomingMessages: boolean = true;
 	private pausedOutgoingMessages: boolean = false;
 	private pingWsAlive: boolean = true;
+	private reFetchClientData: boolean = false;
 	private reloadInProgress: boolean = false;
 	private retryLoginTimeout: NodeJS.Timeout | undefined = undefined;
 	private sendTimeout: NodeJS.Timeout | true | undefined = undefined;
@@ -96,6 +119,37 @@ export class Websocket {
 			this.serverAddress = this.serverAddress.substr(7);
 		}
 		if (this.serverAddress.endsWith('/')) this.serverAddress = this.serverAddress.substr(0, this.serverAddress.length - 1);
+
+		const baseLoginServer = 'https://' + Tools.mainServer + '/api/';
+		const upkeep = new url.URL(baseLoginServer + LOGIN_SERVER_ACTION_PATHS.upkeep);
+		if (!upkeep.hostname || !upkeep.pathname) {
+			console.log("Failed to parse upkeep URL");
+			process.exit();
+		}
+
+		const login = new url.URL(baseLoginServer + LOGIN_SERVER_ACTION_PATHS.login);
+		if (!login.hostname || !login.pathname) {
+			console.log("Failed to parse login URL");
+			process.exit();
+		}
+
+		const getAssertion = new url.URL(baseLoginServer + LOGIN_SERVER_ACTION_PATHS.getassertion);
+		if (!getAssertion.hostname || !getAssertion.pathname) {
+			console.log("Failed to parse getAssertion URL");
+			process.exit();
+		}
+
+		this.loginServerHosts = {
+			upkeep: upkeep.hostname,
+			login: login.hostname,
+			getassertion: getAssertion.hostname,
+		};
+
+		this.loginServerPaths = {
+			upkeep: upkeep.pathname,
+			login: login.pathname,
+			getassertion: getAssertion.pathname,
+		};
 	}
 
 	getServerId(): string {
@@ -212,6 +266,8 @@ export class Websocket {
 		this.connectionAttempts = 0;
 
 		this.terminate();
+
+		this.reFetchClientData = true;
 		this.connect();
 	}
 
@@ -223,11 +279,11 @@ export class Websocket {
 		if (this.lastOutgoingMessage) {
 			if (this.lastOutgoingMessage.measure && this.lastOutgoingMessage.sentTime && responseTime) {
 				const measurement = responseTime - this.lastOutgoingMessage.sentTime;
-				if (this.outgoingMessageMeasurements.length > 30) {
+				if (this.outgoingMessageMeasurements.length > this.outgoingMessageMeasurementsLimit) {
 					this.outgoingMessageMeasurements.pop();
 				}
 
-				if (this.outgoingMessageMeasurementsInfo.length > 30) {
+				if (this.outgoingMessageMeasurementsInfo.length > this.outgoingMessageMeasurementsLimit) {
 					this.outgoingMessageMeasurementsInfo.pop();
 				}
 
@@ -248,6 +304,7 @@ export class Websocket {
 					sendTimeout = this.sendThrottle;
 				}
 
+				sendTimeout += this.getAverageOutgoingMeasurements();
 				this.lastSendTimeoutAfterMeasure = sendTimeout;
 				this.startSendTimeout(sendTimeout);
 			}
@@ -257,7 +314,7 @@ export class Websocket {
 	}
 
     onMessageThrottle(): void {
-        Tools.logMessage("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
+        Tools.errorLog("Typing too quickly;\nBase throttle: " + this.sendThrottle + "ms\nQueued outgoing messages: " +
             this.outgoingMessageQueue.length +
             "\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
             (this.lastOutgoingMessage && this.lastOutgoingMessage.sentTime ?
@@ -290,6 +347,9 @@ export class Websocket {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
 
+		if (previous.averageOutgoingMessageMeasurements) {
+			this.averageOutgoingMessageMeasurements = previous.averageOutgoingMessageMeasurements.slice();
+		}
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
 		if (previous.outgoingMessageMeasurements) this.outgoingMessageMeasurements = previous.outgoingMessageMeasurements.slice();
 		if (previous.outgoingMessageMeasurementsInfo) {
@@ -346,17 +406,6 @@ export class Websocket {
 	}
 
     connect(): void {
-		if (Config.username) {
-			const action = new url.URL('https://' + Tools.mainServer + '/action.php');
-			if (!action.hostname || !action.pathname) {
-				console.log("Failed to parse login server URL");
-				process.exit();
-			}
-
-			this.loginServerHostname = action.hostname;
-			this.loginServerPath = action.pathname;
-		}
-
 		const httpsOptions = {
 			hostname: Tools.mainServer,
 			path: '/crossdomain.php?' + querystring.stringify({host: this.serverAddress, path: ''}),
@@ -367,6 +416,7 @@ export class Websocket {
 		};
 
 		this.pausedIncomingMessages = false;
+
 		if (this.connectionTimeout) clearTimeout(this.connectionTimeout);
 		this.connectionTimeout = setTimeout(() => this.onConnectFail(), 30 * 1000);
 
@@ -376,6 +426,9 @@ export class Websocket {
 			let data = '';
 			response.on('data', chunk => {
 				data += chunk;
+			});
+			response.on('error', error => {
+				Tools.logException(error, "Error during client connect response");
 			});
 			response.on('end', () => {
 				const configData = data.split('var config = ')[1];
@@ -394,12 +447,14 @@ export class Websocket {
 						}
 
 						const wsOptions: ws.ClientOptions = {
-							maxPayload: 8 * 100 * 1024 * 1024,
 							perMessageDeflate: Config.perMessageDeflate || false,
 							headers: {
 								"Cache-Control": "no-cache",
 								"User-Agent": "ws",
 							},
+							skipUTF8Validation: true,
+							// @ts-expect-error
+							allowSynchronousEvents: true,
 						};
 
 						this.ws = new ws(address, [], wsOptions);
@@ -409,10 +464,11 @@ export class Websocket {
 						return;
 					}
 				}
-				console.log('Error: failed to get data for server ' + this.serverAddress);
+
+				Tools.warningLog('Error: failed to get data for server ' + this.serverAddress);
 			});
 		}).on('error', error => {
-			console.log('Error: ' + error.message);
+			Tools.logException(error, "Error during client connect request");
 		});
 	}
 
@@ -555,7 +611,8 @@ export class Websocket {
 
 		this.pingServer();
 
-		Dex.fetchClientData();
+		// avoid reload race condition on server restart with Tools.updatePokemonShowdown()
+		if (!this.reFetchClientData) Dex.fetchClientData();
 	}
 
 	private onMessage(event: ws.MessageEvent, now: number): void {
@@ -618,7 +675,7 @@ export class Websocket {
 				}
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, "Websocket.parseMessage() in " + room.id + ": " + line);
+				Tools.logException(e as NodeJS.ErrnoException, "Websocket.parseMessage() in " + room.id + ": " + line);
 			}
 		}
 	}
@@ -645,7 +702,8 @@ export class Websocket {
 				return;
 			}
 
-			Tools.updatePokemonShowdown();
+			Tools.updatePokemonShowdown(this.reFetchClientData);
+			if (this.reFetchClientData) this.reFetchClientData = false;
 		} else {
             this.onIncomingMessage(room, parsedMessage, now);
         }
@@ -676,7 +734,7 @@ export class Websocket {
 
 			if (this.lastOutgoingMessage) {
 				if (this.lastOutgoingMessage.measure) {
-					Tools.logMessage("Last outgoing message not measured (" + Date.now() + "): " +
+					Tools.warningLog("Last outgoing message not measured (" + Date.now() + "): " +
 						JSON.stringify(this.lastOutgoingMessage) + "\n\nSend timeout value: " + time +
 						"\nLast measured send timeout: " + this.lastSendTimeoutAfterMeasure +
 						"\nOutgoing message measurements: [" + this.outgoingMessageMeasurementsInfo.join(", ") + "]" +
@@ -685,7 +743,7 @@ export class Websocket {
 				}
 				this.lastOutgoingMessage = null;
 
-				this.startSendTimeout(this.chatQueueSendThrottle);
+				this.startSendTimeout(this.chatQueueSendThrottle + this.getAverageOutgoingMeasurements());
 				return;
 			}
 
@@ -699,29 +757,46 @@ export class Websocket {
 		}, time);
 	}
 
-	private setRetryLoginTimeout(sessionUpkeep?: boolean): void {
-		console.log((sessionUpkeep ? 'Trying' : 'Retrying') + ' login in' + RELOGIN_SECONDS + ' seconds');
+	private getAverageOutgoingMeasurements(): number {
+		if (!this.outgoingMessageMeasurements.length) return 0;
+
+		let totalMeasurements = 0;
+		for (const measurement of this.outgoingMessageMeasurements) {
+			totalMeasurements += measurement;
+		}
+
+		const average = Math.ceil(totalMeasurements / this.outgoingMessageMeasurements.length);
+		if (this.averageOutgoingMessageMeasurements.length > this.outgoingMessageMeasurementsLimit) {
+			this.averageOutgoingMessageMeasurements.pop();
+		}
+
+		this.averageOutgoingMessageMeasurements.unshift(average);
+		return average;
+	}
+
+	private setRetryLoginTimeout(failedUpkeep?: boolean): void {
+		const timeout = failedUpkeep ? UPKEEP_LOGIN_SECONDS : RELOGIN_SECONDS;
+		console.log((failedUpkeep ? 'Trying' : 'Retrying') + ' login in ' + timeout + ' seconds');
 
 		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
-		this.retryLoginTimeout = setTimeout(() => this.login(), RELOGIN_SECONDS * 1000);
+		this.retryLoginTimeout = setTimeout(() => this.login(failedUpkeep), timeout * 1000);
 	}
 
 	private checkLoginSession(): void {
 		const globalDatabase = Storage.getGlobalDatabase();
 		if (!Config.password || !globalDatabase.loginSessionCookie || globalDatabase.loginSessionCookie.userid !== Users.self.id) {
-			this.login();
+			this.login(true);
 			return;
 		}
 
-		const options: ILoginOptions = {
-			hostname: this.loginServerHostname,
-			path: this.loginServerPath,
+		const options: ILoginServerRequestOptions = {
+			hostname: this.loginServerHosts.upkeep,
+			path: this.loginServerPaths.upkeep,
 			agent: false,
 			method: 'POST',
 		};
 
 		const postData =  querystring.stringify({
-			'act': 'upkeep',
 			'challstr': this.challstr,
 		});
 
@@ -731,16 +806,21 @@ export class Websocket {
 			'cookie': globalDatabase.loginSessionCookie.cookie,
 		};
 
+		console.log("Attempting to upkeep session...");
 		const request = https.request(options, response => {
 			response.setEncoding('utf8');
 			let data = '';
 			response.on('data', chunk => {
 				data += chunk;
 			});
+			response.on('error', error => {
+				Tools.logException(error, "Error during client upkeep response");
+				this.setRetryLoginTimeout(true);
+			});
 			response.on('end', () => {
 				if (!data) {
-					console.log('Did not receive a response from the login server.');
-					this.login();
+					Tools.warningLog('Did not receive a response from the login server.');
+					this.login(true);
 					return;
 				}
 
@@ -748,25 +828,27 @@ export class Websocket {
 
 				let sessionAssertion: string | undefined;
 				try {
-					const sessionResponse = JSON.parse(data) as {assertion?: string; username?: string, loggedin?: boolean};
+					const sessionResponse = JSON.parse(data) as IUpkeepResponse;
 					if (sessionResponse.username && sessionResponse.loggedin) {
 						sessionAssertion = sessionResponse.assertion;
 					}
 				} catch (e) {
-					console.log('Error parsing session upkeep response:\n' + (e as Error).stack);
+					Tools.warningLog('Error parsing upkeep response:\n' + (e as Error).stack);
 					this.setRetryLoginTimeout(true);
 					return;
 				}
 
-				if (!sessionAssertion || !this.verifyLoginAssertion(sessionAssertion, true)) {
-					delete globalDatabase.loginSessionCookie;
-					this.login();
+				if (sessionAssertion) {
+					this.verifyLoginAssertion(sessionAssertion, true);
+				} else {
+					Tools.debugLog("Previous session expired");
+					this.login(true);
 				}
 			});
 		});
 
 		request.on('error', error => {
-			console.log('Error in session upkeep call: ' + error.stack);
+			Tools.logException(error, "Error during client upkeep request");
 			this.setRetryLoginTimeout(true);
 		});
 
@@ -774,53 +856,66 @@ export class Websocket {
 		request.end();
 	}
 
-	private login(): void {
+	private login(failedUpkeep?: boolean): void {
 		if (this.retryLoginTimeout) clearTimeout(this.retryLoginTimeout);
 
-		const options: ILoginOptions = {
-			hostname: this.loginServerHostname,
-			path: this.loginServerPath,
+		if (failedUpkeep) {
+			delete Storage.getGlobalDatabase().loginSessionCookie;
+		}
+
+		const options: ILoginServerRequestOptions = {
+			hostname: '',
+			path: '',
 			agent: false,
 			method: '',
 		};
 
 		let postData = '';
 		if (Config.password) {
+			options.hostname = this.loginServerHosts.login;
+			options.path = this.loginServerPaths.login;
 			options.method = 'POST';
+
 			postData = querystring.stringify({
 				'serverid': this.serverId,
-				'act': 'login',
 				'name': Config.username,
 				'pass': Config.password,
 				'challstr': this.challstr,
 			});
+
 			options.headers = {
 				'Content-Type': 'application/x-www-form-urlencoded',
 				'Content-Length': postData.length,
 			};
 		} else {
-			options.method = 'GET';
-			options.path += '?' + querystring.stringify({
+			options.hostname = this.loginServerHosts.getassertion;
+			options.path = this.loginServerPaths.getassertion + '?' + querystring.stringify({
 				'serverid': this.serverId,
-				'act': 'getassertion',
 				'userid': Tools.toId(Config.username),
 				'challstr': this.challstr,
 			});
+			options.method = 'GET';
 		}
 
+		console.log("Attempting to login...");
 		const request = https.request(options, response => {
 			response.setEncoding('utf8');
 			let data = '';
 			response.on('data', chunk => {
 				data += chunk;
 			});
+			response.on('error', error => {
+				Tools.logException(error, "Error during client login response");
+				this.setRetryLoginTimeout();
+			});
 			response.on('end', () => {
 				if (!data) {
-					console.log('Did not receive a response from the login server.');
+					Tools.warningLog('Did not receive a response from the login server.');
 					this.setRetryLoginTimeout();
 					return;
 				}
 
+				let newLoginSessionCookie = false;
 				if (response.headers['set-cookie']) {
 					for (const cookie of response.headers['set-cookie']) {
 						const equalsIndex = cookie.indexOf('=');
@@ -830,7 +925,7 @@ export class Websocket {
 							if (semiColonIndex !== -1) value = value.substr(0, semiColonIndex);
 
 							Storage.getGlobalDatabase().loginSessionCookie = {cookie: value, userid: Users.self.id};
-							Storage.tryExportGlobalDatabase();
+							newLoginSessionCookie = true;
 						}
 					}
 				}
@@ -839,26 +934,34 @@ export class Websocket {
 
 				let loginAssertion = '';
 				try {
-					const loginResponse = JSON.parse(data) as {assertion: string; curuser?: {loggedin: boolean}};
-					if (Config.password && (!loginResponse.curuser || !loginResponse.curuser.loggedin)) {
-						console.log('Failed to log in.');
-						this.setRetryLoginTimeout();
-						return;
-					}
+					if (Config.password) {
+						const loginResponse = JSON.parse(data) as ILoginResponse;
+						if (!loginResponse.curuser || !loginResponse.curuser.loggedin) {
+							Tools.warningLog('Login response did not contain user or loggedin status');
+							this.setRetryLoginTimeout();
+							return;
+						}
 
-					loginAssertion = loginResponse.assertion;
+						loginAssertion = loginResponse.assertion || '';
+					} else {
+						loginAssertion = (JSON.parse(data) as string) || '';
+					}
 				} catch (e) {
-					console.log('Error parsing login response:\n' + (e as Error).stack);
+					Tools.logException(e as Error, "Error parsing login response");
 					this.setRetryLoginTimeout();
 					return;
 				}
 
-				this.verifyLoginAssertion(loginAssertion);
+				if (this.verifyLoginAssertion(loginAssertion)) {
+					if (failedUpkeep || newLoginSessionCookie) {
+						Storage.tryExportGlobalDatabase();
+					}
+				}
 			});
 		});
 
 		request.on('error', error => {
-			console.log('Error in login call: ' + error.stack);
+			Tools.logException(error, "Error during client login request");
 			this.setRetryLoginTimeout();
 		});
 
@@ -873,33 +976,29 @@ export class Websocket {
 		}
 		if (assertion.charAt(0) === '\r') assertion = assertion.slice(1);
 		if (assertion.charAt(0) === '\n') assertion = assertion.slice(1);
-		if (assertion.includes('<')) {
-			const message = 'Something is interfering with the connection to the login server.';
-			if (sessionUpkeep) {
-				console.log(message + ' (session upkeep)');
-			} else {
-				console.log(message);
-				this.setRetryLoginTimeout();
-			}
-			return false;
-		}
 
 		if (assertion.substr(0, 2) === ';;') {
+			console.log("Assertion error: " + assertion);
+
 			if (sessionUpkeep) {
-				console.log('Failed to check session: invalid cookie');
-				return false;
+				console.log('Failed to upkeep session');
 			} else {
-				console.log('Failed to log in: invalid username or password');
-				process.exit();
+				Tools.warningLog('Failed to log in: ' + assertion);
 			}
-		} else if (assertion.includes('\n') || !assertion) {
-			const message = 'Something is interfering with the connection to the login server.';
+
+			this.setRetryLoginTimeout(sessionUpkeep);
+			return false;
+		} else if (assertion.includes('<') || assertion.includes('\n') || !assertion) {
+			console.log("Unexpected assertion: " + assertion);
+
+			const message = 'Something is interfering with the connection to the login server';
 			if (sessionUpkeep) {
 				console.log(message + ' (session upkeep)');
 			} else {
-				console.log(message);
-				this.setRetryLoginTimeout();
+				Tools.warningLog(message + ": " + assertion);
 			}
+
+			this.setRetryLoginTimeout(sessionUpkeep);
 			return false;
 		} else {
 			this.send({
@@ -907,6 +1006,7 @@ export class Websocket {
 				type: 'trn',
 				measure: true,
 			});
+
 			return true;
 		}
 	}

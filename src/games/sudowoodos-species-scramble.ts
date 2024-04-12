@@ -12,7 +12,7 @@ class SudowoodosSpeciesScramble extends QuestionAndAnswer {
 	allAnswersAchievement = SudowoodosSpeciesScramble.achievements.genusgenius;
 	hintPrefix: string = "Sudowoodo imitated";
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

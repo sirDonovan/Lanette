@@ -256,7 +256,8 @@ export class ScriptedGame extends Game {
 
 	getDebugLogPath(filename?: string): string {
 		if (!filename) filename = Tools.toId(this.uhtmlBaseName) + (this.debugLogWriteCount ? "-" + this.debugLogWriteCount : "");
-		return path.join(Tools.rootFolder, 'game-debug-logs', Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
+		return path.join(Tools.rootFolder, Tools.runtimeOutputRootFolder, Tools.runtimeOutputGameDebug,
+			Tools.getDateFilename() + "-" + this.room.id + "-" + filename + ".txt");
 	}
 
 	debugLog(log: string): void {
@@ -439,7 +440,7 @@ export class ScriptedGame extends Game {
 		return Games.getScriptedGameHighlight() + " " + this.format.mode.id;
 	}
 
-	signups(): void {
+	async signups(): Promise<void> {
 		this.signupsTime = Date.now();
 		this.signupsStarted = true;
 
@@ -461,10 +462,10 @@ export class ScriptedGame extends Game {
 
 		if (this.onSignups) {
 			try {
-				this.onSignups();
+				await this.onSignups();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onSignups()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onSignups()");
 				this.errorEnd();
 				return;
 			}
@@ -484,24 +485,28 @@ export class ScriptedGame extends Game {
 					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 					this.startTimer = setTimeout(() => {
-						if (!this.start()) {
-							this.startTimer = setTimeout(() => {
-								if (!this.start()) {
-									this.inactivityEnd();
-								}
-							}, startTimer);
-						}
+						void (async() => {
+							if (!await this.start()) {
+								this.startTimer = setTimeout(() => {
+									void (async() => {
+										if (!await this.start()) {
+											this.inactivityEnd();
+										}
+									})();
+								}, startTimer);
+							}
+						})();
 					}, startTimer);
 				}, startTimer);
 			}
 		}
 
 		if (this.isMiniGame && !this.internalGame) {
-			this.nextRound();
+			await this.nextRound();
 		}
 	}
 
-	start(tournamentStart?: boolean): boolean {
+	async start(tournamentStart?: boolean): Promise<boolean> {
 		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
 			(this.usesTournamentStart && !tournamentStart)) return false;
 
@@ -534,18 +539,20 @@ export class ScriptedGame extends Game {
 
 		if (this.onStart) {
 			try {
-				this.onStart();
+				await this.onStart();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onStart()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onStart()");
 				this.errorEnd();
 			}
+		} else {
+			await this.nextRound();
 		}
 
 		return true;
 	}
 
-	nextRound(): void {
+	async nextRound(): Promise<void> {
 		if (this.ended) throw new Error("nextRound() called after game ended");
 		if (this.timeout) clearTimeout(this.timeout);
 
@@ -557,7 +564,7 @@ export class ScriptedGame extends Game {
 					this.onMaxRound();
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onMaxRound()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onMaxRound()");
 					this.errorEnd();
 				}
 			}
@@ -573,7 +580,7 @@ export class ScriptedGame extends Game {
 					if (this.onTimeLimit()) timeEnded = true;
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onTimeLimit()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onTimeLimit()");
 					this.errorEnd();
 					return;
 				}
@@ -593,10 +600,10 @@ export class ScriptedGame extends Game {
 
 		if (this.onNextRound) {
 			try {
-				this.onNextRound();
+				await this.onNextRound();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onNextRound()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onNextRound()");
 				this.errorEnd();
 			}
 		}
@@ -662,7 +669,7 @@ export class ScriptedGame extends Game {
 				this.onEnd();
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onEnd()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onEnd()");
 				this.errorEnd();
 				return;
 			}
@@ -680,6 +687,7 @@ export class ScriptedGame extends Game {
 
 			Games.setLastGame(this.room, now);
 			Games.setLastScriptedGame(this.room, now);
+			Games.setLastWinners(this.room, Array.from(this.winners.keys()).map(x => x.name));
 			database.lastGameTime = now;
 
 			if (!database.lastGameFormatTimes) database.lastGameFormatTimes = {};
@@ -726,7 +734,7 @@ export class ScriptedGame extends Game {
 				this.onForceEnd(user, reason);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onForceEnd()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onForceEnd()");
 			}
 		}
 
@@ -794,7 +802,7 @@ export class ScriptedGame extends Game {
 				this.onDeallocate(forceEnd);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onDeallocate()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onDeallocate()");
 			}
 		}
 
@@ -828,7 +836,7 @@ export class ScriptedGame extends Game {
 					this.parentGame.onChildEnd(this.winners);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.format.name + ")");
+					Tools.logException(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.format.name + ")");
 				}
 			}
 		}
@@ -838,7 +846,7 @@ export class ScriptedGame extends Game {
 				this.onAfterDeallocate(forceEnd);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onAfterDeallocate()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onAfterDeallocate()");
 			}
 		}
 
@@ -867,7 +875,7 @@ export class ScriptedGame extends Game {
 					this.onAddPlayer(this.players[i]);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
 					this.errorEnd();
 					return;
 				}
@@ -876,7 +884,7 @@ export class ScriptedGame extends Game {
 		}
 	}
 
-	addPlayer(user: User, tournamentJoin?: boolean): Player | undefined {
+	async addPlayer(user: User, tournamentJoin?: boolean): Promise<Player | undefined> {
 		if (this.managedPlayers) return;
 
 		if (this.usesTournamentJoin && !tournamentJoin) return;
@@ -896,7 +904,7 @@ export class ScriptedGame extends Game {
 					this.onAddExistingPlayer(this.players[user.id]);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddExistingPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddExistingPlayer()");
 					this.errorEnd();
 				}
 			}
@@ -936,14 +944,14 @@ export class ScriptedGame extends Game {
 			return;
 		}
 
-		const onSuccessfulJoin = (): Player | undefined => {
+		const onSuccessfulJoin = async (): Promise<Player | undefined> => {
 			let addPlayerResult: boolean | undefined = true;
 			if (this.onAddPlayer) {
 				try {
 					addPlayerResult = this.onAddPlayer(player, this.started);
 				} catch (e) {
 					console.log(e);
-					Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
+					Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddPlayer()");
 					this.errorEnd();
 					return;
 				}
@@ -965,32 +973,20 @@ export class ScriptedGame extends Game {
 				}
 
 				if (presentPlayers.length === this.lateJoinQueueSize) {
-					for (const listener of this.commandsListeners) {
-						if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, this.lateJoinQueueSize);
-					}
-
-					for (const queuedPlayer of presentPlayers) {
-						queuedPlayer.frozen = false;
-						queuedPlayer.sendRoomHighlight("You are now in the game!");
-						this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
-					}
-
-					if (this.onAddLateJoinQueuedPlayers) {
-						try {
-							this.onAddLateJoinQueuedPlayers(presentPlayers);
-						} catch (e) {
-							console.log(e);
-							Tools.logError(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
-							this.errorEnd();
-							return;
-						}
-					}
+					this.processLateJoinQueue(presentPlayers);
 				} else {
 					player.frozen = true;
-					const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
-					player.sayPrivateUhtml("You have been added to the late-join queue! " + playersNeeded + " more player" +
-						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.",
-						this.joinLeaveButtonUhtmlName);
+
+					let lateJoinQueueMessage: string;
+					if (this.getLateJoinQueueMessage) {
+						lateJoinQueueMessage = this.getLateJoinQueueMessage(player);
+					} else {
+						const playersNeeded = this.lateJoinQueueSize! - this.lateJoinQueue.length;
+						lateJoinQueueMessage = "You have been added to the late-join queue! " + playersNeeded + " more player" +
+						(playersNeeded > 1 ? "s need" : " needs") + " to late-join for you to be able to play.";
+					}
+
+					player.sayPrivateUhtml(lateJoinQueueMessage, this.joinLeaveButtonUhtmlName);
 				}
 
 				return;
@@ -1017,7 +1013,7 @@ export class ScriptedGame extends Game {
 			} else {
 				if (this.playerCap && this.playerCount >= this.playerCap) {
 					if (this.canLateJoin) this.canLateJoin = false;
-					this.start();
+					await this.start();
 				}
 			}
 
@@ -1025,10 +1021,10 @@ export class ScriptedGame extends Game {
 		};
 
 		if (this.requiresAutoconfirmed && user.autoconfirmed === null) {
-			this.checkPlayerAutoconfirmed(player, onSuccessfulJoin);
+			this.checkPlayerAutoconfirmed(player, () => void onSuccessfulJoin());
 			return player;
 		} else {
-			return onSuccessfulJoin();
+			return await onSuccessfulJoin();
 		}
 	}
 
@@ -1070,7 +1066,7 @@ export class ScriptedGame extends Game {
 				this.onRemovePlayer(player, notAutoconfirmed);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onRemovePlayer()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onRemovePlayer()");
 				this.errorEnd();
 				return;
 			}
@@ -1089,8 +1085,31 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	processLateJoinQueue(processedPlayers: Player[]): void {
+		for (const listener of this.commandsListeners) {
+			if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, processedPlayers.length);
+		}
+
+		for (const queuedPlayer of processedPlayers) {
+			queuedPlayer.frozen = false;
+			queuedPlayer.sendRoomHighlight("You are now in the game!");
+			this.lateJoinQueue.splice(this.lateJoinQueue.indexOf(queuedPlayer, 1));
+		}
+
+		if (this.onAddLateJoinQueuedPlayers) {
+			try {
+				this.onAddLateJoinQueuedPlayers(processedPlayers);
+			} catch (e) {
+				console.log(e);
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onAddLateJoinQueuedPlayers()");
+				this.errorEnd();
+				return;
+			}
+		}
+	}
+
 	/** Returns `true` if the player has been inactive for the game's inactive round limit */
-	addPlayerInactiveRound(player: Player): boolean {
+	incrementPlayerInactiveRound(player: Player): boolean {
 		if (!player.inactiveRounds) player.inactiveRounds = 0;
 		player.inactiveRounds++;
 
@@ -1107,7 +1126,7 @@ export class ScriptedGame extends Game {
 				this.onEliminatePlayer(player, eliminator);
 			} catch (e) {
 				console.log(e);
-				Tools.logError(e as NodeJS.ErrnoException, this.name + " onEliminatePlayer()");
+				Tools.logException(e as NodeJS.ErrnoException, this.name + " onEliminatePlayer()");
 				this.errorEnd();
 			}
 		}
@@ -1290,7 +1309,7 @@ export class ScriptedGame extends Game {
 			result = commandDefinition.command.call(this, target, room, user, command, timestamp);
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e as NodeJS.ErrnoException, this.name + " command " + command);
+			Tools.logException(e as NodeJS.ErrnoException, this.name + " command " + command);
 			this.errorEnd();
 			return false;
 		}
@@ -1310,7 +1329,7 @@ export class ScriptedGame extends Game {
 						commandListener.listener(commandListener.lastUserId);
 					} catch (e) {
 						console.log(e);
-						Tools.logError(e as NodeJS.ErrnoException, this.name + " command listener for [" +
+						Tools.logException(e as NodeJS.ErrnoException, this.name + " command listener for [" +
 							commandListener.commands.join(', ') + "]");
 						this.errorEnd();
 						return false;
@@ -1517,6 +1536,7 @@ export class ScriptedGame extends Game {
 	onAddPlayer?(player: Player, lateJoin?: boolean): boolean | undefined;
 	/** Return `false` to add a player to the late-join queue */
 	tryQueueLateJoin?(player: Player): boolean;
+	getLateJoinQueueMessage?(player: Player): string;
 	onAddLateJoinQueuedPlayers?(players: Player[]): void;
 	onAddExistingPlayer?(player: Player): void;
 	onAfterDeallocate?(forceEnd: boolean): void;
@@ -1546,10 +1566,10 @@ export class ScriptedGame extends Game {
 	onDeallocate?(forceEnd: boolean): void;
 	onEliminatePlayer?(player: Player, eliminator?: Player | null): void;
 	onMaxRound?(): void;
-	onNextRound?(): void;
+	async onNextRound?(): Promise<void>;
 	onRemovePlayer?(player: Player, notAutoconfirmed?: boolean): void;
-	onSignups?(): void;
-	onStart?(): void;
+	async onSignups?(): Promise<void>;
+	async onStart?(): Promise<void>;
 	/** Return `false` to continue the game until another condition is met */
 	onTimeLimit?(): boolean;
 	onTournamentEnd?(forceEnd?: boolean): void;

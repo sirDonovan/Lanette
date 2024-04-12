@@ -1,10 +1,18 @@
 import type { Player } from "../../room-activity";
 import { ScriptedGame } from "../../room-game-scripted";
 import type { Room } from "../../rooms";
-import type { GameCommandDefinitions, IGameFile, IGameFormat } from "../../types/games";
+import type { GameCategory, GameCommandDefinitions, IGameFile, IGameFormat } from "../../types/games";
 import type { IGameCustomBox } from "../../types/storage";
 
 const timeLimit = 30 * 1000;
+const VOTE_COMMAND = 'vote';
+const PM_VOTE_COMMAND = 'pmvote';
+const BUTTON_VOTE_COMMAND = 'buttonvote';
+const VOTABLE_GAMES_COMMAND = 'votablegames';
+const NAME_SORT_COMMAND = 'namesort';
+const CATEGORY_SORT_COMMAND = 'categorysort';
+const FAVORITE_CATEGORY_COMMAND = 'favoritecategory';
+const UNFAVORITE_CATEGORY_COMMAND = 'unfavoritecategory';
 
 interface IPlayerVote {
 	format: string;
@@ -25,6 +33,8 @@ export class Vote extends ScriptedGame {
 	updateVotesHtmlTimeout: NodeJS.Timeout | null = null;
 	privateVoteUhtmlName: string = '';
 	privateVotesHtmlTimeouts: Dict<NodeJS.Timeout | null> = {};
+	votableFormats: IGameFormat[] = [];
+	votableFormatsUhtmlName: string = '';
 	votingName: string = '';
 	votingNumber: number = 1;
 	readonly votes = new Map<Player, IPlayerVote>();
@@ -43,7 +53,7 @@ export class Vote extends ScriptedGame {
 			formatNames[name].push(vote.anonymous ? "[Anonymous]" : "<username>" + player.name + "</username>");
 		});
 
-		let html = "<div class='infobox'><center>";
+		let html = "";
 		let uhtmlName: string;
 		if (ended) {
 			uhtmlName = this.finalVotesUhtmlName;
@@ -82,7 +92,8 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		html += "</center></div>";
+		html += "<br />&nbsp;";
+		html = "<center>" + Games.getCustomBoxDiv(html, this.customBox, undefined, 'signups') + "</center>";
 
 		if (callback) {
 			this.onUhtml(uhtmlName, html, () => {
@@ -109,59 +120,194 @@ export class Vote extends ScriptedGame {
 	}
 
 	isValidFormat(format: IGameFormat): boolean {
-		if (!this.bannedFormats.includes(format.name) && !format.searchChallenge &&
+		if (!this.bannedFormats.includes(format.name) && !format.searchChallenge && !format.tournamentGame &&
 			Games.canCreateGame(this.room, format) === true) return true;
 		return false;
 	}
 
-	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, customBox?: IGameCustomBox): string {
+	getPmVoteButton(voteCommand: string, inputTarget: string, text: string, customBox?: IGameCustomBox, disabled?: boolean): string {
 		return Client.getQuietPmButton(this.room, Config.commandCharacter + voteCommand + " " + Tools.stripHtmlCharacters(inputTarget),
-			text, false, customBox ? Games.getCustomBoxButtonStyle(customBox) : "");
+			text, disabled, customBox ? Games.getCustomBoxButtonStyle(customBox) : "");
 	}
 
-	sendPrivateVoteHtml(player: Player, format: IGameFormat, pm: boolean, anonymous: boolean): void {
-		if (player.id in this.privateVotesHtmlTimeouts) return;
+	getHighlightPhrase(): string {
+		return Games.getScriptedGameVoteHighlight();
+	}
 
-		const variants: IGameFormat[] = [];
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		this.signupsUhtmlName = this.uhtmlBaseName + '-signups';
+		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
+		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';
+		this.privateVoteUhtmlName = this.uhtmlBaseName + '-private-vote';
+		this.votableFormatsUhtmlName = this.uhtmlBaseName + '-votable-formats';
+		this.bannedFormats = Games.getNextVoteBans(this.room);
 
-		const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
-		if (hasFreejoinVariant && !format.resolvedInputProperties.options.freejoin) {
-			const inputTarget = format.inputTarget + ", freejoin";
-			const variant = Games.getFormat(inputTarget);
-			if (!Array.isArray(variant) && this.isValidFormat(variant)) {
-				variants.push(variant);
+		const votableFormats: IGameFormat[] = [];
+		for (const i in Games.getFormats()) {
+			const format = Games.getExistingFormat(i);
+			if (this.isValidFormat(format)) {
+				votableFormats.push(format);
 			}
 		}
 
-		const customBox = this.getPlayerOrPickedCustomBox(player);
-		const voteCommand = anonymous ? 'pmvote' : pm ? 'vote' : 'buttonvote';
-		let variantsHtml = "";
-		if (!format.variant && format.variants) {
-			for (const variantData of format.variants) {
-				const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
-				if (Array.isArray(variant)) continue;
+		if (!votableFormats.length) {
+			this.say("There are no currently votable games.");
+			this.deallocate(true);
+			return;
+		}
 
-				if (this.isValidFormat(variant)) {
+		this.votableFormats = votableFormats;
+
+		const possibleBotPicks = this.shuffle(votableFormats);
+		this.botSuggestions = [];
+		for (let i = 0; i < 3; i++) {
+			if (!possibleBotPicks[i]) break;
+			this.botSuggestions.push(possibleBotPicks[i].name);
+		}
+
+		const database = Storage.getDatabase(this.room);
+		let votingNumber = 1;
+		if (database.scriptedGameCounts && this.id in database.scriptedGameCounts) votingNumber = database.scriptedGameCounts[this.id];
+		this.votingName = "Scripted Game Voting #" + votingNumber;
+		this.votingNumber = votingNumber;
+
+		let pokemonIcon = "";
+		let boxUser = this.format.minigameCreator;
+		if (!boxUser && database.gameVoteBoxes) {
+			const lastWinners = Games.getLastWinners(this.room);
+			if (lastWinners && lastWinners.length) {
+				const shuffled = this.shuffle(lastWinners);
+				for (const winner of shuffled) {
+					if (Tools.toId(winner) in database.gameVoteBoxes) {
+						boxUser = winner;
+						break;
+					}
+				}
+			}
+		}
+
+		if (boxUser && database.gameVoteBoxes) {
+			const id = Tools.toId(boxUser);
+			if (id in database.gameVoteBoxes) {
+				this.customBox = database.gameVoteBoxes[id];
+				if (database.gameVoteBoxes[id].pokemonAvatar) {
+					pokemonIcon = Dex.getPokemonIcon(Dex.getPokemon(database.gameVoteBoxes[id].pokemonAvatar!));
+				}
+			}
+		}
+
+		let html = "<h3>" + (boxUser && this.customBox ? boxUser + "'s " : "") + this.votingName + pokemonIcon + "</h3>Vote for the " +
+			"next scripted game with the command <code>" + Config.commandCharacter + "vote [name]</code>!";
+		html += '<br />';
+		html += Client.getClientCommandButton("/highlight roomadd " + this.getHighlightPhrase(), "Enable voting highlights", false,
+			Games.getCustomBoxButtonStyle(this.customBox));
+		html += Client.getClientCommandButton("/highlight roomdelete " + this.getHighlightPhrase(), "Disable voting highlights", false,
+			Games.getCustomBoxButtonStyle(this.customBox));
+		html += '<br /><br />';
+
+		if (this.botSuggestions.length) {
+			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
+
+			const buttons: string[] = [];
+			for (const pick of this.botSuggestions) {
+				buttons.push(this.getPmVoteButton(BUTTON_VOTE_COMMAND, pick, pick, this.customBox));
+			}
+			html += buttons.join(" | ");
+			html += "<br />";
+		}
+
+		const leastPlayedFormat = this.getLeastPlayedFormat();
+		if (leastPlayedFormat) {
+			html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, leastPlayedFormat, "Least played game", this.customBox) + " | ";
+		}
+
+		html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, "random", "Random game", this.customBox);
+		html += " | ";
+		html += this.getPmVoteButton(BUTTON_VOTE_COMMAND, "random, freejoin", "Random freejoin game", this.customBox);
+		html += "<br /><br />";
+
+		html += this.getQuietPmButton(VOTABLE_GAMES_COMMAND, "View current votable games");
+
+		const pastGames: string[] = [];
+		if (database.pastGames && database.pastGames.length) {
+			for (const pastGame of database.pastGames) {
+				const format = Games.getFormat(pastGame.inputTarget);
+				if (Array.isArray(format)) {
+					pastGames.push(pastGame.name);
+				} else {
+					pastGames.push(format.nameWithOptions);
+				}
+			}
+		}
+
+		if (pastGames.length) {
+			html += "<br /><br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
+		}
+
+		html += "<br />&nbsp;";
+
+		html = "<center>" + Games.getCustomBoxDiv(html, this.customBox) + "</center>";
+
+		this.onUhtml(this.signupsUhtmlName, html, () => {
+			this.canVote = true;
+			this.setTimeout(() => this.endVoting(), timeLimit);
+		});
+		this.sayUhtml(this.signupsUhtmlName, html);
+		this.updateVotesHtml(undefined, true);
+
+		this.notifyRankSignups = true;
+		this.room.notifyRank("all", this.room.title + " game vote", "Help decide the next scripted game!", this.getHighlightPhrase());
+	}
+
+	getVoteVariantModeHtml(player: Player, pm: boolean): string {
+		const vote = this.votes.get(player)!;
+		const format = Games.getExistingFormat(vote.format);
+		const customBox = this.getPlayerOrPickedCustomBox(player, true);
+		const voteCommand = vote.anonymous ? PM_VOTE_COMMAND : pm ? VOTE_COMMAND : BUTTON_VOTE_COMMAND;
+
+		let variantsHtml = "";
+		if (format.variant) {
+			variantsHtml += this.getPmVoteButton(voteCommand, format.id + (format.mode ? ", " + format.mode.id : ""),
+				"Choose a different variant", customBox);
+		} else {
+			const hasFreejoinVariant = format.defaultOptions.includes('freejoin');
+
+			const variants: IGameFormat[] = [];
+			if (hasFreejoinVariant && !format.resolvedInputProperties.options.freejoin) {
+				const inputTarget = format.inputTarget + ", freejoin";
+				const variant = Games.getFormat(inputTarget);
+				if (!Array.isArray(variant) && this.isValidFormat(variant)) {
 					variants.push(variant);
 				}
+			}
 
-				if (hasFreejoinVariant) {
-					const freejoinVariant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0] + ", freejoin");
-					if (!Array.isArray(freejoinVariant) && freejoinVariant.nameWithOptions !== variant.nameWithOptions &&
-						this.isValidFormat(freejoinVariant)) {
-						variants.push(freejoinVariant);
+			if (format.variants) {
+				for (const variantData of format.variants) {
+					const variant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0]);
+					if (Array.isArray(variant)) continue;
+
+					if (this.isValidFormat(variant)) {
+						variants.push(variant);
+					}
+
+					if (hasFreejoinVariant) {
+						const freejoinVariant = Games.getFormat(format.inputTarget + ", " + variantData.variantAliases[0] + ", freejoin");
+						if (!Array.isArray(freejoinVariant) && freejoinVariant.nameWithOptions !== variant.nameWithOptions &&
+							this.isValidFormat(freejoinVariant)) {
+							variants.push(freejoinVariant);
+						}
 					}
 				}
 			}
 
 			if (variants.length) {
+				const html: string[] = [];
 				for (const variant of variants) {
-					variantsHtml += this.getPmVoteButton(voteCommand, variant.inputTarget, variant.nameWithOptions, customBox);
+					html.push(this.getPmVoteButton(voteCommand, variant.inputTarget, variant.nameWithOptions, customBox));
 				}
+
+				variantsHtml += html.join(" | ");
 			}
-		} else if (format.variant) {
-			variantsHtml += this.getPmVoteButton(voteCommand, format.id + (format.mode ? ", " + format.mode.id : ""),
-				"Choose a different variant", customBox);
 		}
 
 		let modesHtml = "";
@@ -173,9 +319,12 @@ export class Vote extends ScriptedGame {
 			}
 
 			if (modes.length) {
+				const html: string[] = [];
 				for (const mode of modes) {
-					modesHtml += this.getPmVoteButton(voteCommand, mode.inputTarget, mode.nameWithOptions, customBox);
+					html.push(this.getPmVoteButton(voteCommand, mode.inputTarget, mode.nameWithOptions, customBox));
 				}
+
+				modesHtml += html.join(" | ");
 			}
 		} else if (format.mode) {
 			modesHtml += this.getPmVoteButton(voteCommand, format.id + (format.variant ? ", " + format.variant.variantAliases[0] : ""),
@@ -204,114 +353,120 @@ export class Vote extends ScriptedGame {
 			}
 		}
 
-		if (pm) {
-			if (player.sentPrivateHtml) player.clearPrivateUhtml(this.privateVoteUhtmlName);
-			player.sayUhtml(html, this.privateVoteUhtmlName);
-		} else {
-			player.sayPrivateUhtml(html, this.privateVoteUhtmlName);
-		}
+		return html;
+	}
+
+	sendPmVoteHtml(player: Player): void {
+		if (player.id in this.privateVotesHtmlTimeouts) return;
+
+		const vote = this.votes.get(player)!;
+		const format = Games.getExistingFormat(vote.format);
+		const html = this.getVoteVariantModeHtml(player, true);
+
+		if (player.sentPrivateHtml) player.clearPrivateUhtml(this.privateVoteUhtmlName);
+		player.sayUhtml(html, this.privateVoteUhtmlName);
 
 		this.privateVotesHtmlTimeouts[player.id] = setTimeout(() => {
 			delete this.privateVotesHtmlTimeouts[player.id];
 			const currentFormat = Games.getExistingFormat(this.votes.get(player)!.format);
-			if (currentFormat.nameWithOptions !== format.nameWithOptions) this.sendPrivateVoteHtml(player, currentFormat, pm, anonymous);
+			if (currentFormat.nameWithOptions !== format.nameWithOptions) this.sendPmVoteHtml(player);
 		}, Client.getSendThrottle() * 4);
 	}
 
-	getHighlightPhrase(): string {
-		return Games.getScriptedGameVoteHighlight();
-	}
-
-	onSignups(): void {
-		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
-		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';
-		this.privateVoteUhtmlName = this.uhtmlBaseName + '-private-vote';
-		this.bannedFormats = Games.getNextVoteBans(this.room);
-
-		const votableFormats: string[] = [];
-		for (const i in Games.getFormats()) {
-			const format = Games.getExistingFormat(i);
-			if (this.isValidFormat(format)) {
-				votableFormats.push(format.name);
-			}
-		}
-
-		if (!votableFormats.length) {
-			this.say("There are no currently votable games.");
-			this.deallocate(true);
-			return;
-		}
-
-		const possibleBotPicks = this.shuffle(votableFormats);
-		this.botSuggestions = [];
-		for (let i = 0; i < 3; i++) {
-			if (!possibleBotPicks[i]) break;
-			this.botSuggestions.push(possibleBotPicks[i]);
-		}
-
+	getPrivateVoteHtml(player: Player, showVotableGames?: boolean): string {
+		const customBox = this.getPlayerOrPickedCustomBox(player, true);
 		const database = Storage.getDatabase(this.room);
-		let votingNumber = 1;
-		if (database.scriptedGameCounts && this.id in database.scriptedGameCounts) votingNumber = database.scriptedGameCounts[this.id];
-		this.votingName = "Scripted Game Voting #" + votingNumber;
-		this.votingNumber = votingNumber;
+		if (!database.gameVoteOptions) database.gameVoteOptions = {};
+		if (!(player.id in database.gameVoteOptions)) database.gameVoteOptions[player.id] = {};
 
-		let html = "<center><h3>" + this.votingName + "</h3>Vote for the next scripted game with the command <code>" +
-			Config.commandCharacter + "vote [name]</code>!";
-		html += '<br /><button class="button" name="parseCommand" value="/highlight roomadd ' +
-				this.getHighlightPhrase() + '">Enable voting highlights</button> | <button class="button" name="parseCommand" ' +
-				'value="/highlight roomdelete ' + this.getHighlightPhrase() + '">Disable voting highlights</button><br /><br />';
+		const options = database.gameVoteOptions[player.id];
+		const vote = this.votes.get(player);
+		const sortByCategory = options.sortBy === 'category';
 
-		const voteCommand = 'buttonvote';
-		if (this.botSuggestions.length) {
-			html += "<b>" + Users.self.name + "'s suggestions:</b><br />";
-
-			const buttons: string[] = [];
-			for (const pick of this.botSuggestions) {
-				buttons.push(this.getPmVoteButton(voteCommand, pick, pick));
-			}
-			html += buttons.join(" | ");
-			html += "<br />";
-		}
-
-		const leastPlayedFormat = this.getLeastPlayedFormat();
-		if (leastPlayedFormat) {
-			html += this.getPmVoteButton(voteCommand, leastPlayedFormat, "Least played game") + " | ";
-		}
-
-		html += this.getPmVoteButton(voteCommand, "random", "Random game");
+		let html = "";
+		html += "<details" + (!vote || showVotableGames ? " open" : "") + "><summary><b>Current votable games</b></summary>";
+		html += this.getQuietPmButton(NAME_SORT_COMMAND, "Sory by name", !sortByCategory, player);
+		html += " | ";
+		html += this.getQuietPmButton(CATEGORY_SORT_COMMAND, "Sort by category", sortByCategory, player);
 		html += "<br /><br />";
 
-		html += "<details><summary>Current votable games</summary>";
-		for (const format of votableFormats) {
-			html += this.getPmVoteButton(voteCommand, format, format);
-		}
-		html += "</details></center>";
+		if (sortByCategory) {
+			const gamesByCateory: Dict<string[]> = {};
+			const otherGames: string[] = [];
+			for (const format of this.votableFormats) {
+				const button = this.getPmVoteButton(BUTTON_VOTE_COMMAND, format.name, format.name, customBox,
+					vote ? Games.getExistingFormat(vote.format).id === format.id : false);
 
-		const pastGames: string[] = [];
-		if (database.pastGames && database.pastGames.length) {
-			for (const pastGame of database.pastGames) {
-				const format = Games.getFormat(pastGame.inputTarget);
-				if (Array.isArray(format)) {
-					pastGames.push(pastGame.name);
+				if (format.category) {
+					if (!(format.category in gamesByCateory)) gamesByCateory[format.category] = [];
+					gamesByCateory[format.category].push(button);
 				} else {
-					pastGames.push(format.nameWithOptions);
+					otherGames.push(button);
 				}
 			}
+
+			const categoryNames = Games.getCategoryNames();
+			const keys = Object.keys(gamesByCateory).sort();
+			const favoriteCategories: string[] = [];
+			const otherCategories: string[] = [];
+			for (const category of keys) {
+				const favorite = options.favoriteCategories && options.favoriteCategories.includes(category);
+				let categoryHtml = "<details" + (favorite ? " open" : "") + "><summary><b>" + categoryNames[category as GameCategory] +
+					"</b> ";
+				if (favorite) {
+					categoryHtml += this.getQuietPmButton(UNFAVORITE_CATEGORY_COMMAND + " " + category, "Unfavorite", false, player);
+				} else {
+					categoryHtml += this.getQuietPmButton(FAVORITE_CATEGORY_COMMAND + " " + category, "Favorite", false, player);
+				}
+
+				categoryHtml += "</summary>";
+				categoryHtml += gamesByCateory[category].join(" | ");
+				categoryHtml += "</details>";
+
+				if (favorite) {
+					favoriteCategories.push(categoryHtml);
+				} else {
+					otherCategories.push(categoryHtml);
+				}
+			}
+
+			html += favoriteCategories.join("");
+			html += otherCategories.join("");
+
+			if (otherGames.length) {
+				html += "<b>Other</b><br />";
+				html += otherGames.join(" | ");
+			}
+		} else {
+			const buttons: string[] = [];
+			for (const format of this.votableFormats) {
+				buttons.push(this.getPmVoteButton(BUTTON_VOTE_COMMAND, format.name, format.name, customBox,
+					vote ? Games.getExistingFormat(vote.format).id === format.id : false));
+			}
+
+			html += buttons.join(" | ");
 		}
 
-		if (pastGames.length) {
-			html += "<br /><b>Past games (cannot be voted for)</b>: " + Tools.joinList(pastGames);
+		html += "</details>";
+
+		if (vote) {
+			html += "<br />" + this.getVoteVariantModeHtml(player, false);
 		}
 
-		this.onHtml(html, () => {
-			this.canVote = true;
-			this.setTimeout(() => this.endVoting(), timeLimit);
-		});
-		this.sayHtml(html);
-		this.updateVotesHtml(undefined, true);
+		return html;
+	}
 
-		this.notifyRankSignups = true;
-		this.room.notifyRank("all", this.room.title + " game vote", "Help decide the next scripted game!", this.getHighlightPhrase());
+	sendPrivateVoteHtml(player: Player, showVotableGames?: boolean): void {
+		if (player.id in this.privateVotesHtmlTimeouts) return;
+
+		const html = this.getPrivateVoteHtml(player, showVotableGames);
+		player.sayPrivateUhtml(Games.getCustomBoxDiv(html, this.getPlayerOrPickedCustomBox(player, true)), this.votableFormatsUhtmlName);
+
+		this.privateVotesHtmlTimeouts[player.id] = setTimeout(() => {
+			delete this.privateVotesHtmlTimeouts[player.id];
+			const latestHtml = this.getPrivateVoteHtml(player, showVotableGames);
+			if (latestHtml !== html) this.sendPrivateVoteHtml(player, showVotableGames);
+		}, Client.getSendThrottle() * 4);
 	}
 
 	endVoting(): void {
@@ -398,12 +553,12 @@ export class Vote extends ScriptedGame {
 }
 
 const commands: GameCommandDefinitions<Vote> = {
-	vote: {
+	[VOTE_COMMAND]: {
 		command(target, room, user, cmd) {
 			if (!this.canVote) return false;
 
 			const player = this.createPlayer(user) || this.players[user.id];
-			const anonymous = cmd === 'pmvote';
+			const anonymous = cmd === PM_VOTE_COMMAND;
 			if (anonymous && !this.isPm(room, user)) {
 				player.sayPrivateHtml("You must use this command in PMs.");
 				return false;
@@ -417,6 +572,23 @@ const commands: GameCommandDefinitions<Vote> = {
 					if (this.isValidFormat(randomFormat)) {
 						format = randomFormat;
 						break;
+					}
+				}
+
+				if (!format) {
+					player.sayPrivateHtml("A random game could not be chosen.");
+					return false;
+				}
+			} else if (targetId === 'randomfj' || targetId === 'randomfreejoin' || targetId === 'randomgamefj' ||
+				targetId === 'randomgamefreejoin') {
+				const formats = this.shuffle(Games.getFormatList());
+				for (const randomFormat of formats) {
+					if (!this.isValidFormat(randomFormat)) continue;
+					if (randomFormat.freejoin) {
+						format = randomFormat;
+						break;
+					} else if (randomFormat.defaultOptions.includes('freejoin')) {
+						format = Games.getExistingFormat(randomFormat.id + ", freejoin");
 					}
 				}
 
@@ -465,7 +637,11 @@ const commands: GameCommandDefinitions<Vote> = {
 
 			this.votes.set(player, {format: format.inputTarget, anonymous});
 
-			this.sendPrivateVoteHtml(player, format, cmd === 'buttonvote' ? false : this.isPm(room, user), anonymous);
+			if (this.isPm(room, user) && cmd !== BUTTON_VOTE_COMMAND) {
+				this.sendPmVoteHtml(player);
+			} else {
+				this.sendPrivateVoteHtml(player);
+			}
 
 			if (!this.updateVotesHtmlTimeout) {
 				this.updateVotesHtmlTimeout = setTimeout(() => {
@@ -476,7 +652,83 @@ const commands: GameCommandDefinitions<Vote> = {
 
 			return true;
 		},
-		aliases: ['suggest', 'pmvote', 'buttonvote'],
+		aliases: ['suggest', PM_VOTE_COMMAND, BUTTON_VOTE_COMMAND],
+		pmGameCommand: true,
+	},
+	[VOTABLE_GAMES_COMMAND]: {
+		command(target, room, user) {
+			if (!this.canVote) return false;
+
+			const player = this.createPlayer(user) || this.players[user.id];
+			this.sendPrivateVoteHtml(player, true);
+			return true;
+		},
+		pmGameCommand: true,
+	},
+	[NAME_SORT_COMMAND]: {
+		command(target, room, user) {
+			if (!this.canVote) return false;
+
+			const player = this.createPlayer(user) || this.players[user.id];
+			const database = Storage.getDatabase(this.room);
+			if (!database.gameVoteOptions || !(player.id in database.gameVoteOptions)) return false;
+
+			database.gameVoteOptions[player.id].sortBy = 'name';
+			this.sendPrivateVoteHtml(player, true);
+			return true;
+		},
+		pmGameCommand: true,
+	},
+	[CATEGORY_SORT_COMMAND]: {
+		command(target, room, user) {
+			if (!this.canVote) return false;
+
+			const player = this.createPlayer(user) || this.players[user.id];
+			const database = Storage.getDatabase(this.room);
+			if (!database.gameVoteOptions || !(player.id in database.gameVoteOptions)) return false;
+
+			database.gameVoteOptions[player.id].sortBy = 'category';
+			this.sendPrivateVoteHtml(player, true);
+			return true;
+		},
+		pmGameCommand: true,
+	},
+	[FAVORITE_CATEGORY_COMMAND]: {
+		command(target, room, user) {
+			if (!this.canVote || !(target in Games.getCategoryNames())) return false;
+
+			const player = this.createPlayer(user) || this.players[user.id];
+			const database = Storage.getDatabase(this.room);
+			if (!database.gameVoteOptions || !(player.id in database.gameVoteOptions)) return false;
+
+			if (!database.gameVoteOptions[player.id].favoriteCategories) {
+				database.gameVoteOptions[player.id].favoriteCategories = [];
+			} else {
+				if (database.gameVoteOptions[player.id].favoriteCategories!.includes(target)) return false;
+			}
+
+			database.gameVoteOptions[player.id].favoriteCategories!.push(target);
+			this.sendPrivateVoteHtml(player, true);
+			return true;
+		},
+		pmGameCommand: true,
+	},
+	[UNFAVORITE_CATEGORY_COMMAND]: {
+		command(target, room, user) {
+			if (!this.canVote) return false;
+
+			const player = this.createPlayer(user) || this.players[user.id];
+			const database = Storage.getDatabase(this.room);
+			if (!database.gameVoteOptions || !(player.id in database.gameVoteOptions) ||
+				!database.gameVoteOptions[player.id].favoriteCategories) return false;
+
+			const index = database.gameVoteOptions[player.id].favoriteCategories!.indexOf(target);
+			if (index === -1) return false;
+
+			database.gameVoteOptions[player.id].favoriteCategories!.splice(index, 1);
+			this.sendPrivateVoteHtml(player, true);
+			return true;
+		},
 		pmGameCommand: true,
 	},
 };

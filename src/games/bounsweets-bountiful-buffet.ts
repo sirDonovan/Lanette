@@ -39,11 +39,7 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 	points = new Map<Player, number>();
 	selectedMeals = new Map<Player, number>();
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.offCommands(['select']);
 		this.canSelect = false;
 
@@ -125,12 +121,12 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 				const mealsUhtmlName = this.uhtmlBaseName + '-round-meals';
 				this.onUhtml(mealsUhtmlName, mealsHtml, () => {
 					this.canSelect = true;
-					this.setTimeout(() => this.nextRound(), 30 * 1000);
+					this.setTimeout(() => void this.nextRound(), 30 * 1000);
 				});
 				this.sayUhtml(mealsUhtmlName, mealsHtml);
 			}, 5000);
 		});
-		this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => this.nextRound());
+		this.onCommands(['select'], {max: this.getRemainingPlayerCount(), remainingPlayersMax: true}, () => void this.nextRound());
 		this.sayUhtml(roundUhtmlName, roundHtml);
 	}
 
@@ -177,10 +173,13 @@ const commands: GameCommandDefinitions<BounsweetsBountifulBuffet> = {
 
 const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 	'should give the same points for shared meals': {
-		test(game): void {
-			const players = addPlayers(game, 2);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 2);
 			game.minPlayers = 2;
-			game.start();
+			await game.start();
 			assertStrictEqual(game.numberOfMeals, 2);
 			const expectedPoints = Math.floor(game.mealPoints[0] / 2);
 			runCommand('select', game.meals[0], Users.get(players[0].name)!, players[0].name);
@@ -190,10 +189,13 @@ const tests: GameFileTests<BounsweetsBountifulBuffet> = {
 		},
 	},
 	'should give different points for separate meals': {
-		test(game): void {
-			const players = addPlayers(game, 2);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 2);
 			game.minPlayers = 2;
-			game.start();
+			await game.start();
 			const expectedPointsA = game.mealPoints[0];
 			const expectedPointsB = game.mealPoints[1];
 			runCommand('select', game.meals[0], Users.get(players[0].name)!, players[0].name);

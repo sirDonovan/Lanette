@@ -61,7 +61,7 @@ class TapusTerrains extends ScriptedGame {
 	terrainDisplayTime: number = 5 * 1000;
 	terrainRound: number = 0;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const pokemon of Games.getPokemonList()) {
 			if (!Dex.hasModelData(pokemon)) continue;
 
@@ -76,23 +76,19 @@ class TapusTerrains extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
 			this.roundTime = 3 * 1000;
 			this.terrainDisplayTime = 3 * 1000;
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		}
-	}
-
-	onStart(): void {
-		this.nextRound();
 	}
 
 	getDisplayedRoundNumber(): number {
 		return this.terrainRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canJump = false;
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {
@@ -176,7 +172,7 @@ class TapusTerrains extends ScriptedGame {
 						this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 							this.canJump = true;
 							if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], true);
-							this.setTimeout(() => this.nextRound(), roundTime);
+							this.setTimeout(() => void this.nextRound(), roundTime);
 						});
 						this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 					}, roundTime);
@@ -190,7 +186,7 @@ class TapusTerrains extends ScriptedGame {
 				this.onUhtml(uhtmlName, pokemonHtml, () => {
 					this.canJump = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", [], false);
-					this.setTimeout(() => this.nextRound(), roundTime);
+					this.setTimeout(() => void this.nextRound(), roundTime);
 				});
 				this.sayUhtmlAuto(uhtmlName, pokemonHtml);
 			}, roundTime);
@@ -261,7 +257,7 @@ const commands: GameCommandDefinitions<TapusTerrains> = {
 						this.say("**" + player.name + "** advances to **" + points + "** point" + (points > 1 ? "s" : "") + "!");
 						this.setTimeout(() => {
 							this.roundJumps.clear();
-							this.nextRound();
+							void this.nextRound();
 						}, 3 * 1000);
 					}
 				}

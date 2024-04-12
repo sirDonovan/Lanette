@@ -141,7 +141,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 
 		if (needsClone) {
 			console.log("Cloning " + lanetteRemote + "...");
-			const cmd = exec('git clone ' + lanetteRemote);
+			const cmd = exec('git clone ' + lanetteRemote + ' --depth=1000');
 			if (cmd === false) {
 				throw new Error("git clone error");
 			}

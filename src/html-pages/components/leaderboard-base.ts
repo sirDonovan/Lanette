@@ -10,6 +10,7 @@ export interface ILeaderboardProps extends IComponentProps {
 	showPreviousCycles: boolean;
 	leaderboardType?: LeaderboardType;
 	pointsName?: string;
+	reRender: () => void;
 }
 
 export abstract class LeaderboardBase extends ComponentBase<ILeaderboardProps> {

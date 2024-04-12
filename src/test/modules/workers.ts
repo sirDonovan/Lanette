@@ -9,11 +9,12 @@ const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance
 
 describe("Parameters Worker", () => {
 	// TODO: update to gen 9
-	it.skip('should properly intersect parameters', () => {
+	it.skip('should properly intersect parameters', async () => {
 		const workers = Games.getWorkers();
+		await workers.parameters.initializeThread();
 
 		let mod = 'gen8';
-		let paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		let paramTypePools = workers.parameters.getThreadData().pokemon.gens[mod].paramTypePools;
 		let baseOptions: IParametersIntersectOptions = {
 			mod,
 			params: [],
@@ -117,7 +118,7 @@ describe("Parameters Worker", () => {
 
 		// old gens
 		mod = 'gen7';
-		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.getThreadData().pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -132,7 +133,7 @@ describe("Parameters Worker", () => {
 		assertStrictEqual(intersection.pokemon.join(","), "durant,excadrill,ferroseed,ferrothorn,steelix");
 
 		mod = 'gen6';
-		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.getThreadData().pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -154,7 +155,7 @@ describe("Parameters Worker", () => {
 		assertStrictEqual(intersection.pokemon.join(","), "alakazam,cresselia,drowzee,gallade,hypno,kadabra,medicham,meditite,mewtwo");
 
 		mod = 'gen1';
-		paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		paramTypePools = workers.parameters.getThreadData().pokemon.gens[mod].paramTypePools;
 		baseOptions = {
 			mod,
 			params: [],
@@ -172,8 +173,11 @@ describe("Parameters Worker", () => {
 });
 
 describe("Portmanteaus Worker", () => {
-	it('should properly filter pools', () => {
-		const tiers = Object.keys(Games.getWorkers().portmanteaus.workerData!.pool['Pokemon']['tier']);
+	it('should properly filter pools', async () => {
+		const worker = Games.getWorkers().portmanteaus;
+		await worker.initializeThread();
+		const data = worker.getThreadData();
+		const tiers = Object.keys(data.pool['Pokemon']['tier']);
 		assert(tiers.length);
 		for (const tier of tiers) {
 			assert(!tier.startsWith('('));
@@ -182,6 +186,7 @@ describe("Portmanteaus Worker", () => {
 	// TODO: update to gen 9
 	it.skip('should properly list portmanteaus', async() => {
 		const workers = Games.getWorkers();
+		await workers.parameters.initializeThread();
 
 		let result = await workers.portmanteaus.search({
 			customPortTypes: ['Pokemon', 'Move'],

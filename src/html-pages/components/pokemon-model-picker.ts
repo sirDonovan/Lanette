@@ -14,6 +14,7 @@ export interface IPokemonModelPickerProps extends IComponentProps {
 	submitAllPokemon: (pokemon: PokemonChoices) => void;
 	clearPokemon: (index: number, dontRender: boolean | undefined) => void;
 	selectPokemon: (index: number, pokemon: IPokemonPick, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const setGenerationCommand = 'setgeneration';
@@ -44,6 +45,7 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			inputWidth: Tools.minRoomWidth,
 			maxPokemon: props.maxPokemon,
 			minPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

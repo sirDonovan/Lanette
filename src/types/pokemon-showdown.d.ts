@@ -167,14 +167,25 @@ interface IConditionData extends IBasicEffect {
 	readonly counterMax?: number;
 }
 
+/* Possible Ability flags */
+interface IAbilityFlags {
+	breakable?: 1; // Can be suppressed by Mold Breaker and related effects
+	cantsuppress?: 1; // Ability can't be suppressed by e.g. Gastro Acid or Neutralizing Gas
+	failroleplay?: 1; // Role Play fails if target has this Ability
+	failskillswap?: 1; // Skill Swap fails if either the user or target has this Ability
+	noentrain?: 1; // Entrainment fails if user has this Ability
+	noreceiver?: 1; // Receiver and Power of Alchemy will not activate if an ally faints with this Ability
+	notrace?: 1; // Trace cannot copy this Ability
+	notransform?: 1; // Disables the Ability if the user is Transformed
+}
+
 interface IAbilityDefinition extends IBasicEffect {
 	effectType: "Ability";
 	/** Rating from -1 Detrimental to +5 Essential; see `data/abilities.ts` for details. */
 	readonly rating: number;
 	readonly suppressWeather: boolean;
+	readonly flags: IAbilityFlags;
 	readonly condition?: Partial<IConditionData>;
-	readonly isPermanent?: boolean;
-	readonly isBreakable?: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -707,6 +718,11 @@ interface ILearnsetData {
 	exists?: boolean;
 }
 
+interface IFullLearnset {
+	learnset: NonNullable<ILearnsetData['learnset']>;
+	species: IPokemon;
+}
+
 export interface INatureCopy extends IBasicEffect {
 	gen: number;
 	name: string;
@@ -999,6 +1015,7 @@ export interface IPokemonShowdownDex {
 		getByID: (id: string) => IPSPokemon;
 		all: () => readonly IPSPokemon[];
 		getLearnsetData: (id: string) => ILearnsetData;
+		getFullLearnset: (id: string) => IFullLearnset[];
 	}
 	types: {
 		get: (name: string | IPSTypeData) => IPSTypeData;

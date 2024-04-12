@@ -25,7 +25,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	roundTravels = new Set<Player>();
 	winnerPointsToBits: number = 25;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const locations = Dex.getData().locations;
 		for (const region of Dex.getRegions()) {
 			const types = Object.keys(locations[region]) as LocationType[];
@@ -46,19 +46,19 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
-		if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5 * 1000);
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		if (this.parentGame && this.parentGame.playerCount < this.baseTravelersPerRound) {
 			this.baseTravelersPerRound = this.parentGame.playerCount;
 		}
 
-		this.nextRound();
+		await this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canTravel = false;
 
 		if (this.roundLocations.length && !this.roundTravels.size) {
@@ -115,7 +115,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 				this.on(text, () => {
 					this.canTravel = true;
 					if (this.parentGame && this.parentGame.onChildHint) this.parentGame.onChildHint("", this.roundLocations, true);
-					this.setTimeout(() => this.nextRound(), this.getRoundTime());
+					this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 				});
 				this.say(text);
 			}, 5000);
@@ -183,7 +183,7 @@ const commands: GameCommandDefinitions<PoipolesRegionalPortals> = {
 
 			if (this.roundTravels.size === this.maxTravelersPerRound) {
 				this.roundLocations = [];
-				this.nextRound();
+				void this.nextRound();
 			}
 			return true;
 		},

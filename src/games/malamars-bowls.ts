@@ -1,6 +1,6 @@
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 import type { IGameFile } from "../types/games";
-import type { IParam, IParametersWorkerData } from './../workers/parameters';
+import type { IParam, IParametersThreadData } from './../workers/parameters';
 import type { Player } from '../room-activity';
 
 const parameterCount = 2;
@@ -12,7 +12,7 @@ type ParamType = 'color' | 'letter' | 'tier' | 'type';
 const paramTypes: ParamType[] = ['color', 'letter', 'tier', 'type'];
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 
-const searchTypes: (keyof IParametersWorkerData)[] = ['pokemon'];
+const searchTypes: (keyof IParametersThreadData)[] = ['pokemon'];
 
 class MalamarsBowls extends QuestionAndAnswer {
 	bowlsRound: number = 0;
@@ -26,8 +26,9 @@ class MalamarsBowls extends QuestionAndAnswer {
 	updateHintTime = 5000;
 	usesWorkers: boolean = true;
 
-	static loadData(): void {
-		const parametersData = Games.getWorkers().parameters.getData();
+	static async loadData(): Promise<void> {
+		await Games.getWorkers().parameters.initializeThread();
+		const parametersData = Games.getWorkers().parameters.getThreadData();
 
 		for (const searchType of searchTypes) {
 			paramTypeDexesKeys[searchType] = {};
@@ -58,7 +59,7 @@ class MalamarsBowls extends QuestionAndAnswer {
 			attempts++;
 			for (const paramType of roundParamTypes) {
 				const name = this.sampleOne(paramTypeDexesKeys.pokemon[genString][paramType]);
-				params.push(workers.parameters.getData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
+				params.push(workers.parameters.getThreadData().pokemon.gens[genString].paramTypePools[paramType][Tools.toId(name)]);
 			}
 
 			const intersection = workers.parameters.intersect({
@@ -148,11 +149,11 @@ class MalamarsBowls extends QuestionAndAnswer {
 						this.end();
 						return;
 					}
-					this.setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => void this.nextRound(), 5000);
 				});
 				this.say(text);
 			} else {
-				this.nextRound();
+				void this.nextRound();
 			}
 		}, this.updateHintTime);
 	}
@@ -166,7 +167,7 @@ class MalamarsBowls extends QuestionAndAnswer {
 		if (parts.length === parameterCount) {
 			const workers = Games.getWorkers();
 			const params: IParam[] = [];
-			const paramTypePools = workers.parameters.workerData!.pokemon.gens[genString].paramTypePools;
+			const paramTypePools = workers.parameters.getThreadData().pokemon.gens[genString].paramTypePools;
 			for (const part of parts) {
 				const id = Tools.toId(part);
 				let param: IParam | undefined;

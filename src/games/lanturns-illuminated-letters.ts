@@ -26,7 +26,7 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 3000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHintKeys: Dict<string[]> = {};
@@ -134,11 +134,11 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 				this.end();
 				return;
 			}
-			this.nextRound();
+			void this.nextRound();
 			return;
 		}
 
-		this.setTimeout(() => this.nextRound(), this.updateHintTime);
+		this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 	}
 
 	getDisplayedRoundNumber(): number {

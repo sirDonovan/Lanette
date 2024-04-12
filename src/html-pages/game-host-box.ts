@@ -63,7 +63,7 @@ class GameHostBox extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let currentBackgroundColor: HexCode | IHexCodeData | undefined;
@@ -91,9 +91,13 @@ class GameHostBox extends HtmlPageBase {
 			currentSignupsButtonsBorder = box.signupsButtonsBorder;
 		}
 
+		const colorPickerPokemon = currentPokemon && currentPokemon.length ? currentPokemon[0]?.pokemon : undefined;
+
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof currentBackgroundColor === 'string' ? currentBackgroundColor : undefined,
 			currentPickObject: currentBackgroundColor && typeof currentBackgroundColor !== 'string' ? currentBackgroundColor : undefined,
+			pokemon: colorPickerPokemon,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -102,8 +106,11 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.buttonColorPicker = new ColorPicker(this, this.commandPrefix, setButtonColorCommand, {
+			name: "Button",
+			button: true,
 			currentPick: typeof currentButtonColor === 'string' ? currentButtonColor : undefined,
 			currentPickObject: currentButtonColor && typeof currentButtonColor !== 'string' ? currentButtonColor : undefined,
+			pokemon: colorPickerPokemon,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearButtonsColor(dontRender),
@@ -112,9 +119,11 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsBackgroundColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsBackgroundColorCommand, {
+			name: "Signups background",
 			currentPick: typeof currentSignupsBackgroundColor === 'string' ? currentSignupsBackgroundColor : undefined,
 			currentPickObject: currentSignupsBackgroundColor && typeof currentSignupsBackgroundColor !== 'string' ?
 				currentSignupsBackgroundColor : undefined,
+			pokemon: colorPickerPokemon,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsBackgroundColor(dontRender),
@@ -123,9 +132,12 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.signupsButtonColorPicker = new ColorPicker(this, this.commandPrefix, setSignupsButtonColorCommand, {
+			name: "Signups button",
+			button: true,
 			currentPick: typeof currentSignupsButtonColor === 'string' ? currentSignupsButtonColor : undefined,
 			currentPickObject: currentSignupsButtonColor && typeof currentSignupsButtonColor !== 'string' ?
 				currentSignupsButtonColor : undefined,
+			pokemon: colorPickerPokemon,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickButtonHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickButtonLightness(dontRender),
 			onClear: (index, dontRender) => this.clearSignupsButtonsColor(dontRender),
@@ -134,71 +146,81 @@ class GameHostBox extends HtmlPageBase {
 		});
 
 		this.backgroundBorderStyle = new BorderStyle(this, this.commandPrefix, setBackgroudBorderStyleCommand, {
+			name: "Background",
 			currentBorder: currentBackgroundBorder,
 			minRadius: 2,
 			maxRadius: 100,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: colorPickerPokemon,
 			onClearColor: (dontRender) => this.clearBorderColor('background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('background', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('background'),
-			onPickRadius: (radius) => this.setBorderRadius('background', radius),
-			onClearSize: () => this.clearBorderSize('background'),
-			onPickSize: (size) => this.setBorderSize('background', size),
-			onClearType: () => this.clearBorderType('background'),
-			onPickType: (type) => this.setBorderType('background', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('background', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('background', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('background', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('background', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('background', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('background', type, dontRender),
 			reRender: () => this.send(),
 		});
 
 		this.buttonsBorderStyle = new BorderStyle(this, this.commandPrefix, setButtonBorderStyleCommand, {
+			name: "Buttons",
+			button: true,
 			currentBorder: currentButtonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: colorPickerPokemon,
 			onClearColor: (dontRender) => this.clearBorderColor('buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('buttons', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('buttons'),
-			onPickRadius: (radius) => this.setBorderRadius('buttons', radius),
-			onClearSize: () => this.clearBorderSize('buttons'),
-			onPickSize: (size) => this.setBorderSize('buttons', size),
-			onClearType: () => this.clearBorderType('buttons'),
-			onPickType: (type) => this.setBorderType('buttons', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('buttons', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('buttons', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('buttons', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('buttons', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('buttons', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('buttons', type, dontRender),
 			reRender: () => this.send(),
 		});
 
 		this.signupsBackgroundBorderStyle = new BorderStyle(this, this.commandPrefix, setSignupsBackgroudBorderStyleCommand, {
+			name: "Signups background",
 			currentBorder: currentSignupsBackgroundBorder,
 			minRadius: 2,
 			maxRadius: 100,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: colorPickerPokemon,
 			onClearColor: (dontRender) => this.clearBorderColor('signups-background', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) =>
 				this.setBorderColor('signups-background', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('signups-background'),
-			onPickRadius: (radius) => this.setBorderRadius('signups-background', radius),
-			onClearSize: () => this.clearBorderSize('signups-background'),
-			onPickSize: (size) => this.setBorderSize('signups-background', size),
-			onClearType: () => this.clearBorderType('signups-background'),
-			onPickType: (type) => this.setBorderType('signups-background', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('signups-background', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('signups-background', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('signups-background', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('signups-background', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('signups-background', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('signups-background', type, dontRender),
 			reRender: () => this.send(),
 		});
 
 		this.signupsButtonsBorderStyle = new BorderStyle(this, this.commandPrefix, setSignupsButtonBorderStyleCommand, {
+			name: "Signups buttons",
+			button: true,
 			currentBorder: currentSignupsButtonsBorder,
 			minRadius: 2,
 			maxRadius: 50,
 			minSize: 2,
 			maxSize: 5,
+			pokemon: colorPickerPokemon,
 			onClearColor: (dontRender) => this.clearBorderColor('signups-buttons', dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => this.setBorderColor('signups-buttons', color, dontRender),
-			onClearRadius: () => this.clearBorderRadius('signups-buttons'),
-			onPickRadius: (radius) => this.setBorderRadius('signups-buttons', radius),
-			onClearSize: () => this.clearBorderSize('signups-buttons'),
-			onPickSize: (size) => this.setBorderSize('signups-buttons', size),
-			onClearType: () => this.clearBorderType('signups-buttons'),
-			onPickType: (type) => this.setBorderType('signups-buttons', type),
+			onClearRadius: (dontRender) => this.clearBorderRadius('signups-buttons', dontRender),
+			onPickRadius: (radius, dontRender) => this.setBorderRadius('signups-buttons', radius, dontRender),
+			onClearSize: (dontRender) => this.clearBorderSize('signups-buttons', dontRender),
+			onPickSize: (size, dontRender) => this.setBorderSize('signups-buttons', size, dontRender),
+			onClearType: (dontRender) => this.clearBorderType('signups-buttons', dontRender),
+			onPickType: (type, dontRender) => this.setBorderType('signups-buttons', type, dontRender),
 			reRender: () => this.send(),
 		});
 
@@ -522,7 +544,7 @@ class GameHostBox extends HtmlPageBase {
 		if (!dontRender) this.send();
 	}
 
-	clearBorderRadius(picker: BorderPickers): void {
+	clearBorderRadius(picker: BorderPickers, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -530,10 +552,10 @@ class GameHostBox extends HtmlPageBase {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.radius;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderRadius(picker: BorderPickers, radius: number): void {
+	setBorderRadius(picker: BorderPickers, radius: number, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -542,10 +564,10 @@ class GameHostBox extends HtmlPageBase {
 		}
 		database.gameHostBoxes![this.userId][databaseKey]!.radius = radius;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderSize(picker: BorderPickers): void {
+	clearBorderSize(picker: BorderPickers, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -553,10 +575,10 @@ class GameHostBox extends HtmlPageBase {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.size;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderSize(picker: BorderPickers, size: number): void {
+	setBorderSize(picker: BorderPickers, size: number, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -565,10 +587,10 @@ class GameHostBox extends HtmlPageBase {
 		}
 		database.gameHostBoxes![this.userId][databaseKey]!.size = size;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	clearBorderType(picker: BorderPickers): void {
+	clearBorderType(picker: BorderPickers, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -576,10 +598,10 @@ class GameHostBox extends HtmlPageBase {
 			delete database.gameHostBoxes![this.userId][databaseKey]!.type;
 		}
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
-	setBorderType(picker: BorderPickers, type: BorderType): void {
+	setBorderType(picker: BorderPickers, type: BorderType, dontRender?: boolean): void {
 		const database = this.getDatabase();
 		const databaseKey = this.getBorderDatabaseKey(picker);
 
@@ -588,7 +610,7 @@ class GameHostBox extends HtmlPageBase {
 		}
 		database.gameHostBoxes![this.userId][databaseKey]!.type = type;
 
-		this.send();
+		if (!dontRender) this.send();
 	}
 
 	render(): string {

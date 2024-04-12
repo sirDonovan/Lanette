@@ -5,7 +5,7 @@ interface IWorkerQueueItem<T> {
 	messageNumber: number;
 }
 
-export type WorkerBaseMessageId = 'memory-usage';
+export type WorkerBaseMessageId = 'memory-usage' | 'initialize-thread' | 'unref';
 
 export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNames = string> {
 	abstract threadPath: string;
@@ -24,12 +24,10 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	private sendMessages: boolean = true;
 	private unrefTimer: NodeJS.Timeout | undefined = undefined;
 
-	abstract loadData(): WorkerData;
-
 	async sendMessage(id: MessageId, message?: string, workerNumber?: number): Promise<ThreadResponse | null> {
 		if (!this.sendMessages) return Promise.resolve(null);
 
-		this.init();
+		this.initialize();
 
 		if (workerNumber) {
 			if (!this.workerNames) throw new Error("Worker number passed to sendMessage() for a single worker");
@@ -56,12 +54,13 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 	}
 
 	getData(): WorkerData {
-		this.init();
+		this.initialize();
 		return this.workerData!;
 	}
 
-	init(): void {
-		if (!this.workerData) this.workerData = this.loadData();
+	initialize(): void {
+		if (this.loadData && !this.workerData) this.workerData = this.loadData();
+
 		if (!this.workers) {
 			this.workers = [];
 
@@ -114,12 +113,17 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}
 	}
 
+	async initializeThread(): Promise<void> {
+		// @ts-expect-error
+		await this.sendMessage('initialize-thread');
+	}
+
 	async getMemoryUsage(): Promise<ThreadResponse | null> {
 		// @ts-expect-error
 		return this.sendMessage('memory-usage');
 	}
 
-	unref(): void {
+	async unref(): Promise<void> {
 		this.sendMessages = false;
 
 		if (this.unrefTimer) {
@@ -128,14 +132,20 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		}
 
 		if (this.pendingResolves.length) {
-			this.unrefTimer = setTimeout(() => this.unref(), 100);
+			this.unrefTimer = setTimeout(() => void this.unref(), 100);
 			return;
 		}
 
 		if (this.workers) {
-			for (const worker of this.workers) {
-				void worker.terminate().then(() => worker.unref());
+			for (let i = 0; i < this.workers.length; i++) {
+				// @ts-expect-error
+				await this.sendMessage('unref', "", this.workerNames ? i : undefined);
+				await this.workers[i].terminate();
+				this.workers[i].removeAllListeners();
+				this.workers[i].unref();
+				Tools.unrefProperties(this.workers[i]);
 			}
+
 			this.workers = undefined;
 		}
 
@@ -143,8 +153,18 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 		Tools.unrefProperties(this);
 	}
 
+	exit(): void {
+		if (this.workers) {
+			for (const worker of this.workers) {
+				void worker.terminate();
+			}
+		}
+	}
+
 	private postMessage(workerNumber: number, message: string): void {
 		this.workerBusy[workerNumber] = true;
 		this.workers![workerNumber].postMessage(message);
 	}
+
+	loadData?(): WorkerData;
 }

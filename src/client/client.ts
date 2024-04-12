@@ -188,7 +188,11 @@ export class Client {
 			serverAddress: this.serverAddress,
 			defaultMessageRoom: this.defaultMessageRoom,
 			onConnect: () => this.onConnect(),
-			onFailedPing: () => this.prepareReconnect(),
+			onFailedPing: () => {
+				Tools.errorLog("Failed to ping server");
+
+				this.prepareReconnect();
+			},
 			onIncomingMessage: (room, message, now) => this.parseMessage(room, message, now),
 		});
 
@@ -307,6 +311,11 @@ export class Client {
 		if (code.length < 80 && !code.includes('\n') && !code.includes('```')) return code;
 		return '<div class="infobox"><details class="readmore code" style="white-space: pre-wrap; display: table; tab-size: 3">' +
 			'<summary></summary>' + Tools.escapeHTML(code.replace(NEWLINE, "<br />")) + '</details></div>';
+	}
+
+	getClientCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
+		return '<button class="button' + (disabled ? " disabled" : "") + '"' + (disabled ? " disabled" : "") +
+			(buttonStyle ? ' style="' + buttonStyle + '"' : '') + ' name="parseCommand" value="' + command + '">' + label + '</button>';
 	}
 
 	getCommandButton(command: string, label: string, disabled?: boolean, buttonStyle?: string): string {
@@ -937,6 +946,7 @@ export class Client {
 							const promotedUser = Users.get(promoted);
 							if (promotedUser && promotedUser.roomVoiceListener) {
 								promotedUser.roomVoiceListener();
+								delete promotedUser.roomVoiceListener;
 							}
 						}
 					} else if (lastOutgoingMessage.type === 'room-deauth') {
@@ -1073,7 +1083,7 @@ export class Client {
 
 					return;
 				} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
-					Tools.logMessage("Error message in PM to " + messageArguments.recipientUsername + ": " +
+					Tools.warningLog("Error message in PM to " + messageArguments.recipientUsername + ": " +
 						messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 				}
 
@@ -1341,7 +1351,7 @@ export class Client {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
-				Tools.logMessage("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
+				Tools.warningLog("Chat error message in " + room.title + ": " + messageArguments.message.substr(CHAT_ERROR_MESSAGE.length));
 			}
 
 			break;
@@ -1427,6 +1437,16 @@ export class Client {
 					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
+			} else if (messageArguments.error.startsWith('The server is restarting soon, so a tournament cannot be created')) {
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'tournament-create' &&
+					lastOutgoingMessage.roomid === room.id) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+
+				room.say(messageArguments.error);
+				if (room.id in Tournaments.createListeners && Tournaments.createListeners[room.id]!.game) {
+					Tournaments.createListeners[room.id]!.game!.forceEnd(Users.self);
+				}
 			} else if (messageArguments.error.startsWith('This user is currently blocking PMs') ||
 				messageArguments.error.startsWith('This user is currently locked, so you cannot send them HTML')) {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id &&
@@ -1469,7 +1489,7 @@ export class Client {
 				}
 			} else {
 				if (lastOutgoingMessage && lastOutgoingMessage.roomid === room.id) {
-					Tools.logMessage("Error message in " + room.title + ": " + messageArguments.error);
+					Tools.warningLog("Error message in " + room.title + ": " + messageArguments.error);
 				}
 			}
 
@@ -2046,7 +2066,7 @@ export class Client {
 	}
 
 	prepareReconnect(): void {
-		Tools.logMessage("Client.reconnect() called");
+		Tools.debugLog("Client.reconnect() called");
 
 		this.roomsToRejoin = Rooms.getRoomIds();
 		if (Config.rooms && !Config.rooms.includes(this.defaultMessageRoom)) {

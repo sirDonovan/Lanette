@@ -31,10 +31,6 @@ class SableyesTrickHouse extends ScriptedGame {
 		return true;
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
 	revealTrap(): void {
 		this.offCommands(['select']);
 		if (this.canLateJoin) this.canLateJoin = false;
@@ -54,12 +50,12 @@ class SableyesTrickHouse extends ScriptedGame {
 
 		const text = "The trap was the **" + trap + " door**!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canSelect = false;
 		if (this.round > 1) {
 			if (this.canLateJoin) this.canLateJoin = false;
@@ -156,10 +152,13 @@ const commands: GameCommandDefinitions<SableyesTrickHouse> = {
 
 const tests: GameFileTests<SableyesTrickHouse> = {
 	'should only allow one choice per round': {
-		test(game): void {
-			const players = addPlayers(game, 4);
-			game.start();
-			game.nextRound();
+		config: {
+			async: true,
+		},
+		async test(game) {
+			const players = await addPlayers(game, 4);
+			await game.start();
+			await game.nextRound();
 			game.canSelect = true;
 			runCommand('select', game.roundDoors[0], game.room, players[0].name);
 			runCommand('select', game.roundDoors[1], game.room, players[0].name);
@@ -167,10 +166,13 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		},
 	},
 	'should eliminate users who pick the trap': {
-		test(game): void {
-			const players = addPlayers(game, 4);
-			game.start();
-			game.nextRound();
+		config: {
+			async: true,
+		},
+		async test(game) {
+			const players = await addPlayers(game, 4);
+			await game.start();
+			await game.nextRound();
 			game.offCommands(['select']);
 			game.canSelect = true;
 			runCommand('select', game.roundDoors[0], game.room, players[0].name);
@@ -181,10 +183,13 @@ const tests: GameFileTests<SableyesTrickHouse> = {
 		},
 	},
 	'should limit choices to given doors': {
-		test(game): void {
-			const players = addPlayers(game, 4);
-			game.start();
-			game.nextRound();
+		config: {
+			async: true,
+		},
+		async test(game) {
+			const players = await addPlayers(game, 4);
+			await game.start();
+			await game.nextRound();
 			game.canSelect = true;
 			runCommand('select', 'mocha', game.room, players[0].name);
 			assertStrictEqual(game.roundSelections.has(players[0]), false);

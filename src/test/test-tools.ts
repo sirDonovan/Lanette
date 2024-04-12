@@ -77,39 +77,33 @@ export function assertClientSendQueue(startingSendQueueIndex: number, input: rea
 	assert(expected.length === 0, "Not found in Client's send queue:\n\n" + expected.join("\n"));
 }
 
-export function addPlayer(game: ScriptedGame, name: string): Player {
+export async function addPlayer(game: ScriptedGame, name: string): Promise<Player> {
 	const user = Users.add(name, Tools.toId(name));
 	assert(user);
 	user.autoconfirmed = true;
 
 	(game.room as Room).onUserJoin(user, ' ');
 
-	const player = game.addPlayer(user);
+	const player = await game.addPlayer(user);
 	assert(player);
 
 	return player;
 }
 
-export function addPlayers(game: ScriptedGame, numberOrNames?: number | string[]): Player[] {
+export async function addPlayers(game: ScriptedGame, numberOrNames?: number | string[]): Promise<Player[]> {
 	const players: Player[] = [];
 	if (Array.isArray(numberOrNames)) {
 		for (const name of numberOrNames) {
-			players.push(addPlayer(game, name));
+			players.push(await addPlayer(game, name));
 		}
 	} else {
 		if (!numberOrNames) numberOrNames = game.minPlayers;
 		for (let i = 1; i <= numberOrNames; i++) {
-			players.push(addPlayer(game, basePlayerName + ' ' + i));
+			players.push(await addPlayer(game, basePlayerName + ' ' + i));
 		}
 	}
 
 	return players;
-}
-
-export function startGame(game: ScriptedGame): void {
-	game.start();
-	assert(game.started);
-	assert(!game.ended);
 }
 
 export function runCommand(command: string, target: string, room: Room | User, user: User | string): void {

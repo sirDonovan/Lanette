@@ -15,6 +15,7 @@ export interface ITrainerCardPrizeProps extends IComponentProps {
 	onUpdateSource: (source: string) => void;
 	onUpdateWidth: (width: number) => void;
 	onUpdateHeight: (width: number) => void;
+	reRender: () => void;
 }
 
 export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
@@ -33,6 +34,7 @@ export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
 		this.nameInput = new TextInput(htmlPage, this.commandPrefix, updateNameCommand, {
 			readonly: props.updating,
 			label: "Name",
+			name: "Name",
 			hideClearButton: true,
 			onSubmit: (output) => this.updateName(output),
 			reRender: () => this.props.reRender(),
@@ -40,6 +42,7 @@ export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
 
 		this.sourceInput = new TextInput(htmlPage, this.commandPrefix, updateSourceCommand, {
 			label: "Source",
+			name: "Source",
 			hideClearButton: true,
 			onSubmit: (output) => this.updateSource(output),
 			reRender: () => this.props.reRender(),
@@ -47,6 +50,7 @@ export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
 
 		this.widthInput = new NumberTextInput(htmlPage, this.commandPrefix, updateWidthCommand, {
 			label: "Width",
+			name: "Width",
 			hideClearButton: true,
 			min: 1,
 			onSubmit: (output) => this.updateWidth(output),
@@ -55,6 +59,7 @@ export class TrainerCardPrize extends ComponentBase<ITrainerCardPrizeProps> {
 
 		this.heightInput = new NumberTextInput(htmlPage, this.commandPrefix, updateHeightCommand, {
 			label: "Height",
+			name: "Height",
 			hideClearButton: true,
 			min: 1,
 			onSubmit: (output) => this.updateHeight(output),

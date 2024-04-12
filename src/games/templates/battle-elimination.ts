@@ -1065,6 +1065,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			pageName: this.htmlPageGameName,
 		});
 
+		CommandParser.onCreateActivityPage(page, player);
 		this.htmlPages.set(player, page);
 
 		return page;
@@ -1420,7 +1421,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 			this.htmlPageGameName = "Mono-" + this.color + " " + this.baseHtmlPageGameName;
 		} else if (this.monoType) {
-			const types = this.shuffle(Dex.getData().typeKeys);
+			const types = this.shuffle(Dex.getTypeKeys());
 			this.type = Dex.getExistingType(types[0]).name;
 			types.shift();
 			pokedex = this.createBasePokedex();
@@ -1485,7 +1486,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.pokedex = this.shuffle(pokedex);
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.generatePokedex();
 
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.htmlPageGameName + "</h2><hr />";
@@ -1536,9 +1537,9 @@ export abstract class BattleElimination extends ScriptedGame {
 			this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', "<b>The " + this.name + " tournament is cancelled due to a lack of players" +
 				"</b>");
 			this.dontAutoCloseHtmlPages = false;
-			this.deallocate(true);
-
 			this.setAutoCreateTimer(1);
+
+			this.deallocate(true);
 			return;
 		}
 
@@ -1546,12 +1547,12 @@ export abstract class BattleElimination extends ScriptedGame {
 			if (this.subRoom) {
 				this.subRoom.startTournament();
 			} else {
-				this.start();
+				void this.start();
 			}
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
 
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
@@ -2285,7 +2286,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 	check: {
 		command(target, room, user) {
 			if (this.subRoom) {
-				user.say("This command is not necessary in group chat tournaments.");
+				user.say("This command is not necessary due to the server tournament being used.");
 				return false;
 			}
 
@@ -2364,7 +2365,7 @@ const commands: GameCommandDefinitions<BattleElimination> = {
 		command(target, room, user) {
 			const id = Tools.toId(target);
 			if (id) {
-				if (!user.isDeveloper() && !user.hasRank(this.room, 'driver')) return false;
+				if (!user.hasRank(this.room, 'driver')) return false;
 				if (user.id in this.players && !(this.players[user.id].eliminated && user.isDeveloper())) {
 					user.say("You cannot use this command while participating in the tournament.");
 					return false;
@@ -2491,11 +2492,14 @@ const tests: GameFileTests<BattleElimination> = {
 		},
 	},
 	'should generate a Pokedex': {
-		test(game) {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			disableTournamentProperties(game);
 
 			assert(game.pokedex.length);
-			addPlayers(game, game.maxPlayers);
+			await addPlayers(game, game.maxPlayers);
 			assert(game.started);
 			if (!game.eliminationStarted) game.startElimination();
 		},
@@ -2697,14 +2701,15 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 4 players': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 4);
-			game.start();
+			await addPlayers(game, 4);
+			await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assert(!game.firstRoundByes.size);
@@ -2728,14 +2733,15 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 5 players': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 5);
-			game.start();
+			await addPlayers(game, 5);
+			await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assertStrictEqual(game.firstRoundByes.size, 3);
@@ -2771,14 +2777,15 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 6 players': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 6);
-			game.start();
+			await addPlayers(game, 6);
+			await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assertStrictEqual(game.firstRoundByes.size, 2);
@@ -2818,14 +2825,15 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 7 players': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 7);
-			game.start();
+			await addPlayers(game, 7);
+			await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assertStrictEqual(game.firstRoundByes.size, 1);
@@ -2865,14 +2873,15 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should properly list matches by round - 8 players': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, 8);
-			if (!game.started) game.start();
+			await addPlayers(game, 8);
+			if (!game.started) await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assert(!game.firstRoundByes.size);
@@ -2906,17 +2915,18 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should give team changes until players have a full team - additionsPerRound': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			this.timeout(15000);
 			if (!game.additionsPerRound || game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, game.maxPlayers);
-			if (!game.started) game.start();
+			await addPlayers(game, game.maxPlayers);
+			if (!game.started) await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assert(!game.firstRoundByes.size);
@@ -2955,17 +2965,18 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should give team changes until players have a full team - dropsPerRound': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			this.timeout(15000);
 			if (!game.dropsPerRound || game.additionsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, game.maxPlayers);
-			if (!game.started) game.start();
+			await addPlayers(game, game.maxPlayers);
+			if (!game.started) await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assert(!game.firstRoundByes.size);
@@ -3004,17 +3015,18 @@ const tests: GameFileTests<BattleElimination> = {
 	},
 	'should give team changes until players have a full team - additionsPerRound and dropsPerRound': {
 		config: {
+			async: true,
 			regressionOnly: true,
 		},
-		test(game) {
+		async test(game) {
 			this.timeout(15000);
 			if (!game.additionsPerRound || !game.dropsPerRound || (game.maxPlayers !== 32 && game.maxPlayers !== 64)) return;
 
 			disableTournamentProperties(game);
 
 			game.canReroll = false;
-			addPlayers(game, game.maxPlayers);
-			if (!game.started) game.start();
+			await addPlayers(game, game.maxPlayers);
+			if (!game.started) await game.start();
 			if (!game.eliminationStarted) game.startElimination();
 
 			assert(!game.firstRoundByes.size);

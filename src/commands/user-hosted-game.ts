@@ -774,7 +774,7 @@ export const commands: BaseCommandDefinitions = {
 			if (this.isPm(room)) return;
 			let game: ScriptedGame | UserHostedGame | undefined;
 			if (room.game) {
-				if (!user.hasRank(room, 'voice') && !user.isDeveloper()) return;
+				if (!user.hasRank(room, 'voice')) return;
 				game = room.game;
 			} else if (room.userHostedGame) {
 				if (!room.userHostedGame.isHost(user)) return;
@@ -1621,17 +1621,18 @@ export const commands: BaseCommandDefinitions = {
 
 			}
 
-			if (hint.length > HANGMAN_HINT_MAX_LENGTH) {
-				this.say("Your hint must be less than " + HANGMAN_HINT_MAX_LENGTH + " characters.");
-				return;
-			}
-
 			if (Client.checkFilters(hint, gameRoom)) {
 				this.say("Your hint contains a word banned in " + gameRoom.title + ".");
 				return;
 			}
 
-			gameRoom.startHangman(answer, hint + " [" + user.name + "]", user);
+			const displayedHint = hint + " [" + user.name + "]";
+			if (displayedHint.length > HANGMAN_HINT_MAX_LENGTH) {
+				this.say("Your hint must be less than " + HANGMAN_HINT_MAX_LENGTH + " characters (including your username).");
+				return;
+			}
+
+			gameRoom.startHangman(answer, displayedHint, user);
 		},
 		pmOnly: true,
 		syntax: ["[room], [answer], [hint]"],
@@ -1675,13 +1676,15 @@ export const commands: BaseCommandDefinitions = {
 			if (global.Games.isReloadInProgress()) return this.sayError(['reloadInProgress']);
 			if (!format.canGetRandomAnswer) return this.say("This command cannot be used with " + format.name + ".");
 
-			const game = Games.createGame(room, format, {pmRoom});
-			if (game) {
-				const randomAnswer = game.getRandomAnswer!();
-				this.sayHtml(game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
-					"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '), pmRoom);
-				game.deallocate(true);
-			}
+			void (async () => {
+				const game = await Games.createGame(room, format, {pmRoom});
+				if (game) {
+					const randomAnswer = game.getRandomAnswer!();
+					pmRoom.pmHtml(user, game.getMascotAndNameHtml(" - random") + "<br /><br />" + randomAnswer.hint + "<br /> " +
+						"<b>Answer" + (randomAnswer.answers.length > 1 ? "s" : "") + "</b>: " + randomAnswer.answers.join(', '));
+					game.deallocate(true);
+				}
+			})();
 		},
 		pmOnly: true,
 		aliases: ['rhint', 'randanswer', 'ranswer', 'randomhint', 'randhint'],

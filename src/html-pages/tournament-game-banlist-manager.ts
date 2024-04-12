@@ -50,7 +50,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommandAlias, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const formatList = Games.getTournamentFormatList();
 		for (const format of formatList) {
@@ -59,6 +59,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		}
 
 		this.abilityInput = new AbilityTextInput(this, this.commandPrefix, abilityInputCommand, {
+			name: "Abilties",
 			submitText: "Add ability(ies)",
 			hideClearButton: true,
 			textArea: true,
@@ -68,6 +69,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		});
 
 		this.itemInput = new ItemTextInput(this, this.commandPrefix, itemInputCommand, {
+			name: "Items",
 			submitText: "Add item(s)",
 			hideClearButton: true,
 			textArea: true,
@@ -77,6 +79,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		});
 
 		this.moveInput = new MoveTextInput(this, this.commandPrefix, moveInputCommand, {
+			name: "Moves",
 			submitText: "Add move(s)",
 			hideClearButton: true,
 			textArea: true,
@@ -86,6 +89,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		});
 
 		this.pokemonInput = new PokemonTextInput(this, this.commandPrefix, pokemonInputCommand, {
+			name: "Pokemon",
 			submitText: "Add Pokemon(s)",
 			hideClearButton: true,
 			textArea: true,
@@ -95,6 +99,7 @@ class TournamentGameBanlistManager extends HtmlPageBase {
 		});
 
 		this.ruleInput = new RuleTextInput(this, this.commandPrefix, ruleInputCommand, {
+			name: "Rules",
 			submitText: "Add rule(s)",
 			hideClearButton: true,
 			textArea: true,

@@ -36,16 +36,18 @@ class GameTrainerCard extends HtmlPageBase {
 	constructor(room: Room, user: User, maxIcons: number) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
 			currentPickObject: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
 				trainerCard.background : undefined,
+			pokemon: trainerCard && trainerCard.pokemon.length ? trainerCard.pokemon[0] : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -70,6 +72,7 @@ class GameTrainerCard extends HtmlPageBase {
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: maxIcons,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",

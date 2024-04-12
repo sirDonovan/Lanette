@@ -53,7 +53,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 		super(room, user, baseCommand, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const date = new Date();
 		this.currentYear = date.getFullYear();
@@ -65,6 +65,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			label: "Add new month",
 			min: 1,
 			max: 12,
+			name: "Month",
 			onSubmit: (output) => this.addMonth(output),
 			reRender: () => this.send(),
 		});
@@ -78,6 +79,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 			label: "Update format",
 			submitText: "Submit",
 			maxFormats: 1,
+			name: "Day",
 			hideClearButton: true,
 			customRules: true,
 			onSubmit: (output) => this.setDayFormat(output),
@@ -86,6 +88,7 @@ class OfficialTournamentScheduler extends HtmlPageBase {
 
 		this.tournamentTimeInput = new TextInput(this, this.commandPrefix, tournamentTimeInputCommand, {
 			label: "Update time",
+			name: "Tournament time",
 			submitText: "Submit",
 			onSubmit: (output) => this.setTournamentTime(output),
 			reRender: () => this.send(),

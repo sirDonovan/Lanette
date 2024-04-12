@@ -20,12 +20,12 @@ export abstract class MapDamageGame extends MapGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.maxDimensions = this.playerCount;
 		if (this.onSetMaxDimensions) this.onSetMaxDimensions();
 
 		this.positionPlayers();
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	damagePlayers(): void {
@@ -34,7 +34,7 @@ export abstract class MapDamageGame extends MapGame {
 		this.onDamagePlayers();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 
 		const len = this.getRemainingPlayerCount();

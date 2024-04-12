@@ -32,12 +32,13 @@ export interface IHostDisplayProps extends IComponentProps {
 	setGifOrIcon: (gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined) => void;
 	onClearBorderColor: (dontRender: boolean | undefined) => void;
 	onPickBorderColor: (color: IColorPick, dontRender: boolean | undefined) => void;
-	onClearBorderRadius: () => void;
-	onPickBorderRadius: (radius: number) => void;
-	onClearBorderSize: () => void;
-	onPickBorderSize: (size: number) => void;
-	onClearBorderType: () => void;
-	onPickBorderType: (type: BorderType) => void;
+	onClearBorderRadius: (dontRender: boolean | undefined) => void;
+	onPickBorderRadius: (radius: number, dontRender: boolean | undefined) => void;
+	onClearBorderSize: (dontRender: boolean | undefined) => void;
+	onPickBorderSize: (size: number, dontRender: boolean | undefined) => void;
+	onClearBorderType: (dontRender: boolean | undefined) => void;
+	onPickBorderType: (type: BorderType, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const setBackgroundColorCommand = 'setbackgroundcolor';
@@ -80,6 +81,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.backgroundColorPicker = new ColorPicker(htmlPage, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: typeof props.currentBackground === 'string' ? props.currentBackground : undefined,
 			currentPickObject: props.currentBackground && typeof props.currentBackground !== 'string' ? props.currentBackground : undefined,
 			random: props.random,
@@ -92,6 +94,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 		});
 
 		this.backgroundBorderStyle = new BorderStyle(htmlPage, this.commandPrefix, setBackgroudBorderStyleCommand, {
+			name: "Background",
 			currentBorder: props.currentBackgroundBorder,
 			minRadius: 2,
 			maxRadius: 100,
@@ -99,12 +102,12 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 			maxSize: 5,
 			onClearColor: (dontRender) => props.onClearBorderColor(dontRender),
 			onPickColor: (color: IColorPick, dontRender: boolean | undefined) => props.onPickBorderColor(color, dontRender),
-			onClearRadius: () => props.onClearBorderRadius(),
-			onPickRadius: (radius) => props.onPickBorderRadius(radius),
-			onClearSize: () => props.onClearBorderSize(),
-			onPickSize: (size) => props.onPickBorderSize(size),
-			onClearType: () => props.onClearBorderType(),
-			onPickType: (type) => props.onPickBorderType(type),
+			onClearRadius: (dontRender) => props.onClearBorderRadius(dontRender),
+			onPickRadius: (radius, dontRender) => props.onPickBorderRadius(radius, dontRender),
+			onClearSize: (dontRender) => props.onClearBorderSize(dontRender),
+			onPickSize: (size, dontRender) => props.onPickBorderSize(size, dontRender),
+			onClearType: (dontRender) => props.onClearBorderType(dontRender),
+			onPickType: (type, dontRender) => props.onPickBorderType(type, dontRender),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),
 		});

@@ -31,6 +31,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat';
 
 export interface IOutgoingMessageAttributes {
+	/**Return `false` to prevent a message from being sent */
 	filterSend?: () => boolean;
 	announcement?: string;
 	deauthedUserid?: string;
@@ -65,7 +66,7 @@ export interface IOutgoingMessage extends IOutgoingMessageAttributes {
 export type GroupName = 'locked' | 'muted' | 'regularuser' | 'prizewinner' | 'star' | 'voice' | 'player' | 'bot' | 'driver' | 'moderator' |
 	'host' | 'roomowner' | 'administrator';
 
-export interface ILoginOptions {
+export interface ILoginServerRequestOptions {
 	hostname: string | undefined;
 	path: string | undefined;
 	agent: boolean;

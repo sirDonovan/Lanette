@@ -78,9 +78,9 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (!this.isMiniGame) {
-			if (this.options.freejoin) this.setTimeout(() => this.nextRound(), 5000);
+			if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5000);
 		}
 	}
 
@@ -114,7 +114,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		}
 
-		this.nextRound();
+		void this.nextRound();
 	}
 
 	async generateHint(): Promise<string> {
@@ -188,7 +188,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 			}
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e as NodeJS.ErrnoException, this.format.name + " generateHint()");
+			Tools.logException(e as NodeJS.ErrnoException, this.format.name + " generateHint()");
 			this.errorEnd();
 			return "";
 		}
@@ -352,7 +352,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 
 		let roundText: boolean | string | undefined;
 		if (this.beforeNextRound) {
-			roundText = this.beforeNextRound(newAnswer);
+			roundText = await this.beforeNextRound(newAnswer);
 			if (roundText === false) return;
 		}
 
@@ -431,7 +431,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 					this.displayAnswers();
 					this.answers = [];
 					if (this.answerTimeout) clearTimeout(this.answerTimeout);
-					this.setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => void this.nextRound(), 5000);
 				}
 				return false;
 			}
@@ -552,7 +552,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}, this.sampleOne(this.botChallengeSpeeds!));
 	}
 
-	beforeNextRound?(newAnswer: boolean): boolean | string;
+	async beforeNextRound?(newAnswer: boolean): Promise<boolean | string>;
 	filterGuess?(guess: string, player?: Player): boolean;
 	customGenerateHint?(): Promise<void>;
 	getPointsForAnswer?(answer: string, timestamp: number): number;
@@ -624,7 +624,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					return true;
 				} else {
 					this.answers = [];
-					this.setTimeout(() => this.nextRound(), 5000);
+					this.setTimeout(() => void this.nextRound(), 5000);
 				}
 			} else {
 				if (this.allowRepeatCorrectAnswers) {
@@ -642,7 +642,7 @@ const commands: GameCommandDefinitions<QuestionAndAnswer> = {
 					if (!this.allowRepeatCorrectAnswers) this.removeAnswer(answer);
 				}
 
-				if (!this.answers.length) this.setTimeout(() => this.nextRound(), 5000);
+				if (!this.answers.length) this.setTimeout(() => void this.nextRound(), 5000);
 			}
 
 			return true;
@@ -811,9 +811,9 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const room = game.room;
 			game.deallocate(true);
 
-			const minigame = Games.createGame(room, (format as unknown) as IGameFormat,
+			const minigame = await Games.createGame(room, (format as unknown) as IGameFormat,
 				{pmRoom: room as Room, minigame: true}) as QuestionAndAnswer;
-			minigame.signups();
+			await minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
 			assert(minigame.answers.length);
@@ -832,9 +832,9 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const room = game.room as Room;
 			game.deallocate(true);
 
-			const minigame = Games.createGame(room, (format as unknown) as IGameFormat,
+			const minigame = await Games.createGame(room, (format as unknown) as IGameFormat,
 				{pmRoom: room, minigame: true}) as QuestionAndAnswer;
-			minigame.signups();
+			await minigame.signups();
 			if (minigame.timeout) clearTimeout(minigame.timeout);
 			await minigame.onNextRound();
 			assert(minigame.answers.length);
@@ -860,10 +860,10 @@ const tests: GameFileTests<QuestionAndAnswer> = {
 			const name = getBasePlayerName() + " 1";
 			const id = Tools.toId(name);
 			const user = Users.add(name, id);
-			const pmMinigame = Games.createGame(user, (format as unknown) as IGameFormat,
+			const pmMinigame = await Games.createGame(user, (format as unknown) as IGameFormat,
 				{pmRoom: room as Room, minigame: true}) as QuestionAndAnswer;
 
-			pmMinigame.signups();
+			await pmMinigame.signups();
 			if (pmMinigame.timeout) clearTimeout(pmMinigame.timeout);
 			await pmMinigame.onNextRound();
 			assert(pmMinigame.answers.length);

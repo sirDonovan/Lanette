@@ -36,4 +36,12 @@ export const game: IGameFile<CradilysCloseupCards> = Games.copyTemplatePropertie
 	name: "Cradily's Closeup Cards",
 	mascot: "Cradily",
 	scriptedOnly: true,
+	variants: [
+		{
+			name: "Inverse Cradily's Closeup Cards",
+			description: "Players try to play the Pokemon card farthest from the randomly chosen category each round!",
+			closeOrFar: 'far',
+			variantAliases: ["inverse"],
+		},
+	],
 });

@@ -17,8 +17,8 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 	roundTime: number = 5 * 60 * 1000;
 	usesWorkers: boolean = true;
 
-	static loadData(): void {
-		Games.getWorkers().portmanteaus.init();
+	static async loadData(): Promise<void> {
+		await Games.getWorkers().portmanteaus.initializeThread();
 	}
 
 	async customGenerateHint(): Promise<void> {
@@ -33,6 +33,7 @@ export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
 				numberOfPorts += this.random(this.format.customizableNumberOptions.ports.max - BASE_NUMBER_OF_PORTS + 1);
 			}
 		}
+
 		const result = await Games.getWorkers().portmanteaus.search({
 			customPortCategories: this.customPortCategories,
 			customPortDetails: this.customPortDetails,
@@ -180,5 +181,6 @@ export const game: IGameFile<PoliwrathsPortmanteaus> = Games.copyTemplatePropert
 			roundTime: 60 * 1000,
 		},
 	},
+	nonTrivialLoadData: true,
 	tests: Object.assign({}, questionAndAnswerGame.tests, tests),
 });

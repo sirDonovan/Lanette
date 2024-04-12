@@ -44,7 +44,7 @@ class DragapultsDangerZone extends ScriptedGame {
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		data.pokemon = Games.getPokemonList().map(x => x.name);
 	}
 
@@ -109,7 +109,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		this.removePlayerFromOrder(player);
 
 		if (player === this.currentPlayer) {
-			this.nextRound();
+			void this.nextRound();
 		} else if (this.matchupPlayers.includes(player)) {
 			this.cancelMatchup(player);
 		} else {
@@ -118,7 +118,7 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.playerCount >= 18) {
 			this.gridSize = this.teamBased ? 6 : 5;
 		} else if (this.playerCount >= 12) {
@@ -170,7 +170,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				usedLocations.push(location);
 			}
 
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		}
 	}
 
@@ -194,14 +194,14 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 		this.currentTeam = this.teamOrder[0];
 
-		this.nextRound();
+		void this.nextRound();
 	}
 
 	getDisplayedRoundNumber(): number {
 		return this.teamBased ? this.teamRound : this.soloRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.currentPlayer) {
 			if (!this.currentPlayer.eliminated) {
 				this.addRevealedLocation(this.playerLocations.get(this.currentPlayer)!);
@@ -225,7 +225,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				const html = this.getRoundHtml(players => this.getTeamsPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
 				return;
@@ -254,7 +254,7 @@ class DragapultsDangerZone extends ScriptedGame {
 				const html = this.getRoundHtml(players => this.getPlayerNames(players));
 				const uhtmlName = this.uhtmlBaseName + '-round-html';
 				this.onUhtml(uhtmlName, html, () => {
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(uhtmlName, html);
 				return;
@@ -272,7 +272,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		this.on(fireText, () => {
 			this.canFire = true;
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.say(fireText);
 	}
@@ -350,7 +350,7 @@ class DragapultsDangerZone extends ScriptedGame {
 
 		const text = loser.name + " did not select a Pokemon and was eliminated from the game!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 3 * 1000);
+			this.setTimeout(() => void this.nextRound(), 3 * 1000);
 		});
 		this.say(text);
 	}
@@ -367,7 +367,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			const text = "Neither player selected a Pokemon!";
 			this.on(text, () => {
 				this.currentPlayer = null;
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.say(text);
 			return;
@@ -414,7 +414,7 @@ class DragapultsDangerZone extends ScriptedGame {
 			this.currentPlayer = null;
 
 			this.on(text, () => {
-				this.setTimeout(() => this.nextRound(), 3 * 1000);
+				this.setTimeout(() => void this.nextRound(), 3 * 1000);
 			});
 		}
 
@@ -500,14 +500,14 @@ class DragapultsDangerZone extends ScriptedGame {
 					this.say(hitPlayer.name + " was there!");
 					if (hitPlayer.eliminated) {
 						this.currentPlayer = null;
-						this.nextRound();
+						void this.nextRound();
 					} else {
 						this.startMatchup([player, hitPlayer]);
 					}
 				} else {
 					this.say("__Splash__! Nothing happened.");
 					this.currentPlayer = null;
-					this.nextRound();
+					void this.nextRound();
 				}
 			}, 3 * 1000);
 		});

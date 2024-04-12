@@ -7,10 +7,12 @@ import { GameHostControlPanel } from './html-pages/game-host-control-panel';
 
 import type { HtmlPageBase } from './html-pages/html-page-base';
 import type { Room } from "./rooms";
+import type { Player } from "./room-activity";
 import type {
 	BaseCommandDefinitions, CommandDefinitions, CommandErrorArray, ICommandFile, ICommandGuide, IHtmlPageFile, LoadedCommands
 } from "./types/command-parser";
 import type { User } from "./users";
+import { ActivityPageBase } from './html-pages/activity-pages/activity-page-base';
 
 interface IGameHtmlPages {
 	cardMatching: typeof CardMatchingPage;
@@ -128,6 +130,7 @@ export class CommandContext {
 }
 
 export class CommandParser {
+	private activityHtmlPages: Dict<Map<Player, ActivityPageBase>> = {};
 	private commandGuides: Dict<Dict<ICommandGuide>> = {};
 	private commandModules: ICommandFile[] = [];
 	private htmlPages: Dict<Dict<HtmlPageBase>> = {};
@@ -142,10 +145,12 @@ export class CommandParser {
 
 	private commandsDir: string;
 	private privateCommandsDir: string;
+	private privateHtmlPagesDir: string;
 
 	constructor() {
 		this.commandsDir = path.join(Tools.srcBuildFolder, 'commands');
 		this.privateCommandsDir = path.join(this.commandsDir, 'private');
+		this.privateHtmlPagesDir = path.join(this.htmlPagesDir, 'private');
 	}
 
 	getGameHtmlPages(): IGameHtmlPages {
@@ -192,28 +197,8 @@ export class CommandParser {
 		this.loadCommandsDirectory(this.commandsDir, baseCommands);
 		this.loadCommandsDirectory(this.privateCommandsDir, baseCommands, true);
 
-		const htmlPageFiles = fs.readdirSync(this.htmlPagesDir);
-		for (const fileName of htmlPageFiles) {
-			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
-			const htmlPagePath = path.join(this.htmlPagesDir, fileName);
-
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
-			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
-			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
-
-			this.htmlPageModules[htmlPage.pageId] = htmlPage;
-			this.htmlPages[htmlPage.pageId] = htmlPage.pages;
-
-			if (htmlPage.commands) {
-				for (const i in htmlPage.commands) {
-					if (i in baseCommands) {
-						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
-					}
-				}
-
-				Object.assign(baseCommands, htmlPage.commands);
-			}
-		}
+		this.loadHtmlPagesDirectory(this.htmlPagesDir, baseCommands);
+		this.loadHtmlPagesDirectory(this.privateHtmlPagesDir, baseCommands, true);
 
 		global.Commands = this.loadCommandDefinitions(baseCommands);
 		global.BaseCommands = Tools.deepClone(global.Commands);
@@ -227,6 +212,7 @@ export class CommandParser {
 		return Config.commandCharacter ? message.startsWith(Config.commandCharacter) : false;
 	}
 
+	/**Returns `true` if a command was detected and ran successfully */
 	parse(room: Room | User, user: User, message: string, timestamp: number): boolean {
 		if (user.locked || !this.isCommandMessage(message)) return false;
 
@@ -255,7 +241,7 @@ export class CommandParser {
 			commandContext.run();
 		} catch (e) {
 			console.log(e);
-			Tools.logError(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
+			Tools.logException(e as NodeJS.ErrnoException, "Crash in command: " + Config.commandCharacter + command + " " + target +
 				" (room = " + room.id + "; " + "user = " + user.id + ")");
 			result = false;
 		}
@@ -277,6 +263,33 @@ export class CommandParser {
 		for (const i in this.htmlPages) {
 			if (id in this.htmlPages[i]) {
 				this.htmlPages[i][id].destroy();
+			}
+		}
+
+		for (const pageId in this.activityHtmlPages) {
+			this.activityHtmlPages[pageId].forEach((page, player) => {
+				if (player.id === id) page.onUserLeaveRoom();
+			})
+		}
+	}
+
+	onCreateActivityPage(page: ActivityPageBase, player: Player): void {
+		if (!(page.pageId in this.activityHtmlPages)) this.activityHtmlPages[page.pageId] = new Map();
+		if (!this.activityHtmlPages[page.pageId].has(player)) {
+			this.activityHtmlPages[page.pageId].set(player, page);
+		}
+	}
+
+	onDestroyPlayer(player: Player): void {
+		const pageIds = Object.keys(this.activityHtmlPages);
+		for (const pageId of pageIds) {
+			const page = this.activityHtmlPages[pageId].get(player);
+			if (page) {
+				// the page may be destroyed already by onDestroyUser or the activity
+				if (!page.destroyed) page.destroy();
+
+				this.activityHtmlPages[pageId].delete(player);
+				if (!this.activityHtmlPages[pageId].size) delete this.activityHtmlPages[pageId];
 			}
 		}
 	}
@@ -395,13 +408,12 @@ export class CommandParser {
 		this.loadBaseCommands();
 	}
 
-	private loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions,
-		privateDirectory?: boolean): BaseCommandDefinitions {
+	private loadCommandsDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): void {
 		let commandFiles: string[] = [];
 		try {
 			commandFiles = fs.readdirSync(directory);
 		} catch (e) {
-			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return allCommands;
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return;
 			throw e;
 		}
 
@@ -439,8 +451,38 @@ export class CommandParser {
 				Object.assign(allCommands, commandFile.commands);
 			}
 		}
+	}
 
-		return allCommands;
+	private loadHtmlPagesDirectory(directory: string, allCommands: BaseCommandDefinitions, privateDirectory?: boolean): void {
+		let htmlPageFiles: string[] = [];
+		try {
+			htmlPageFiles = fs.readdirSync(directory);
+		} catch (e) {
+			if ((e as NodeJS.ErrnoException).code === 'ENOENT' && privateDirectory) return;
+			throw e;
+		}
+
+		for (const fileName of htmlPageFiles) {
+			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
+			const htmlPagePath = path.join(directory, fileName);
+
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
+			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
+
+			this.htmlPageModules[htmlPage.pageId] = htmlPage;
+			this.htmlPages[htmlPage.pageId] = htmlPage.pages;
+
+			if (htmlPage.commands) {
+				for (const i in htmlPage.commands) {
+					if (i in allCommands) {
+						throw new Error("Html page command '" + i + "' is defined in more than 1 location.");
+					}
+				}
+
+				Object.assign(allCommands, htmlPage.commands);
+			}
+		}
 	}
 }
 

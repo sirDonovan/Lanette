@@ -103,6 +103,10 @@ export interface IGameScriptedBox extends IGameCustomBox {
 	previewFormat?: string;
 }
 
+export interface IGameVoteBox extends IGameCustomBox {
+	pokemonAvatar?: string;
+}
+
 export type GifIcon = 'gif' | 'icon';
 
 export interface IGameHostDisplay extends IGameCustomBox {
@@ -118,12 +122,37 @@ export interface IGameScriptedOptions {
 	assistActions?: boolean;
 }
 
+export interface IGameVoteOptions {
+	sortBy?: 'name' | 'category';
+	favoriteCategories?: string[];
+}
+
 export type UserHostStatus = 'unapproved' | 'novice' | 'approved';
 
 export interface IUserHostStatusData {
 	status: UserHostStatus;
 	previousStatus?: UserHostStatus;
 	expirationTime: number;
+}
+
+export interface ISavedCustomGridCell {
+	color?: HexCode;
+	label?: string;
+	labelColor?: HexCode;
+	pokemon?: string;
+	randomPokemon?: boolean;
+}
+
+export interface ISavedCustomGridData {
+	grid: ISavedCustomGridCell[][];
+	height: number;
+	pixelSize: number;
+	width: number;
+	allowDuplicatePokemon?: boolean;
+}
+
+export interface ISavedCustomGrids {
+	grids: ISavedCustomGridData[];
 }
 
 export type LeaderboardType = 'gameLeaderboard' | 'gameHostingLeaderbaord' | 'tournamentLeaderboard' | 'unsortedLeaderboard';
@@ -228,6 +257,7 @@ export interface IDatabase {
 	cycleStartDate?: string;
 	eventInformation?: Dict<IEventInformation>;
 	gameAchievements?: Dict<string[]>;
+	gameCustomGrids?: Dict<ISavedCustomGrids>;
 	gameLeaderboard?: ILeaderboard;
 	gameHostingLeaderbaord?: ILeaderboard;
 	gameHostBoxes?: Dict<IGameHostBox>;
@@ -237,6 +267,8 @@ export interface IDatabase {
 	gameFormatScriptedBoxes?: Dict<Dict<IGameScriptedBox>>;
 	gameScriptedOptions?: Dict<IGameScriptedOptions>;
 	gameTrainerCards?: Dict<IGameTrainerCard>;
+	gameVoteBoxes?: Dict<IGameVoteBox>;
+	gameVoteOptions?: Dict<IGameVoteOptions>;
 	lastGameFormatTimes?: Dict<number>;
 	lastGameTime?: number;
 	lastTournamentFormatTimes?: Dict<number>;

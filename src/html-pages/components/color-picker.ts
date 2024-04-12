@@ -1,14 +1,17 @@
-import type { HexCode, IHexCodeData, TextColorHex } from "../../types/tools";
+import type { BorderType, HexCode, IHexCodeData, TextColorHex } from "../../types/tools";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 import type { IPageElement } from "./pagination";
 import { Pagination } from "./pagination";
 import { HexCodeInput } from "./hex-code-input";
 import type { HtmlPageBase } from "../html-page-base";
+import { PokemonTextInput } from "./pokemon-text-input";
+import { PokemonChoices } from "./pokemon-picker-base";
 
 export type HueVariation = 'lowvariation' | 'standardvariation' | 'highvariation' | 'maxvariation';
 export type Lightness = 'shade' | 'lowlightness' | 'standardlightness' | 'highlightness' | 'tint';
 
+type ColorPickerView = 'input' | 'preselected';
 export interface IColorPick {
 	hexCode: HexCode;
 	hueVariation: HueVariation;
@@ -19,8 +22,22 @@ export interface IColorPick {
 }
 
 interface IColorPickerProps extends IPickerProps<IColorPick> {
-	random?: boolean;
+	name: string;
+
+	// only used for previews
+	border?: boolean;
+	borderRadius?: number;
+	borderSize?: number;
+	borderType?: BorderType;
+	button?: boolean;
+
+	autoSubmitCustomInput?: boolean;
 	currentPickObject?: IHexCodeData;
+	defaultView?: ColorPickerView;
+	hidePreview?: boolean;
+	onlyCustomPrimary?: boolean;
+	pokemon?: string;
+	random?: boolean;
 	onPickHueVariation: (pickerIndex: number, pick: HueVariation, dontRender: boolean | undefined) => void;
 	onPickLightness: (pickerIndex: number, pick: Lightness, dontRender: boolean | undefined) => void;
 }
@@ -49,11 +66,20 @@ const highLightness = 'highlightness';
 const tint = 'tint';
 
 const huesListCommand = 'hueslist';
-const customPrimaryCommand = 'customprimarycode';
-const customSecondaryCommand = 'customsecondarycode';
+const chooseInputCommand = 'chooseinput';
+const choosePreSelectedCommand = 'choosepreselected';
+const customPrimaryCommand = 'setcustomprimarycode';
+const customSecondaryCommand = 'setcustomsecondarycode';
+const setPokemonCommand = 'setpokemon';
+const clearCustomSecondaryCommand = 'clearcustomsecondarycode';
+const customPrimaryHexInputCommand = 'customprimaryinput';
+const customSecondaryHexInputCommand = 'customsecondaryinput';
 const submitCustomHexCodeCommand = 'submitcustomhexcode';
+const clearCustomHexCodeCommand = 'clearcustomhexcode';
 const chooseBlackTextColorCommand = 'chooseblacktextcolor';
 const chooseWhiteTextColorCommand = 'choosewhitetextcolor';
+const toggleShinyPokemonCommand = 'toggleshinypokemon';
+const copySourceCommand = 'copysource';
 
 export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	static shades: HexCode[] = [];
@@ -76,40 +102,60 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	customPrimaryColor: HexCode | undefined;
 	customSecondaryColor: HexCode | undefined;
 	customTextColor: TextColorHex = '#000000';
+	initializedPreSelected: boolean = false;
+	pokemon: string | undefined;
+	shinyPokemon: boolean = false;
+
+	// only used for previews
+	borderRadius: number | undefined;
+	borderSize: number | undefined;
+	borderType: BorderType | undefined;
 
 	lightness: Lightness;
 	hueVariation: HueVariation;
 
-	shadePagination: Pagination;
-	lowLightnessLowVariationPagination: Pagination;
-	lowLightnessStandardVariationPagination: Pagination;
-	lowLightnessHighVariationPagination: Pagination;
-	lowLightnessMaxVariationPagination: Pagination;
-	standardLightnessLowVariationPagination: Pagination;
-	standardLightnessStandardVariationPagination: Pagination;
-	standardLightnessHighVariationPagination: Pagination;
-	standardLightnessMaxVariationPagination: Pagination;
-	highLightnessLowVariationPagination: Pagination;
-	highLightnessStandardVariationPagination: Pagination;
-	highLightnessHighVariationPagination: Pagination;
-	highLightnessMaxVariationPagination: Pagination;
-	tintPagination: Pagination;
+	shadePagination!: Pagination;
+	lowLightnessLowVariationPagination!: Pagination;
+	lowLightnessStandardVariationPagination!: Pagination;
+	lowLightnessHighVariationPagination!: Pagination;
+	lowLightnessMaxVariationPagination!: Pagination;
+	standardLightnessLowVariationPagination!: Pagination;
+	standardLightnessStandardVariationPagination!: Pagination;
+	standardLightnessHighVariationPagination!: Pagination;
+	standardLightnessMaxVariationPagination!: Pagination;
+	highLightnessLowVariationPagination!: Pagination;
+	highLightnessStandardVariationPagination!: Pagination;
+	highLightnessHighVariationPagination!: Pagination;
+	highLightnessMaxVariationPagination!: Pagination;
+	tintPagination!: Pagination;
 	customPrimaryColorInput: HexCodeInput;
 	customSecondaryColorInput: HexCodeInput;
+	pokemonPicker: PokemonTextInput;
+	onlyCustomPrimary: boolean;
 
+	currentView: ColorPickerView;
 	paginations: Pagination[] = [];
+	copySources: ColorPicker[] = [];
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IColorPickerProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		ColorPicker.loadData();
 
+		this.borderRadius = this.props.borderRadius;
+		this.borderSize = this.props.borderSize;
+		this.borderType = this.props.borderType;
+		this.pokemon = this.props.pokemon;
+
+		this.currentView = this.props.defaultView || 'input';
+		this.onlyCustomPrimary = this.props.onlyCustomPrimary || this.props.border ? true : false;
+
 		if (this.props.currentPickObject) {
 			if (this.props.currentPickObject.color) {
 				this.customPrimaryColor = this.props.currentPickObject.color;
 			}
 
-			if (this.props.currentPickObject.secondaryColor) {
+			if (this.props.currentPickObject.secondaryColor && !this.onlyCustomPrimary) {
 				this.customSecondaryColor = this.props.currentPickObject.secondaryColor as HexCode;
 			}
 
@@ -122,6 +168,7 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 
 		if (this.currentPicks.length && this.currentPicks[0] in Tools.hexCodes) {
 			const hexCode = this.currentPicks[0] as HexCode;
+
 			if (Tools.hexCodes[hexCode]!.category === 'shade') {
 				this.lightness = 'shade';
 				this.hueVariation = 'standardvariation';
@@ -172,116 +219,44 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			this.hueVariation = 'lowvariation';
 		}
 
-		for (const hexCode of ColorPicker.shades) {
-			this.choices[hexCode] = {hexCode, lightness: 'shade', hueVariation: 'standardvariation'};
-		}
-
-		for (const hexCode of ColorPicker.lowLightnessLowVariation) {
-			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'lowvariation'};
-		}
-
-		for (const hexCode of ColorPicker.lowLightnessStandardVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'standardvariation'};
-		}
-
-		for (const hexCode of ColorPicker.lowLightnessHighVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'highvariation'};
-		}
-
-		for (const hexCode of ColorPicker.lowLightnessMaxVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'maxvariation'};
-		}
-
-		for (const hexCode of ColorPicker.standardLightnessLowVariation) {
-			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'lowvariation'};
-		}
-
-		for (const hexCode of ColorPicker.standardLightnessStandardVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'standardvariation'};
-		}
-
-		for (const hexCode of ColorPicker.standardLightnessHighVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'highvariation'};
-		}
-
-		for (const hexCode of ColorPicker.standardLightnessMaxVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'maxvariation'};
-		}
-
-		for (const hexCode of ColorPicker.highLightnessLowVariation) {
-			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'lowvariation'};
-		}
-
-		for (const hexCode of ColorPicker.highLightnessStandardVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'standardvariation'};
-		}
-
-		for (const hexCode of ColorPicker.highLightnessHighVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'highvariation'};
-		}
-
-		for (const hexCode of ColorPicker.highLightnessMaxVariation) {
-			if (hexCode in this.choices) continue;
-			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'maxvariation'};
-		}
-
-		for (const hexCode of ColorPicker.tints) {
-			this.choices[hexCode] = {hexCode, lightness: 'tint', hueVariation: 'standardvariation'};
-		}
-
-		this.renderChoices();
-
-		this.shadePagination = this.createColorPagination(ColorPicker.shades);
-		this.lowLightnessLowVariationPagination = this.createColorPagination(ColorPicker.lowLightnessLowVariation);
-		this.lowLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.lowLightnessStandardVariation);
-		this.lowLightnessHighVariationPagination = this.createColorPagination(ColorPicker.lowLightnessHighVariation);
-		this.lowLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.lowLightnessMaxVariation);
-		this.standardLightnessLowVariationPagination = this.createColorPagination(ColorPicker.standardLightnessLowVariation);
-		this.standardLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.standardLightnessStandardVariation);
-		this.standardLightnessHighVariationPagination = this.createColorPagination(ColorPicker.standardLightnessHighVariation);
-		this.standardLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.standardLightnessMaxVariation);
-		this.highLightnessLowVariationPagination = this.createColorPagination(ColorPicker.highLightnessLowVariation);
-		this.highLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.highLightnessStandardVariation);
-		this.highLightnessHighVariationPagination = this.createColorPagination(ColorPicker.highLightnessHighVariation);
-		this.highLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.highLightnessMaxVariation);
-		this.tintPagination = this.createColorPagination(ColorPicker.tints);
-
-		this.customPrimaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customPrimaryCommand, {
+		this.customPrimaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customPrimaryHexInputCommand, {
 			currentInput: this.customPrimaryColor,
-			label: "Custom primary color",
+			label: "Manual entry",
+			name: "Primary manual",
 			hideClearButton: true,
 			onSubmit: (output) => this.submitCustomPrimaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
 		});
 
-		this.customSecondaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customSecondaryCommand, {
+		this.customSecondaryColorInput = new HexCodeInput(htmlPage, this.commandPrefix, customSecondaryHexInputCommand, {
 			currentInput: this.customSecondaryColor,
-			label: "Custom secondary color",
+			label: "Manual entry",
+			name: "Secondary manual",
 			onClear: () => this.clearCustomSecondaryColor(),
 			onSubmit: (output) => this.submitCustomSecondaryColor(output as HexCode),
 			reRender: () => this.props.reRender(),
 		});
 
-		this.toggleActivePagination();
+		this.pokemonPicker = new PokemonTextInput(htmlPage, this.commandPrefix, setPokemonCommand, {
+			currentInput: this.props.pokemon,
+			inputWidth: Tools.minRoomWidth,
+			minPokemon: 1,
+			maxPokemon: 1,
+			name: "Pokemon",
+			placeholder: "Enter a Pokemon",
+			clearText: "Clear",
+			submitText: "Update",
+			onClear: () => this.clearPokemon(),
+			onSubmit: (output) => this.selectPokemon(output),
+			reRender: () => this.props.reRender(),
+		});
 
-		this.components = [this.shadePagination, this.lowLightnessLowVariationPagination, this.lowLightnessStandardVariationPagination,
-			this.lowLightnessHighVariationPagination, this.lowLightnessMaxVariationPagination,
-			this.standardLightnessLowVariationPagination, this.standardLightnessStandardVariationPagination,
-			this.standardLightnessHighVariationPagination, this.standardLightnessMaxVariationPagination,
-			this.highLightnessLowVariationPagination, this.highLightnessStandardVariationPagination,
-			this.highLightnessHighVariationPagination, this.highLightnessMaxVariationPagination, this.tintPagination,
-			this.customPrimaryColorInput, this.customSecondaryColorInput,
-		];
+		this.components = [this.customPrimaryColorInput, this.customSecondaryColorInput, this.pokemonPicker];
 
-		this.paginations = this.components.slice() as Pagination[];
+		if (this.currentView === 'preselected') {
+			this.initializePreSelected();
+			this.toggleActivePagination();
+		}
 	}
 
 	static loadData(): void {
@@ -382,6 +357,146 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.ColorPickerLoaded = true;
 	}
 
+	initializePreSelected(): void {
+		if (this.initializedPreSelected) return;
+
+		for (const hexCode of ColorPicker.shades) {
+			this.choices[hexCode] = {hexCode, lightness: 'shade', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.lowLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'lowvariation'};
+		}
+
+		for (const hexCode of ColorPicker.lowLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.lowLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'highvariation'};
+		}
+
+		for (const hexCode of ColorPicker.lowLightnessMaxVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'lowlightness', hueVariation: 'maxvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'lowvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'highvariation'};
+		}
+
+		for (const hexCode of ColorPicker.standardLightnessMaxVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'standardlightness', hueVariation: 'maxvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessLowVariation) {
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'lowvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessStandardVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'standardvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessHighVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'highvariation'};
+		}
+
+		for (const hexCode of ColorPicker.highLightnessMaxVariation) {
+			if (hexCode in this.choices) continue;
+			this.choices[hexCode] = {hexCode, lightness: 'highlightness', hueVariation: 'maxvariation'};
+		}
+
+		for (const hexCode of ColorPicker.tints) {
+			this.choices[hexCode] = {hexCode, lightness: 'tint', hueVariation: 'standardvariation'};
+		}
+
+		this.renderChoices();
+
+		this.shadePagination = this.createColorPagination(ColorPicker.shades);
+		this.lowLightnessLowVariationPagination = this.createColorPagination(ColorPicker.lowLightnessLowVariation);
+		this.lowLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.lowLightnessStandardVariation);
+		this.lowLightnessHighVariationPagination = this.createColorPagination(ColorPicker.lowLightnessHighVariation);
+		this.lowLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.lowLightnessMaxVariation);
+		this.standardLightnessLowVariationPagination = this.createColorPagination(ColorPicker.standardLightnessLowVariation);
+		this.standardLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.standardLightnessStandardVariation);
+		this.standardLightnessHighVariationPagination = this.createColorPagination(ColorPicker.standardLightnessHighVariation);
+		this.standardLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.standardLightnessMaxVariation);
+		this.highLightnessLowVariationPagination = this.createColorPagination(ColorPicker.highLightnessLowVariation);
+		this.highLightnessStandardVariationPagination = this.createColorPagination(ColorPicker.highLightnessStandardVariation);
+		this.highLightnessHighVariationPagination = this.createColorPagination(ColorPicker.highLightnessHighVariation);
+		this.highLightnessMaxVariationPagination = this.createColorPagination(ColorPicker.highLightnessMaxVariation);
+		this.tintPagination = this.createColorPagination(ColorPicker.tints);
+
+		this.paginations = [this.shadePagination, this.lowLightnessLowVariationPagination, this.lowLightnessStandardVariationPagination,
+			this.lowLightnessHighVariationPagination, this.lowLightnessMaxVariationPagination,
+			this.standardLightnessLowVariationPagination, this.standardLightnessStandardVariationPagination,
+			this.standardLightnessHighVariationPagination, this.standardLightnessMaxVariationPagination,
+			this.highLightnessLowVariationPagination, this.highLightnessStandardVariationPagination,
+			this.highLightnessHighVariationPagination, this.highLightnessMaxVariationPagination, this.tintPagination,
+		];
+
+		this.components = this.components.concat(this.paginations);
+
+		this.initializedPreSelected = true;
+	}
+
+	registerCopySources(copySources: readonly ColorPicker[]): void {
+		this.copySources = [];
+		for (const source of copySources) {
+			if (source === this) continue;
+			this.copySources.push(source);
+		}
+	}
+
+	copySource(source: ColorPicker): void {
+		this.customPrimaryColor = source.customPrimaryColor;
+		this.customTextColor = source.customTextColor;
+
+		if (!this.onlyCustomPrimary) this.customSecondaryColor = source.customSecondaryColor;
+
+		if (this.customPrimaryColor) {
+			this.customPrimaryColorInput.parentSetInput(this.customPrimaryColor);
+		} else {
+			this.customPrimaryColorInput.parentClearInput();
+		}
+
+		if (this.customSecondaryColor) {
+			this.customSecondaryColorInput.parentSetInput(this.customSecondaryColor);
+		} else {
+			this.customSecondaryColorInput.parentClearInput();
+		}
+
+		this.updateCustomColors();
+
+		this.currentPicks = source.currentPicks.slice();
+		this.renderChoices();
+
+		if (this.customPrimaryColor) {
+			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
+			this.parentPick(customHexCodeKey);
+		} else if (this.currentPicks.length) {
+			this.parentPick(this.currentPicks[0]);
+		} else {
+			this.currentPicks = [customHexCodeKey];
+			this.parentClear();
+		}
+	}
+
 	createColorPagination(colors: HexCode[]): Pagination {
 		const elements: IPageElement[] = [this.noPickElement];
 
@@ -421,34 +536,42 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 	}
 
 	toggleActivePagination(autoSelectPage?: boolean): void {
-		this.shadePagination.active = this.lightness === 'shade';
-		this.lowLightnessLowVariationPagination.active = this.lightness === 'lowlightness' &&
-			this.hueVariation === 'lowvariation';
-		this.lowLightnessStandardVariationPagination.active = this.lightness === 'lowlightness' &&
-			this.hueVariation === 'standardvariation';
-		this.lowLightnessHighVariationPagination.active = this.lightness === 'lowlightness' &&
-			this.hueVariation === 'highvariation';
-		this.lowLightnessMaxVariationPagination.active = this.lightness === 'lowlightness' &&
-			this.hueVariation === 'maxvariation';
-		this.standardLightnessLowVariationPagination.active = this.lightness === 'standardlightness' &&
-			this.hueVariation === 'lowvariation';
-		this.standardLightnessStandardVariationPagination.active = this.lightness === 'standardlightness' &&
-			this.hueVariation === 'standardvariation';
-		this.standardLightnessHighVariationPagination.active = this.lightness === 'standardlightness' &&
-			this.hueVariation === 'highvariation';
-		this.standardLightnessMaxVariationPagination.active = this.lightness === 'standardlightness' &&
-			this.hueVariation === 'maxvariation';
-		this.highLightnessLowVariationPagination.active = this.lightness === 'highlightness' &&
-			this.hueVariation === 'lowvariation';
-		this.highLightnessStandardVariationPagination.active = this.lightness === 'highlightness' &&
-			this.hueVariation === 'standardvariation';
-		this.highLightnessHighVariationPagination.active = this.lightness === 'highlightness' &&
-			this.hueVariation === 'highvariation';
-		this.highLightnessMaxVariationPagination.active = this.lightness === 'highlightness' &&
-			this.hueVariation === 'maxvariation';
-		this.tintPagination.active = this.lightness === 'tint';
+		const inputView = this.currentView === 'input';
+		this.customPrimaryColorInput.active = inputView;
+		this.customSecondaryColorInput.active = inputView;
+		this.pokemonPicker.active = inputView;
 
-		if (autoSelectPage) {
+		if (!this.initializedPreSelected) return;
+
+		const preSelectedView = this.currentView === 'preselected';
+		this.shadePagination.active = preSelectedView && this.lightness === 'shade';
+		this.lowLightnessLowVariationPagination.active = preSelectedView && this.lightness === 'lowlightness' &&
+			this.hueVariation === 'lowvariation';
+		this.lowLightnessStandardVariationPagination.active = preSelectedView && this.lightness === 'lowlightness' &&
+			this.hueVariation === 'standardvariation';
+		this.lowLightnessHighVariationPagination.active = preSelectedView && this.lightness === 'lowlightness' &&
+			this.hueVariation === 'highvariation';
+		this.lowLightnessMaxVariationPagination.active = preSelectedView && this.lightness === 'lowlightness' &&
+			this.hueVariation === 'maxvariation';
+		this.standardLightnessLowVariationPagination.active = preSelectedView && this.lightness === 'standardlightness' &&
+			this.hueVariation === 'lowvariation';
+		this.standardLightnessStandardVariationPagination.active = preSelectedView && this.lightness === 'standardlightness' &&
+			this.hueVariation === 'standardvariation';
+		this.standardLightnessHighVariationPagination.active = preSelectedView && this.lightness === 'standardlightness' &&
+			this.hueVariation === 'highvariation';
+		this.standardLightnessMaxVariationPagination.active = preSelectedView && this.lightness === 'standardlightness' &&
+			this.hueVariation === 'maxvariation';
+		this.highLightnessLowVariationPagination.active = preSelectedView && this.lightness === 'highlightness' &&
+			this.hueVariation === 'lowvariation';
+		this.highLightnessStandardVariationPagination.active = preSelectedView && this.lightness === 'highlightness' &&
+			this.hueVariation === 'standardvariation';
+		this.highLightnessHighVariationPagination.active = preSelectedView && this.lightness === 'highlightness' &&
+			this.hueVariation === 'highvariation';
+		this.highLightnessMaxVariationPagination.active = preSelectedView && this.lightness === 'highlightness' &&
+			this.hueVariation === 'maxvariation';
+		this.tintPagination.active = preSelectedView && this.lightness === 'tint';
+
+		if (preSelectedView && autoSelectPage) {
 			for (const pagination of this.paginations) {
 				if (pagination.active) {
 					pagination.autoSelectPage();
@@ -549,25 +672,72 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		this.choices[customHexCodeKey].gradient = Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor);
 	}
 
-	submitCustomPrimaryColor(output: HexCode): void {
+	submitCustomPrimaryColor(output: HexCode, dontRender?: boolean): void {
 		this.customPrimaryColor = output;
 		this.updateCustomColors();
 
-		this.props.reRender();
+		if (!dontRender) this.props.reRender();
 	}
 
-	clearCustomSecondaryColor(): void {
+	clearCustomSecondaryColor(dontRender?: boolean): void {
 		this.customSecondaryColor = undefined;
 		this.updateCustomColors();
 
-		this.props.reRender();
+		if (!dontRender) this.props.reRender();
 	}
 
-	submitCustomSecondaryColor(output: HexCode): void {
+	submitCustomSecondaryColor(output: HexCode, dontRender?: boolean): void {
 		this.customSecondaryColor = output;
 		this.updateCustomColors();
 
+		if (!dontRender) this.props.reRender();
+	}
+
+	selectPokemon(pokemon: PokemonChoices): void {
+		this.pokemon = pokemon[0]!.pokemon;
+
 		this.props.reRender();
+	}
+
+	clearPokemon(): void {
+		this.pokemon = undefined;
+
+		this.props.reRender();
+	}
+
+	parentClearBorderRadius(): void {
+		this.borderRadius = undefined;
+	}
+
+	parentSetBorderRadius(radius: number): void {
+		this.borderRadius = radius;
+	}
+
+	parentClearBorderSize(): void {
+		this.borderSize = undefined;
+	}
+
+	parentSetBorderSize(size: number): void {
+		this.borderSize = size;
+	}
+
+	parentClearBorderType(): void {
+		this.borderType = undefined;
+	}
+
+	parentSetBorderType(type: BorderType): void {
+		this.borderType = type;
+	}
+
+	parentSetPokemon(pokemon: string): void {
+		this.pokemon = pokemon;
+	}
+
+	pickCustomColor(): void {
+		if (!(customHexCodeKey in this.choices)) return;
+
+		if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
+		this.pick(customHexCodeKey);
 	}
 
 	tryCommand(originalTargets: readonly string[]): string | undefined {
@@ -575,7 +745,47 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 		const cmd = Tools.toId(targets[0]);
 		targets.shift();
 
-		if (cmd === hueVariationCommand) {
+		if (cmd === chooseInputCommand) {
+			if (this.currentView === 'input') return;
+
+			this.currentView = 'input';
+			this.toggleActivePagination();
+			this.props.reRender();
+		} else if (cmd === choosePreSelectedCommand) {
+			if (this.currentView === 'preselected') return;
+
+			this.currentView = 'preselected';
+			this.initializePreSelected();
+			this.toggleActivePagination();
+			this.props.reRender();
+		} else if (cmd === customPrimaryCommand) {
+			const validated = Tools.validateHexCode(targets[0].trim());
+			if (!validated) {
+				return "The specified hex code is invalid.";
+			}
+
+			this.customPrimaryColorInput.parentSetInput(validated);
+			this.submitCustomPrimaryColor(validated);
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
+		} else if (cmd === customSecondaryCommand) {
+			const validated = Tools.validateHexCode(targets[0].trim());
+			if (!validated) {
+				return "The specified hex code is invalid.";
+			}
+
+			this.customSecondaryColorInput.parentSetInput(validated);
+			this.submitCustomSecondaryColor(validated);
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
+		} else if (cmd === clearCustomSecondaryCommand) {
+			if (!this.customSecondaryColor) return;
+
+			this.customSecondaryColorInput.parentClearInput();
+			this.clearCustomSecondaryColor();
+
+			if (this.props.autoSubmitCustomInput) this.pickCustomColor();
+		} else if (cmd === hueVariationCommand) {
 			const variation = Tools.toId(targets[0]) as HueVariation | '';
 			if (variation === lowVariation || variation === standardVariation || variation === highVariation ||
 				variation === maxVariation) {
@@ -592,10 +802,18 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				return "'" + lightness + "' is not a valid lightness.";
 			}
 		} else if (cmd === submitCustomHexCodeCommand) {
-			if (!(customHexCodeKey in this.choices)) return;
+			this.pickCustomColor();
+		} else if (cmd === clearCustomHexCodeCommand) {
+			if (!this.customPrimaryColor) return;
 
-			if (this.currentPicks[0] === customHexCodeKey) this.currentPicks = [];
-			this.pick(customHexCodeKey);
+			this.customPrimaryColor = undefined;
+			this.customSecondaryColor = undefined;
+			this.customPrimaryColorInput.parentClearInput();
+			this.customSecondaryColorInput.parentClearInput();
+			this.updateCustomColors();
+
+			this.currentPicks = [customHexCodeKey];
+			this.clear();
 		} else if (cmd === chooseBlackTextColorCommand) {
 			if (!(customHexCodeKey in this.choices) || this.customTextColor === '#000000') return;
 			this.customTextColor = '#000000';
@@ -608,12 +826,166 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 			this.choices[customHexCodeKey].textColor = this.customTextColor;
 
 			this.props.reRender();
+		} else if (cmd === toggleShinyPokemonCommand) {
+			this.shinyPokemon = !this.shinyPokemon;
+
+			this.props.reRender();
+		} else if (cmd === copySourceCommand) {
+			if (!this.copySources.length) return;
+
+			const index = parseInt(targets[0].trim());
+			if (isNaN(index) || !this.copySources[index]) return;
+
+			this.copySource(this.copySources[index]);
+			this.props.reRender();
 		} else {
 			return super.tryCommand(originalTargets);
 		}
 	}
 
 	render(): string {
+		const currentViewInput = this.currentView === 'input';
+
+		let html = "";
+		html += this.getQuietPmButton(this.commandPrefix + ", " + chooseInputCommand, "Custom input",
+			{selectedAndDisabled: currentViewInput});
+		html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + choosePreSelectedCommand, "Pre-selected colors",
+			{selectedAndDisabled: !currentViewInput});
+		html += "<br /><br />";
+
+		if (currentViewInput) {
+			html += this.renderInput();
+		} else {
+			html += this.renderPreSelected();
+		}
+
+		return html;
+	}
+
+	renderColorForm(type: 'primary' | 'secondary'): string {
+		const primary = type === 'primary';
+		const tagName = primary ? 'primarycolorpicker' : 'secondarycolorpicker';
+		const currentColor = primary ? this.customPrimaryColor : this.customSecondaryColor;
+
+		let html = "<form data-submitsend='/msgroom " + this.htmlPage.room.id + ", /botmsg " + Users.self.name + ", " +
+			this.commandPrefix + ", " + (primary ? customPrimaryCommand : customSecondaryCommand) + ", {" + tagName + "}'>";
+		html += "<input id='" + tagName + "' name='" + tagName + "' type='color'" +
+			(currentColor ? " value='" + currentColor + "'" : "") + " />";
+		html += "<label for='" + tagName + "'>" + (primary ? "Primary" : "Secondary") + "</label>"
+		html += "&nbsp;<button class='button' type='submit'>Update</button>";
+		html += "</form>";
+
+		if (primary) {
+			html += this.customPrimaryColorInput.render();
+		} else {
+			html += this.customSecondaryColorInput.render();
+		}
+
+		return html;
+	}
+
+	renderInput(): string {
+		let html = "";
+		if (!this.props.hidePreview) {
+			html += "<center>";
+			if (this.props.border) {
+				const borderColor = this.customPrimaryColor ? {color: this.customPrimaryColor} as IHexCodeData : undefined;
+
+				if (this.props.button) {
+					const buttonStyle = Tools.getCustomButtonStyle(Tools.getWhiteHexCode(), borderColor, this.borderRadius,
+						this.borderSize, this.borderType);
+					html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" + buttonStyle + "'>Button " +
+						"border preview</button></div>";
+				} else {
+					const span = Tools.getHexSpan(Tools.getWhiteHexCode(), borderColor, this.borderRadius, this.borderSize,
+						this.borderType);
+					html += "<div style='height: 48px;width: 300px'>" + span + "<br /><b>Border preview</b><br />&nbsp;" +
+						(span ? "</span>" : "") + "</div>";
+				}
+			} else {
+				if (this.props.button) {
+					const customColor: IHexCodeData = {
+						color: (this.customPrimaryColor || "") as HexCode,
+						gradient: Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) as HexCode,
+						textColor: this.customTextColor,
+					};
+
+					html += "<div style='height: 48px;width: 300px'><br /><button class='button' style='" +
+						Tools.getCustomButtonStyle(customColor) + "'>Button background preview</button></div>";
+				} else {
+					html += "<div style='color:#000000;background: " +
+						Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";color: " +
+						this.customTextColor + ";height: 48px;width: 300px'><br /><b>Background preview</b></div>";
+				}
+			}
+
+			html += "</center>";
+		}
+
+		if (!this.props.autoSubmitCustomInput) {
+			html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
+				(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+			html += " | " + this.getQuietPmButton(this.commandPrefix + ", " + clearCustomHexCodeCommand, "Clear custom color" +
+				(this.customSecondaryColor ? "s" : ""), {disabled: !this.customPrimaryColor});
+		}
+
+		if (this.copySources.length) {
+			const sources: string[] = [];
+			for (let i = 0; i < this.copySources.length; i++) {
+				sources.push(this.getQuietPmButton(this.commandPrefix + ", " + copySourceCommand + ", " + i,
+					"Copy <b>" + this.copySources[i].props.name + "</b>"));
+			}
+
+			html += " | " + sources.join(" | ");
+		}
+
+		if (html) html += "<br /><br />";
+
+		html += this.renderColorForm('primary');
+		if (!this.onlyCustomPrimary) {
+			html += "<br />";
+			html += this.renderColorForm('secondary');
+			html += "<br />";
+			html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBlackTextColorCommand, "Black text color",
+				{selectedAndDisabled: this.customTextColor === '#000000'});
+			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseWhiteTextColorCommand, "White text color",
+				{selectedAndDisabled: this.customTextColor === '#ffffff'});
+		}
+
+		html += "<br /><br />";
+		html += "Select colors from a Pokemon" + this.htmlPage.getTooltip("Click the primary" +
+			(!this.onlyCustomPrimary ? " or secondary" : "") + " box to access the eyedropper tool");
+		html += this.pokemonPicker.render();
+		html += this.getQuietPmButton(this.commandPrefix + ", " + toggleShinyPokemonCommand,
+			(this.shinyPokemon ? "Regular" : "Shiny") + " Pokemon");
+
+		const pokemon = Dex.getPokemon(this.pokemon || "");
+		if (pokemon) {
+			html += "<br /><br /><br /><br />";
+			if (this.customPrimaryColor && !this.onlyCustomPrimary) html += "<br /><br /><br /><br />";
+
+			const icon = Dex.getPokemonIcon(pokemon);
+			if (icon) {
+				html += icon;
+				html += "&nbsp;";
+			}
+
+			const modelGenerations = Dex.getModelGenerations();
+			for (const modelGeneration of modelGenerations) {
+				if (!Dex.hasModelData(pokemon, modelGeneration)) continue;
+
+				const gif = Dex.getPokemonModel(pokemon, modelGeneration, undefined, this.shinyPokemon);
+				if (gif) {
+					html += gif;
+					html += "&nbsp;";
+				}
+			}
+		}
+
+		return html;
+	}
+
+	renderPreSelected(): string {
 		const currentShade = this.lightness === 'shade';
 		const currentLowLightness = this.lightness === 'lowlightness';
 		const currentStandardLightness = this.lightness === 'standardlightness';
@@ -700,24 +1072,6 @@ export class ColorPicker extends PickerBase<IColorPick, IColorPickerProps> {
 				}
 			} else {
 				html += this.tintPagination.render();
-			}
-
-			html += "<br /><br />";
-			html += this.customPrimaryColorInput.render();
-			if (this.customPrimaryColor) {
-				html += "<br />";
-				html += this.customSecondaryColorInput.render();
-				html += "<br />";
-				html += this.getQuietPmButton(this.commandPrefix + ", " + chooseBlackTextColorCommand, "Black text color",
-					{selectedAndDisabled: this.customTextColor === '#000000'});
-				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + chooseWhiteTextColorCommand, "White text color",
-					{selectedAndDisabled: this.customTextColor === '#ffffff'});
-				html += "<br /><br />";
-				html += "<center><div style='color:#000000;background: " +
-					Tools.getHexCodeGradient(this.customPrimaryColor, this.customSecondaryColor) + ";color: " + this.customTextColor + ";" +
-					"height: 48px;width: 300px'><br /><b>Text preview</b></div></center>";
-				html += this.getQuietPmButton(this.commandPrefix + ", " + submitCustomHexCodeCommand, "Save custom color" +
-					(this.customSecondaryColor ? "s" : ""));
 			}
 		}
 

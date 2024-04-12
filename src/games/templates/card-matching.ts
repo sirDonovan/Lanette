@@ -169,6 +169,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			showTypings: this.usesTypings,
 		});
 
+		CommandParser.onCreateActivityPage(page, player);
 		this.htmlPages.set(player, page);
 
 		return page;
@@ -185,7 +186,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		this.topCard.played = true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.createDeckPool();
 		this.createDeck();
 
@@ -209,7 +210,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		}
 
 		this.storePreviouslyPlayedCard({card: this.topCard.name, player: Users.self.name});
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	isPlayableCard(card: ICard, otherCard: ICard): boolean {
@@ -331,13 +332,13 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		this.eliminatePlayer(player);
 
 		const htmlPage = this.getHtmlPage(player);
-		htmlPage.renderCardActionsHtml();
+		htmlPage.clearCardActionsHtml();
 		htmlPage.send();
 
 		if (autoPlay) {
 			player.useCommand('play', autoPlay);
 		} else {
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -345,7 +346,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		return this.cardRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		this.canPlay = false;
 		if (this.currentPlayer) {
 			this.lastPlayer = this.currentPlayer;
@@ -455,7 +456,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 					delete this.topCard.action;
 				}
 
-				this.nextRound();
+				void this.nextRound();
 				return;
 			}
 
@@ -464,8 +465,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			turnCards = this.getTurnCards(player!);
 			const htmlPage = this.getHtmlPage(player!);
 			htmlPage.renderCardActionsHtml(turnCards.action, turnCards.group, turnCards.single);
-			htmlPage.renderDrawnCardsHtml();
-			htmlPage.renderPlayedCardsHtml();
+			htmlPage.clearPlayedAndDrawnHtml();
 			htmlPage.send();
 			player!.sendHighlight("It is your turn!");
 
@@ -480,12 +480,12 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 				this.setTimeout(() => {
 					if (!player!.eliminated) {
 						if (this.finitePlayerCards) {
-							if (this.addPlayerInactiveRound(player!)) {
+							if (this.incrementPlayerInactiveRound(player!)) {
 								this.say(player!.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
 								this.eliminatePlayer(player!);
 
-								htmlPage.renderCardActionsHtml();
+								htmlPage.clearCardActionsHtml();
 								htmlPage.send();
 
 								const newFinalPlayer = this.getFinalPlayer();
@@ -499,7 +499,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 							this.autoPlay(player!, turnCards);
 						}
 					} else {
-						this.nextRound();
+						void this.nextRound();
 					}
 				}, timeAfterWarning);
 			}, this.turnPmWarningTime);
@@ -646,7 +646,7 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 			}
 
 			const htmlPage = this.getHtmlPage(player);
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsHtml(playedCards);
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.renderHandHtml();
@@ -728,7 +728,7 @@ const commands: GameCommandDefinitions<CardMatching> = {
 			} else if (this.finitePlayerCards && cards.length === this.minimumPlayedCards) {
 				this.say(user.name + " has " + this.minimumPlayedCards + " card" + (this.minimumPlayedCards > 1 ? "s" : "") + " left!");
 			}
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 		eliminatedGameCommand: true,
@@ -740,27 +740,36 @@ commands.summary.aliases = ['cards', 'hand'];
 
 const tests: GameFileTests<CardMatching> = {
 	'it should properly create a deck': {
-		test(game): void {
-			addPlayers(game, game.maxPlayers || 15);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, game.maxPlayers || 15);
+			await game.start();
 			assert(game.deck.length);
 			assert(game.currentPlayer);
 			assert(game.awaitingCurrentPlayerCard);
 		},
 	},
 	'it should create unique regular cards': {
-		test(game): void {
-			addPlayers(game, game.maxPlayers || 15);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, game.maxPlayers || 15);
+			await game.start();
 			assert(game.deck.length);
 			assert(game.currentPlayer);
 			assert(game.awaitingCurrentPlayerCard);
 		},
 	},
 	'it should create unique action cards': {
-		test(game): void {
-			addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
+			await game.start();
 			const actionCards = Object.keys(game.actionCards);
 			for (const actionCard of actionCards) {
 				const cardData = game.actionCards[actionCard];

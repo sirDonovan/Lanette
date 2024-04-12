@@ -5,6 +5,7 @@ import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
 import type { User } from "./users";
 
+const SIGNUPS_REFRESH_TIMER = 60 * 1000;
 const FIRST_ACTIVITY_WARNING = 5 * 60 * 1000;
 const SECOND_ACTIVITY_WARNING = 30 * 1000;
 const MIN_HOST_EXTENSION_MINUTES = 1;
@@ -29,6 +30,7 @@ export class UserHostedGame extends Game {
 	scoreCap: number = 0;
 	shinyMascot: boolean = false;
 	showSignupsHtml = true;
+	signupsRefreshTimeout: NodeJS.Timeout | null = null;
 	storedMessages: Dict<string> | null = null;
 	subHostId: string | null = null;
 	subHostName: string | null = null;
@@ -175,10 +177,10 @@ export class UserHostedGame extends Game {
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			this.room.pmHtml(user, "To assist with your game, try using the <b>Host Control Panel</b>! It allows you to manage " +
-				"attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
-				Client.getPmSelfButton(Config.commandCharacter + CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand +
-				" " + this.room.title, "Open panel"));
+			this.room.pmUhtml(user, "control-panel-button", "To assist with your game, try using the <b>Host Control Panel</b>! It " +
+				"allows you to manage attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter +
+				CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand + " " + this.room.title, "Open panel"));
 		}
 	}
 
@@ -351,6 +353,11 @@ export class UserHostedGame extends Game {
 		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
+		} else {
+			this.signupsRefreshTimeout = setTimeout(() => {
+				this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+				this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
+			}, SIGNUPS_REFRESH_TIMER);
 		}
 	}
 
@@ -359,6 +366,7 @@ export class UserHostedGame extends Game {
 
 		if (this.startTimer) clearTimeout(this.startTimer);
 		if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+		if (this.signupsRefreshTimeout) clearTimeout(this.signupsRefreshTimeout);
 
 		this.started = true;
 		this.startTime = Date.now();
@@ -417,6 +425,7 @@ export class UserHostedGame extends Game {
 
 		Games.setLastGame(this.room, now);
 		Games.setLastUserHostedGame(this.room, now);
+		Games.setLastWinners(this.room, Array.from(this.winners.keys()).map(x => x.name));
 		database.lastUserHostedGameTime = now;
 
 		if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
@@ -467,6 +476,13 @@ export class UserHostedGame extends Game {
 	}
 
 	forceEnd(user: User, reason?: string): void {
+		if (this.lastCustomGridsUhtml) {
+			for (const customGrid of this.lastCustomGridsUhtml) {
+				if (!customGrid) continue;
+				this.sayUhtmlChange(customGrid.uhtmlName, "<center>(removed " + customGrid.user + "'s custom grid)</center>");
+			}
+		}
+
 		Games.removeLastUserHostTime(this.room, this.hostId);
 		this.say(this.name + " " + this.activityType + " was forcibly ended!");
 		this.room.modnote(this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
@@ -494,6 +510,12 @@ export class UserHostedGame extends Game {
 			clearTimeout(this.hostTimeout);
 			// @ts-expect-error
 			this.hostTimeout = undefined;
+		}
+
+		if (this.signupsRefreshTimeout) {
+			clearTimeout(this.signupsRefreshTimeout);
+			// @ts-expect-error
+			this.signupsRefreshTimeout = undefined;
 		}
 	}
 

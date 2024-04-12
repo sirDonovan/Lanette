@@ -16,7 +16,8 @@ class SpotlightTeam extends CollectiveTeam {
 
 	currentPlayers: Dict<Player> = {};
 
-	beforeNextRound(this: SpotlightTeamThis, newAnswer: boolean): boolean | string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async beforeNextRound(this: SpotlightTeamThis, newAnswer: boolean): Promise<boolean | string> {
 		if (!newAnswer) return true;
 
 		const emptyTeams = this.getEmptyTeams();
@@ -110,8 +111,8 @@ const tests: GameFileTests<SpotlightTeamThis> = {
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
-			const players = addPlayers(game);
-			game.start();
+			const players = await addPlayers(game);
+			await game.start();
 			if (game.timeout) clearTimeout(game.timeout);
 			await game.onNextRound();
 			assert(game.answers.length);

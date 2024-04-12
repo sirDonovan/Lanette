@@ -21,7 +21,7 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	solvedLetters: string[] = [];
 	updateHintTime = 3000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),
@@ -93,11 +93,11 @@ class HitmonchansHangman extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.say(text);
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 
