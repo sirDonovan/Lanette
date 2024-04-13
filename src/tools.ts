@@ -1108,7 +1108,7 @@ export class Tools {
 		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number): void => {
 			if (!currentPermutation) currentPermutation = [];
 			const currentLength = currentPermutation.length;
-			if (currentLength >= minimumLength!) {
+			if (currentLength >= minimumLength) {
 				permutations.push(currentPermutation);
 				if (currentLength === maximumLength) return;
 			}

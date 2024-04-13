@@ -163,7 +163,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!repeatRoom.repeatedMessages) repeatRoom.repeatedMessages = {};
 			repeatRoom.repeatedMessages[messageId] = {
-				timer: setInterval(() => repeatRoom!.say(message), interval),
+				timer: setInterval(() => repeatRoom.say(message), interval),
 				message,
 				interval,
 				name: messageName,

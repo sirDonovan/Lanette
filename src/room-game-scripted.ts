@@ -1436,9 +1436,9 @@ export class ScriptedGame extends Game {
 			if (points <= 0) return;
 			let winnings = 0;
 			if (this.winners.has(player)) {
-				winnings = Math.floor(winnerBits! * points);
+				winnings = Math.floor(winnerBits * points);
 			} else {
-				winnings = Math.floor(loserBits! * points);
+				winnings = Math.floor(loserBits * points);
 			}
 			if (winnings) this.addBits(player, winnings);
 		});

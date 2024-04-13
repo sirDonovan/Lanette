@@ -101,7 +101,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			GEN + ")</span><br /><br />" + pokemonIcons.join(", ") + "</div>";
 		const uhtmlName = this.uhtmlBaseName + "-params";
 		this.onUhtml(uhtmlName, html, () => {
-			const text = currentPlayer!.name + " you are up!";
+			const text = currentPlayer.name + " you are up!";
 			this.on(text, () => {
 				this.canAdd = true;
 				this.onCommands(['add'], {max: 1}, () => void this.nextRound());

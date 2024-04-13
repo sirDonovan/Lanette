@@ -45,10 +45,10 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 			this.pendingResolves.push({resolve, messageNumber: this.messageNumber});
 
 			const workerMessage = this.messageNumber + "|" + id + "|" + (message || "");
-			if (this.queueWorkerMessages && this.workerBusy[workerNumber!]) {
-				this.workerMessageQueues[workerNumber!].push(workerMessage);
+			if (this.queueWorkerMessages && this.workerBusy[workerNumber]) {
+				this.workerMessageQueues[workerNumber].push(workerMessage);
 			} else {
-				this.postMessage(workerNumber!, workerMessage);
+				this.postMessage(workerNumber, workerMessage);
 			}
 		});
 	}

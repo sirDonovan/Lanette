@@ -445,13 +445,13 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		const uhtmlName = this.uhtmlBaseName + '-round';
 		this.onUhtml(uhtmlName, html, () => {
 			if (finalPlayer) {
-				this.say(player!.name + " " + eliminatedText);
+				this.say(player.name + " " + eliminatedText);
 				this.end();
 				return;
 			}
 
 			// left before text appeared
-			if (player!.eliminated) {
+			if (player.eliminated) {
 				if (this.topCard.action && this.topCard.action.drawCards) {
 					delete this.topCard.action;
 				}
@@ -462,28 +462,28 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 
 			this.canPlay = true;
 
-			turnCards = this.getTurnCards(player!);
-			const htmlPage = this.getHtmlPage(player!);
+			turnCards = this.getTurnCards(player);
+			const htmlPage = this.getHtmlPage(player);
 			htmlPage.renderCardActionsHtml(turnCards.action, turnCards.group, turnCards.single);
 			htmlPage.clearPlayedAndDrawnHtml();
 			htmlPage.send();
-			player!.sendHighlight("It is your turn!");
+			player.sendHighlight("It is your turn!");
 
-			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player!);
+			if (this.parentGame && this.parentGame.onChildPlayerTurn) this.parentGame.onChildPlayerTurn(player);
 
 			this.setTimeout(() => {
 				const timeAfterWarning = this.turnTimeLimit - this.turnPmWarningTime;
 				const timeAfterWarningString = Tools.toDurationString(timeAfterWarning);
-				player!.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString +
+				player.say("There " + (timeAfterWarningString.endsWith("s") ? "are" : "is") + " only " + timeAfterWarningString +
 					" of your turn left!");
 
 				this.setTimeout(() => {
-					if (!player!.eliminated) {
+					if (!player.eliminated) {
 						if (this.finitePlayerCards) {
-							if (this.incrementPlayerInactiveRound(player!)) {
-								this.say(player!.name + " DQed for inactivity!");
+							if (this.incrementPlayerInactiveRound(player)) {
+								this.say(player.name + " DQed for inactivity!");
 								// nextRound() called in onRemovePlayer
-								this.eliminatePlayer(player!);
+								this.eliminatePlayer(player);
 
 								htmlPage.clearCardActionsHtml();
 								htmlPage.send();
@@ -491,12 +491,12 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 								const newFinalPlayer = this.getFinalPlayer();
 								if (newFinalPlayer) newFinalPlayer.metWinCondition = true;
 
-								this.onRemovePlayer(player!);
+								this.onRemovePlayer(player);
 							} else {
-								player!.useCommand('draw');
+								player.useCommand('draw');
 							}
 						} else {
-							this.autoPlay(player!, turnCards);
+							this.autoPlay(player, turnCards);
 						}
 					} else {
 						void this.nextRound();

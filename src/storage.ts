@@ -344,7 +344,7 @@ export class Storage {
 				const month = date.getMonth() + 1;
 				const day = date.getDate();
 				const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
-				for (const leaderboardType of leaderboardTypes!) {
+				for (const leaderboardType of leaderboardTypes) {
 					if (!database[leaderboardType]) continue;
 					for (const i in database[leaderboardType]!.entries) {
 						const user = database[leaderboardType]!.entries[i];
