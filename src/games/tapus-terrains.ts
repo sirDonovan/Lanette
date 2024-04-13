@@ -194,8 +194,6 @@ class TapusTerrains extends ScriptedGame {
 	}
 
 	onEnd(): void {
-		this.convertPointsToBits(0);
-
 		for (const i in this.players) {
 			if (this.players[i].eliminated) continue;
 			const player = this.players[i];
@@ -203,6 +201,8 @@ class TapusTerrains extends ScriptedGame {
 			this.addBits(player, 500);
 			// if (player === this.firstJump) Games.unlockAchievement(this.room, player, "Rainbow Wing", this);
 		}
+
+		this.convertPointsToBits(0);
 
 		this.announceWinners();
 	}
