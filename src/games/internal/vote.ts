@@ -385,7 +385,7 @@ export class Vote extends ScriptedGame {
 
 		let html = "";
 		html += "<details" + (!vote || showVotableGames ? " open" : "") + "><summary><b>Current votable games</b></summary>";
-		html += this.getQuietPmButton(NAME_SORT_COMMAND, "Sory by name", !sortByCategory, player);
+		html += this.getQuietPmButton(NAME_SORT_COMMAND, "Sort by name", !sortByCategory, player);
 		html += " | ";
 		html += this.getQuietPmButton(CATEGORY_SORT_COMMAND, "Sort by category", sortByCategory, player);
 		html += "<br /><br />";
