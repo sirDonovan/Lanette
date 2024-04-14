@@ -285,7 +285,9 @@ export abstract class HtmlPageBase {
 				SELECTOR_COMMAND_PREFIX + selector.id + "," + this.renderSelector!(selector));
 		}
 
-		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render!());
+		if (!this.render) throw new Error("No render method is defined so a selector must be passed");
+
+		return Client.exceedsMessageSizeLimit("/sendhtmlpage " + this.userId + "," + this.pageId + "," + this.render());
 	}
 
 	getSelectors(): readonly HtmlSelector[] {

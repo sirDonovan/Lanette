@@ -637,26 +637,28 @@ export class GameHostControlPanel extends HtmlPageBase {
 		void (async () => {
 			const game = await Games.createGame(user, format, {pmRoom: this.room, minigame: true});
 			if (game) {
-				this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
-				this.generatedAnswer = game.getRandomAnswer!();
-
-				let attempts = 0;
-				while (this.exceedsMessageSizeLimit() && attempts < 100) {
-					attempts++;
+				if (!this.closed) {
+					this.generateHintsGameHtml = game.getMascotAndNameHtml(undefined, true);
 					this.generatedAnswer = game.getRandomAnswer!();
-				}
 
-				if (this.exceedsMessageSizeLimit()) {
-					this.generatedAnswer = undefined;
-					this.generatedAnswerErrorHtml = "A random answer could not be generated. Please try again!";
-				} else {
-					this.generatedAnswerErrorHtml = "";
+					let attempts = 0;
+					while (this.exceedsMessageSizeLimit(this.generateHintsSelector) && attempts < 100) {
+						attempts++;
+						this.generatedAnswer = game.getRandomAnswer!();
+					}
+
+					if (this.exceedsMessageSizeLimit(this.generateHintsSelector)) {
+						this.generatedAnswer = undefined;
+						this.generatedAnswerErrorHtml = "A random answer could not be generated. Please try again!";
+					} else {
+						this.generatedAnswerErrorHtml = "";
+					}
+
+					this.send();
 				}
 
 				game.deallocate(true);
 			}
-
-			this.send();
 		})();
 
 		return true;
