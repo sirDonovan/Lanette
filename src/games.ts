@@ -1551,8 +1551,7 @@ export class Games {
 		this.gameCooldownMessageTimers[room.id] = setTimeout(() => {
 			delete this.gameCooldownMessageTimerData[room.id];
 			delete this.gameCooldownMessageTimers[room.id];
-			room.say("There " + (minigameCooldownMinutes === 1 ? "is **1 minute**" : "are **" + minigameCooldownMinutes +
-				" minutes**") + " of the game cooldown remaining so minigames can now be played!");
+			room.say("The cooldown timer is halfway over! Minigames can be played during the remaining time.");
 		}, timer);
 	}
 

@@ -2258,8 +2258,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		Games.setLastGame(this.room, Date.now());
 
 		if (Config.tournamentGameCooldownTimers && this.room.id in Config.tournamentGameCooldownTimers) {
-			this.say("The **" + Config.tournamentGameCooldownTimers[this.room.id] + "-minute cooldown** until the next tournament " +
-				"starts now!");
+			this.say("A " + Config.tournamentGameCooldownTimers[this.room.id] + "-minute cooldown timer starts now!");
 		}
 
 		this.setAutoCreateTimer();
