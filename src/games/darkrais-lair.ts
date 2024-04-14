@@ -350,6 +350,8 @@ class DarkraisLair extends MapGame {
 			if (winningTeam) {
 				this.say("**Team " + winningTeam.name + "** wins the game!");
 				for (const player of winningTeam.players) {
+					if (player.eliminated) continue;
+
 					this.winners.set(player, 1);
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 4);
@@ -361,6 +363,7 @@ class DarkraisLair extends MapGame {
 			} else {
 				for (const id in this.players) {
 					if (this.players[id].eliminated) continue;
+
 					const player = this.players[id];
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 2);
