@@ -348,7 +348,7 @@ export const commands: BaseCommandDefinitions = {
 				formatid: format.customFormatName ? format.customFormatName : Dex.joinNameAndCustomRules(format, format.customRules),
 				playerCap: official ? Tournaments.maxPlayerCap : playerCap,
 				official,
-				endOfCycle: nextOfficialTournaments[room.id] && nextOfficialTournaments[room.id]!.endOfCycle,
+				endOfCycle: official && nextOfficialTournaments[room.id] && nextOfficialTournaments[room.id]!.endOfCycle,
 				time,
 				tournamentName: format.tournamentName || format.customFormatName,
 			};
