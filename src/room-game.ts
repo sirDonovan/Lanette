@@ -62,6 +62,7 @@ export abstract class Game extends Activity {
 	playerCap?: number;
 	playerCustomBoxes = new Map<Player, IGameCustomBox | undefined>();
 	readonly points?: Map<Player, number>;
+	signupsUpdateInterval?: NodeJS.Timeout;
 	startingPoints?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {

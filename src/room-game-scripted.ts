@@ -75,7 +75,6 @@ export class ScriptedGame extends Game {
 	requiresAutoconfirmed?: boolean;
 	roundTime?: number;
 	shinyMascot?: boolean;
-	signupsUpdateInterval?: NodeJS.Timeout;
 	startingLives?: number;
 	subGameNumber?: number;
 	timeLimit?: number;
@@ -448,6 +447,7 @@ export class ScriptedGame extends Game {
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
 			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
+
 			if (!this.options.freejoin) {
 				this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 				this.signupsUpdateInterval = setInterval(() => {

@@ -16,11 +16,9 @@ const HOST_TIME_LIMIT = 25 * 60 * 1000;
 export class UserHostedGame extends Game {
 	endTime: number = 0;
 	extended: boolean = false;
-	gameTimer: NodeJS.Timeout | null = null;
 	gameTimerEndTime: number = 0;
 	hostId: string = '';
 	hostName: string = '';
-	hostTimeout: NodeJS.Timeout | null = null;
 	isUserHosted: boolean = true;
 	mascots: string[] = [];
 	noControlPanel: boolean = false;
@@ -30,7 +28,6 @@ export class UserHostedGame extends Game {
 	scoreCap: number = 0;
 	shinyMascot: boolean = false;
 	showSignupsHtml = true;
-	signupsRefreshTimeout: NodeJS.Timeout | null = null;
 	storedMessages: Dict<string> | null = null;
 	subHostId: string | null = null;
 	subHostName: string | null = null;
@@ -39,6 +36,10 @@ export class UserHostedGame extends Game {
 
 	// set in onInitialize()
 	declare format: IUserHostedFormat;
+
+	gameTimer?: NodeJS.Timeout;
+	hostTimeout?: NodeJS.Timeout;
+	signupsRefreshTimeout?: NodeJS.Timeout;
 
 	declare readonly room: Room;
 
@@ -239,13 +240,6 @@ export class UserHostedGame extends Game {
 			this.joinNotices.add(user.id);
 		}
 
-		if (!this.signupsHtmlTimeout) {
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-				this.signupsHtmlTimeout = null;
-			}, this.getSignupsUpdateDelay());
-		}
-
 		if (this.playerCap && this.playerCount >= this.playerCap) this.start();
 
 		return player;
@@ -259,17 +253,6 @@ export class UserHostedGame extends Game {
 		if (!silent && !this.leaveNotices.has(id)) {
 			this.sendLeaveNotice(player);
 			this.leaveNotices.add(id);
-		}
-
-		if (this.options.freejoin) return;
-
-		if (!this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
 		}
 	}
 
@@ -339,7 +322,14 @@ export class UserHostedGame extends Game {
 		}
 
 		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
-		if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+
+		if (!this.options.freejoin) {
+			this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			this.signupsUpdateInterval = setInterval(() => {
+				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			}, 1000);
+		}
+
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
@@ -364,8 +354,8 @@ export class UserHostedGame extends Game {
 	start(isAuth?: boolean): boolean {
 		if (this.started || (this.minPlayers && !isAuth && this.playerCount < this.minPlayers)) return false;
 
+		if (this.signupsUpdateInterval) clearInterval(this.signupsUpdateInterval);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 		if (this.signupsRefreshTimeout) clearTimeout(this.signupsRefreshTimeout);
 
 		this.started = true;
@@ -502,20 +492,22 @@ export class UserHostedGame extends Game {
 
 		if (this.gameTimer) {
 			clearTimeout(this.gameTimer);
-			// @ts-expect-error
 			this.gameTimer = undefined;
 		}
 
 		if (this.hostTimeout) {
 			clearTimeout(this.hostTimeout);
-			// @ts-expect-error
 			this.hostTimeout = undefined;
 		}
 
 		if (this.signupsRefreshTimeout) {
 			clearTimeout(this.signupsRefreshTimeout);
-			// @ts-expect-error
 			this.signupsRefreshTimeout = undefined;
+		}
+
+		if (this.signupsUpdateInterval) {
+			clearInterval(this.signupsUpdateInterval);
+			this.signupsUpdateInterval = undefined;
 		}
 	}
 
