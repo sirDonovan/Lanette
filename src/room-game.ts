@@ -43,7 +43,7 @@ export abstract class Game extends Activity {
 	options!: IGameOptions;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
-	joinLeaveButtonRefreshUhtmlName!: string;
+	joinLeaveButtonBumpUhtmlName!: string;
 	privateJoinLeaveUhtmlName!: string;
 
 	customBox?: IGameCustomBox;
@@ -251,8 +251,9 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsPlayersHtml(): string {
-		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
+		return Games.getSignupsPlayersHtml(this.customBox,
+			this.getMascotAndNameHtml(" - signups - " + Tools.toDurationString(Date.now() - this.signupsTime, {hhmmss: true})),
+			this.playerCount, this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
 	}
 
 	getJoinButtonHtml(lateJoin?: boolean): string {

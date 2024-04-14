@@ -2088,10 +2088,10 @@ export class Games {
 		return "<center>" + this.getCustomBoxDiv(content, hostBox) + "</center>";
 	}
 
-	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number,
-		playerNames: string, pokemonAvatars?: boolean): string {
-		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
-			"<b>Players (" + playerCount + ")</b>: " + playerNames);
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, headerHtml: string, playerCount: number,
+		subHtml: string, pokemonAvatars?: boolean): string {
+		return this.getSignupsCustomBoxDiv(headerHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
+			"<b>Players (" + playerCount + ")</b>: " + subHtml);
 	}
 
 	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {

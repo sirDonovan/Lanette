@@ -1369,7 +1369,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.possibleTeams.set(player, Dex.getPossibleTeams(this.possibleTeams.get(player)!, pool, options));
 	}
 
-	getSignupsHtml(): string {
+	getSignupsDescriptionHtml(): string {
 		let html = "<div class='infobox'><b>" + Users.self.name + " is hosting a " + this.name + " tournament!</b>";
 		if (this.htmlPageGameDescription) html += "<br />" + this.htmlPageGameDescription;
 		html += "<br /><br />";
@@ -1391,7 +1391,7 @@ export abstract class BattleElimination extends ScriptedGame {
 	}
 
 	postSignups(): void {
-		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.sayUhtmlAuto(this.uhtmlBaseName + '-signups', this.getSignupsDescriptionHtml());
 
 		if (this.subRoom) {
 			this.subRoom.sayUhtml(this.uhtmlBaseName + "-join-tournament", "<b>You must join the tournament in this room to play! Click " +
@@ -1557,7 +1557,7 @@ export abstract class BattleElimination extends ScriptedGame {
 
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
 
-		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+		this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsDescriptionHtml());
 
 		if (this.canReroll) {
 			let text = "";
@@ -1669,7 +1669,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 
 			if (!this.started && !this.signupsHtmlTimeout) {
-				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsDescriptionHtml());
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.signupsHtmlTimeout = null;
 				}, this.getSignupsUpdateDelay());
@@ -1713,7 +1713,7 @@ export abstract class BattleElimination extends ScriptedGame {
 			}
 
 			if (!this.signupsHtmlTimeout) {
-				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsHtml());
+				this.sayUhtmlChange(this.uhtmlBaseName + '-signups', this.getSignupsDescriptionHtml());
 				this.signupsHtmlTimeout = setTimeout(() => {
 					this.signupsHtmlTimeout = null;
 				}, this.getSignupsUpdateDelay());

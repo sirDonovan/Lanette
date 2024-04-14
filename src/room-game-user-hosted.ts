@@ -325,7 +325,7 @@ export class UserHostedGame extends Game {
 		return Games.getUserHostedGameHighlight() + " " + this.id;
 	}
 
-	getSignupsHtml(): string {
+	getSignupsDescriptionHtml(): string {
 		return Games.getHostBoxHtml(this.room, this.hostName, this.name, this.format, this.getHighlightPhrase());
 	}
 
@@ -338,7 +338,7 @@ export class UserHostedGame extends Game {
 			this.customBox = database.gameHostBoxes[this.hostId];
 		}
 
-		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
+		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
 		if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 

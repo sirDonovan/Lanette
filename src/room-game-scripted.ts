@@ -44,7 +44,7 @@ export class ScriptedGame extends Game {
 	readonly maxBits: number = 500;
 	notifyRankSignups: boolean = false;
 	parentGame: ScriptedGame | undefined = undefined;
-	signupsRefreshed: boolean = false;
+	signupsBumped: boolean = false;
 	startTime: number = 0;
 	usesHtmlPage: boolean = false;
 	usesTournamentStart: boolean = false;
@@ -75,6 +75,7 @@ export class ScriptedGame extends Game {
 	requiresAutoconfirmed?: boolean;
 	roundTime?: number;
 	shinyMascot?: boolean;
+	signupsUpdateInterval?: NodeJS.Timeout;
 	startingLives?: number;
 	subGameNumber?: number;
 	timeLimit?: number;
@@ -295,7 +296,7 @@ export class ScriptedGame extends Game {
 		this.uhtmlBaseName = (this.isMiniGame ? "mini" : "scripted") + "-" + this.format.id + "-" + gameCount;
 		this.signupsUhtmlName = this.uhtmlBaseName + "-signups";
 		this.joinLeaveButtonUhtmlName = this.uhtmlBaseName + "-join-leave";
-		this.joinLeaveButtonRefreshUhtmlName = this.uhtmlBaseName + "-join-leave-update";
+		this.joinLeaveButtonBumpUhtmlName = this.uhtmlBaseName + "-join-leave-update";
 		this.privateJoinLeaveUhtmlName = this.uhtmlBaseName + "-private-join-leave";
 	}
 
@@ -398,7 +399,7 @@ export class ScriptedGame extends Game {
 			this.format.mode ? this.getModeHighlightPhrase() : "");
 	}
 
-	getSignupsHtml(): string {
+	getSignupsDescriptionHtml(): string {
 		if (this.mascot) {
 			if (this.shinyMascot === undefined) {
 				if (this.rollForShinyPokemon()) {
@@ -446,8 +447,14 @@ export class ScriptedGame extends Game {
 
 		if (!this.isMiniGame && !this.internalGame) {
 			this.showSignupsHtml = true;
-			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-			if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
+			if (!this.options.freejoin) {
+				this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+				this.signupsUpdateInterval = setInterval(() => {
+					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+				}, 1000);
+			}
+
 			this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 			this.notifyRankSignups = true;
@@ -478,11 +485,9 @@ export class ScriptedGame extends Game {
 			if (Config.gameAutoStartTimers && this.room.id in Config.gameAutoStartTimers) {
 				const startTimer = (Config.gameAutoStartTimers[this.room.id] * 60 * 1000) / 2;
 				this.startTimer = setTimeout(() => {
-					if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
-
-					this.signupsRefreshed = true;
+					this.signupsBumped = true;
 					this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.sayUhtml(this.joinLeaveButtonRefreshUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
+					this.sayUhtml(this.joinLeaveButtonBumpUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 					this.startTimer = setTimeout(() => {
 						void (async() => {
@@ -510,6 +515,7 @@ export class ScriptedGame extends Game {
 		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
 			(this.usesTournamentStart && !tournamentStart)) return false;
 
+		if (this.signupsUpdateInterval) clearInterval(this.signupsUpdateInterval);
 		if (this.startTimer) clearTimeout(this.startTimer);
 		this.started = true;
 		this.startTime = Date.now();
@@ -519,13 +525,12 @@ export class ScriptedGame extends Game {
 		if (this.notifyRankSignups) (this.room as Room).notifyOffRank("all");
 
 		if (this.showSignupsHtml) {
-			if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
 			this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
 
 			const signupsEndMessage = this.getSignupsEndMessage();
-			if (this.signupsRefreshed) {
+			if (this.signupsBumped) {
 				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, "<div></div>");
-				this.sayUhtmlChange(this.joinLeaveButtonRefreshUhtmlName, signupsEndMessage);
+				this.sayUhtmlChange(this.joinLeaveButtonBumpUhtmlName, signupsEndMessage);
 			} else {
 				this.sayUhtmlChange(this.joinLeaveButtonUhtmlName, signupsEndMessage);
 			}
@@ -748,6 +753,11 @@ export class ScriptedGame extends Game {
 		if (this.botTurnTimeout) {
 			clearTimeout(this.botTurnTimeout);
 			this.botTurnTimeout = undefined;
+		}
+
+		if (this.signupsUpdateInterval) {
+			clearInterval(this.signupsUpdateInterval);
+			this.signupsUpdateInterval = undefined;
 		}
 	}
 
@@ -997,15 +1007,6 @@ export class ScriptedGame extends Game {
 				this.joinNotices.add(user.id);
 			}
 
-			if (this.showSignupsHtml && !this.started) {
-				if (!this.signupsHtmlTimeout) {
-					this.signupsHtmlTimeout = setTimeout(() => {
-						this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-						this.signupsHtmlTimeout = null;
-					}, this.getSignupsUpdateDelay());
-				}
-			}
-
 			if (this.started) {
 				for (const listener of this.commandsListeners) {
 					if (listener.remainingPlayersMax) this.increaseOnCommandsMax(listener, 1);
@@ -1041,15 +1042,6 @@ export class ScriptedGame extends Game {
 		}
 
 		if (this.options.freejoin) return;
-
-		if (this.showSignupsHtml && !this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
-		}
 
 		if (this.commandsListeners.length) {
 			const commandsListeners = this.commandsListeners.slice();
