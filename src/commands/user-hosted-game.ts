@@ -647,7 +647,7 @@ export const commands: BaseCommandDefinitions = {
 			if (offArguments.includes(Tools.toId(targets[0]))) {
 				if (!gameRoom.userHostedGame.gameTimer) return this.say("There is no game timer running.");
 				clearTimeout(gameRoom.userHostedGame.gameTimer);
-				gameRoom.userHostedGame.gameTimer = null;
+				gameRoom.userHostedGame.gameTimer = undefined;
 				return this.say("The game timer has been turned off.");
 			}
 
@@ -730,7 +730,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (gameRoom.userHostedGame.gameTimer) clearTimeout(gameRoom.userHostedGame.gameTimer);
 			gameRoom.userHostedGame.gameTimer = setTimeout(() => {
-				gameRoom.userHostedGame!.gameTimer = null;
+				gameRoom.userHostedGame!.gameTimer = undefined;
 				gameRoom.userHostedGame!.gameTimerEndTime = 0;
 
 				if (user.id === gameRoom.userHostedGame!.hostId || user.id === gameRoom.userHostedGame!.subHostId) {
