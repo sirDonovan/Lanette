@@ -30,8 +30,8 @@ class ChanseysEggToss extends ScriptedGame {
 			this.currentHolder = player;
 			this.explodeEgg(reason);
 		} else {
-			this.eliminatePlayer(player);
 			this.say(player.name + " was DQed " + reason + "!");
+			this.eliminatePlayer(player);
 		}
 	}
 
@@ -44,10 +44,14 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	onRemovePlayer(player: Player): void {
-		if (this.currentHolder && this.getRemainingPlayerCount() < 2) {
+		if (this.getRemainingPlayerCount() < 2) {
 			this.say(player.name + " left the game!");
 			this.end();
 		}
+	}
+
+	onEliminatePlayer(): void {
+		if (this.getRemainingPlayerCount() < 2) this.end();
 	}
 
 	giveEgg(player: Player): void {
@@ -77,16 +81,10 @@ class ChanseysEggToss extends ScriptedGame {
 			this.currentHolder = null;
 		}
 
-		if (this.getRemainingPlayerCount() < 2) return this.end();
 		this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
 	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
-		const remainingPlayerCount = this.getRemainingPlayerCount();
-		if (remainingPlayerCount < 2) {
-			return this.end();
-		}
-
 		this.spamTosses.clear();
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -97,7 +95,7 @@ class ChanseysEggToss extends ScriptedGame {
 				const eggText = "Chansey handed the egg to **" + holder.name + "**!";
 				this.on(eggText, () => {
 					let time: number;
-					if (remainingPlayerCount === 2) {
+					if (this.getRemainingPlayerCount() === 2) {
 						time = 5000;
 					} else {
 						time = this.sampleOne(this.roundTimes);
