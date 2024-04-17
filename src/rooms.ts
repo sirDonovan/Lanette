@@ -794,8 +794,8 @@ export class Room {
 		});
 	}
 
-	nameTournament(name: string): void {
-		this.say("/tour name " + name, {
+	nameTournament(name: string, officialTournament: boolean): void {
+		this.say("/tour name " + name + (officialTournament ? " (official)" : ""), {
 			filterSend: () => !!this.tournament,
 			dontCheckFilter: true,
 			dontPrepare: true,

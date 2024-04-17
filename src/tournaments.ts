@@ -291,7 +291,7 @@ export class Tournaments {
 				if (name) {
 					tournament.name = name;
 					tournament.manuallyNamed = true;
-					if (!createListener.name) room.nameTournament(name);
+					if (!createListener.name) room.nameTournament(name, tournament.official);
 				}
 
 				if (tournament.format.customRules) {

@@ -99,7 +99,7 @@ export class Tournament extends Activity {
 
 		const previousName = this.name;
 		this.name = Dex.getCustomFormatName(this.format);
-		if (this.name !== previousName) this.room.nameTournament(this.name);
+		if (this.name !== previousName) this.room.nameTournament(this.name, this.official);
 	}
 
 	formatAwardsPoints(): boolean {
