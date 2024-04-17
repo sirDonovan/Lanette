@@ -31,7 +31,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const inverseCategories = this.cachedData.categories.slice();
 		inverseCategories.splice(inverseCategories.indexOf("Characters"), 1);
@@ -57,6 +57,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		const inverseCategoryHintKeys = Tools.deepClone(categoryHintKeys);
 		const inverseCategoryHints = Tools.deepClone(categoryHints);
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const lostLetters = getLostLetters(character);
 			if (lostLetters) {
@@ -176,6 +177,7 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 				inverseCategoryHints["Pokemon Moves"][inverseLostLetters].push(move.name);
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;
@@ -188,8 +190,8 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 			(this.inverse ? "consonants" : "vowels") + "!";
 	}
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 		if (this.inverse) {
 			this.roundTime = 15 * 1000;
 		}

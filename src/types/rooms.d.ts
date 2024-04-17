@@ -6,7 +6,7 @@ export interface IRepeatedMessage {
 	interval: number;
 	message: string;
 	name: string;
-	timer: NodeJS.Timer;
+	timer: NodeJS.Timeout;
 	user: string;
 }
 

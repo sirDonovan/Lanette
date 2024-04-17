@@ -26,10 +26,11 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 3000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHintKeys: Dict<string[]> = {};
+		// eslint-disable-next-line @typescript-eslint/dot-notation
 		categoryHintKeys["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
@@ -133,11 +134,11 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 				this.end();
 				return;
 			}
-			this.nextRound();
+			void this.nextRound();
 			return;
 		}
 
-		this.setTimeout(() => this.nextRound(), this.updateHintTime);
+		this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 	}
 
 	getDisplayedRoundNumber(): number {

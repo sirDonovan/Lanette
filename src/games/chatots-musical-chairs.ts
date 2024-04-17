@@ -7,10 +7,6 @@ class ChatotsMusicalChairs extends ScriptedGame {
 	roundChairs: number = 0;
 	roundTimes: number[] = [5000, 5500, 6000, 6500, 7000];
 
-	onStart(): void {
-		this.nextRound();
-	}
-
 	stopMusic(): void {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 
@@ -24,10 +20,10 @@ class ChatotsMusicalChairs extends ScriptedGame {
 			}
 		}
 
-		this.nextRound();
+		void this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.roundChairs = 0;
 
 		const len = this.getRemainingPlayerCount();

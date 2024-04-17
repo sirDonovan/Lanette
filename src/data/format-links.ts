@@ -5,23 +5,26 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen9almostanyability': {
 		teams: 'https://www.smogon.com/forums/threads/3710568/#post-9390590',
 	},
-    'gen9anythinggoes': {
-        teams: 'https://www.smogon.com/forums/threads/3719248/',
-    },
-    'gen9ubers': {
-        teams: 'https://www.smogon.com/forums/threads/3719619/',
-    },
+	'gen9anythinggoes': {
+		teams: 'https://www.smogon.com/forums/threads/3719248/',
+	},
+	'gen9ubers': {
+		teams: 'https://www.smogon.com/forums/threads/3719619/',
+	},
 	'gen9ou': {
 		teams: 'https://www.smogon.com/forums/threads/3712513/',
 	},
-    'gen9uu': {
-        teams: 'https://www.smogon.com/forums/threads/3720278/',
-    },
+	'gen9uu': {
+		teams: 'https://www.smogon.com/forums/threads/3720278/',
+	},
 	'gen9ru': {
-		teams: 'https://www.smogon.com/forums/threads/3717072/',
+		teams: 'https://www.smogon.com/forums/threads/3733565/',
 	},
 	'gen9nu': {
 		teams: 'https://www.smogon.com/forums/threads/3718115/',
+	},
+	'gen9pu': {
+		teams: 'https://www.smogon.com/forums/threads/3719989/',
 	},
 	'gen9monotype': {
 		teams: 'https://www.smogon.com/forums/threads/3715794/',
@@ -29,9 +32,9 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen9lc': {
 		teams: 'https://www.smogon.com/forums/threads/3712989/',
 	},
-    'gen9nationaldex': {
-        teams: 'https://www.smogon.com/forums/threads/3714863/',
-    },
+	'gen9nationaldex': {
+		teams: 'https://www.smogon.com/forums/threads/3714863/',
+	},
 
 	// Gen 8
 	'gen8anythinggoes': {
@@ -558,7 +561,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 	'gen1stadiumou': {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen1stadiumou',
 	},
-	'gen1nintendocup1997': {
+	'gen1nc1997': {
 		ruinsOfAlphTeams: 'https://www.smogon.com/roa/?format=gen1nintendocup1997',
 	},
 	'gen1nu': {

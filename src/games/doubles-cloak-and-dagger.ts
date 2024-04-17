@@ -16,9 +16,8 @@ class DoublesCloakAndDagger extends DoublesBattleEliminationTournament {
 	htmlPageGameDescription = description;
 	requiredDoublesTier = "DOU";
 	usesCloakedPokemon = true;
-	banlist = ['Zorua', 'Zoroark'];
 
-	getGameCustomRules(): string[] {
+	getRequiredCustomRules(): string[] {
 		return ['-Zorua-Base', '-Zorua-Hisui', '-Zoroark-Base', '-Zoroark-Hisui', '-Illusion'];
 	}
 

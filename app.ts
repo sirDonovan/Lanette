@@ -10,7 +10,9 @@ module.exports = (async() => {
 		const replPort = Config.repl.port || 3001;
 		net.createServer(socket => {
 			start(socket);
-		}).listen(replPort, () => console.log("REPL server listening on port " + replPort));
+		}).listen(replPort, () => {
+			console.log("REPL server listening on port " + replPort);
+		});
 	}
 
 	setExceptionHandler();

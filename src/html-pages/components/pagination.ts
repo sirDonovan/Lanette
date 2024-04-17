@@ -17,6 +17,7 @@ interface IPaginationProps extends IComponentProps {
 	noPickElement?: boolean;
 	hideSinglePageNavigation?: boolean;
 	onSelectPage: (selectedPage: number) => void;
+	reRender: () => void;
 }
 
 const pageCommand = 'gotopage';

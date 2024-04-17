@@ -6,16 +6,19 @@ import type { User } from "../../users";
 
 type AchievementNames = "eggthesystem";
 
+const maxSpamTosses = 3;
+
 class EggToss extends ScriptedGame {
 	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
 		"eggthesystem": {name: "Egg the System", type: 'special', bits: 500, minigame: true, description: 'explode the egg on Lady Monita'},
 	};
 
 	currentHolder: Player | null = null;
-	explodeTimeout: NodeJS.Timer | null = null;
+	explodeTimeout: NodeJS.Timeout | null = null;
 	internalGame: boolean = true;
 	managedPlayers = true;
 	lastHolder: Player | null = null;
+    spamTosses = new Map<Player, number>();
 
 	// hack for selectUser()
 	declare readonly room: Room;
@@ -50,7 +53,7 @@ class EggToss extends ScriptedGame {
 		this.explodeEgg("for changing their away status");
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.explodeTimeout = setTimeout(() => this.explodeEgg(), this.sampleOne([10, 10.5, 11, 11.5, 12]) * 1000);
 	}
 
@@ -61,7 +64,7 @@ class EggToss extends ScriptedGame {
 		if (this.currentHolder) {
 			this.say("**BOOOOM**! The egg exploded on **" + this.currentHolder.name + "**" + (reason ? " " + reason : "") + "!");
 			if (this.lastHolder && this.currentHolder.id === Users.self.id) {
-				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem!);
+				this.unlockAchievement(this.lastHolder, EggToss.achievements.eggthesystem);
 			}
 		}
 		this.end();
@@ -94,11 +97,25 @@ class EggToss extends ScriptedGame {
 const commands: GameCommandDefinitions<EggToss> = {
 	toss: {
 		command(target, room, user) {
+			const player = this.createPlayer(user) || this.players[user.id];
+
 			if (!this.currentHolder) {
-				this.currentHolder = this.createPlayer(user) || this.players[user.id];
+				this.currentHolder = player;
 			} else {
-				if (this.currentHolder.id !== user.id) return false;
+				if (this.currentHolder.id !== user.id) {
+                    let spamTosses = this.spamTosses.get(player) || 0;
+                    spamTosses++;
+                    if (spamTosses === maxSpamTosses) {
+                        this.currentHolder = player;
+                        this.explodeEgg("for spam tossing");
+                    } else {
+                        this.spamTosses.set(player, spamTosses);
+                    }
+
+                    return false;
+                }
 			}
+
 			const targetUser = Users.get(target);
 			if (!targetUser || !targetUser.rooms.has(this.room)) {
 				this.say("You can only egg someone currently in the room.");
@@ -124,6 +141,7 @@ const commands: GameCommandDefinitions<EggToss> = {
 				this.say("You cannot egg a bot that is not " + Users.self.name + ".");
 				return false;
 			}
+			this.spamTosses.delete(player);
 
 			this.lastHolder = this.currentHolder;
 			this.currentHolder = this.createPlayer(targetUser) || this.players[targetUser.id];

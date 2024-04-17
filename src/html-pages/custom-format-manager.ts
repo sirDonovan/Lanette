@@ -98,15 +98,13 @@ class CustomFormatManager extends HtmlPageBase {
 		super(room, user, baseCommandAlias, pages);
 
 		this.canCreateTournament = Tournaments.canCreateTournament(room, user);
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		this.formatInput = new FormatTextInput(this, this.commandPrefix, formatsInputCommand, {
-			label: "",
 			submitText: "Set format",
 			maxFormats: 1,
+			name: "Format",
 			hideClearButton: true,
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setFormat(output),
 			reRender: () => this.send(),
 		});
@@ -122,6 +120,7 @@ class CustomFormatManager extends HtmlPageBase {
 
 		this.customFormatNameInput = new TextInput(this, this.commandPrefix, customFormatNameInputCommand, {
 			label: "Custom format name",
+			name: "Custom format name",
 			validateSubmission: (input): ITextInputValidation => {
 				if (Dex.getFormat(input)) {
 					return {errors: ["'" + input + "' is already the name or alias of an existing format. Please choose something else!"]};
@@ -129,19 +128,16 @@ class CustomFormatManager extends HtmlPageBase {
 				return {currentOutput: input};
 			},
 			onClear: () => this.clearCustomFormatName(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.setCustomFormatName(output),
 			reRender: () => this.send(),
 		});
 
 		this.customRulesInput = new CustomRuleTextInput(this, this.commandPrefix, customRulesInputCommand, {
-			label: "",
+			name: "Custom rules",
 			submitText: "Add rules",
 			hideClearButton: true,
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.addCustomRules(output),
 			reRender: () => this.send(),
 		});
@@ -196,6 +192,7 @@ class CustomFormatManager extends HtmlPageBase {
 			if (!rule.hasValue || rule.id === forceMonotype) continue;
 
 			this.valueRulesTextInputs[rule.id] = new TextInput(this, this.commandPrefix, valueRulesInputCommand + rule.id, {
+				name: rule.name,
 				label: "<b>" + rule.name + "</b>",
 				validateSubmission: (input): ITextInputValidation => {
 					try {
@@ -209,7 +206,6 @@ class CustomFormatManager extends HtmlPageBase {
 					}
 				},
 				onClear: () => this.clearValueRule(rule.id),
-				onErrors: () => this.send(),
 				onSubmit: (output) => this.setValueRule(rule.id, output),
 				reRender: () => this.send(),
 			});
@@ -538,7 +534,8 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			} else {
 				if (type === '!') {
-					if (this.format.ruleset.includes(rule)) {
+					const id = Tools.toId(rule);
+					if (id && !ruleTable.has(id)) {
 						if (!this.redundantCustomRules.includes(rule)) this.redundantCustomRules.push(rule);
 						continue;
 					}
@@ -885,7 +882,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable abilities in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable abilities in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -906,7 +903,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable items in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable items in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -927,7 +924,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable moves in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable moves in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -950,7 +947,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable Pokemon in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable Pokemon in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -973,7 +970,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting rule table in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting rule table in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}
@@ -995,7 +992,7 @@ class CustomFormatManager extends HtmlPageBase {
 				}
 			}
 		} catch (e) {
-			Tools.logError(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
+			Tools.logException(e as Error, "Error getting usable Pokemon tags in format " + this.format.id +
 				(this.format.customRules ? " with custom rules: [" + this.format.customRules.join(", ") + "]" : ""));
 		}
 	}

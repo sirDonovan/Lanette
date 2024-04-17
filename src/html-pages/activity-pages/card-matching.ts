@@ -2,6 +2,7 @@ import type { CardGame, ICard, IPokemonCard } from "../../games/templates/card";
 import type { Player } from "../../room-activity";
 import type { ScriptedGame } from "../../room-game-scripted";
 import { TextInput } from "../components/text-input";
+import { HtmlSelector } from "../html-page-base";
 import { GamePageBase, type IGamePageOptions } from "./game-page-base";
 
 export interface ICardMatchingPageOptions extends IGamePageOptions {
@@ -25,9 +26,14 @@ export class CardMatchingPage extends GamePageBase {
 	showSwitchLocationButton = true;
 	showTypings: boolean = false;
 	showEggGroups: boolean = false;
+	usesHtmlSelectors: boolean = true;
 
-	detailLabelWidth: number;
 	actionCardInput: TextInput;
+	actionCardSelector: HtmlSelector;
+	cardActionsSelector: HtmlSelector;
+	detailLabelWidth: number;
+	handSelector: HtmlSelector;
+	playedAndDrawnSelector: HtmlSelector;
 
 	declare activity: CardGame;
 	declare pageId: string;
@@ -37,18 +43,27 @@ export class CardMatchingPage extends GamePageBase {
 
 		this.pageId = game.id;
 
-        this.detailLabelWidth = options.detailLabelWidth;
+		this.actionCardSelector = this.newSelector("actioncard");
+		this.cardActionsSelector = this.newSelector("cardactions");
+		this.handSelector = this.newSelector("hand");
+		this.playedAndDrawnSelector = this.newSelector("playedanddrawn");
+
+		this.addSelector(this.handSelector);
+		this.addSelector(this.cardActionsSelector);
+		this.addSelector(this.actionCardSelector);
+		this.addSelector(this.playedAndDrawnSelector);
+
+		this.detailLabelWidth = options.detailLabelWidth;
 		if (options.showColors) this.showColors = true;
 		if (options.showEggGroups) this.showEggGroups = true;
 		if (options.showTypings) this.showTypings = true;
 
-		this.setSwitchLocationButton();
+		this.setSwitchLocationButtonHtml();
 
 		this.actionCardInput = new TextInput(this, this.commandPrefix, actionCardInputCommand, {
 			hideClearButton: true,
+			name: "Action card",
 			submitText: "Validate",
-			onClear: () => this.send(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.validateActionCardTarget(output),
 			reRender: () => this.send(),
 		});
@@ -207,21 +222,6 @@ export class CardMatchingPage extends GamePageBase {
 		}
 	}
 
-    renderDetails(): string {
-        let html = "";
-		if (this.currentHandHtml) html += this.currentHandHtml + "<br />";
-		if (this.cardActionsHtml) html += this.cardActionsHtml + "<br />";
-
-		if (this.selectedActionCard) {
-			html += "<br /><br />" + this.actionCardInput.render();
-		}
-
-		if (this.playedCardsHtml) html += this.playedCardsHtml + "<br />";
-		if (this.drawnCardsHtml) html += this.drawnCardsHtml + "<br />";
-
-		return html;
-    }
-
 	renderHandHtml(): void {
 		const playerCards = this.activity.playerCards.get(this.player)!.sort((a, b) => {
 			if (b.action && !a.action) return 1;
@@ -235,35 +235,37 @@ export class CardMatchingPage extends GamePageBase {
 		this.currentHandHtml = html;
 	}
 
-	renderCardActionsHtml(actionCards?: ICard[], groupCards?: ICard[][], singleCards?: ICard[]): void {
+	renderCardActionsHtml(actionCards: ICard[], groupCards: ICard[][], singleCards: ICard[]): void {
 		const playButtons: string[] = [];
-		if (actionCards) {
-			for (const card of actionCards) {
-				playButtons.push(this.getCardPlayButton(card));
-			}
+		for (const card of actionCards) {
+			playButtons.push(this.getCardPlayButton(card));
 		}
 
-		if (groupCards) {
-			for (const card of groupCards) {
-				playButtons.push(this.getCardGroupPlayButton(card));
-			}
+		for (const card of groupCards) {
+			playButtons.push(this.getCardGroupPlayButton(card));
 		}
 
-		if (singleCards) {
-			for (const card of singleCards) {
-				playButtons.push(this.getCardPlayButton(card));
-			}
+		for (const card of singleCards) {
+			playButtons.push(this.getCardPlayButton(card));
 		}
 
 		let html = "";
 		if (playButtons.length) {
-			html += '<br /><b>Playable cards</b>' + (groupCards && groupCards.length && this.activity.maxShownPlayableGroupSize &&
+			html += '<br /><b>Playable cards</b>' + (groupCards.length && this.activity.maxShownPlayableGroupSize &&
 				(!this.activity.maximumPlayedCards || this.activity.maxShownPlayableGroupSize < this.activity.maximumPlayedCards) ?
 				' (there may be longer chains to play manually)' : '') + ':<br />' + playButtons.join("&nbsp;|&nbsp;");
 		}
 
 		this.cardActionsHtml = html;
 		this.selectedActionCard = null;
+	}
+
+	clearCardActionsHtml(): void {
+		this.cardActionsHtml = "";
+		this.selectedActionCard = null;
+
+		this.sendSelector(this.cardActionsSelector);
+		this.sendSelector(this.actionCardSelector);
 	}
 
 	renderDrawnCardsHtml(drawnCards?: ICard[]): void {
@@ -275,12 +277,57 @@ export class CardMatchingPage extends GamePageBase {
 		this.drawnCardsHtml = html;
 	}
 
-	renderPlayedCardsHtml(playedCards?: ICard[]): void {
-		let html = "";
-		if (playedCards) {
-			html += "You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b>!";
+	renderPlayedCardsHtml(playedCards: ICard[]): void {
+		this.playedCardsHtml = "You played <b>" + Tools.joinList(playedCards.map(x => x.name)) + "</b>!";
+	}
+
+	renderPlayedCardsDetailHtml(playedCards: string[]): void {
+		this.playedCardsHtml = "You played <b>" + Tools.joinList(playedCards) + "</b>!";
+	}
+
+	clearPlayedAndDrawnHtml(): void {
+		this.playedCardsHtml = "";
+		this.drawnCardsHtml = "";
+
+		this.sendSelector(this.playedAndDrawnSelector);
+	}
+
+	renderSelector(selector: HtmlSelector): string {
+		if (selector === this.headerSelector) {
+			return super.renderSelector(selector);
 		}
 
-		this.playedCardsHtml = html;
+		let html = "";
+		if (selector === this.handSelector) {
+			if (this.currentHandHtml) html += this.currentHandHtml + "<br />";
+		} else if (selector === this.cardActionsSelector) {
+			if (this.cardActionsHtml) html += this.cardActionsHtml + "<br />";
+		} else if (selector === this.actionCardSelector) {
+			if (this.selectedActionCard) {
+				html += "<br /><br />" + this.actionCardInput.render();
+			}
+		} else if (selector === this.playedAndDrawnSelector) {
+			if (this.playedCardsHtml) html += this.playedCardsHtml + "<br />";
+			if (this.drawnCardsHtml) html += this.drawnCardsHtml + "<br />";
+		} else {
+			html += this.checkComponentSelectors(selector);
+		}
+
+		return html;
+	}
+
+	renderDetails(): string {
+		let html = "";
+		if (this.currentHandHtml) html += this.currentHandHtml + "<br />";
+		if (this.cardActionsHtml) html += this.cardActionsHtml + "<br />";
+
+		if (this.selectedActionCard) {
+			html += "<br /><br />" + this.actionCardInput.render();
+		}
+
+		if (this.playedCardsHtml) html += this.playedCardsHtml + "<br />";
+		if (this.drawnCardsHtml) html += this.drawnCardsHtml + "<br />";
+
+		return html;
 	}
 }

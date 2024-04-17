@@ -12,7 +12,7 @@ class KirliasTracingShow extends QuestionAndAnswer {
 	allAnswersAchievement = KirliasTracingShow.achievements.thegreatestshowman;
 	hintPrefix: string = "Kirlia traced";
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

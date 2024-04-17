@@ -2246,6 +2246,7 @@ export const namedHexCodes: KeyedDict<NamedHexCode, string> = {
 	"Dark-Red-Violet": "#ac3973",
 };
 
+/* eslint-disable @typescript-eslint/dot-notation */
 export const typeHexCodes: Dict<string> = {
 	"Normal": namedHexCodes["White"],
 	"Fire": namedHexCodes["Red-Orange"],
@@ -2305,3 +2306,5 @@ export const eggGroupHexCodes: Dict<string> = {
 	"Amorphous": namedHexCodes["Gray"],
 	"Ditto": namedHexCodes["Pink"],
 };
+
+/* eslint-enable */

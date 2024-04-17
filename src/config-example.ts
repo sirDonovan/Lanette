@@ -254,16 +254,6 @@ export let showTournamentTrainerCards: string[] = [];
 export let sharedTournamentTrainerCards: Dict<string> = {};
 
 /**
- * For each badge in the object, the link to the badge image
- */
-export let tournamentTrainerCardBadges: Dict<{name: string; source: string; width: number; height: number}> = {};
-
-/**
- * For each ribbon in the object, the link to the ribbon image
- */
-export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
-
-/**
  * For each room in the object, the ribbons that can be added to tournament trainer cards
  */
 export let enabledTournamentTrainerCardRibbons: Dict<string[]> = {};

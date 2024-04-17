@@ -21,7 +21,7 @@ class HypnosHunches extends QuestionAndAnswer {
 	roundTime: number = 45 * 1000;
 	updateHintTime = 3000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),
@@ -100,11 +100,11 @@ class HypnosHunches extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.say(endReason);
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 

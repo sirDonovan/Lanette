@@ -25,13 +25,14 @@ class EmpoleonsEmpires extends ScriptedGame {
 		if (this.started) {
 			if (this.currentPlayer === player) {
 				this.currentPlayer = null;
-				return this.nextRound();
+				void this.nextRound();
+				return;
 			}
 			if (this.getRemainingPlayerCount() < 2) this.end();
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.say("Now requesting aliases!");
 		for (const i in this.players) {
 			if (!this.playerAliases.has(this.players[i])) {
@@ -43,11 +44,11 @@ class EmpoleonsEmpires extends ScriptedGame {
 				if (this.players[i].eliminated) continue;
 				if (!this.playerAliases.has(this.players[i])) this.eliminatePlayer(this.players[i], "You did not choose an alias!");
 			}
-			this.nextRound();
+			void this.nextRound();
 		}, 60 * 1000);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.getRemainingPlayerCount() <= 1) return this.end();
 		const aliases: string[] = [];
 		for (const i in this.players) {
@@ -76,7 +77,7 @@ class EmpoleonsEmpires extends ScriptedGame {
 							this.eliminatePlayer(this.currentPlayer);
 							this.currentPlayer = null;
 						}
-						this.nextRound();
+						void this.nextRound();
 					}, disqualifyTimeout);
 				}, SUSPECT_WARNING_TIMER);
 			});
@@ -166,7 +167,7 @@ const commands: GameCommandDefinitions<EmpoleonsEmpires> = {
 				this.currentPlayer = attackedPlayer;
 			}
 
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			return true;
 		},
 		aliases: ['g'],

@@ -4,7 +4,7 @@ import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/qu
 class JirachisColoringAdventure extends QuestionAndAnswer {
 	static cachedData: IGameCachedData = {};
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

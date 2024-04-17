@@ -1,4 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/consistent-indexed-object-style
 type Dict<T> = {[k: string]: T};
 
 type KeyedDict<T extends string | number | symbol, U> = {[K in T]: U };

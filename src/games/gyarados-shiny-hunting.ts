@@ -36,7 +36,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	roundRows: number = 0;
 	shinyCoordinates: [number, number][] | null = null;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.gen > 5) continue;
 			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
@@ -45,10 +45,6 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 				this.gifDataKeys.push(pokemon.name);
 			}
 		}
-	}
-
-	onStart(): void {
-		this.nextRound();
 	}
 
 	checkLastShinyCoordinates(newCoordinates: [number, number]): boolean {
@@ -164,7 +160,7 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		return gridHtml;
 	}
 
-	beforeNextRound(newAnswer: boolean): boolean {
+	async beforeNextRound(newAnswer: boolean): Promise<boolean> { // eslint-disable-line @typescript-eslint/require-await
 		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}

@@ -3,13 +3,13 @@ import type { HueVariation, Lightness } from "./color-picker";
 import { PokemonPickerManual } from "./pokemon-picker-manual";
 import type { IHostDisplayProps } from "./host-display-base";
 import { HostDisplayBase } from "./host-display-base";
-import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
 import type { IPokemonTextInputProps } from "./pokemon-text-input";
 import { PokemonTextInput } from "./pokemon-text-input";
-import type { IPokemonPick } from "./pokemon-picker-base";
+import type { IPokemonPick, PokemonChoices } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
 import type { HtmlPageBase } from "../html-page-base";
+import { TrainerChoices } from "./trainer-picker";
 
 const pokemonInputCommand = 'pokemoninput';
 
@@ -29,11 +29,11 @@ export class ManualHostDisplay extends HostDisplayBase {
 			pokemonList: [],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),

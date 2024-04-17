@@ -19,7 +19,7 @@ class TournamentPointsShop extends TournamentTrainerCard {
 		super(room, user, baseCommandAlias, {}, pages);
 
 		this.components = [];
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 	}
 
 	getAnnualPoints(): number {

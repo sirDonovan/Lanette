@@ -22,6 +22,7 @@ import type { HexCode, IHexCodeData } from './types/tools';
 import type { User } from './users';
 import { ParametersWorker } from './workers/parameters';
 import { PortmanteausWorker } from './workers/portmanteaus';
+import { UniquePairsWorker } from './workers/unique-pairs';
 
 type Achievements = Dict<IGameAchievement>;
 type Formats = Dict<LoadedGameFile>;
@@ -39,6 +40,7 @@ interface IPokemonListOptions {
 }
 
 interface ICreateGameOptions {
+	childGame?: boolean;
 	minigame?: boolean;
 	official?: boolean;
 	pmRoom?: Room;
@@ -84,6 +86,8 @@ const categoryNames: GameCategoryNames = {
 const numberGameOptions: GameNumberOptions[] = ['points', 'teamPoints', 'freejoin', 'cards', 'operands', 'names', 'gen', 'params',
 	'ports', 'teams'];
 
+const excludedTiers: string[] = ["Illegal", "Unreleased", "(Uber)", "(OU)", "(UU)", "(RU)", "(NU)", "(PU)", "(ZU)", "(LC)"];
+
 const sharedCommandDefinitions: GameCommandDefinitions = {
 	summary: {
 		command(target, room, user) {
@@ -102,7 +106,7 @@ const sharedCommandDefinitions: GameCommandDefinitions = {
 			}
 			return true;
 		},
-		pmOnly: true,
+		pmGameCommand: true,
 	},
 	repost: {
 		command(target, room, user) {
@@ -121,12 +125,12 @@ export class Games {
 
 	private readonly achievements: Achievements = {};
 	private readonly aliases: Dict<string> = {};
-	private autoCreateTimers: Dict<NodeJS.Timer> = {};
+	private autoCreateTimers: Dict<NodeJS.Timeout> = {};
 	private autoCreateTimerData: Dict<{endTime: number, type: AutoCreateTimerType}> = {};
 	private readonly formats: Formats = {};
 	private readonly formatModules: NodeModule[] = [];
 	private readonly freejoinFormatTargets: string[] = [];
-	private gameCooldownMessageTimers: Dict<NodeJS.Timer> = {};
+	private gameCooldownMessageTimers: Dict<NodeJS.Timeout> = {};
 	private gameCooldownMessageTimerData: Dict<{endTime: number, minigameCooldownMinutes: number}> = {};
 	// @ts-expect-error - set in loadFormats()
 	private readonly internalFormats: InternalFormats = {};
@@ -141,6 +145,7 @@ export class Games {
 	private lastUserHostedGames: Dict<number> = {};
 	private lastUserHostTimes: Dict<Dict<number>> = {};
 	private lastUserHostFormatTimes: Dict<Dict<number>> = {};
+	private lastWinners: Dict<string[]> = {};
 	private readonly minigameCommandNames: MinigameCommandNames = {};
 	private readonly modes: Modes = {};
 	private readonly modeAliases: Dict<string> = {};
@@ -152,13 +157,14 @@ export class Games {
 	private readonly workers: IGamesWorkers = {
 		parameters: new ParametersWorker(),
 		portmanteaus: new PortmanteausWorker(),
+		uniquePairs: new UniquePairsWorker(),
 	};
 
 	private nextOfficialGames: Dict<IOfficialGame> = {};
 	private officialGames: Dict<Dict<IOfficialGame[]>> = {};
 	private readonly schedules: typeof gameSchedules = gameSchedules;
 	private scheduledGameTimerData: Dict<IScheduledGameTimerData> = {};
-	private scheduledGameTimers: Dict<NodeJS.Timer> = {};
+	private scheduledGameTimers: Dict<NodeJS.Timeout> = {};
 
 	private readonly commands: LoadedGameCommands;
 	private readonly sharedCommands: LoadedGameCommands;
@@ -200,6 +206,10 @@ export class Games {
 		return this.aliases;
 	}
 
+	getExcludedTiers(): readonly string[] {
+		return excludedTiers;
+	}
+
 	getFormats(): Readonly<Formats> {
 		return this.formats;
 	}
@@ -230,6 +240,10 @@ export class Games {
 
 	getLastChallengeTimes(): DeepImmutable<LastChallengeTimes> {
 		return this.lastChallengeTimes;
+	}
+
+	getLastWinners(room: Room): string[] | undefined {
+		return this.lastWinners[room.id];
 	}
 
 	getMinigameCommandNames(): Readonly<MinigameCommandNames> {
@@ -264,11 +278,18 @@ export class Games {
 		this.reloadInProgress = state;
 	}
 
-	unrefWorkers(): void {
+	async unrefWorkers(): Promise<void> {
 		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
 		for (const worker of workers) {
-			this.workers[worker].unref();
+			await this.workers[worker].unref();
 			delete this.workers[worker];
+		}
+	}
+
+	exitWorkers(): void {
+		const workers = Object.keys(this.workers) as (keyof IGamesWorkers)[];
+		for (const worker of workers) {
+			this.workers[worker].exit();
 		}
 	}
 
@@ -437,19 +458,23 @@ export class Games {
 
 		this.scheduledGameTimerData[room.id] = {formatid: format.inputTarget, startTime, official};
 		this.scheduledGameTimers[room.id] = setTimeout(() => {
-			if (room.game) return;
-			const game = global.Games.createGame(room, format, {official});
-			if (game) {
-				game.signups();
-			}
+			void (async () => {
+				if (room.game) return;
+				const game = await global.Games.createGame(room, format, {official});
+				if (game) {
+					await game.signups();
+				}
 
-			delete this.scheduledGameTimers[room.id];
+				delete this.scheduledGameTimers[room.id];
+			})();
 		}, timer);
 	}
 
 	loadFormats(): void {
-		const userHostedModule = require(path.join(Tools.srcBuildFolder, "room-game-user-hosted.js")) as // eslint-disable-line @typescript-eslint/no-var-requires
-		typeof import('./room-game-user-hosted');
+		const userHostedPath = path.join(Tools.srcBuildFolder, "room-game-user-hosted.js");
+
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const userHostedModule = require(userHostedPath) as typeof import('./room-game-user-hosted');
 
 		// @ts-expect-error
 		this.formatModules.push(userHostedModule);
@@ -830,8 +855,10 @@ export class Games {
 					delete format.resolvedInputProperties.options.points;
 					format.minigameCreator = user.id;
 
-					const game = global.Games.createGame(room, format, {pmRoom, minigame: true});
-					if (game) game.signups();
+					void (async () => {
+						const game = await global.Games.createGame(room, format, {pmRoom, minigame: true});
+						if (game) await game.signups();
+					})();
 				},
 			};
 
@@ -1157,6 +1184,10 @@ export class Games {
 		this.lastUserHostTimes[room.id][hostId] = time;
 	}
 
+	setLastWinners(room: Room, winners: readonly string[]): void {
+		this.lastWinners[room.id] = winners.slice();
+	}
+
 	removeLastUserHostTime(room: Room, hostId: string): void {
 		if (room.id in this.lastUserHostTimes) delete this.lastUserHostTimes[room.id][hostId];
 	}
@@ -1225,7 +1256,7 @@ export class Games {
 	}
 
 	canUseRestrictedCommand(room: Room, user: User, infoCommand?: boolean): boolean {
-		if (user.hasRank(room, infoCommand ? 'star' : 'voice') || user.isDeveloper()) return true;
+		if (user.hasRank(room, infoCommand ? 'star' : 'voice')) return true;
 
 		const database = Storage.getDatabase(room);
 		if (database.gameManagers && database.gameManagers.includes(user.id)) return true;
@@ -1334,7 +1365,7 @@ export class Games {
 		return false;
 	}
 
-	createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): ScriptedGame | undefined {
+	async createGame(room: Room | User, format: IGameFormat, options?: ICreateGameOptions): Promise<ScriptedGame | undefined> {
 		const minigame = options && options.minigame;
 		const official = options && options.official;
 		if (!minigame) this.clearAutoCreateTimer(room as Room);
@@ -1343,7 +1374,7 @@ export class Games {
 			if (format.nonTrivialLoadData) {
 				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			}
-			format.class.loadData(room);
+			await format.class.loadData(room);
 			format.class.loadedData = true;
 		}
 
@@ -1351,7 +1382,8 @@ export class Games {
 		if (minigame) game.isMiniGame = true;
 		if (official) game.official = true;
 
-		if (game.initialize(format)) {
+		// prevent duplicate games while loading data
+		if (!(room as Room).userHostedGame && (!room.game || (options && options.childGame)) && game.initialize(format)) {
 			if (minigame) {
 				if (format.resolvedInputProperties.options.points) format.resolvedInputProperties.options.points = 1;
 				if (!format.freejoin && format.resolvedInputProperties.customizableNumberOptions &&
@@ -1369,8 +1401,9 @@ export class Games {
 		}
 	}
 
-	createChildGame(format: IGameFormat, parentGame: ScriptedGame): ScriptedGame | undefined {
-		const childGame = this.createGame(parentGame.room, format, {
+	async createChildGame(format: IGameFormat, parentGame: ScriptedGame): Promise<ScriptedGame | undefined> {
+		const childGame = await this.createGame(parentGame.room, format, {
+			childGame: true,
 			pmRoom: parentGame.pmRoom,
 			initialSeed: parentGame.prng.seed.slice() as PRNGSeed,
 		});
@@ -1402,17 +1435,20 @@ export class Games {
 		return room.userHostedGame;
 	}
 
-	createSearchChallenge(room: Room, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): ScriptedGame {
+	async createSearchChallenge(room: Room, format: IGameFormat, pmRoom?: Room, initialSeed?: PRNGSeed): Promise<ScriptedGame> {
 		if (format.class.loadData && !format.class.loadedData) {
 			if (format.nonTrivialLoadData) {
 				room.say("Loading data for " + Users.self.name + "'s first " + format.name + " game since updating...");
 			}
-			format.class.loadData(room);
+			await format.class.loadData(room);
 			format.class.loadedData = true;
 		}
 
-		room.searchChallenge = new format.class(room, pmRoom, initialSeed) as SearchChallenge;
-		room.searchChallenge.initialize(format);
+		// prevent duplicate challenges while loading data
+		if (!room.searchChallenge) {
+			room.searchChallenge = new format.class(room, pmRoom, initialSeed) as SearchChallenge;
+			room.searchChallenge.initialize(format);
+		}
 
 		return room.searchChallenge;
 	}
@@ -1515,8 +1551,7 @@ export class Games {
 		this.gameCooldownMessageTimers[room.id] = setTimeout(() => {
 			delete this.gameCooldownMessageTimerData[room.id];
 			delete this.gameCooldownMessageTimers[room.id];
-			room.say("There " + (minigameCooldownMinutes === 1 ? "is **1 minute**" : "are **" + minigameCooldownMinutes +
-				" minutes**") + " of the game cooldown remaining so minigames can now be played!");
+			room.say("The cooldown timer is halfway over! Minigames can be played during the remaining time.");
 		}, timer);
 	}
 
@@ -1749,7 +1784,7 @@ export class Games {
 	}
 
 	isIncludedPokemonTier(tier: string): boolean {
-		return tier !== 'Illegal' && tier !== 'Unreleased' && !tier.startsWith('(');
+		return !excludedTiers.includes(tier);
 	}
 
 	getTrainerCardHtml(room: Room, name: string, format?: IGameFormat | IUserHostedFormat): string {
@@ -2052,10 +2087,10 @@ export class Games {
 		return "<center>" + this.getCustomBoxDiv(content, hostBox) + "</center>";
 	}
 
-	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, mascotAndNameHtml: string, playerCount: number,
-		playerNames: string, pokemonAvatars?: boolean): string {
-		return this.getSignupsCustomBoxDiv(mascotAndNameHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
-			"<b>Players (" + playerCount + ")</b>: " + playerNames);
+	getSignupsPlayersHtml(customBox: IGameCustomBox | undefined, headerHtml: string, playerCount: number,
+		subHtml: string, pokemonAvatars?: boolean): string {
+		return this.getSignupsCustomBoxDiv(headerHtml + "<br />&nbsp;", customBox, (pokemonAvatars ? "" : "<br />") +
+			"<b>Players (" + playerCount + ")</b>: " + subHtml);
 	}
 
 	getJoinButtonHtml(room: Room, label: string, customBox?: IGameCustomBox, optionalType?: 'signups' | 'game'): string {
@@ -2092,7 +2127,7 @@ export class Games {
 
 			if (!staticSprites && choice.generation !== 'xy' && choice.generation !== 'bw') staticSprites = true;
 
-			gifsOrIcons.push(pokemonIcons ? Dex.getPSPokemonIcon(pokemon) + pokemon.name :
+			gifsOrIcons.push(pokemonIcons ? Dex.getPokemonIcon(pokemon) + pokemon.name :
 				Dex.getPokemonModel(pokemon, choice.generation, undefined, choice.shiny));
 		}
 
@@ -2540,6 +2575,12 @@ export class Games {
 		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
 		if (previous.skippedScriptedCooldowns) Object.assign(this.skippedScriptedCooldowns, previous.skippedScriptedCooldowns);
 
+		if (previous.lastWinners) {
+			for (const i in previous.lastWinners) {
+				this.lastWinners[i] = previous.lastWinners[i].slice();
+			}
+		}
+
 		if (previous.nextVoteBans) {
 			for (const i in previous.nextVoteBans) {
 				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
@@ -2549,12 +2590,18 @@ export class Games {
 		for (const formatModule of previous.formatModules) {
 			Tools.unrefProperties(formatModule);
 		}
+		Tools.unrefProperties(previous.userHosted);
 
 		for (const i in previous.workers) {
 			// @ts-expect-error
 			Tools.unrefProperties(previous.workers[i]);
 		}
 
+		Tools.unrefProperties(previous.abilitiesLists);
+		Tools.unrefProperties(previous.itemsLists);
+		Tools.unrefProperties(previous.movesLists);
+		Tools.unrefProperties(previous.nationalDexPokemonLists);
+		Tools.unrefProperties(previous.pokemonLists);
 		Tools.unrefProperties(previous);
 
 		this.loadFormats();
@@ -2594,7 +2641,7 @@ export class Games {
 	private loadFileAchievements(file: DeepImmutable<IGameFile>): void {
 		if (!file.class.achievements) return;
 		for (const key in file.class.achievements) {
-			const achievement = file.class.achievements[key]!;
+			const achievement = file.class.achievements[key];
 			if (Tools.toId(achievement.name) !== key) {
 				throw new Error(file.name + "'s achievement " + achievement.name + " needs to have the key '" +
 					Tools.toId(achievement.name) + "'");

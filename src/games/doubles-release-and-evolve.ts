@@ -21,8 +21,6 @@ class DoublesReleaseAndEvolve extends DoublesBattleEliminationTournament {
 	canReroll = true;
 	baseHtmlPageGameName = name;
 	htmlPageGameDescription = description;
-	banlist = ['Burmy', 'Caterpie', 'Combee', 'Kricketot', 'Magikarp', 'Scatterbug', 'Sunkern', 'Tynamo', 'Type: Null', 'Weedle',
-		'Wurmple', 'Cosmog', 'Blipbug', 'Snom', 'Wynaut'];
 }
 
 export const game: IGameFile<DoublesReleaseAndEvolve> = Games.copyTemplateProperties(doublesBattleEliminationTournamentGame, {

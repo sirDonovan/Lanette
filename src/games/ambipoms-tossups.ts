@@ -22,7 +22,7 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	tossupsRound: number = 0;
 	updateHintTime: number = 5 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Locations": Dex.getLocations().filter(x => x.length <= MAX_LETTERS),
@@ -94,11 +94,11 @@ class AmbipomsTossups extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.say(text);
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 

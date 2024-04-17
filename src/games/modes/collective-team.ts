@@ -125,7 +125,7 @@ export class CollectiveTeam {
 
 	onStart(this: CollectiveTeamThis): void {
 		this.setTeams();
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	getTeamPoints(): string {
@@ -137,7 +137,8 @@ export class CollectiveTeam {
 		return points.join(" | ");
 	}
 
-	beforeNextRound(this: CollectiveTeamThis, newAnswer: boolean): boolean | string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async beforeNextRound(this: CollectiveTeamThis, newAnswer: boolean): Promise<boolean | string> {
 		const emptyTeams = this.getEmptyTeams();
 		for (const team of emptyTeams) {
 			delete this.teams[team.id];
@@ -236,7 +237,7 @@ const commandDefinitions: GameCommandDefinitions<CollectiveTeamThis> = {
 			}
 
 			this.answers = [];
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 
 			return true;
 		},

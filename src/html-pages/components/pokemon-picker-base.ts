@@ -9,6 +9,8 @@ export interface IPokemonPick {
 	shiny?: boolean;
 }
 
+export type PokemonChoices = (IPokemonPick | undefined)[];
+
 export interface IPokemonPickerProps extends IPickerProps<IPokemonPick> {
 	gif: boolean;
 	onPickLetter: (pickerIndex: number, letter: string, dontRender: boolean | undefined) => void;

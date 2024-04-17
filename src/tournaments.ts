@@ -5,7 +5,7 @@ import type { Room } from "./rooms";
 import type { GroupName } from "./types/client";
 import type { TrainerSpriteId } from "./types/dex";
 import type { IFormat } from "./types/pokemon-showdown";
-import type { IPastTournament, LeaderboardType } from "./types/storage";
+import type { IDatabase, IPastTournament, LeaderboardType } from "./types/storage";
 import type {
 	IClientTournamentNode, ICreateTournamentOptions, IOfficialTournament, ITournamentCreateJson, ITournamentCreateListener,
 	ITournamentTimerData, ITreeRootPlaces, TournamentPlace
@@ -29,14 +29,14 @@ export class Tournaments {
 	readonly runnerUpPoints: number = 2;
 	readonly semiFinalistPoints: number = 1;
 
-	createListeners: Dict<ITournamentCreateListener> = {};
-	private nextOfficialTournaments: Dict<IOfficialTournament> = {};
-	private officialTournaments: Dict<IOfficialTournament[]> = {};
-	private tournamentTimerData: Dict<ITournamentTimerData> = {};
-	private tournamentTimers: Dict<NodeJS.Timer> = {};
-	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timer> = {};
+	createListeners: Dict<ITournamentCreateListener | undefined> = {};
+	private nextOfficialTournaments: Dict<IOfficialTournament | undefined> = {};
+	private officialTournaments: Dict<IOfficialTournament[] | undefined> = {};
+	private tournamentTimerData: Dict<ITournamentTimerData | undefined> = {};
+	private tournamentTimers: Dict<NodeJS.Timeout | undefined> = {};
+	private userHostedTournamentNotificationTimeouts: Dict<NodeJS.Timeout | undefined> = {};
 
-	getNextOfficialTournaments(): DeepImmutable<Dict<IOfficialTournament>> {
+	getNextOfficialTournaments(): DeepImmutable<Dict<IOfficialTournament | undefined>> {
 		return this.nextOfficialTournaments;
 	}
 
@@ -46,7 +46,7 @@ export class Tournaments {
 			try {
 				this.loadRoomSchedule(room, loadAll);
 			} catch (e) {
-				Tools.logError(e as Error, "Failed to load tournament schedule for room " + room);
+				Tools.logException(e as Error, "Failed to load tournament schedule for room " + room);
 			}
 		}
 	}
@@ -186,6 +186,8 @@ export class Tournaments {
 			return true;
 		};
 
+		const now = Date.now();
+
 		// month is eventually undefined due to rolloverDay()
 		outer:
 		while (month) {
@@ -199,7 +201,18 @@ export class Tournaments {
 				}
 
 				date.setHours(scheduleDays[scheduleDay]!.times[i][0], scheduleDays[scheduleDay]!.times[i][1], 0, 0);
-				this.officialTournaments[room].push({format, time: date.getTime(), official: true});
+
+				const tournamentTime = date.getTime();
+				const remainingTime = tournamentTime - now;
+				if (remainingTime < 0) continue;
+				if (remainingTime >= Number.MAX_SAFE_INTEGER) break outer;
+
+				this.officialTournaments[room]!.push({
+					format,
+					time: tournamentTime,
+					official: true,
+					endOfCycle: scheduleDays[scheduleDay]!.endOfCycle && scheduleDays[scheduleDay]!.endOfCycle![i],
+				});
 			}
 
 			if (!rolledOverDay) {
@@ -207,7 +220,7 @@ export class Tournaments {
 			}
 		}
 
-		this.officialTournaments[room].sort((a, b) => a.time - b.time);
+		this.officialTournaments[room]!.sort((a, b) => a.time - b.time);
 	}
 
 	getFormat(formatId: string, room?: Room, roomid?: string): IFormat | undefined {
@@ -265,23 +278,28 @@ export class Tournaments {
 		} else {
 			let updatedDatabase = false;
 
-			if (room.id in this.createListeners && format.id === this.createListeners[room.id].format.id) {
-				if (this.createListeners[room.id].official) {
+			if (room.id in this.createListeners && format.id === this.createListeners[room.id]!.format.id) {
+				const createListener = this.createListeners[room.id]!;
+				if (createListener.official) {
 					tournament.official = true;
 					this.setOfficialTournament(room);
 				}
 
-				if (this.createListeners[room.id].game) {
-					tournament.battleRoomGame = this.createListeners[room.id].game;
+				if (createListener.endOfCycle) {
+					tournament.endOfCycle = true;
 				}
 
-				tournament.format = this.createListeners[room.id].format;
+				if (createListener.game) {
+					tournament.battleRoomGame = createListener.game;
+				}
 
-				const name = this.createListeners[room.id].name || tournament.format.customFormatName;
+				tournament.format = createListener.format;
+
+				const name = createListener.name || tournament.format.customFormatName;
 				if (name) {
 					tournament.name = name;
 					tournament.manuallyNamed = true;
-					if (!this.createListeners[room.id].name) room.nameTournament(name);
+					if (!createListener.name) room.nameTournament(name, tournament.official);
 				}
 
 				if (tournament.format.customRules) {
@@ -289,8 +307,8 @@ export class Tournaments {
 					room.setTournamentRules(tournament.format.customRules.join(","));
 				}
 
-				if (this.createListeners[room.id].callback) {
-					this.createListeners[room.id].callback!();
+				if (createListener.callback) {
+					createListener.callback();
 				}
 
 				const database = Storage.getDatabase(room);
@@ -712,14 +730,14 @@ export class Tournaments {
 
 		const database = Storage.getDatabase(room);
 		if (database.queuedTournament && (!(room.id in this.nextOfficialTournaments) ||
-			database.queuedTournament.time < this.nextOfficialTournaments[room.id].time)) {
+			database.queuedTournament.time < this.nextOfficialTournaments[room.id]!.time)) {
 			const format = this.getFormat(database.queuedTournament.formatid, room);
 			if (format && format.effectType === 'Format') {
 				const now = Date.now();
 				if (database.queuedTournament.time <= now) database.queuedTournament.time = now + this.delayedOfficialTournamentTime;
 
-				this.setTournamentTimer(room, database.queuedTournament.time, format, database.queuedTournament.playerCap, false,
-					database.queuedTournament.tournamentName);
+				this.setTournamentTimer(room, database.queuedTournament.time, {format, cap: database.queuedTournament.playerCap,
+					name: database.queuedTournament.tournamentName});
 			}
 		}
 	}
@@ -732,8 +750,8 @@ export class Tournaments {
 		const now = Date.now();
 		let nextOfficialIndex = -1;
 
-		for (let i = 0; i < this.officialTournaments[room.id].length; i++) {
-			if (this.officialTournaments[room.id][i].time >= now) {
+		for (let i = 0; i < this.officialTournaments[room.id]!.length; i++) {
+			if (this.officialTournaments[room.id]![i].time >= now) {
 				nextOfficialIndex = i;
 				break;
 			}
@@ -742,36 +760,37 @@ export class Tournaments {
 		if (nextOfficialIndex === -1) return;
 
 		if (nextOfficialIndex > 0) {
-			this.officialTournaments[room.id] = this.officialTournaments[room.id].slice(nextOfficialIndex);
+			this.officialTournaments[room.id] = this.officialTournaments[room.id]!.slice(nextOfficialIndex);
 		}
 
-		this.nextOfficialTournaments[room.id] = this.officialTournaments[room.id][0];
+		this.nextOfficialTournaments[room.id] = this.officialTournaments[room.id]![0];
 		this.setOfficialTournamentTimer(room);
 	}
 
 	setOfficialTournamentTimer(room: Room): void {
 		if (!(room.id in this.nextOfficialTournaments)) return;
 
-		const format = this.getFormat(this.nextOfficialTournaments[room.id].format, room) ||
+		const format = this.getFormat(this.nextOfficialTournaments[room.id]!.format, room) ||
 			Dex.getExistingFormat(DEFAULT_OFFICIAL_TOURNAMENT);
 
-		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id].time, format, this.maxPlayerCap, true, format.customFormatName);
+		this.setTournamentTimer(room, this.nextOfficialTournaments[room.id]!.time, {format, cap: this.maxPlayerCap,
+			official: true, endOfCycle: this.nextOfficialTournaments[room.id]!.endOfCycle, name: format.customFormatName});
 	}
 
 	canSetRandomTournament(room: Room): boolean {
 		if (!(room.id in this.nextOfficialTournaments)) return true;
-		return this.nextOfficialTournaments[room.id].time - Date.now() > OFFICIAL_TOURNAMENT_BUFFER_TIME;
+		return this.nextOfficialTournaments[room.id]!.time - Date.now() > OFFICIAL_TOURNAMENT_BUFFER_TIME;
 	}
 
 	canSetRandomQuickTournament(room: Room): boolean {
 		if (!(room.id in this.nextOfficialTournaments)) return true;
-		return this.nextOfficialTournaments[room.id].time - Date.now() > OFFICIAL_TOURNAMENT_QUICK_BUFFER_TIME;
+		return this.nextOfficialTournaments[room.id]!.time - Date.now() > OFFICIAL_TOURNAMENT_QUICK_BUFFER_TIME;
 	}
 
 	setRandomTournamentTimer(room: Room, minutes: number, quickFormat?: boolean): void {
 		let officialFormat: IFormat | undefined;
 		if (room.id in this.nextOfficialTournaments) {
-			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id].format, room);
+			officialFormat = this.getFormat(this.nextOfficialTournaments[room.id]!.format, room);
 		}
 
 		const database = Storage.getDatabase(room);
@@ -839,19 +858,27 @@ export class Tournaments {
 			}
 		}
 
-		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, format,
-			this.getDefaultPlayerCap(room));
+		this.setTournamentTimer(room, Date.now() + (minutes * 60 * 1000) + this.delayedOfficialTournamentTime, {format,
+			cap: this.getDefaultPlayerCap(room)});
 	}
 
-	setTournamentTimer(room: Room, startTime: number, format: IFormat, cap: number, official?: boolean, name?: string): void {
+	setTournamentTimer(room: Room, startTime: number, options: ICreateTournamentOptions): void {
 		if (room.id in this.tournamentTimers) clearTimeout(this.tournamentTimers[room.id]);
 
 		let timer = startTime - Date.now();
 		if (timer <= 0) timer = this.delayedOfficialTournamentTime;
 
-		this.tournamentTimerData[room.id] = {cap, formatid: format.inputTarget, startTime, official: official, name};
+		this.tournamentTimerData[room.id] = {
+			cap: options.cap,
+			formatid: options.format.inputTarget,
+			startTime,
+			official: options.official,
+			endOfCycle: options.endOfCycle,
+			name: options.name,
+		};
+
 		this.tournamentTimers[room.id] = setTimeout(() => {
-			this.createTournament(room, {format, cap, official, name});
+			this.createTournament(room, options);
 		}, timer);
 	}
 
@@ -860,9 +887,9 @@ export class Tournaments {
 
 		// may be set by a non-tournament activity
 		if (room.id in this.createListeners) {
-			if (options.name && !this.createListeners[room.id].name) this.createListeners[room.id].name = options.name;
+			if (options.name && !this.createListeners[room.id]!.name) this.createListeners[room.id]!.name = options.name;
 		} else {
-			this.createListeners[room.id] = {format: options.format, name: options.name, official: options.official};
+			this.createListeners[room.id] = options;
 		}
 
 		room.createTournament(options.format, options.type || 'elimination', options.cap, options.name);
@@ -876,7 +903,7 @@ export class Tournaments {
 
 	onTournamentEnd(room: Room, now: number): void {
 		// delayed official tournament
-		if (room.id in this.nextOfficialTournaments && this.nextOfficialTournaments[room.id].time <= now) {
+		if (room.id in this.nextOfficialTournaments && this.nextOfficialTournaments[room.id]!.time <= now) {
 			this.setOfficialTournamentTimer(room);
 		} else {
 			const database = Storage.getDatabase(room);
@@ -891,8 +918,8 @@ export class Tournaments {
 						database.queuedTournament.time = now + this.queuedTournamentTime;
 					}
 
-					this.setTournamentTimer(room, database.queuedTournament.time, format,
-						database.queuedTournament.playerCap, database.queuedTournament.official);
+					this.setTournamentTimer(room, database.queuedTournament.time, {format, cap: database.queuedTournament.playerCap,
+						official: database.queuedTournament.official, endOfCycle: database.queuedTournament.endOfCycle});
 				} else {
 					delete database.queuedTournament;
 					Storage.tryExportDatabase(room.id);
@@ -1080,25 +1107,31 @@ export class Tournaments {
 		return false;
 	}
 
-	getBadgeHtml(id: string): string {
-		if (Config.tournamentTrainerCardBadges && id in Config.tournamentTrainerCardBadges) {
-			return '<img src="' + Config.tournamentTrainerCardBadges[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardBadges[id].name + '" />';
+	getBadgeHtml(database: IDatabase, id: string): string {
+		if (database.tournamentTrainerCardBadges && id in database.tournamentTrainerCardBadges) {
+			return '<img src="' + database.tournamentTrainerCardBadges[id].source + '" ' +
+				'width=' + database.tournamentTrainerCardBadges[id].width + 'px ' +
+				'height=' + database.tournamentTrainerCardBadges[id].height + 'px ' +
+				'title="' + database.tournamentTrainerCardBadges[id].name + '" />';
 		}
 
 		return "";
 	}
 
-	getRibbonHtml(room: Room, id: string): string {
-		if (Config.tournamentTrainerCardRibbons && id in Config.tournamentTrainerCardRibbons) {
-			return '<img src="' + Config.tournamentTrainerCardRibbons[id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentTrainerCardRibbons[id].name + '" />';
+	getRibbonHtml(room: Room, database: IDatabase, id: string): string {
+		if (database.tournamentTrainerCardRibbons && id in database.tournamentTrainerCardRibbons) {
+			return '<img src="' + database.tournamentTrainerCardRibbons[id].source + '" ' +
+				'width=' + database.tournamentTrainerCardRibbons[id].width + 'px ' +
+				'height=' + database.tournamentTrainerCardRibbons[id].height + 'px ' +
+				'title="' + database.tournamentTrainerCardRibbons[id].name + '" />';
 		}
 
 		if (Config.tournamentPointsShopRibbons && room.id in Config.tournamentPointsShopRibbons &&
 			id in Config.tournamentPointsShopRibbons[room.id]) {
-			return '<img src="' + Config.tournamentPointsShopRibbons[room.id][id].source + '" width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
-				'height=' + TRAINER_BADGE_DIMENSIONS + 'px title="' + Config.tournamentPointsShopRibbons[room.id][id].name + '" />';
+			return '<img src="' + Config.tournamentPointsShopRibbons[room.id][id].source + '" ' +
+				'width=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'height=' + TRAINER_BADGE_DIMENSIONS + 'px ' +
+				'title="' + Config.tournamentPointsShopRibbons[room.id][id].name + '" />';
 		}
 
 		return "";
@@ -1198,7 +1231,7 @@ export class Tournaments {
 			const badgesPerLine = 15;
 			const badgesHtml: string[] = [];
 			for (const badge of trainerCard.badges) {
-				let badgeHtml = this.getBadgeHtml(badge);
+				let badgeHtml = this.getBadgeHtml(database, badge);
 				if (badgeHtml) {
 					if (badgesHtml.length && badgesHtml.length % badgesPerLine === 0) badgeHtml = "<br />" + badgeHtml;
 					badgesHtml.push(badgeHtml);
@@ -1215,7 +1248,7 @@ export class Tournaments {
 			const ribbonsPerLine = 15;
 			const ribbonsHtml: string[] = [];
 			for (const ribbon of trainerCard.ribbons) {
-				let ribbonHtml = this.getRibbonHtml(trainerCardRoom, ribbon);
+				let ribbonHtml = this.getRibbonHtml(trainerCardRoom, database, ribbon);
 				if (ribbonHtml) {
 					if (ribbonsHtml.length && ribbonsHtml.length % ribbonsPerLine === 0) ribbonHtml = "<br />" + ribbonHtml;
 					ribbonsHtml.push(ribbonHtml);
@@ -1241,7 +1274,7 @@ export class Tournaments {
 		const id = Tools.toId(name);
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {
-			const sendTrainerCard = (username: string) => {
+			const sendTrainerCard = (username: string): void => {
 				const trainerCard = this.getTrainerCardHtml(room, username);
 				if (trainerCard) {
 					room.sayHtml((htmlBefore || "") + trainerCard + (htmlAfter || ""));
@@ -1253,7 +1286,7 @@ export class Tournaments {
 			const database = Storage.getDatabase(trainerCardRoom);
 			const user = Users.get(name);
 			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(id in database.tournamentTrainerCards))) {
-				const updateTrainerCard = (avatar?: string) => {
+				const updateTrainerCard = (avatar?: string): void => {
 					Storage.createTournamentTrainerCard(database, user.name);
 					if (!database.tournamentTrainerCards![id].avatar && avatar) {
 						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
@@ -1294,7 +1327,6 @@ export class Tournaments {
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
-				// @ts-expect-error
 				previous.tournamentTimers[i] = undefined;
 			}
 		}
@@ -1304,7 +1336,6 @@ export class Tournaments {
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(previous.userHostedTournamentNotificationTimeouts[i]);
-				// @ts-expect-error
 				previous.userHostedTournamentNotificationTimeouts[i] = undefined;
 
 				const room = Rooms.get(i);
@@ -1315,7 +1346,7 @@ export class Tournaments {
 		const now = Date.now();
 		Users.self.rooms.forEach((rank, room) => {
 			if (room.id in this.officialTournaments && (!(room.id in this.nextOfficialTournaments) ||
-				now < this.nextOfficialTournaments[room.id].time)) {
+				now < this.nextOfficialTournaments[room.id]!.time)) {
 				this.setOfficialTournament(room);
 			}
 		});
@@ -1324,10 +1355,11 @@ export class Tournaments {
 			for (const i in previous.tournamentTimerData) {
 				const room = Rooms.get(i);
 				if (room) {
-					const data = previous.tournamentTimerData[i];
+					const data = previous.tournamentTimerData[i]!;
 					const format = this.getFormat(data.formatid, room);
 					if (format && format.effectType === 'Format') {
-						this.setTournamentTimer(room, data.startTime, format, data.cap, data.official, data.name);
+						this.setTournamentTimer(room, data.startTime, {format, cap: data.cap,
+							official: data.official, endOfCycle: data.endOfCycle, name: data.name});
 					}
 				}
 			}

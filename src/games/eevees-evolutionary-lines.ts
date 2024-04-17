@@ -6,7 +6,7 @@ const HIDDEN_POKEMON = "______";
 class EeveesEvolutionaryLines extends QuestionAndAnswer {
 	static cachedData: IGameCachedData = {};
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

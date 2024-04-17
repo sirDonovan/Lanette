@@ -36,7 +36,7 @@ class TrubbishsTrash extends ScriptedGame {
 	weakestMove: string = '';
 	weakestTrash: Player | false | undefined;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const basePowers: Dict<number> = {};
 		const movesList = Games.getMovesList(move => !move.id.startsWith('hiddenpower'));
 		for (const move of movesList) {
@@ -53,9 +53,9 @@ class TrubbishsTrash extends ScriptedGame {
 		}
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		}
 	}
 
@@ -73,12 +73,12 @@ class TrubbishsTrash extends ScriptedGame {
 		const text = "Trubbish found **" + moves.join(", ") + "**!";
 		this.on(text, () => {
 			this.canTrash = true;
-			this.setTimeout(() => this.nextRound(), this.getRoundTime());
+			this.setTimeout(() => void this.nextRound(), this.getRoundTime());
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canTrash = false;
 		if (this.round > 1) {
 			let highestPoints = 0;

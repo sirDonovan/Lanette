@@ -27,12 +27,16 @@ let botMsgPrefix = "";
 let msgRoomPrefix = "";
 let msgSelfPrefix = "";
 
-const requestListener = (req: http.IncomingMessage, res: http.ServerResponse) => {
+const requestListener = (req: http.IncomingMessage, res: http.ServerResponse): void => {
     req.setEncoding('utf8');
 
     let bodyJson = '';
     req.on('data', (chunk) => {
         bodyJson += chunk;
+    });
+
+    req.on('error', (error) => {
+        console.log("Error during request: " + error.stack);
     });
 
     req.on('end', () => {
@@ -84,46 +88,52 @@ const requestListener = (req: http.IncomingMessage, res: http.ServerResponse) =>
         } else if (endpoint === 'createGame') {
             const format = Games.getFormat(body.input);
 
-            const response: ICreateGameResponse = {
-                queue: [],
-                format: null,
-                players: {},
-            };
+            void (async() => {
+                const response: ICreateGameResponse = {
+                    queue: [],
+                    format: null,
+                    players: {},
+                };
 
-            if (Array.isArray(format)) {
-                response.error = CommandParser.getErrorText(format);
-            } else {
-                response.format = format;
-                gameFormat = format;
+                if (Array.isArray(format)) {
+                    response.error = CommandParser.getErrorText(format);
+                } else {
+                    response.format = format;
+                    gameFormat = format;
 
-                createGame();
-                response.queue = getMessageQueue();
-            }
+                    await createGame();
+                    response.queue = getMessageQueue();
+                }
 
-            res.end(stringifyResponse(response));
+                res.end(stringifyResponse(response));
+            })();
         } else if (endpoint === 'startGame') {
             if (!game) return;
 
-            const response: IMessageQueueResponse = {
-                queue: [],
-            };
+            void (async() => {
+                const response: IMessageQueueResponse = {
+                    queue: [],
+                };
 
-            if (game.options.freejoin) {
-                response.error = "This game is freejoin";
-            } else if (!game.start()) {
-                response.error = "Not enough players created";
-            } else {
-                if (game.timeLimit) game.timeLimit = 0;
-                response.queue = getMessageQueue();
-            }
+                if (game.options.freejoin) {
+                    response.error = "This game is freejoin";
+                } else if (!await game.start()) {
+                    response.error = "Not enough players created";
+                } else {
+                    if (game.timeLimit) game.timeLimit = 0;
+                    response.queue = getMessageQueue();
+                }
 
-            res.end(stringifyResponse(response));
+                res.end(stringifyResponse(response));
+            })();
         } else if (endpoint === 'restartGame') {
             if (!game) return;
 
-            createGame();
+            void (async() => {
+                await createGame();
 
-            res.end(getMessageQueueResponse());
+                res.end(getMessageQueueResponse());
+            })();
         } else if (endpoint === 'endGame') {
             if (!game) return;
 
@@ -143,20 +153,22 @@ const requestListener = (req: http.IncomingMessage, res: http.ServerResponse) =>
 
             playerCount = inputPlayerCount;
 
-            const response: IAddPlayersResponse = {
-                queue: [],
-                players: {},
-            };
+            void (async() => {
+                const response: IAddPlayersResponse = {
+                    queue: [],
+                    players: {},
+                };
 
-            const error = addPlayers();
-            if (error) {
-                response.error = error;
-            } else {
-                response.players = getPlayerNames();
-                response.queue = getMessageQueue();
-            }
+                const error = await addPlayers();
+                if (error) {
+                    response.error = error;
+                } else {
+                    response.players = getPlayerNames();
+                    response.queue = getMessageQueue();
+                }
 
-            res.end(stringifyResponse(response));
+                res.end(stringifyResponse(response));
+            })();
         } else if (endpoint === 'choosePlayer') {
             if (!game) return;
 
@@ -302,7 +314,7 @@ function stringifyResponse(response: IGameServerResponse | IMessageQueueResponse
     return JSON.stringify(response);
 }
 
-function addPlayers(): string | undefined {
+async function addPlayers(): Promise<string | undefined> {
     if (!game) return;
 
     currentPlayerId = "";
@@ -313,7 +325,7 @@ function addPlayers(): string | undefined {
         if (!user.rooms.has(room!)) room!.onUserJoin(user, " ");
 
         const player = game.players[user.id] as Player | undefined ||
-            (game.options.freejoin ? game.createPlayer(user) : game.addPlayer(user));
+            (game.options.freejoin ? game.createPlayer(user) : await game.addPlayer(user));
         if (!player) {
             return name + " not created";
         }
@@ -322,7 +334,7 @@ function addPlayers(): string | undefined {
     }
 }
 
-function createGame(): void {
+async function createGame(): Promise<void> {
     if (!gameFormat) return;
 
     if (game && !game.ended) game.deallocate(true);
@@ -330,10 +342,10 @@ function createGame(): void {
     // @ts-expect-error
     Client.websocket.outgoingMessageQueue = [];
 
-    game = Games.createGame(room!, gameFormat);
+    game = await Games.createGame(room!, gameFormat);
     if (!game) return;
 
-    game.signups();
+    await game.signups();
 }
 
 function modifyGlobals(): void {
@@ -352,7 +364,7 @@ function modifyGlobals(): void {
     Tools.spritePrefix = 'https://' + Tools.mainServer + '/sprites';
 }
 
-export function initializeGameServer() {
+export function initializeGameServer(): void {
     modifyGlobals();
 
     if (!room) {

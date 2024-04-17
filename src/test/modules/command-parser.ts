@@ -17,7 +17,7 @@ describe("CommandParser", () => {
 	});
 
 	it('should load data for HTML pages', function() {
-		this.timeout(10000); // eslint-disable-line @typescript-eslint/no-invalid-this
+		this.timeout(10000);
 
 		ColorPicker.loadData();
 		GameHostControlPanel.loadData();

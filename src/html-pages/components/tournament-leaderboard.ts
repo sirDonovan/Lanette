@@ -16,10 +16,10 @@ export class TournamentLeaderboard extends LeaderboardBase {
 
 		this.formatsInput = new FormatTextInput(htmlPage, this.commandPrefix, this.formatsInputCommand, {
 			label: "Filter by format(s)",
+			name: "Format",
 			textArea: true,
 			textAreaConfiguration: {rows: 3, cols: 60},
 			onClear: () => this.clearFormats(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.setFormats(output),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),

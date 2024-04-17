@@ -1,8 +1,7 @@
 import { PokemonPickerManual } from "./pokemon-picker-manual";
-import type { PokemonChoices } from "../game-host-control-panel";
 import type { IPokemonTextInputProps } from "./pokemon-text-input";
 import { PokemonTextInput } from "./pokemon-text-input";
-import type { IPokemonPick, IPokemonPickerProps } from "./pokemon-picker-base";
+import type { IPokemonPick, IPokemonPickerProps, PokemonChoices } from "./pokemon-picker-base";
 import { PokemonPickerBase } from "./pokemon-picker-base";
 import type { ModelGeneration } from "../../types/dex";
 import type { IComponentProps } from "./component-base";
@@ -15,6 +14,7 @@ export interface IPokemonModelPickerProps extends IComponentProps {
 	submitAllPokemon: (pokemon: PokemonChoices) => void;
 	clearPokemon: (index: number, dontRender: boolean | undefined) => void;
 	selectPokemon: (index: number, pokemon: IPokemonPick, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 const setGenerationCommand = 'setgeneration';
@@ -45,11 +45,11 @@ export class PokemonModelPicker extends ComponentBase<IPokemonModelPickerProps> 
 			inputWidth: Tools.minRoomWidth,
 			maxPokemon: props.maxPokemon,
 			minPokemon: 1,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearAllPokemonInput(),
-			onErrors: () => this.props.reRender(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			readonly: this.props.readonly,
 			reRender: () => this.props.reRender(),

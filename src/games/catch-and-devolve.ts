@@ -8,7 +8,6 @@ const description = "Every player is given a randomly generated Pokemon to use a
 	"must 'catch' 1 of your opponent's Pokemon (add it to your team) and then de-volve 1 Pokemon on your team.";
 
 class CatchAndDevolve extends BattleEliminationTournament {
-	banlist = ['Wobbuffet'];
 	canChangeFormat = true;
 	additionsPerRound = 1;
 	evolutionsPerRound = -1;

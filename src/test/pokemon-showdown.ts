@@ -4,7 +4,9 @@ const formatEffectTypes: string[] = ['Format', 'Rule', 'ValidatorRule'];
 
 /* eslint-env mocha */
 describe("pokemon-showdown", () => {
-	it("should properly interface with Lanette", () => {
+	it("should properly interface with Lanette", function() {
+		this.timeout(10000);
+
 		/*
 			Abilities
 		*/
@@ -35,7 +37,7 @@ describe("pokemon-showdown", () => {
 
 		const isBreakableAbility = Dex.getAbility("Aroma Veil");
 		assert(isBreakableAbility);
-		assertStrictEqual(isBreakableAbility.isBreakable, true);
+		assert(isBreakableAbility.flags.breakable);
 
 		const suppressWeatherAbility = Dex.getAbility("Air Lock");
 		assert(suppressWeatherAbility);
@@ -158,7 +160,7 @@ describe("pokemon-showdown", () => {
 		assert(capMegaStone);
 		assertStrictEqual(capMegaStone.isNonstandard, "CAP");
 
-		const unObtainableItem = Dex.getItem("Draco Plate");
+		const unObtainableItem = Dex.getItem("Cherish Ball");
 		assert(unObtainableItem);
 		assertStrictEqual(unObtainableItem.isNonstandard, "Unobtainable");
 
@@ -171,20 +173,6 @@ describe("pokemon-showdown", () => {
 		assert(zCrystal);
 		assertStrictEqual(zCrystal.zMove, true);
 		assertStrictEqual(zCrystal.zMoveType, "Bug");
-
-		/*
-			Learnset data
-		*/
-
-		const learnsetDataKeys = Dex.getData().learnsetDataKeys;
-		assert(learnsetDataKeys.length);
-		assert(learnsetDataKeys.includes('pikachu'));
-		assert(learnsetDataKeys.includes('pokestarsmeargle'));
-		assert(learnsetDataKeys.includes('arghonaut'));
-
-		for (const i of learnsetDataKeys) {
-			assert(Dex.getLearnsetData(i), i);
-		}
 
 		/*
 			Moves
@@ -382,12 +370,12 @@ describe("pokemon-showdown", () => {
 
 			assertStrictEqual(typeof pokemon.spriteid, 'string');
 			assertStrictEqual(typeof pokemon.abilities['0'], 'string');
-			assertStrictEqual(typeof pokemon.baseStats['hp'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['atk'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['def'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spa'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spd'], 'number');
-			assertStrictEqual(typeof pokemon.baseStats['spe'], 'number');
+			assertStrictEqual(typeof pokemon.baseStats.hp, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.atk, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.def, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spa, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spd, 'number');
+			assertStrictEqual(typeof pokemon.baseStats.spe, 'number');
 			assertStrictEqual(typeof pokemon.tier, 'string');
 			assertStrictEqual(typeof pokemon.prevo, 'string');
 			// @ts-expect-error
@@ -453,7 +441,7 @@ describe("pokemon-showdown", () => {
 		const battleOnly = Dex.getPokemon("Greninja-Ash");
 		assert(battleOnly);
 		assert(battleOnly.baseSpecies !== battleOnly.name);
-		assertStrictEqual(battleOnly.battleOnly, "Greninja");
+		assertStrictEqual(battleOnly.battleOnly, "Greninja-Bond");
 
 		const eggGroup = Dex.getPokemon("Bulbasaur");
 		assert(eggGroup);
@@ -522,7 +510,7 @@ describe("pokemon-showdown", () => {
 			Types
 		*/
 
-		const typeKeys = Dex.getData().typeKeys;
+		const typeKeys = Dex.getTypeKeys();
 		assert(typeKeys.length);
 		assert(typeKeys.includes('normal'));
 
@@ -534,6 +522,7 @@ describe("pokemon-showdown", () => {
 		const gen6TypeKeys = Dex.getDex('gen6').getData().typeKeys;
 		const gen7TypeKeys = Dex.getDex('gen7').getData().typeKeys;
 		const gen8TypeKeys = Dex.getDex('gen8').getData().typeKeys;
+		const gen9TypeKeys = Dex.getDex('gen9').getData().typeKeys;
 
 		assert(gen1TypeKeys.includes('normal'));
 		assert(gen2TypeKeys.includes('normal'));
@@ -543,6 +532,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('normal'));
 		assert(gen7TypeKeys.includes('normal'));
 		assert(gen8TypeKeys.includes('normal'));
+		assert(gen9TypeKeys.includes('normal'));
 
 		assert(!gen1TypeKeys.includes('dark'));
 		assert(gen2TypeKeys.includes('dark'));
@@ -552,6 +542,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('dark'));
 		assert(gen7TypeKeys.includes('dark'));
 		assert(gen8TypeKeys.includes('dark'));
+		assert(gen9TypeKeys.includes('dark'));
 
 		assert(!gen1TypeKeys.includes('steel'));
 		assert(gen2TypeKeys.includes('steel'));
@@ -561,6 +552,7 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('steel'));
 		assert(gen7TypeKeys.includes('steel'));
 		assert(gen8TypeKeys.includes('steel'));
+		assert(gen9TypeKeys.includes('steel'));
 
 		assert(!gen1TypeKeys.includes('fairy'));
 		assert(!gen2TypeKeys.includes('fairy'));
@@ -570,6 +562,9 @@ describe("pokemon-showdown", () => {
 		assert(gen6TypeKeys.includes('fairy'));
 		assert(gen7TypeKeys.includes('fairy'));
 		assert(gen8TypeKeys.includes('fairy'));
+		assert(gen9TypeKeys.includes('fairy'));
+
+		assert(gen9TypeKeys.includes('stellar'));
 
 		for (const i of typeKeys) {
 			const type = Dex.getType(i);
@@ -583,9 +578,11 @@ describe("pokemon-showdown", () => {
 		assert(normalType);
 		assertStrictEqual(normalType.id, 'normal');
 		assertStrictEqual(normalType.name, "Normal");
+		/* eslint-disable @typescript-eslint/dot-notation */
 		assertStrictEqual(normalType.damageTaken['Normal'], 0);
 		assertStrictEqual(normalType.damageTaken['Fighting'], 1);
 		assertStrictEqual(normalType.damageTaken['Ghost'], 3);
+		/* eslint-enable */
 
 		const allPossibleMoves = Dex.getAllPossibleMoves(Dex.getExistingPokemon("Charizard"));
 		assert(allPossibleMoves);

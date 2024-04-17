@@ -18,18 +18,14 @@ class ThievulsSweetThief extends ScriptedGame {
 		if (!this.started || player.eliminated || player !== this.currentHolder) return;
 		this.eliminatePlayer(player);
 		this.say(player.name + " was DQed for changing their username while holding the sweets!");
-		this.setTimeout(() => this.nextRound(), 5000);
+		this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
 	onRemovePlayer(player: Player): void {
 		if (player === this.currentHolder) {
 			this.say(player.name + " left the game while holding the sweets!");
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		}
-	}
-
-	onStart(): void {
-		this.nextRound();
 	}
 
 	takeBackSweets(): void {
@@ -49,12 +45,12 @@ class ThievulsSweetThief extends ScriptedGame {
 			}
 
 			if (this.getRemainingPlayerCount() < 2) return this.end();
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) {
 			return this.end();

@@ -7,7 +7,7 @@
     "build": "node build.js",
     "gameserver": "npm run build && node --enable-source-maps build/src/game-server/server.js",
     "lint": "eslint \"**/*.ts\" --cache",
-    "localstart": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror --expose-gc build/app.js -- --offline",
+    "localstart": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/app.js -- --offline",
     "localtest": "npm run lint && npm run build && npm run tsc && npm run mocha -- --offline",
     "mocha": "node --enable-source-maps --max-old-space-size=2048 build/mocha.js",
     "start": "npm run build && node --enable-source-maps --report-uncaught-exception --report-on-fatalerror build/app.js",
@@ -26,25 +26,25 @@
   },
   "homepage": "https://github.com/sirDonovan/Lanette#readme",
   "dependencies": {
-    "@types/eslint": "8.37.0",
-    "@types/mocha": "10.0.1",
-    "@types/node": "20.2.3",
-    "@types/ws": "8.5.4",
-    "bufferutil": "4.0.7",
-    "esbuild": "0.17.19",
-    "typescript": "5.1.1-rc",
+    "@types/eslint": "8.56.9",
+    "@types/mocha": "10.0.6",
+    "@types/node": "20.12.7",
+    "@types/ws": "8.5.10",
+    "bufferutil": "4.0.8",
+    "esbuild": "0.20.2",
+    "typescript": "5.4.5",
     "utf-8-validate": "6.0.3",
-    "ws": "8.13.0"
+    "ws": "8.16.0"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "5.59.6",
-    "@typescript-eslint/parser": "5.59.6",
-    "eslint": "8.41.0",
-    "mocha": "10.2.0"
+    "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@typescript-eslint/parser": "6.21.0",
+    "eslint": "8.57.0",
+    "mocha": "10.4.0"
   },
   "optionalDependencies": {
     "heapdump": "^0.3.15",
-    "ts-loader": "^9.4.2",
-    "webpack": "^5.83.1"
+    "ts-loader": "^9.5.1",
+    "webpack": "^5.91.0"
   }
 }

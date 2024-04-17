@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import { ScriptedGame } from "../room-game-scripted";
-import { addPlayers, assertStrictEqual, startGame } from "../test/test-tools";
+import { addPlayers, assert, assertStrictEqual } from "../test/test-tools";
 import type { GameCommandDefinitions, GameFileTests, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 
@@ -26,7 +26,7 @@ class MachopsMatchups extends ScriptedGame {
 	// set once the game starts
 	currentPokemon!: IPokemon;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || banlist.includes(pokemon.id) || !Dex.hasModelData(pokemon) || pokemon.types.length < 2 ||
 				pokemon.types.includes('Steel') || pokemon.types.includes('Normal')) continue;
@@ -64,7 +64,7 @@ class MachopsMatchups extends ScriptedGame {
 		return true;
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.sharedType) {
 			this.say("All assigned Pokemon will be part-" + this.sharedType + "!");
 			const availablePokemon = data.pokemonByType[this.sharedType].length;
@@ -72,7 +72,7 @@ class MachopsMatchups extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.say("Now PMing Pokemon!");
 
 		const pokedex = this.shuffle(this.getPokemonChoices());
@@ -81,7 +81,7 @@ class MachopsMatchups extends ScriptedGame {
 			pokedex.shift();
 		}
 
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	assignPokemon(player: Player, species: string): void {
@@ -98,7 +98,7 @@ class MachopsMatchups extends ScriptedGame {
 			"</b><br />" + pokemon.types.map(x => Dex.getTypeHtml(Dex.getExistingType(x))).join("&nbsp;/&nbsp;") + "</center>";
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canAttack = false;
 		if (this.winners.size) {
 			this.end();
@@ -116,7 +116,7 @@ class MachopsMatchups extends ScriptedGame {
 				const pokemonUhtmlName = this.uhtmlBaseName + '-pokemon';
 				this.onUhtml(pokemonUhtmlName, pokemonHtml, () => {
 					this.canAttack = true;
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				});
 				this.sayUhtml(pokemonUhtmlName, pokemonHtml);
 			}, 5 * 1000);
@@ -177,9 +177,13 @@ const commands: GameCommandDefinitions<MachopsMatchups> = {
 
 const tests: GameFileTests<MachopsMatchups> = {
 	'should assign Pokemon': {
-		test(game): void {
-			addPlayers(game, 4);
-			startGame(game);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
+			await game.start();
+			assert(game.started);
 			assertStrictEqual(game.playerPokemon.size, 4);
 		},
 	},

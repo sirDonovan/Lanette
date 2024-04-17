@@ -56,12 +56,12 @@ class LampentsLabyrinth extends MapGame  {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.positionPlayers();
-		this.nextRound();
+		await this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.offCommands(this.moveCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 
@@ -75,7 +75,7 @@ class LampentsLabyrinth extends MapGame  {
 		this.roundActions.clear();
 		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => {
 			if (this.timeout) clearTimeout(this.timeout);
-			this.nextRound();
+			void this.nextRound();
 		});
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -86,7 +86,7 @@ class LampentsLabyrinth extends MapGame  {
 				this.displayMapLegend();
 			}
 			this.updateRoundHtml();
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

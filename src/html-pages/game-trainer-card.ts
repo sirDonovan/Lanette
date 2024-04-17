@@ -4,11 +4,10 @@ import type { IDatabase, IGameTrainerCard } from "../types/storage";
 import type { User } from "../users";
 import type { IColorPick } from "./components/color-picker";
 import { ColorPicker } from "./components/color-picker";
-import { PokemonPickerBase } from "./components/pokemon-picker-base";
+import { PokemonChoices, PokemonPickerBase } from "./components/pokemon-picker-base";
 import { TrainerPicker } from "./components/trainer-picker";
 import type { ITrainerPick } from "./components/trainer-picker";
 import { CLOSE_COMMAND, HtmlPageBase } from "./html-page-base";
-import type { PokemonChoices } from "./game-host-control-panel";
 import { PokemonTextInput } from "./components/pokemon-text-input";
 
 const baseCommand = 'gametrainercard';
@@ -37,16 +36,18 @@ class GameTrainerCard extends HtmlPageBase {
 	constructor(room: Room, user: User, maxIcons: number) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
 		const database = Storage.getDatabase(this.room);
 		let trainerCard: IGameTrainerCard | undefined;
 		if (database.gameTrainerCards && this.userId in database.gameTrainerCards) trainerCard = database.gameTrainerCards[this.userId];
 
 		this.backgroundColorPicker = new ColorPicker(this, this.commandPrefix, setBackgroundColorCommand, {
+			name: "Background",
 			currentPick: trainerCard && typeof trainerCard.background === 'string' ? trainerCard.background : undefined,
 			currentPickObject: trainerCard && trainerCard.background && typeof trainerCard.background !== 'string' ?
 				trainerCard.background : undefined,
+			pokemon: trainerCard && trainerCard.pokemon.length ? trainerCard.pokemon[0] : undefined,
 			onPickHueVariation: (index, hueVariation, dontRender) => this.pickBackgroundHueVariation(dontRender),
 			onPickLightness: (index, lightness, dontRender) => this.pickBackgroundLightness(dontRender),
 			onClear: (index, dontRender) => this.clearBackgroundColor(dontRender),
@@ -67,17 +68,15 @@ class GameTrainerCard extends HtmlPageBase {
 		PokemonPickerBase.loadData();
 
 		this.pokemonPicker = new PokemonTextInput(this, this.commandPrefix, setPokemonCommand, {
-			gif: false,
 			currentInput: trainerCard ? trainerCard.pokemon.join(", ") : "",
-			pokemonList: PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!],
 			inputWidth: Tools.minRoomWidth,
 			minPokemon: 1,
 			maxPokemon: maxIcons,
+			name: "Pokemon",
 			placeholder: "Enter all Pokemon",
 			clearText: "Clear all",
 			submitText: "Update all",
 			onClear: () => this.clearPokemonInput(),
-			onErrors: () => this.send(),
 			onSubmit: (output) => this.submitAllPokemonInput(output),
 			reRender: () => this.send(),
 		});

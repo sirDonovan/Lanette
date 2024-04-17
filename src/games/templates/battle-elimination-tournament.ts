@@ -9,7 +9,7 @@ const GROUPCHAT_SUFFIX = "Games";
 export abstract class BattleEliminationTournament extends BattleElimination {
 	autoDqMinutes: number = 3;
 	requiresAutoconfirmed = false;
-	startAutoDqTimer: NodeJS.Timer | undefined;
+	startAutoDqTimer: NodeJS.Timeout | undefined;
 	tournamentCreated: boolean = false;
 	tournamentEnded: boolean = false;
 	tournamentStarted: boolean = false;
@@ -141,19 +141,6 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			}
 		}
 
-		if (this.getGameCustomRules) {
-			const ruleTable = Dex.getRuleTable(this.battleFormat);
-			const gameCustomRules = this.getGameCustomRules();
-			for (const rule of gameCustomRules) {
-				try {
-					const validated = Dex.validateRule(rule);
-					if (typeof validated === 'string' && !ruleTable.has(validated) && !customRules.includes(validated)) {
-						customRules.push(validated);
-					}
-				} catch (e) {} // eslint-disable-line no-empty
-			}
-		}
-
 		return customRules;
 	}
 
@@ -216,8 +203,8 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 		Tournaments.createTournament(this.subRoom, {format: this.battleFormat, cap: this.playerCap, name: this.name});
 	}
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 
 		this.debugLog("Original Pokedex size: " + this.pokedex.length);
 
@@ -265,7 +252,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 			user = Users.add(tournamentPlayer.name, tournamentPlayer.id);
 		}
 
-		this.addPlayer(user, true);
+		void this.addPlayer(user, true);
 		if (expiredUser) Users.remove(user);
 	}
 
@@ -398,7 +385,7 @@ export abstract class BattleEliminationTournament extends BattleElimination {
 
 			this.treeRoot = Tournaments.bracketToEliminationNode(clientTournamentData.rootNode, this.players);
 
-			this.start(true);
+			void this.start(true);
 		}
 	}
 

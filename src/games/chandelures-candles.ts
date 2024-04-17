@@ -20,11 +20,11 @@ class ChandeluresCandles extends ScriptedGame {
 	roundTarget: Player | null = null;
 	roundTimes: number[] = [3000, 4000, 5000, 6000];
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		for (const i in this.players) {
 			this.lives.set(this.players[i], 3);
 		}
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	onRenamePlayer(player: Player): void {
@@ -34,7 +34,8 @@ class ChandeluresCandles extends ScriptedGame {
 		if (this.roundTarget) {
 			this.say(text + " Moving to the next round.");
 			this.roundTarget = null;
-			return this.nextRound();
+			void this.nextRound();
+			return;
 		}
 		this.say(text);
 	}
@@ -53,12 +54,12 @@ class ChandeluresCandles extends ScriptedGame {
 
 		const text = this.roundTarget.name + "'s candle was exposed!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.roundTarget = null;
 		const len = this.getRemainingPlayerCount();
 		if (len <= 1) {
@@ -127,7 +128,7 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 			if (this.timeout) clearTimeout(this.timeout);
 			this.say(this.roundTarget.name + " has safely escaped to the shadows...");
 			this.roundTarget = null;
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 			return true;
 		},
 	},
@@ -161,7 +162,7 @@ const commands: GameCommandDefinitions<ChandeluresCandles> = {
 				this.say(targetPlayer.name + " has been eliminated from the game!");
 				this.eliminatePlayer(targetPlayer);
 				this.roundTarget = null;
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			}
 			return true;
 		},

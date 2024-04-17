@@ -28,14 +28,14 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	roundTime = 5 * 1000;
 	usedMoves: string[] = [];
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		data.moves = Games.getMovesList(x => !x.id.startsWith('hiddenpower') && x.category !== 'Status' && !x.isMax).map(x => x.id);
 		data.pokedex = Games.getPokemonList({filter: x => x.baseSpecies === x.name}).map(x => x.name);
 	}
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
-			this.setTimeout(() => this.nextRound(), 10 * 1000);
+			this.setTimeout(() => void this.nextRound(), 10 * 1000);
 		}
 	}
 
@@ -56,14 +56,14 @@ class ShedinjasWonderTrials extends ScriptedGame {
 			this.canUseMove = true;
 			this.setTimeout(() => {
 				const fledText = this.currentPokemon!.name + " fled!";
-				this.on(fledText, () => this.nextRound());
+				this.on(fledText, () => void this.nextRound());
 				this.say(fledText);
 			}, this.getRoundTime());
 		});
 		this.say(summonText);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canUseMove = false;
 		if (this.round > 1) {
 			let highestPoints = 0;

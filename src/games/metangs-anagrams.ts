@@ -16,7 +16,7 @@ class MetangsAnagrams extends QuestionAndAnswer {
 	allAnswersAchievement = MetangsAnagrams.achievements.wordmaster;
 	allAnswersTeamAchievement = MetangsAnagrams.achievements.captainwordmaster;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),

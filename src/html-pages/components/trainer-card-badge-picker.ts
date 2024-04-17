@@ -1,15 +1,22 @@
+import type { IDatabase } from "../../types/storage";
 import type { HtmlPageBase } from "../html-page-base";
 import type { IPickerProps } from "./picker-base";
 import { PickerBase } from "./picker-base";
 
+export interface ITrainerCardBadgePickerProps extends IPickerProps<string> {
+	database: IDatabase;
+}
+
 export class TrainerCardBadgePicker extends PickerBase {
 	componentId: string = 'trainer-card-badge-picker';
 
-	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IPickerProps<string>) {
+	declare props: ITrainerCardBadgePickerProps;
+
+	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ITrainerCardBadgePickerProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
-		if (Config.tournamentTrainerCardBadges) {
-			for (const i in Config.tournamentTrainerCardBadges) {
+		if (props.database.tournamentTrainerCardBadges) {
+			for (const i in props.database.tournamentTrainerCardBadges) {
 				this.choices[i] = i;
 			}
 		}
@@ -18,8 +25,8 @@ export class TrainerCardBadgePicker extends PickerBase {
 	}
 
 	getChoiceButtonHtml(id: string): string {
-		if (Config.tournamentTrainerCardBadges && id in Config.tournamentTrainerCardBadges) {
-			const badge = Config.tournamentTrainerCardBadges[id];
+		if (this.props.database.tournamentTrainerCardBadges && id in this.props.database.tournamentTrainerCardBadges) {
+			const badge = this.props.database.tournamentTrainerCardBadges[id];
 			return "<img src='" + badge.source + "' width=" + badge.width + "px height=" + badge.height + "px /><br />" + badge.name;
 		}
 

@@ -13,7 +13,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 
 	allAnswersAchievement = PiplupsLetterPlacements.achievements.swiftplacing;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHints: Dict<Dict<string[]>> = {
@@ -33,6 +33,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 			"Pokemon Moves": [],
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const id = Tools.toId(character);
 			if (id.length < MIN_LETTERS) continue;
@@ -154,6 +155,7 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				}
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;

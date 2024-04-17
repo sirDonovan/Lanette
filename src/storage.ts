@@ -38,7 +38,7 @@ export class Storage {
 	allLeaderboardTypes: LeaderboardType[];
 	allLeaderboardTypesById: Dict<LeaderboardType>;
 	allLeaderboardNames: KeyedDict<LeaderboardType, string>;
-	globalDatabaseExportInterval: NodeJS.Timer;
+	globalDatabaseExportInterval: NodeJS.Timeout;
 
 	private archiveDatabases: Dict<IArchiveDatabase> = {};
 	private databases: Dict<IDatabase> = {};
@@ -110,7 +110,8 @@ export class Storage {
 	}
 
 	async exportDatabase(roomid: string): Promise<void> {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.bestOfRoomPrefix) ||
+			roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
@@ -122,7 +123,7 @@ export class Storage {
 		this.lastExportedDatabaseContents[roomid] = contents;
 
 		return Tools.safeWriteFile(path.join(this.databasesDir, roomid + '.json'), contents)
-			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error exporting " + roomid + " database: " + e.message));
 	}
 
 	tryExportDatabase(roomid: string): void {
@@ -130,12 +131,13 @@ export class Storage {
 	}
 
 	async exportArchiveDatabase(roomid: string): Promise<void> {
-		if (!(roomid in this.archiveDatabases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.archiveDatabases) || roomid.startsWith(Tools.battleRoomPrefix) ||
+			roomid.startsWith(Tools.bestOfRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
 		return Tools.safeWriteFile(path.join(this.archivesDir, roomid + '.json'), JSON.stringify(this.archiveDatabases[roomid]))
-			.catch((e: Error) => Tools.logError(e, "Error exporting " + roomid + " archive database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error exporting " + roomid + " archive database: " + e.message));
 	}
 
 	tryExportArchiveDatabase(roomid: string): void {
@@ -143,7 +145,8 @@ export class Storage {
 	}
 
 	async saveDatabaseSnapshot(roomid: string): Promise<void> {
-		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.groupchatPrefix)) {
+		if (!(roomid in this.databases) || roomid.startsWith(Tools.battleRoomPrefix) || roomid.startsWith(Tools.bestOfRoomPrefix) ||
+			roomid.startsWith(Tools.groupchatPrefix)) {
 			return Promise.resolve();
 		}
 
@@ -155,7 +158,7 @@ export class Storage {
 			Tools.toTimestampString(date).split(' ')[1].split(':').join('-');
 
 		return Tools.safeWriteFile(path.join(this.snapshotsDir, filename + '.json'), JSON.stringify(this.databases[roomid]))
-			.catch((e: Error) => Tools.logError(e, "Error saving snapshot of " + roomid + " database: " + e.message));
+			.catch((e: Error) => Tools.logException(e, "Error saving snapshot of " + roomid + " database: " + e.message));
 	}
 
 	importDatabases(): void {
@@ -341,7 +344,7 @@ export class Storage {
 				const month = date.getMonth() + 1;
 				const day = date.getDate();
 				const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
-				for (const leaderboardType of leaderboardTypes!) {
+				for (const leaderboardType of leaderboardTypes) {
 					if (!database[leaderboardType]) continue;
 					for (const i in database[leaderboardType]!.entries) {
 						const user = database[leaderboardType]!.entries[i];
