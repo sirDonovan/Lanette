@@ -186,6 +186,8 @@ export class Tournaments {
 			return true;
 		};
 
+		const now = Date.now();
+
 		// month is eventually undefined due to rolloverDay()
 		outer:
 		while (month) {
@@ -199,9 +201,15 @@ export class Tournaments {
 				}
 
 				date.setHours(scheduleDays[scheduleDay]!.times[i][0], scheduleDays[scheduleDay]!.times[i][1], 0, 0);
+
+				const tournamentTime = date.getTime();
+				const remainingTime = tournamentTime - now;
+				if (remainingTime < 0) continue;
+				if (remainingTime >= Number.MAX_SAFE_INTEGER) break outer;
+
 				this.officialTournaments[room]!.push({
 					format,
-					time: date.getTime(),
+					time: tournamentTime,
 					official: true,
 					endOfCycle: scheduleDays[scheduleDay]!.endOfCycle && scheduleDays[scheduleDay]!.endOfCycle![i],
 				});

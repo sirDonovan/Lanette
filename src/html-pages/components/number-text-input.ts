@@ -18,7 +18,7 @@ export class NumberTextInput extends TextInput {
 
 	onSubmit(input: string): void {
 		const inputAmount = parseInt(input);
-		if (isNaN(inputAmount)) {
+		if (!Tools.isInteger(input) || isNaN(inputAmount)) {
 			this.errors.push("You must specify a valid number.");
 		} else {
 			if (this.props.min && inputAmount < this.props.min) {
