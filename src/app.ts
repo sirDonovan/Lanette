@@ -23,17 +23,24 @@ const moduleFilenames: KeyedDict<ReloadableModule, string> = {
 };
 const configLoaderFilename = 'config-loader';
 
+const clientPath = './' + moduleFilenames.client;
+const commandParserPath = './' + moduleFilenames.commandparser;
+const dexPath = './' + moduleFilenames.dex;
+const gamesPath = './' + moduleFilenames.games;
+const storagePath = './' + moduleFilenames.storage;
+const toolsPath = './' + moduleFilenames.tools;
+const tournamentsPath = './' + moduleFilenames.tournaments;
+
 /* eslint-disable @typescript-eslint/no-var-requires */
+let client = require(clientPath) as typeof import('./client/client');
+let commandParser = require(commandParserPath) as typeof import('./command-parser');
+let dex = require(dexPath) as typeof import('./dex');
+let games = require(gamesPath) as typeof import('./games');
+let storage = require(storagePath) as typeof import('./storage');
+let tools = require(toolsPath) as typeof import('./tools');
+let tournaments = require(tournamentsPath) as typeof import('./tournaments');
 
-let client = require('./' + moduleFilenames.client) as typeof import('./client/client');
-let commandParser = require('./' + moduleFilenames.commandparser) as typeof import('./command-parser');
-let dex = require('./' + moduleFilenames.dex) as typeof import('./dex');
-let games = require('./' + moduleFilenames.games) as typeof import('./games');
-let storage = require('./' + moduleFilenames.storage) as typeof import('./storage');
-let tools = require('./' + moduleFilenames.tools) as typeof import('./tools');
-let tournaments = require('./' + moduleFilenames.tournaments) as typeof import('./tournaments');
-
-export function instantiate() {
+export function instantiate(): void {
 	console.log("Instantiating modules...");
 
 	tools.instantiate();
@@ -131,13 +138,14 @@ export async function reloadModules(username: string, targets: string[], formats
 		Tools.uncacheTree(path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js'));
 	}
 
-	if (modules.includes('config')) Tools.uncacheTree(path.join(Tools.srcBuildFolder, configLoaderFilename + '.js'));
+	const configLoaderPath = path.join(Tools.srcBuildFolder, configLoaderFilename + '.js');
+	if (modules.includes('config')) Tools.uncacheTree(configLoaderPath);
 	if (modules.includes('games') || modules.includes('tournaments')) {
 		Tools.uncacheTree(path.join(Tools.srcBuildFolder, 'room-activity.js'));
 	}
 
 	const buildScript = path.join(Tools.rootBuildFolder, 'build-src.js');
-	return (require(buildScript) as typeof import('../build-src')).buildSrc(buildOptions).then(() => {
+	return (require(buildScript) as typeof import('../build-src')).buildSrc(buildOptions).then(async() => {
 		for (const moduleId of modules) {
 			const modulePath = path.join(Tools.srcBuildFolder, moduleFilenames[moduleId] + '.js');
 
@@ -155,8 +163,7 @@ export async function reloadModules(username: string, targets: string[], formats
 				if (!modules.includes('games')) global.Games.loadFormatCommands();
 			} else if (moduleId === 'config') {
 				let oldConfig = global.Config;
-				const configLoader = require(path.join(Tools.srcBuildFolder,
-					configLoaderFilename + '.js')) as typeof import('./config-loader');
+				const configLoader = require(configLoaderPath) as typeof import('./config-loader');
 				const newConfig = configLoader.load(Tools.deepClone(require(modulePath) as typeof import('./config-example')));
 				global.Config = newConfig;
 				global.Client.updateConfigSettings();
@@ -173,7 +180,7 @@ export async function reloadModules(username: string, targets: string[], formats
 				dex.instantiate();
 				if (!modules.includes('games')) global.Games.setReloadInProgress(false);
 			} else if (moduleId === 'games') {
-				global.Games.unrefWorkers();
+				await global.Games.unrefWorkers();
 
 				global.Tools.unrefProperties(games);
 
@@ -207,7 +214,7 @@ export async function reloadModules(username: string, targets: string[], formats
 		return null;
 	}).catch(e => {
 		console.log(e);
-		Tools.logError(e as Error, "__reloadModules(): " + Tools.joinList(modules));
+		Tools.logException(e as Error, "__reloadModules(): " + Tools.joinList(modules));
 
 		global.__reloadInProgress = false;
 		if (global.Games.isReloadInProgress()) global.Games.setReloadInProgress(false);

@@ -8,6 +8,7 @@ export type TournamentType = 'elimination' | 'roundrobin';
 
 export interface ITournamentCreateListener {
 	format: IFormat;
+	endOfCycle?: boolean;
 	game?: ScriptedGame;
 	name?: string;
 	official?: boolean;
@@ -17,6 +18,7 @@ export interface ITournamentCreateListener {
 export interface ICreateTournamentOptions {
 	format: IFormat;
 	cap: number;
+	endOfCycle?: boolean;
 	official?: boolean;
 	name?: string;
 	type?: TournamentType;
@@ -36,11 +38,13 @@ export interface IScheduledTournament {
 
 export interface IOfficialTournament extends IScheduledTournament {
 	official: true;
+	endOfCycle?: boolean;
 }
 
 export interface ITournamentScheduleDay {
 	format: string;
 	times: [number, number][];
+	endOfCycle?: boolean[];
 	invalidFormat?: boolean;
 }
 
@@ -80,7 +84,7 @@ export interface IUserHostedTournament {
 	signupUrl: string;
 	startTime: number;
 	urls: string[];
-	reviewTimer?: NodeJS.Timer;
+	reviewTimer?: NodeJS.Timeout;
 }
 
 export interface ITournamentUpdateJson {
@@ -137,6 +141,7 @@ export interface ITournamentTimerData {
 	cap: number;
 	formatid: string;
 	startTime: number;
+	endOfCycle?: boolean;
 	official?: boolean;
 	name?: string;
 }

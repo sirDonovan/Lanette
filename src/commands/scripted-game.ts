@@ -150,15 +150,20 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(voteFormat);
 			}
 
-			const game = Games.createGame(room, voteFormat);
-			if (game) game.signups();
+			void (async () => {
+				const game = await Games.createGame(room, voteFormat);
+				if (game) {
+					if (target) game.format.minigameCreator = target;
+					await game.signups();
+				}
+			})();
 		},
 		chatOnly: true,
 		aliases: ['sv', 'startskippedcooldownvote'],
 		description: ["starts a new scripted game vote"],
 	},
 	egg: {
-		command(target, room, user) {
+		command(target, room, user, alias, time) {
 			if (this.isPm(room)) return;
 			if (room.game) {
 				this.run('toss');
@@ -188,17 +193,19 @@ export const commands: BaseCommandDefinitions = {
 				return this.sayError(eggTossFormat);
 			}
 
-			const game = Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
-			if (game) {
-				game.signups();
-				const canEgg = this.run('toss') as boolean;
-				if (canEgg) {
-					this.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
-						Config.commandCharacter + "toss [user]`` before it explodes!");
-				} else {
-					game.end();
+			void (async () => {
+				const game = await Games.createGame(room, eggTossFormat, {pmRoom: room, minigame: true});
+				if (game) {
+					await game.signups();
+					const canEgg = game.tryCommand(targetUser.name, room, user, "toss", time);
+					if (canEgg) {
+						room.say("**" + user.name + "** handed an egg to **" + targetUser.name + "**! Pass it around with ``" +
+							Config.commandCharacter + "toss [user]`` before it explodes!");
+					} else {
+						game.end();
+					}
 				}
-			}
+			})();
 		},
 		chatOnly: true,
 		syntax: ["[user]"],
@@ -253,12 +260,14 @@ export const commands: BaseCommandDefinitions = {
 
 			sweetThiefFormat.minigameCreator = user.id;
 
-			const game = Games.createGame(room, sweetThiefFormat, {pmRoom: room, minigame: true}) as SweetThief;
-			game.signups();
-			game.currentHolder = game.createPlayer(targetUser)!;
+			void (async () => {
+				const game = await Games.createGame(room, sweetThiefFormat, {pmRoom: room, minigame: true}) as SweetThief;
+				await game.signups();
+				game.currentHolder = game.createPlayer(targetUser)!;
 
-			this.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
-				Config.commandCharacter + "steal [user]`` before Thievul returns!");
+				room.say("Thievul hid the sweets with **" + game.currentHolder.name + "**! Steal them with ``" +
+					Config.commandCharacter + "steal [user]`` before Thievul returns!");
+			})();
 		},
 		chatOnly: true,
 		syntax: ["[user]"],
@@ -408,8 +417,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			const game = Games.createGame(room, botChallengeFormat) as BotChallenge;
-			game.setupChallenge(user, Users.self, challengeFormat, parsedOptions);
+			void (async () => {
+				const game = await Games.createGame(room, botChallengeFormat) as BotChallenge;
+				game.setupChallenge(user, Users.self, challengeFormat, parsedOptions);
+			})();
 		},
 		chatOnly: true,
 		aliases: ['botch'],
@@ -545,8 +556,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			const game = Games.createGame(room, oneVsOneFormat) as OneVsOne;
-			game.setupChallenge(user, targetUser, challengeFormat, parsedOptions);
+			void (async () => {
+				const game = await Games.createGame(room, oneVsOneFormat) as OneVsOne;
+				game.setupChallenge(user, targetUser, challengeFormat, parsedOptions);
+			})();
 		},
 		chatOnly: true,
 		aliases: ['1v1c', 'onevonechallenge', '1vs1challenge', '1v1challenge', '1vs1c'],
@@ -675,8 +688,10 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			const game = Games.createGame(room, headToHeadFormat) as HeadToHead;
-			game.setupChallenge(leftUser, rightUser, challengeFormat, parsedOptions);
+			void (async () => {
+				const game = await Games.createGame(room, headToHeadFormat) as HeadToHead;
+				game.setupChallenge(leftUser, rightUser, challengeFormat, parsedOptions);
+			})();
 		},
 		chatOnly: true,
 		aliases: ['hthg', 'hthgame'],
@@ -722,8 +737,10 @@ export const commands: BaseCommandDefinitions = {
 				format = inputFormat;
 			}
 
-			const game = Games.createGame(room, format, {pmRoom: room});
-			if (game) game.signups();
+			void (async () => {
+				const game = await Games.createGame(room, format, {pmRoom: room});
+				if (game) await game.signups();
+			})();
 		},
 		chatOnly: true,
 		aliases: ['ctg', 'createtourgame', 'ctourgame', 'createrandomtournamentgame', 'createrandomtourgame', 'randomtourgame', 'crtg'],
@@ -765,8 +782,10 @@ export const commands: BaseCommandDefinitions = {
 				return this.say("You must wait for the " + room.tournament.name + " tournament to end!");
 			}
 
-			const game = Games.createSearchChallenge(room, format, room);
-			game.signups();
+			void (async () => {
+				const game = await Games.createSearchChallenge(room, format, room);
+				await game.signups();
+			})();
 		},
 		chatOnly: true,
 		aliases: ['csc', 'csearchchallenge', 'createrandomsearchchallenge', 'randomsearchchallenge', 'crsc'],
@@ -911,8 +930,11 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			format.voter = voter;
-			const game = Games.createGame(room, format);
-			if (game) game.signups();
+
+			void (async () => {
+				const game = await Games.createGame(room, format);
+				if (game) await game.signups();
+			})();
 		},
 		chatOnly: true,
 		aliases: ['cg', 'createrandomgame', 'crg', 'randomgame', 'createpickedgame', 'cpg', 'createskippedcooldowngame',
@@ -930,7 +952,9 @@ export const commands: BaseCommandDefinitions = {
 					if (!room.game.startTournament) return this.say("You must wait for the tournament to start.");
 					if (!room.game.startTournament()) this.say("Not enough players have joined the tournament.");
 				} else {
-					if (!room.game.start()) this.say("Not enough players have joined the game.");
+					void (async() => {
+						if (!await room.game!.start()) this.say("Not enough players have joined the game.");
+					})();
 				}
 			} else if (room.userHostedGame) {
 				const isHost = room.userHostedGame.isHost(user);
@@ -979,13 +1003,13 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				if (chatRoom.game) {
-					chatRoom.game.addPlayer(user);
+					void chatRoom.game.addPlayer(user);
 				} else if (chatRoom.userHostedGame) {
 					chatRoom.userHostedGame.addPlayer(user);
 				}
 			} else {
 				if (room.game) {
-					room.game.addPlayer(user);
+					void room.game.addPlayer(user);
 				} else if (room.userHostedGame) {
 					room.userHostedGame.addPlayer(user);
 				}

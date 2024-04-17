@@ -38,16 +38,18 @@ class MismagiusFoulPlay extends ScriptedGame {
 	previousParams: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const pokemonList = Games.getPokemonList({filter: x => x.baseSpecies === x.name});
 		for (const pokemon of pokemonList) {
-			const learnsetData = Dex.getLearnsetData(pokemon.id);
-			if (!learnsetData || !learnsetData.learnset) continue;
+			const possibleMoves = Dex.getAllPossibleMoves(pokemon);
+			if (!possibleMoves.length) continue;
+
 			data.pokemon.push(pokemon.name);
 			if (!(pokemon.color in data.colors)) {
 				data.colors[pokemon.color] = [];
 				dataKeys.colors.push(pokemon.color);
 			}
+
 			data.colors[pokemon.color].push(pokemon.name);
 			for (const eggGroup of pokemon.eggGroups) {
 				const name = eggGroup + " group";
@@ -57,6 +59,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 				}
 				data.eggGroups[name].push(pokemon.name);
 			}
+
 			for (const type of pokemon.types) {
 				const name = type + " type";
 				if (!(name in data.types)) {
@@ -66,8 +69,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 				data.types[name].push(pokemon.name);
 			}
 
-			for (const i in learnsetData.learnset) {
-				const move = Dex.getExistingMove(i);
+			for (const id of possibleMoves) {
+				const move = Dex.getExistingMove(id);
 				if (!(move.name in data.moves)) {
 					data.moves[move.name] = [];
 					dataKeys.moves.push(move.name);
@@ -85,7 +88,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.say("Now requesting Pokemon!");
 		for (const i in this.players) {
 			this.players[i].say("Please select a Pokemon to play as with ``.select``!");
@@ -138,10 +141,10 @@ class MismagiusFoulPlay extends ScriptedGame {
 		}
 
 		this.say("Use Mismagius' hints each round to deduce who is a criminal and who is a detective!");
-		this.nextRound();
+		void this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (!this.getRemainingPlayerCount(this.criminals) || !this.getRemainingPlayerCount(this.detectives)) return this.end();
 		let pokemonList: string[] = [];
 		this.chosenPokemon.forEach((species, player) => {
@@ -195,7 +198,7 @@ class MismagiusFoulPlay extends ScriptedGame {
 		const html = "<center><b>Param " + this.round + "</b>: " + param + "<br /><br /><b>Pokemon</b>: " + pokemonList.join(", ") +
 			"<br /><br /><b>Players</b>: " + players.join(", ") + "</center>";
 		this.onHtml(html, () => {
-			this.setTimeout(() => this.nextRound(), 45 * 1000);
+			this.setTimeout(() => void this.nextRound(), 45 * 1000);
 		});
 		this.sayHtml(html);
 	}

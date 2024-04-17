@@ -51,7 +51,8 @@ class MultiAnswer {
 		};
 	}
 
-	beforeNextRound(this: MultiAnswerThis, newAnswer: boolean): boolean | string {
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async beforeNextRound(this: MultiAnswerThis, newAnswer: boolean): Promise<boolean | string> {
 		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}
@@ -103,13 +104,13 @@ const tests: GameFileTests<MultiAnswerThis> = {
 		async test(game, format, attributes): Promise<void> {
 			this.timeout(15000);
 
-			addPlayers(game);
-			game.start();
+			await addPlayers(game);
+			await game.start();
 			await game.onNextRound();
 			assert(game.answers.length);
 			game.canGuess = true;
 			runCommand(attributes.commands![0], game.answers[0], game.room, "Player 1");
-			const player = game.players['player1'];
+			const player = game.players['player1']; // eslint-disable-line @typescript-eslint/dot-notation
 			assert(player);
 			assert(game.answers.length);
 			assertStrictEqual(game.correctPlayers.length, 1);

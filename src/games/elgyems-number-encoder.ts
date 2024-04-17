@@ -24,7 +24,7 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 
 	roundTime: number = 30 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -43,6 +43,7 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const encodedWord = getEncodedWord(character);
@@ -104,6 +105,7 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 			}
 			categoryHints["Pokemon Moves"][encodedWord].push(move.name);
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

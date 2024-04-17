@@ -31,18 +31,18 @@ describe("Tournaments", () => {
 		const database = Storage.getDatabase(room);
 		database.officialTournamentSchedule = {years: {}};
 
-		const year = 2022;
 		const date = new Date();
-		date.setFullYear(year);
 
-		const month = 0;
+		let month = date.getMonth() + 1;
+		if (month === 12) month = 0;
 		date.setMonth(month);
+
 		const scheduleMonth = month + 1;
 		const lastDayOfMonth = Tools.getLastDayOfMonth(date);
 
 		const formats: Dict<string> = {1: "gen8ou", 2: "gen8uu", 3: "gen8ru"};
-		database.officialTournamentSchedule.years[year] = {months: {}};
-		const schedule = database.officialTournamentSchedule.years[year];
+		database.officialTournamentSchedule.years[date.getFullYear()] = {months: {}};
+		const schedule = database.officialTournamentSchedule.years[date.getFullYear()];
 
 		// 4 officials on 1 day
 		let times: [number, number][] = [[2, 30], [9, 30], [15, 30], [20, 30]];
@@ -55,7 +55,7 @@ describe("Tournaments", () => {
 		Tournaments.loadRoomSchedule(room.id, true);
 
 		// @ts-expect-error
-		let officialTournaments = Tournaments.officialTournaments[room.id];
+		let officialTournaments = Tournaments.officialTournaments[room.id]!;
 		assertStrictEqual(officialTournaments.length, lastDayOfMonth * times.length);
 
 		let day = 1;

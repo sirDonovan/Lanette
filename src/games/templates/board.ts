@@ -113,20 +113,20 @@ export abstract class BoardGame extends ScriptedGame {
 		player.say("You will play as **" + playerLetter + "** for " + this.name + "!");
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.playerOrder = this.shufflePlayers();
 		for (const player of this.playerOrder) {
 			this.placePlayerOnStart(player);
 		}
 
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	getDisplayedRoundNumber(): number {
 		return this.boardRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (this.getRemainingPlayerCount() < 2) return this.end();
 		if (!this.playerList.length) {
 			this.boardRound++;
@@ -136,7 +136,7 @@ export abstract class BoardGame extends ScriptedGame {
 			const uhtmlName = this.uhtmlBaseName + '-round';
 			const html = this.getRoundHtml(players => this.getPlayerLetters(players), this.getRemainingPlayers(this.playerOrder));
 			this.onUhtml(uhtmlName, html, () => {
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.sayUhtml(uhtmlName, html);
 			return;
@@ -148,7 +148,7 @@ export abstract class BoardGame extends ScriptedGame {
 		}
 
 		if (!player) {
-			this.nextRound();
+			await this.nextRound();
 			return;
 		}
 
@@ -366,11 +366,14 @@ const tests: GameFileTests<BoardGame> = {
 		},
 	},
 	'it should have properly initialized board spaces': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.boardType !== 'square') return;
 
-			addPlayers(game, 4);
-			if (!game.started) game.start();
+			await addPlayers(game, 4);
+			if (!game.started) await game.start();
 
 			let location: IMovedBoardLocation = {x: game.startingBoardLocation.x, y: game.startingBoardLocation.x, passedSpaces: []};
 			let spaceId = location.x + ", " + location.y;

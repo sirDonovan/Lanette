@@ -51,16 +51,16 @@ export class BotChallenge extends ScriptedGame {
 
 		this.originalModchat = this.room.modchat;
 		if (!challenger.hasRank(this.room, 'voice')) {
-			challenger.roomVoiceListener = () => this.startChallenge();
+			challenger.roomVoiceListener = () => void this.startChallenge();
 			this.room.roomVoice(challenger.name);
 			this.challengerPromotedName = challenger.id;
 		}
 
 		if (this.challengerPromotedName) {
-			this.startTimer = setTimeout(() => this.startChallenge(),
+			this.startTimer = setTimeout(() => void this.startChallenge(),
 				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 1)));
 		} else {
-			this.startChallenge();
+			void this.startChallenge();
 		}
 		return true;
 	}
@@ -76,9 +76,9 @@ export class BotChallenge extends ScriptedGame {
 		return true;
 	}
 
-	startChallenge(): void {
+	async startChallenge(): Promise<void> {
 		this.room.setRoomModchat("+");
-		this.start();
+		await this.start();
 	}
 
 	onRoomVoiceError(userid: string): void {
@@ -89,11 +89,7 @@ export class BotChallenge extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (!this.challenger || !this.defender) throw new Error("nextRound() called without challenger and defender");
 
 		if (this.defender.eliminated) {
@@ -107,7 +103,7 @@ export class BotChallenge extends ScriptedGame {
 			return;
 		}
 
-		const game = Games.createChildGame(this.challengeFormat, this);
+		const game = await Games.createChildGame(this.challengeFormat, this);
 		if (!game) {
 			this.say("An error occurred while starting the challenge.");
 			this.deallocate(true);
@@ -130,7 +126,7 @@ export class BotChallenge extends ScriptedGame {
 		}
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
-		game.signups();
+		await game.signups();
 		game.loadChallengeOptions('botchallenge', this.challengeOptions);
 		this.say('glhf');
 
@@ -139,7 +135,7 @@ export class BotChallenge extends ScriptedGame {
 				game.sendJoinNotice(this.challenger);
 			}
 
-			this.setTimeout(() => game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
+			this.setTimeout(() => void game.start(), game.gameActionType ? 10 * 1000 : 5 * 1000);
 		}
 	}
 
@@ -208,6 +204,15 @@ export class BotChallenge extends ScriptedGame {
 		if (user && this.challenger && user.id === this.challenger.id) {
 			this.updateLastChallengeTime();
 		}
+	}
+
+	destroyPlayers(): void {
+		if (this.challenger) {
+			const challenger = Users.get(this.challenger.name);
+			if (challenger) delete challenger.roomVoiceListener;
+		}
+
+		super.destroyPlayers();
 	}
 }
 

@@ -22,15 +22,11 @@ class NinjasksCorners extends ScriptedGame {
 	roundTime: number = 4 * 1000;
 	roundTravels = new Map<Player, string>();
 
-	onSignups(): void {
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.options.freejoin) {
 			this.maxRound = 0;
-			this.setTimeout(() => this.nextRound(), 5000);
+			this.setTimeout(() => void this.nextRound(), 5000);
 		}
-	}
-
-	onStart(): void {
-		this.nextRound();
 	}
 
 	checkRoundTravels(): void {
@@ -56,10 +52,10 @@ class NinjasksCorners extends ScriptedGame {
 			if (this.getRemainingPlayerCount() < 2) return this.end();
 		}
 
-		this.nextRound();
+		void this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canTravel = false;
 
 		let color = this.sampleOne(colors);
@@ -146,7 +142,7 @@ const commands: GameCommandDefinitions<NinjasksCorners> = {
 					this.end();
 					return true;
 				}
-				this.nextRound();
+				void this.nextRound();
 			} else {
 				// don't activate achievement if the player typos first
 				this.roundTravels.delete(player);

@@ -142,7 +142,7 @@ export abstract class MapGame extends ScriptedGame {
 
 	abstract onEnd(): void;
 	abstract onMaxRound(): void;
-	abstract onNextRound(): void;
+	abstract onNextRound(): Promise<void>;
 
 	coordinatesToString(x: number, y: number): string {
 		return x + ', ' + y;
@@ -301,7 +301,7 @@ export abstract class MapGame extends ScriptedGame {
 		if (!(stringCoordinates in floor.traversedCoordinates)) floor.traversedCoordinates[stringCoordinates] = new Set();
 		floor.traversedCoordinates[stringCoordinates].add(player);
 		floor.spaces[stringCoordinates].addPlayer(player);
-		this.playerRoundInfo.set(player, ["You were teleported to (" + coordinates + ")."]);
+		this.playerRoundInfo.set(player, ["You were teleported to (" + coordinates.join(", ") + ")."]);
 	}
 
 	positionPlayers(): void {
@@ -776,9 +776,12 @@ export abstract class MapGame extends ScriptedGame {
 
 		this.movePlayer(player, playerCoordinates);
 		if (this.roundActions) this.roundActions.set(player, true);
-		this.sendPlayerControls(player);
 
-		if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+		if (!this.ended) {
+			this.sendPlayerControls(player);
+
+			if (eliminatedPlayer) this.increaseOnCommandsMax(this.moveCommands, 1);
+		}
 
 		return true;
 	}

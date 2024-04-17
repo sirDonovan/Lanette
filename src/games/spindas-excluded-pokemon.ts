@@ -49,7 +49,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 	// set before the first round
 	category!: IPokemonCategory;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const includedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
 			if (move.id.startsWith('hiddenpower')) continue;
@@ -121,12 +121,12 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const text = "Each round, either try to exclude a Pokemon with ``" + Config.commandCharacter + "exclude [Pokemon]`` or guess " +
 			"the parameter with ``" + Config.commandCharacter + "g [parameter]``!";
 
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		});
 
 		this.say(text);
@@ -173,9 +173,9 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		return this.excludedRound;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
-			if (this.addPlayerInactiveRound(this.currentPlayer)) {
+			if (this.incrementPlayerInactiveRound(this.currentPlayer)) {
 				this.say(this.currentPlayer.name + " did not exclude a Pokemon or guess the parameter and has been eliminated from " +
 					"the game!");
 				this.eliminatePlayer(this.currentPlayer);
@@ -209,7 +209,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 			if (this.getRemainingPlayerCount() < 2) {
 				this.say("The parameter was __" + this.parameter + "__.");
 				this.parameter = '';
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				return;
 			}
 
@@ -223,7 +223,7 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		const text = "**" + currentPlayer.name + "** you are up!";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.say(text);
 	}
@@ -272,7 +272,7 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 			}
 
 			this.currentPlayer = null;
-			this.nextRound();
+			void this.nextRound();
 			return true;
 		},
 	},
@@ -329,12 +329,12 @@ const commands: GameCommandDefinitions<SpindasExcludedPokemon> = {
 					return true;
 				} else {
 					this.parameter = '';
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				}
 			} else {
 				this.say("Incorrect! " + player.name + " can no longer guess this round.");
 				player.frozen = true;
-				this.nextRound();
+				void this.nextRound();
 			}
 
 			return true;

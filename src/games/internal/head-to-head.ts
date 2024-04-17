@@ -54,16 +54,16 @@ export class HeadToHead extends ScriptedGame {
 		}
 
 		if (this.leftPromotedName || this.rightPromotedName) {
-			this.startTimer = setTimeout(() => this.startChallenge(),
+			this.startTimer = setTimeout(() => void this.startChallenge(),
 				5000 + (Client.getSendThrottle() * (Client.getOutgoingMessageQueue.length + 2)));
 		} else {
-			this.startChallenge();
+			void this.startChallenge();
 		}
 	}
 
-	startChallenge(): void {
+	async startChallenge(): Promise<void> {
 		this.room.setRoomModchat("+");
-		this.start();
+		await this.start();
 	}
 
 	onRoomVoiceError(userid: string): void {
@@ -78,18 +78,18 @@ export class HeadToHead extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (!this.leftPlayer || !this.rightPlayer) throw new Error("start() called without left and right players");
 
 		const text = this.leftPlayer.name + " and " + this.rightPlayer.name + " are going head to head in a game of " +
 			this.challengeFormat.nameWithOptions + "!";
 		this.on(text, () => {
-			this.nextRound();
+			void this.nextRound();
 		});
 		this.say(text);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> {
 		if (!this.leftPlayer || !this.rightPlayer) throw new Error("nextRound() called without left and right players");
 
 		if (this.leftPlayer.eliminated) {
@@ -103,7 +103,7 @@ export class HeadToHead extends ScriptedGame {
 			return;
 		}
 
-		const game = Games.createChildGame(this.challengeFormat, this);
+		const game = await Games.createChildGame(this.challengeFormat, this);
 		if (!game) {
 			this.say("An error occurred while starting the challenge.");
 			this.deallocate(true);
@@ -125,16 +125,16 @@ export class HeadToHead extends ScriptedGame {
 		}
 
 		game.sayUhtml(this.uhtmlBaseName + "-description", game.getDescriptionHtml());
-		game.signups();
+		await game.signups();
 		game.loadChallengeOptions('onevsone', this.challengeOptions);
 
 		if (!game.options.freejoin) {
 			if (game.gameActionType) {
 				game.sendJoinNotice(this.leftPlayer);
 				game.sendJoinNotice(this.rightPlayer);
-				this.setTimeout(() => game.start(), 5 * 1000);
+				this.setTimeout(() => void game.start(), 5 * 1000);
 			} else {
-				game.start();
+				await game.start();
 			}
 		}
 	}

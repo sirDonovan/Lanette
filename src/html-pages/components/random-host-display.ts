@@ -5,10 +5,9 @@ import { TypePicker } from "./type-picker";
 import type { TrainerGeneration } from "./trainer-picker";
 import {
 	defaultTrainers, genEightTrainers, genFiveTrainers, genFourTrainers, genNineTrainers, genOneTrainers, genSevenTrainers, genSixTrainers,
-	genThreeTrainers, genTwoTrainers, trainerGens
+	genThreeTrainers, genTwoTrainers, TrainerChoices, trainerGens
 } from "./trainer-picker";
-import type { PokemonChoices, TrainerChoices } from "../game-host-control-panel";
-import { PokemonPickerBase } from "./pokemon-picker-base";
+import { PokemonChoices, PokemonPickerBase } from "./pokemon-picker-base";
 import type { HtmlPageBase } from "../html-page-base";
 
 const clearPokemon = 'clearpokemon';

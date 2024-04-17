@@ -11,15 +11,15 @@ class PonytasPinataParty extends ScriptedGame {
 	roundHits = new Map<Player, number>();
 	roundTimes: number[] = [4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000];
 
-	onSignups(): void {
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	onMaxRound(): void {
 		this.say("All Piñatas have been broken!");
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.round > 1) {
 			if (!this.pinataHits) {
 				this.inactiveRounds++;
@@ -67,7 +67,7 @@ class PonytasPinataParty extends ScriptedGame {
 			}
 		}
 
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	onEnd(): void {

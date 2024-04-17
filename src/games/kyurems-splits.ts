@@ -17,7 +17,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHints: Dict<Dict<string[]>> = {
@@ -37,6 +37,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 			"Pokemon Moves": [],
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			if (character.length < MIN_LETTERS) continue;
 
@@ -122,6 +123,7 @@ class KyuremsSplits extends QuestionAndAnswer {
 				if (!categoryHints["Pokemon Moves"][key].includes(move.name)) categoryHints["Pokemon Moves"][key].push(move.name);
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;

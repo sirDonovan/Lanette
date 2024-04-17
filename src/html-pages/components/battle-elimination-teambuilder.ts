@@ -1,7 +1,7 @@
 import type { BattleElimination, IRoundTeamRequirements, ITeamChange } from "../../games/templates/battle-elimination";
 import type { Player } from "../../room-activity";
 import type { ModelGeneration } from "../../types/dex";
-import type { HtmlPageBase } from "../html-page-base";
+import type { HtmlPageBase, HtmlSelector } from "../html-page-base";
 import { ComponentBase, type IComponentProps } from "./component-base";
 
 export interface IBattleEliminationTeambuilderProps extends IComponentProps {
@@ -35,9 +35,13 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 	roundSlots: Dict<string[] | undefined> = {};
 	slots: string[] = [];
 	teamBuilderImport: string = "";
+	usesHtmlSelectors: boolean = true;
 
 	battleFormatMod: string;
 	roundRequirements: IRoundTeamRequirements;
+	roundSelector: HtmlSelector;
+	teamHeaderSelector: HtmlSelector;
+	teamSelector: HtmlSelector;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IBattleEliminationTeambuilderProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
@@ -50,6 +54,14 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			dropsThisRound: 0,
 			evolutionsThisRound: 0,
 		};
+
+		this.roundSelector = this.newSelector("round");
+		this.teamHeaderSelector = this.newSelector("teamheader");
+		this.teamSelector = this.newSelector("team");
+
+		this.addSelector(this.teamHeaderSelector);
+		this.addSelector(this.roundSelector);
+		this.addSelector(this.teamSelector);
 	}
 
 	getDex(): typeof Dex {
@@ -73,7 +85,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			const round = parseInt(targets[0].trim());
 			if (!isNaN(round) && round > 1) {
 				this.changeRound(round);
-				this.props.reRender();
+				this.send();
 			}
 		} else {
 			return this.checkComponentCommands(cmd, targets);
@@ -199,7 +211,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			if (!this.remainingRoundEvolutions) this.nextRound();
 		}
 
-		this.props.reRender();
+		this.send();
 	}
 
 	dropPokemon(name: string): void {
@@ -218,7 +230,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			if (!this.remainingRoundEvolutions) this.nextRound();
 		}
 
-		this.props.reRender();
+		this.send();
 	}
 
 	setAvailableEvolutionSlots(): void {
@@ -274,7 +286,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 				this.remainingRoundEvolutions--;
 				if (!this.remainingRoundEvolutions) this.nextRound();
 
-				this.props.reRender();
+				this.send();
 				return;
 			}
 		}
@@ -302,7 +314,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 			this.remainingRoundEvolutions++;
 			if (!this.remainingRoundEvolutions) this.nextRound();
 
-			this.props.reRender();
+			this.send();
 		}
 	}
 
@@ -381,105 +393,98 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		return html;
 	}
 
-	render(): string {
+	renderSelector(selector: HtmlSelector): string {
 		const starterPokemon = this.props.game.starterPokemon.get(this.props.player);
 		if (!starterPokemon || !this.slots.length) return "";
 
-		const changesPerRound = this.props.game.additionsPerRound || this.props.game.dropsPerRound || this.props.game.evolutionsPerRound;
-
 		let html = "";
-		if (this.props.game.usesCloakedPokemon) {
-			html += "<h3>Your Pokemon to protect in battle</h3>";
-			if (!this.props.game.eliminationEnded && starterPokemon.length < 6) {
-				html += "You may add any Pokemon to fill your team as long as they are usable in " +
-					this.props.game.battleFormat.name + ".";
+		if (selector === this.teamHeaderSelector) {
+			if (this.props.game.usesCloakedPokemon) {
+				html += "<h3>Your Pokemon to protect in battle</h3>";
+				if (!this.props.game.eliminationEnded && starterPokemon.length < 6) {
+					html += "You may add any Pokemon to fill your team as long as they are usable in " +
+						this.props.game.battleFormat.name + ".";
+				}
+			} else {
+				const changesPerRound = this.props.game.additionsPerRound || this.props.game.dropsPerRound ||
+					this.props.game.evolutionsPerRound;
+				html += "<h3>Your team" + (changesPerRound ? " and options" : "") + "</h3>";
+				if (this.props.game.canReroll && this.props.game.playerCanReroll(this.props.player)) {
+					html += "If you are not satisfied with your starting team, you have 1 chance to reroll but you must keep " +
+						"whatever you receive! " + Client.getPmSelfButton(Config.commandCharacter + this.props.rerollCommand,
+						"Reroll Pokemon");
+				}
 			}
-		} else {
-			html += "<h3>Your team" + (changesPerRound ? " and options" : "") + "</h3>";
-			if (this.props.game.canReroll && this.props.game.playerCanReroll(this.props.player)) {
-				html += "If you are not satisfied with your starting team, you have 1 chance to reroll but you must keep " +
-					"whatever you receive! " + Client.getPmSelfButton(Config.commandCharacter + this.props.rerollCommand, "Reroll Pokemon");
-				html += "<br /><br />";
+
+			if (!this.props.player.eliminated && !this.props.game.eliminationEnded && this.props.player.round === 2 &&
+				this.props.game.firstRoundByes.has(this.props.player)) {
+				html += "<br /><br /><b>NOTE</b>: you were given a first round bye so you must follow any team changes below " +
+					"for your first battle!";
 			}
-		}
+		} else if (selector === this.roundSelector) {
+			const roundRequirements: string[] = [];
+			if (this.remainingRoundAdditions && this.slots.length < 6 && this.roundTeamChange &&
+				this.roundTeamChange.choices && this.roundTeamChange.choices.length) {
+				const multiple = this.roundRequirements.additionsThisRound > 1;
+				let changeHtml = "<li>choose " + this.remainingRoundAdditions + (multiple ? " more" : "") + " Pokemon to " +
+					"add to your team!<br />";
+				for (const choice of this.roundTeamChange.choices) {
+					const pokemon = this.getDex().getExistingPokemon(choice);
+					if (this.slots.includes(pokemon.name)) continue;
 
-		if (!this.props.player.eliminated && !this.props.game.eliminationEnded && this.props.player.round === 2 &&
-			this.props.game.firstRoundByes.has(this.props.player)) {
-			html += "<b>NOTE</b>: you were given a first round bye so you must follow any team changes below for your first " +
-				"battle!<br /><br />";
-		}
+					changeHtml += this.getQuietPmButton(this.commandPrefix + ", " + addPokemonCommand + ", " + choice,
+						Dex.getPokemonIcon(pokemon) + pokemon.name);
+				}
 
-		const slotsHtml: string[] = [];
-		for (let i = 0; i < this.slots.length; i++) {
-			slotsHtml.push(this.renderPokemon(this.slots[i], i));
-		}
+				changeHtml += "</li>";
+				roundRequirements.push(changeHtml);
+			}
 
-		if (!changesPerRound) {
+			if (this.remainingRoundDrops && this.slots.length > 1) {
+				const multiple = this.roundRequirements.dropsThisRound > 1;
+				roundRequirements.push("<li>choose " + this.remainingRoundDrops + (multiple ? " more" : "") + " Pokemon " +
+					"below to release from your team!</li>");
+			}
+
+			if (this.remainingRoundEvolutions && this.availableEvolutionSlots.length) {
+				const multiple = this.roundRequirements.evolutionsThisRound > 1 || this.roundRequirements.evolutionsThisRound < -1;
+				roundRequirements.push("<li>choose " + Math.abs(this.remainingRoundEvolutions) + (multiple ? " more" : "") +
+					" Pokemon on your team below to " + (this.remainingRoundEvolutions > 0 ? "evolve" : "de-volve") + "!</li>");
+			}
+
+			if (this.currentRound > 1) {
+				for (let i = this.currentRound; i > 1; i--) {
+					if (!this.roundSlots[i - 1]) continue;
+
+					html += this.getQuietPmButton(this.commandPrefix + ", " + changeRoundCommand + ", " + i, "Change round " + i,
+						{disabled: i === this.currentRound && ((this.remainingRoundAdditions ||
+						this.remainingRoundDrops || this.remainingRoundEvolutions) || (!this.roundRequirements.additionsThisRound &&
+						!this.roundRequirements.dropsThisRound && !this.roundRequirements.evolutionsThisRound)) ? true : false}) + "&nbsp;";
+				}
+			}
+
+			if (this.moreRoundsAvailableMessage) {
+				html += "<br /><br />" + this.moreRoundsAvailableMessage;
+			}
+
+			if (roundRequirements.length) {
+				html += "<br /><br />Round " + this.currentRound + " requirements:<br /><ul>" + roundRequirements.join("") + "</ul>";
+			}
+		} else if (selector === this.teamSelector) {
+			const slotsHtml: string[] = [];
+			for (let i = 0; i < this.slots.length; i++) {
+				slotsHtml.push(this.renderPokemon(this.slots[i], i));
+			}
+
 			html += slotsHtml.join("<br /><br />");
+
 			if (this.teamBuilderImport) {
-				html += "<br /><br />Teambuilder import (you may change abilities):<br />";
+				html += "<br /><br /><b>Teambuilder import</b> (you may change abilities):<br />";
 				html += this.teamBuilderImport;
 			}
-			return html;
-		}
-
-		const roundRequirements: string[] = [];
-		if (this.remainingRoundAdditions && this.slots.length < 6 && this.roundTeamChange &&
-			this.roundTeamChange.choices && this.roundTeamChange.choices.length) {
-			const multiple = this.roundRequirements.additionsThisRound > 1;
-			let changeHtml = "<li>choose " + this.remainingRoundAdditions + (multiple ? " more" : "") + " Pokemon to " +
-				"add to your team!<br />";
-			for (const choice of this.roundTeamChange.choices) {
-				const pokemon = this.getDex().getExistingPokemon(choice);
-				if (this.slots.includes(pokemon.name)) continue;
-
-				changeHtml += this.getQuietPmButton(this.commandPrefix + ", " + addPokemonCommand + ", " + choice,
-					Dex.getPokemonIcon(pokemon) + pokemon.name);
-			}
-
-			changeHtml += "</li>";
-			roundRequirements.push(changeHtml);
-		}
-
-		if (this.remainingRoundDrops && this.slots.length > 1) {
-			const multiple = this.roundRequirements.dropsThisRound > 1;
-			roundRequirements.push("<li>choose " + this.remainingRoundDrops + (multiple ? " more" : "") + " Pokemon " +
-				"below to release from your team!</li>");
-		}
-
-		if (this.remainingRoundEvolutions && this.availableEvolutionSlots.length) {
-			const multiple = this.roundRequirements.evolutionsThisRound > 1 || this.roundRequirements.evolutionsThisRound < -1;
-			roundRequirements.push("<li>choose " + Math.abs(this.remainingRoundEvolutions) + (multiple ? " more" : "") +
-				" Pokemon on your team below to " + (this.remainingRoundEvolutions > 0 ? "evolve" : "de-volve") + "!</li>");
-		}
-
-		if (this.currentRound > 1) {
-			for (let i = this.currentRound; i > 1; i--) {
-				if (!this.roundSlots[i - 1]) continue;
-
-				html += this.getQuietPmButton(this.commandPrefix + ", " + changeRoundCommand + ", " + i, "Change round " + i,
-					{disabled: i === this.currentRound && ((this.remainingRoundAdditions ||
-					this.remainingRoundDrops || this.remainingRoundEvolutions) || (!this.roundRequirements.additionsThisRound &&
-					!this.roundRequirements.dropsThisRound && !this.roundRequirements.evolutionsThisRound)) ? true : false}) + "&nbsp;";
-			}
-			html += "<br /><br />";
-		}
-
-		if (this.moreRoundsAvailableMessage) {
-			html += this.moreRoundsAvailableMessage + "<br /><br />";
-		}
-
-		if (roundRequirements.length) {
-			html += "Round " + this.currentRound + " requirements:<br /><ul>" + roundRequirements.join("") + "</ul>";
-		}
-
-		html += slotsHtml.join("<br /><br />");
-
-		if (this.teamBuilderImport) {
-			html += "<br /><br /><b>Teambuilder import</b> (you may change abilities):<br />";
-			html += this.teamBuilderImport;
 		}
 
 		return html;
 	}
+
 }

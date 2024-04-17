@@ -3,6 +3,7 @@ import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
 import type {
+	ICustomGridUhtml,
 	IGameFormat, IGameOptions, IHostDisplayUhtml, IPokemonUhtml, ITrainerUhtml, IUserHostedFormat,
 	PlayerList
 } from "./types/games";
@@ -42,7 +43,7 @@ export abstract class Game extends Activity {
 	options!: IGameOptions;
 	signupsUhtmlName!: string;
 	joinLeaveButtonUhtmlName!: string;
-	joinLeaveButtonRefreshUhtmlName!: string;
+	joinLeaveButtonBumpUhtmlName!: string;
 	privateJoinLeaveUhtmlName!: string;
 
 	customBox?: IGameCustomBox;
@@ -50,6 +51,8 @@ export abstract class Game extends Activity {
 	gameActionType?: GameActionGames;
 	hasAssistActions?: boolean;
 	isUserHosted?: boolean;
+	lastCustomGridIndex?: number;
+	lastCustomGridsUhtml?: (ICustomGridUhtml | undefined)[];
 	lastHostDisplayUhtml?: IHostDisplayUhtml;
 	lastPokemonUhtml?: IPokemonUhtml;
 	lastTrainerUhtml?: ITrainerUhtml;
@@ -59,6 +62,7 @@ export abstract class Game extends Activity {
 	playerCap?: number;
 	playerCustomBoxes = new Map<Player, IGameCustomBox | undefined>();
 	readonly points?: Map<Player, number>;
+	signupsUpdateInterval?: NodeJS.Timeout;
 	startingPoints?: number;
 
 	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
@@ -168,7 +172,7 @@ export abstract class Game extends Activity {
 						Config.onUserHostedGameWin(this.room as Room, this.format as IUserHostedFormat, this.players, this.winners,
 							this.points);
 					} catch (e) {
-						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onUserHostedGameWin");
+						Tools.logException(e as NodeJS.ErrnoException, this.format!.name + " Config.onUserHostedGameWin");
 					}
 				}
 			} else if (!this.isPmActivity(this.room)) {
@@ -177,7 +181,7 @@ export abstract class Game extends Activity {
 						Config.onScriptedGameWin(this.room, this.format as IGameFormat, this.players, this.winners, this.points,
 							this.official);
 					} catch (e) {
-						Tools.logError(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
+						Tools.logException(e as NodeJS.ErrnoException, this.format!.name + " Config.onScriptedGameWin");
 					}
 				}
 			}
@@ -221,14 +225,14 @@ export abstract class Game extends Activity {
 		if (nextGameType === 'userhosted' && previousGameDuration && Config.gameCooldownTimers &&
 			this.room.id in Config.gameCooldownTimers && Config.gameAutoCreateTimers && this.room.id in Config.gameAutoCreateTimers &&
 			Games.canSkipScriptedCooldown(this.room, previousGameDuration)) {
-			this.say("The cooldown will be skipped due to the duration of the previous game!");
+			this.say("The previous game was short enough to skip the cooldown timer!");
 
 			Games.skipScriptedCooldown(this.room);
 		} else {
 			Games.clearSkippedScriptedCooldown(this.room);
 
 			if (Config.gameCooldownTimers && this.room.id in Config.gameCooldownTimers) {
-				this.say("The **" + Config.gameCooldownTimers[this.room.id] + "-minute cooldown** until the next game starts now!");
+				this.say("A " + Config.gameCooldownTimers[this.room.id] + "-minute cooldown timer starts now!");
 				const minigameCooldownMinutes = Config.gameCooldownTimers[this.room.id] / 2;
 				if (minigameCooldownMinutes >= 1) Games.setGameCooldownMessageTimer(this.room, minigameCooldownMinutes);
 			}
@@ -248,8 +252,9 @@ export abstract class Game extends Activity {
 	}
 
 	getSignupsPlayersHtml(): string {
-		return Games.getSignupsPlayersHtml(this.customBox, this.getMascotAndNameHtml(" - signups"), this.playerCount,
-			this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
+		return Games.getSignupsPlayersHtml(this.customBox,
+			this.getMascotAndNameHtml(" - signups - " + Tools.toDurationString(Date.now() - this.signupsTime, {hhmmss: true})),
+			this.playerCount, this.getPlayerNames(), Object.keys(this.playerAvatars).length > 0);
 	}
 
 	getJoinButtonHtml(lateJoin?: boolean): string {
@@ -320,16 +325,24 @@ export abstract class Game extends Activity {
 			"will not receive any further signups messages." : ""), this.privateJoinLeaveUhtmlName);
 	}
 
-	getPlayerOrPickedCustomBox(player?: Player): IGameCustomBox | undefined {
+	getPlayerOrPickedCustomBox(player?: Player, voteBox?: boolean): IGameCustomBox | undefined {
 		if (this.isPmActivity(this.room)) return;
 
 		if (!player) return this.customBox;
 
 		if (!this.playerCustomBoxes.has(player)) {
 			const database = Storage.getDatabase(this.room);
-			if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
-				this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
+			if (voteBox) {
+				if (database.gameVoteBoxes && player.id in database.gameVoteBoxes) {
+					this.playerCustomBoxes.set(player, database.gameVoteBoxes[player.id]);
+				}
 			} else {
+				if (database.gameScriptedBoxes && player.id in database.gameScriptedBoxes) {
+					this.playerCustomBoxes.set(player, database.gameScriptedBoxes[player.id]);
+				}
+			}
+
+			if (!this.playerCustomBoxes.has(player)) {
 				this.playerCustomBoxes.set(player, undefined);
 			}
 		}
@@ -359,6 +372,25 @@ export abstract class Game extends Activity {
 
 	getCustomButtonsDiv(buttons: string[], player?: Player): string {
 		return this.getCustomBoxDiv(buttons.join("&nbsp;|&nbsp;"), player);
+	}
+
+	sayCustomGridUhtml(user: User, gridIndex: number, html: string): void {
+		if (this.lastCustomGridIndex === gridIndex && this.lastCustomGridsUhtml && this.lastCustomGridsUhtml[gridIndex] &&
+			this.lastCustomGridsUhtml[gridIndex]!.html === html) {
+			return;
+		}
+
+		const uhtmlName = this.uhtmlBaseName + "-customgrid-" + gridIndex;
+		this.sayUhtmlAuto(uhtmlName, html + Client.getUserAttributionHtml(user.name));
+
+		if (!this.lastCustomGridsUhtml) this.lastCustomGridsUhtml = [];
+		this.lastCustomGridsUhtml[gridIndex] = {
+			html,
+			uhtmlName,
+			user: user.name,
+		};
+
+		this.lastCustomGridIndex = gridIndex;
 	}
 
 	sayHostDisplayUhtml(user: User, hostDisplay: IGameHostDisplay, randomized?: boolean): void {

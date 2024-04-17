@@ -27,6 +27,7 @@ const FLOAT_REGEX = /^[.0-9]+$/g;
 const SPACE_REGEX = /\s/g;
 const APOSTROPHE_REGEX = /[/']/g;
 const HTML_CHARACTER_REGEX = /[<>/\\'"]/g;
+const HTML_TAG_CHARACTER_REGEX = /[<>/\\]/g;
 const UNSAFE_API_CHARACTER_REGEX = /[^A-Za-z0-9 ,.%&'"!?()[\]`_<>/|:;=+-@]/g;
 const HEX_CODE_REGEX = /^[abcdef0123456789]+$/g;
 
@@ -81,6 +82,7 @@ const HTTPS = "https://";
 const MAIN_SERVER = 'play.pokemonshowdown.com';
 const MAIN_REPLAY_SERVER = 'replay.pokemonshowdown.com';
 const BATTLE_ROOM_PREFIX = 'battle-';
+const BEST_OF_ROOM_PREFIX = 'game-bestof';
 const GROUPCHAT_PREFIX = 'groupchat-';
 const GUEST_USER_PREFIX = 'Guest ';
 const SMOGON_DEX_PREFIX = 'https://www.smogon.com/dex/';
@@ -93,6 +95,8 @@ const MAX_USERNAME_LENGTH = 18;
 const GITHUB_API_THROTTLE = 2 * 1000;
 const UPDATE_POKEMON_SHOWDOWN_TIMEOUT = 30 * 1000;
 const UPDATE_POKEMON_SHOWDOWN_ATTEMPTS = 60;
+const LETTERS = "abcdefghijklmnopqrstuvwxyz";
+const ALPHA_NUMERIC = LETTERS + "0123456789";
 
 // __dirname will be [..]/build/src
 const rootFolder = path.resolve(__dirname, '..', '..');
@@ -107,14 +111,17 @@ timeout = undefined;
 
 export class Tools {
 	// exported constants
+	readonly alphaNumericArray: readonly string[] = ALPHA_NUMERIC.split("");
 	readonly battleRoomPrefix: string = BATTLE_ROOM_PREFIX;
+	readonly bestOfRoomPrefix: string = BEST_OF_ROOM_PREFIX;
 	readonly rootBuildFolder: string = path.join(rootFolder, 'build');
 	readonly srcBuildFolder: string = path.join(rootFolder, 'build', 'src');
 	readonly eggGroupHexCodes: typeof eggGroupHexCodes = eggGroupHexCodes;
 	readonly groupchatPrefix: string = GROUPCHAT_PREFIX;
 	readonly guestUserPrefix: string = GUEST_USER_PREFIX;
 	readonly hexCodes: typeof hexCodes = hexCodes;
-	readonly letters: string = "abcdefghijklmnopqrstuvwxyz";
+	readonly letters: typeof LETTERS = LETTERS;
+	readonly lettersArray: readonly string[] = LETTERS.split("");
 	readonly mainServer: string = MAIN_SERVER;
 	readonly mainReplayServer: string = MAIN_REPLAY_SERVER;
 	readonly maxMessageLength: typeof MAX_MESSAGE_LENGTH = MAX_MESSAGE_LENGTH;
@@ -126,13 +133,18 @@ export class Tools {
 	readonly moveCategoryHexCodes: typeof moveCategoryHexCodes = moveCategoryHexCodes;
 	readonly pokemonShowdownFolder: string = path.join(rootFolder, 'pokemon-showdown');
 	readonly rootFolder: typeof rootFolder = rootFolder;
+	readonly runtimeOutputRootFolder: string = 'runtime-output';
+	readonly runtimeOutputDebug: string = 'debug';
+	readonly runtimeOutputError: string = 'error';
+	readonly runtimeOutputGameDebug: string = 'game-debug';
+	readonly runtimeOutputWarning: string = 'warning';
 	readonly smogonDexPrefix: string = SMOGON_DEX_PREFIX;
 	readonly smogonPermalinkPagePrefix: string = SMOGON_PERMALINK_PAGE_PREFIX;
 	readonly smogonPermalinkPostPrefix: string = SMOGON_PERMALINK_POST_PREFIX;
 	readonly smogonPostsPrefix: string = SMOGON_POSTS_PREFIX;
 	readonly smogonThreadsPrefix: string = SMOGON_THREADS_PREFIX;
 	readonly spritePrefix: string = '//' + MAIN_SERVER + '/sprites';
-	readonly timezones: TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
+	readonly timezones: readonly TimeZone[] = ['GMT-12:00', 'GMT-11:00', 'GMT-10:00', 'GMT-09:30', 'GMT-09:00', 'GMT-08:00', 'GMT-07:00',
 		'GMT-06:00', 'GMT-05:00', 'GMT-04:00', 'GMT-03:30', 'GMT-03:00', 'GMT-02:00', 'GMT-01:00', 'GMT+00:00', 'GMT+01:00', 'GMT+02:00',
 		'GMT+03:00', 'GMT+03:30', 'GMT+04:00', 'GMT+04:30', 'GMT+05:00', 'GMT+05:30', 'GMT+05:45', 'GMT+06:00', 'GMT+06:30', 'GMT+07:00',
 		'GMT+08:00', 'GMT+08:45', 'GMT+09:00', 'GMT+09:30', 'GMT+10:00', 'GMT+10:30', 'GMT+11:00', 'GMT+12:00', 'GMT+12:45', 'GMT+13:00',
@@ -365,6 +377,14 @@ export class Tools {
 		} : colorPick.hexCode;
 	}
 
+	getBlackHexCode(): HexCode {
+		return '#000000' as HexCode;
+	}
+
+	getWhiteHexCode(): HexCode {
+		return '#ffffff' as HexCode;
+	}
+
 	getBlackTextCode(): TextColorHex {
 		return '#000000';
 	}
@@ -378,7 +398,8 @@ export class Tools {
 		return color;
 	}
 
-	getHexCodeGradient(topHex: HexCode, bottomHex?: HexCode): string {
+	getHexCodeGradient(topHex?: HexCode, bottomHex?: HexCode): string {
+		if (!topHex) topHex = this.getWhiteHexCode();
 		return "linear-gradient(" + topHex + "," + (bottomHex || topHex) + ")";
 	}
 
@@ -406,7 +427,7 @@ export class Tools {
 					if (borderColor in this.hexCodes) {
 						border += this.hexCodes[borderColor]!.color;
 					} else {
-						border += "#000000";
+						border += this.getBlackHexCode();
 					}
 				} else {
 					border += borderColor.color;
@@ -446,12 +467,14 @@ export class Tools {
 		if (backgroundColor) {
 			if (typeof backgroundColor === 'string') {
 				if (backgroundColor in this.hexCodes) {
-					textColor = 'color: ' + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor || '#000000',
+					textColor = 'color: ' +
+						this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor || this.getBlackTextCode(),
 						this.hexCodes[backgroundColor]!.color) + ';';
 					background = "background: " + this.hexCodes[backgroundColor]!.gradient + ";";
 				}
 			} else {
-				textColor = 'color: ' + this.getDynamicTextHexCode(backgroundColor.textColor || '#000000', backgroundColor.color) + ';';
+				textColor = 'color: ' + this.getDynamicTextHexCode(backgroundColor.textColor || this.getBlackTextCode(),
+					backgroundColor.color) + ';';
 				background = "background: " + backgroundColor.gradient + ";";
 			}
 		}
@@ -475,7 +498,7 @@ export class Tools {
 					buttonStyle += "text-shadow: none;";
 				}
 			} else {
-				buttonStyle += "color: " + this.getDynamicTextHexCode(backgroundColor.textColor || "#000000",
+				buttonStyle += "color: " + this.getDynamicTextHexCode(backgroundColor.textColor || this.getBlackTextCode(),
 					backgroundColor.color) + ";";
 				buttonStyle += "background: " + backgroundColor.gradient + ";";
 				buttonStyle += "text-shadow: none;";
@@ -490,13 +513,13 @@ export class Tools {
 					if (borderColor in this.hexCodes) {
 						buttonStyle += this.hexCodes[borderColor]!.color;
 					} else {
-						buttonStyle += "#000000";
+						buttonStyle += this.getBlackHexCode();
 					}
 				} else {
 					buttonStyle += borderColor.color;
 				}
 			} else {
-				buttonStyle += "#000000";
+				buttonStyle += this.getBlackHexCode();
 			}
 			buttonStyle += ";";
 		}
@@ -521,14 +544,28 @@ export class Tools {
 		return year + '-' + month + '-' + day;
 	}
 
-	logError(error: NodeJS.ErrnoException, message?: string): void {
-		this.logMessage((message ? message + "\n" : "") + (error.stack || error.message));
+	debugLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputDebug);
 	}
 
-	logMessage(message: string): void {
+	warningLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputWarning);
+	}
+
+	errorLog(message: string): void {
+		this.logRuntimeOutput(message, this.runtimeOutputError);
+	}
+
+	logException(error: NodeJS.ErrnoException, message?: string): void {
+		this.logRuntimeOutput((message ? message + "\n" : "") + (error.stack || error.message), this.runtimeOutputError);
+	}
+
+	logRuntimeOutput(message: string, subFolder: string): void {
 		const date = new Date();
-		const filepath = path.join(rootFolder, 'errors', this.getDateFilename(date) + '.txt');
+		const filepath = path.join(rootFolder, this.runtimeOutputRootFolder, subFolder, this.getDateFilename(date) + '.txt');
 		message = "\n" + date.toUTCString() + " " + date.toTimeString() + "\n" + message + "\n";
+
+		console.log(message);
 
 		this.appendFile(filepath, message);
 	}
@@ -711,7 +748,9 @@ export class Tools {
 
 	toRoomId(name: string): string {
 		const id = name.trim().toLowerCase();
-		if (id.startsWith(BATTLE_ROOM_PREFIX) || id.startsWith(GROUPCHAT_PREFIX)) return id.replace(SPACE_REGEX, '');
+		if (id.startsWith(BATTLE_ROOM_PREFIX) || id.startsWith(BEST_OF_ROOM_PREFIX) || id.startsWith(GROUPCHAT_PREFIX)) {
+			return id.replace(SPACE_REGEX, '');
+		}
 		return this.toId(name);
 	}
 
@@ -796,6 +835,10 @@ export class Tools {
 
 	stripHtmlCharacters(input: string): string {
 		return input.replace(HTML_CHARACTER_REGEX, '').trim();
+	}
+
+	stripHtmlTagCharacters(input: string): string {
+		return input.replace(HTML_TAG_CHARACTER_REGEX, '').trim();
 	}
 
 	joinList(list: readonly string[], preFormatting?: string | null, postFormatting?: string | null, conjunction?: string): string {
@@ -969,17 +1012,16 @@ export class Tools {
 		return clone as DeepMutable<T>;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	unrefProperties(objectInstance: any, skippedKeys?: string[]) {
+	unrefProperties<T>(objectInstance: T, skippedKeys?: (keyof T)[]): void {
 		if (!objectInstance) return;
 
 		const keys = Object.getOwnPropertyNames(objectInstance);
 		for (const key of keys) {
-			if (skippedKeys && skippedKeys.includes(key)) continue;
+			if (skippedKeys && skippedKeys.includes(key as keyof T)) continue;
 
 			try {
-				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-				objectInstance[key] = undefined;
+				// @ts-expect-error
+				objectInstance[key as keyof T] = undefined;
 			} catch (e) {} // eslint-disable-line no-empty
 		}
 	}
@@ -1063,10 +1105,10 @@ export class Tools {
 
 		const permutations: T[][] = [];
 		const indicesInUse = new Set<number>();
-		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number) => {
+		const depthFirstSearch = (currentPermutation?: T[], startingIndex?: number): void => {
 			if (!currentPermutation) currentPermutation = [];
 			const currentLength = currentPermutation.length;
-			if (currentLength >= minimumLength!) {
+			if (currentLength >= minimumLength) {
 				permutations.push(currentPermutation);
 				if (currentLength === maximumLength) return;
 			}
@@ -1089,7 +1131,7 @@ export class Tools {
 		const combinations: T[][] = [];
 		const maxIndex = input.length - 1;
 
-		function combine(current: T[], index: number) {
+		function combine(current: T[], index: number): void {
 			for (let i = 0, j = input[index].length; i < j; i++) {
 				const clone = current.slice();
 				clone.push(input[index][i]);
@@ -1266,8 +1308,8 @@ export class Tools {
 	}
 
 	// requires https prefix for <a> in HTML
-	getChallongeUrl(input: string): string | undefined {
-		input = input.trim().toLowerCase();
+	getChallongeUrl(input: string | undefined): string | undefined {
+		if (input) input = input.trim().toLowerCase();
 		if (!input) return;
 
 		let match = input.match(CHALLONGE_SIGNUPS_REGEX);
@@ -1280,6 +1322,8 @@ export class Tools {
 	}
 
 	isChallongeSignupUrl(challongeUrl: string): boolean {
+		if (!challongeUrl) return false;
+
 		return challongeUrl.includes(CHALLONGE_SIGNUPS_PREFIX);
 	}
 
@@ -1318,6 +1362,9 @@ export class Tools {
 			response.on('data', chunk => {
 				data += chunk;
 			});
+			response.on('error', error => {
+				console.log("Error during gist response for " + gistId + ": " + error.stack);
+			});
 			response.on('end', () => {
 				if (response.statusCode !== 200) {
 					console.log(response.statusCode + ": " + response.statusMessage);
@@ -1327,7 +1374,7 @@ export class Tools {
 		});
 
 		request.on('error', error => {
-			console.log("Error updating gist " + gistId + ": " + error.stack);
+			console.log("Error during gist request for " + gistId + ": " + error.stack);
 		});
 
 		request.write(patchData);
@@ -1336,7 +1383,7 @@ export class Tools {
 		this.lastGithubApiCall = Date.now();
 	}
 
-	updatePokemonShowdown(attempt?: number): void {
+	updatePokemonShowdown(fetchClientData?: boolean, attempt?: number): void {
 		if (attempt && attempt > UPDATE_POKEMON_SHOWDOWN_ATTEMPTS) return;
 
 		process.chdir(this.pokemonShowdownFolder);
@@ -1358,7 +1405,8 @@ export class Tools {
 				__reloadModules("", modulesList, true).then(error => {
 					if (error) {
 						if (error.startsWith("You must wait for ")) {
-							setTimeout(() => this.updatePokemonShowdown((attempt || 1) + 1), UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
+							setTimeout(() => this.updatePokemonShowdown(fetchClientData, (attempt || 1) + 1),
+								UPDATE_POKEMON_SHOWDOWN_TIMEOUT);
 						} else {
 							process.chdir(this.pokemonShowdownFolder);
 
@@ -1374,6 +1422,7 @@ export class Tools {
 						}
 					} else {
 						void this.safeWriteFile(path.join(rootFolder, "pokemon-showdown-sha.txt"), latestSha as string);
+						if (fetchClientData) Dex.fetchClientData();
 					}
 				});
 			}
@@ -1408,12 +1457,12 @@ export class Tools {
 		fs.writeFile(tempFilepath, data)
 			.catch((e: Error) => {
 				reject(e);
-				this.logError(e, "Error writing temp file " + tempFilepath);
+				this.logException(e, "Error writing temp file " + tempFilepath);
 			})
-			.then(() => fs.rename(tempFilepath, filepath)) // eslint-disable-line @typescript-eslint/promise-function-async
+			.then(() => fs.rename(tempFilepath, filepath))
 			.catch((e: Error) => {
 				reject(e);
-				this.logError(e, "Error renaming temp file " + tempFilepath);
+				this.logException(e, "Error renaming temp file " + tempFilepath);
 			})
 			.then(() => {
 				resolve();
@@ -1429,7 +1478,10 @@ export class Tools {
 				} else {
 					delete this.currentSafeFileWrites[filepath];
 				}
-			});
+			})
+			.catch((e: Error) => {
+				this.logException(e, "Error in finally block for temp file " + tempFilepath);
+			})
 	}
 
 	private appendFileInternal(filepath: string, message: string): void {

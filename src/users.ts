@@ -18,7 +18,7 @@ export class User {
 	locked: boolean | null = null;
 	rooms = new Map<Room, IUserRoomData>();
 	status: string | null = null;
-	timers: Dict<NodeJS.Timer> | null = null;
+	timers: Dict<NodeJS.Timeout> | null = null;
 
 	id: string;
 	name!: string;
@@ -126,6 +126,8 @@ export class User {
 	}
 
 	hasRank(room: Room, targetRank: GroupName, roomAuth?: boolean): boolean {
+		if (this.isDeveloper()) return true;
+
 		if (!this.rooms.has(room) || (roomAuth && !this.isRoomauth(room))) return false;
 		return this.hasRankInternal(this.rooms.get(room)!.rank, targetRank);
 	}
@@ -190,7 +192,7 @@ export class User {
 		if (!(options && options.dontCheckFilter)) {
 			const filter = Client.checkFilters(message);
 			if (filter) {
-				Tools.logMessage("Message not sent to " + this.name + " due to " + filter + ": " + message);
+				Tools.warningLog("Message not sent to " + this.name + " due to " + filter + ": " + message);
 				return;
 			}
 		}
@@ -290,7 +292,7 @@ export class Users {
 	self: User;
 
 	private users: Dict<User> = {};
-	private pruneUsersInterval: NodeJS.Timer;
+	private pruneUsersInterval: NodeJS.Timeout;
 
 	constructor() {
 		const username = Config.username || "Self";

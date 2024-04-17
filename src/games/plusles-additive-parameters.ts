@@ -5,7 +5,7 @@ import { ScriptedGame } from "../room-game-scripted";
 import type { GameCommandDefinitions, GameCommandReturnType, IGameFile } from "../types/games";
 import type { IParam, ParamType } from "../workers/parameters";
 
-const GEN = 8;
+const GEN = 9;
 const GEN_STRING = 'gen' + GEN;
 
 const paramTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'egggroup', 'ability', 'gen'];
@@ -22,12 +22,8 @@ class PluslesAdditiveParameters extends ScriptedGame {
 	pokemon: string[] = [];
 	roundTime: number = 15 * 1000;
 
-	static loadData(): void {
-		Games.getWorkers().parameters.init();
-	}
-
-	onStart(): void {
-		this.nextRound();
+	static async loadData(): Promise<void> {
+		await Games.getWorkers().parameters.initializeThread();
 	}
 
 	getDisplayedRoundNumber(): number {
@@ -78,7 +74,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 			this.prng = new PRNG(result.prngSeed);
 
 			this.onUhtml(uhtmlName, html, () => {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.sayUhtmlAuto(uhtmlName, html);
 			return;
@@ -98,21 +94,21 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		const pokemonIcons: string[] = [];
 		for (const name of this.pokemon) {
 			const pokemon = Dex.getExistingPokemon(name);
-			pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+			pokemonIcons.push(Dex.getPokemonIcon(pokemon) + pokemon.name);
 		}
 
 		const html = "<div class='infobox'><span style='color: #999999'>" + this.params.length + " parameters (Generation " +
 			GEN + ")</span><br /><br />" + pokemonIcons.join(", ") + "</div>";
 		const uhtmlName = this.uhtmlBaseName + "-params";
 		this.onUhtml(uhtmlName, html, () => {
-			const text = currentPlayer!.name + " you are up!";
+			const text = currentPlayer.name + " you are up!";
 			this.on(text, () => {
 				this.canAdd = true;
-				this.onCommands(['add'], {max: 1}, () => this.nextRound());
+				this.onCommands(['add'], {max: 1}, () => void this.nextRound());
 				this.currentPlayer = currentPlayer!;
 				this.setTimeout(() => {
 					this.say("Time is up!");
-					this.nextRound();
+					void this.nextRound();
 				}, this.roundTime);
 			});
 			this.say(text);
@@ -136,7 +132,7 @@ class PluslesAdditiveParameters extends ScriptedGame {
 		const params: IParam[] = [];
 
 		for (const paramType of paramTypes) {
-			const pool = Games.getWorkers().parameters.workerData!.pokemon.gens[GEN_STRING].paramTypePools[paramType];
+			const pool = Games.getWorkers().parameters.getThreadData().pokemon.gens[GEN_STRING].paramTypePools[paramType];
 			for (const i in pool) {
 				if (i === input) {
 					params.push(pool[i]);
@@ -167,7 +163,7 @@ const commands: GameCommandDefinitions<PluslesAdditiveParameters> = {
 			const workers = Games.getWorkers();
 			const inputParam = params[0];
 			if (inputParam.type === 'move' &&
-				workers.parameters.workerData!.pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
+				workers.parameters.getThreadData().pokemon.gens[GEN_STRING].paramTypeDexes.move[inputParam.param].length >=
 				Games.getMaxMoveAvailability()) {
 				user.say("You cannot add a move learned by " + Games.getMaxMoveAvailability() + " or more Pokemon.");
 				return false;

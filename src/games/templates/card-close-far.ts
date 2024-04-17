@@ -62,7 +62,8 @@ export abstract class CardCloseFar extends CardHighLow {
 			}
 
 			html += '<center>' + this.getCardChatHtml(cards) + '</center>';
-			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the closest card" + (len > 1 ? "s" : "") + "</b>!";
+			html += "<br /><b>" + Tools.joinList(winnersNames) + " had the " + (this.closeOrFar === 'close' ? "closest" : "farthest") +
+				" card" + (len > 1 ? "s" : "") + "</b>!";
 		}
 		html += "</center>";
 
@@ -71,13 +72,13 @@ export abstract class CardCloseFar extends CardHighLow {
 			if (ended) {
 				this.setTimeout(() => this.end(), 5000);
 			} else {
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			}
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
 			this.end();
@@ -114,8 +115,7 @@ export abstract class CardCloseFar extends CardHighLow {
 				if (!this.players[i].eliminated) {
 					const htmlPage = this.getHtmlPage(this.players[i]);
 					htmlPage.renderHandHtml();
-					htmlPage.renderPlayedCardsHtml();
-					htmlPage.renderDrawnCardsHtml();
+					htmlPage.clearPlayedAndDrawnHtml();
 					htmlPage.send();
 				}
 			}

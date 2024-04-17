@@ -9,8 +9,8 @@ import type { IInputMetadata, InputFolderNames, InputFolders, RunOptionNames, Ru
 if (!global._outputFilepaths) global._outputFilepaths = [];
 
 const folderNames: InputFolderNames[] = ['private', 'src', 'web', 'Lanette-private'];
-const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'noBuild', 'mochaRuns',
-	'script', 'grep'];
+const optionNames: RunOptionNames[] = ['offline', 'incrementalBuild', 'modules', 'categories', 'games', 'gameSeed', 'mochaRuns', 'script',
+	'grep', 'noBuild', 'noRemote', 'noSha', 'regression'];
 const optionAliases: Dict<RunOptionNames> = {
 	'local': 'offline',
 	'incremental': 'incrementalBuild',
@@ -80,7 +80,7 @@ export function getRunOptions(filename?: string): RunOptions {
 	return global._runOptions;
 }
 
-export async function initializeSrc(options?: RunOptions) {
+export async function initializeSrc(options?: RunOptions): Promise<void> {
     await buildSrc(options).catch(e => {
 		console.log(e);
 		process.exit(1);
@@ -88,14 +88,16 @@ export async function initializeSrc(options?: RunOptions) {
 
 	// tools.ts is required by build-src so src files cannot be imported directly
 
+	const appPath = path.join(getInputFolders().src.buildPath, 'app');
+
 	// eslint-disable-next-line @typescript-eslint/no-var-requires
-	(require(path.join(getInputFolders().src.buildPath, 'app')) as typeof import("./src/app")).instantiate();
+	(require(appPath) as typeof import("./src/app")).instantiate();
 }
 
-export function setExceptionHandler() {
+export function setExceptionHandler(): void {
 	process.on('uncaughtException', error => {
 		console.log(error);
-		Tools.logError(error, "process.on('uncaughtException')");
+		Tools.logException(error, "process.on('uncaughtException')");
 	});
 }
 
@@ -164,7 +166,7 @@ export function exec(command: string): string | false {
         if (typeof result === 'string') return result;
         return result.toString();
     } catch (e: unknown) {
-        console.log("Failed to run command " + command + ": " + e);
+        console.log("Failed to run command " + command + ": " + (e as Error).message);
         return false;
     }
 }
@@ -179,7 +181,7 @@ export function copyPokemonShowdownShaBase(): void {
 		fs.readFileSync(path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha-base.txt')));
 }
 
-export function createUntrackedFiles() {
+export function createUntrackedFiles(): void {
 	const inputFolders = getInputFolders();
 	const pokemonShowdownShaFile = path.join(inputFolders.root.inputPath, 'pokemon-showdown-sha.txt');
 	if (!fs.existsSync(pokemonShowdownShaFile)) {
@@ -252,7 +254,8 @@ export function transpile(): void {
 
 		if (folderName === 'Lanette-private') {
 			try {
-				require(path.join(inputFolder.buildPath, 'post-build.js'));
+				const postBuildPath = path.join(inputFolder.buildPath, 'post-build.js');
+				require(postBuildPath);
 			} catch (e) {} // eslint-disable-line no-empty
 		}
 	}

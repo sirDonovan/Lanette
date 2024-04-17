@@ -1,6 +1,6 @@
 import type { ModelGeneration } from "../../types/dex";
-import type { PokemonChoices } from "../game-host-control-panel";
 import type { HtmlPageBase } from "../html-page-base";
+import { PokemonChoices, PokemonPickerBase } from "./pokemon-picker-base";
 import type { ITextInputProps } from "./text-input";
 import { TextInput } from "./text-input";
 
@@ -13,8 +13,8 @@ const xyOption = "xy";
 const shinyOption = "shiny";
 
 export interface IPokemonTextInputProps extends ITextInputProps<PokemonChoices> {
-	gif: boolean;
-	pokemonList: string[];
+	gif?: boolean;
+	pokemonList?: string[];
 	maxPokemon?: number;
 	minPokemon?: number;
 	modelGeneration?: ModelGeneration;
@@ -26,6 +26,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 	shiny: boolean = false;
 
 	modelGeneration: ModelGeneration;
+	pokemonList: string[];
 
 	declare props: IPokemonTextInputProps;
 
@@ -33,6 +34,9 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 
 		this.modelGeneration = props.modelGeneration || 'xy';
+
+		PokemonPickerBase.loadData();
+		this.pokemonList = props.pokemonList || PokemonPickerBase.pokemonGens[Dex.getModelGenerations().slice().pop()!];
 	}
 
 	setModelGeneration(modelGeneration: ModelGeneration): void {
@@ -119,7 +123,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 				continue;
 			}
 
-			if (!this.props.pokemonList.includes(pokemon.name)) {
+			if (!this.pokemonList.includes(pokemon.name)) {
 				this.errors.push(pokemon.name + " cannot be used.");
 				continue;
 			}
@@ -137,7 +141,7 @@ export class PokemonTextInput extends TextInput<PokemonChoices> {
 		}
 
 		if (this.props.maxPokemon && inputAmount > this.props.maxPokemon) {
-			this.errors.push("You may only specify " + this.props.maxPokemon + " Pokemon.");
+			this.errors.push("You may only specify up to " + this.props.maxPokemon + " Pokemon.");
 		}
 
 		this.currentInput = targets.join(', ');

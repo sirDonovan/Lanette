@@ -25,9 +25,9 @@ class ScriptedGameStats extends HtmlPageBase {
 	constructor(room: Room, user: User) {
 		super(room, user, baseCommand, pages);
 
-		this.setCloseButton();
+		this.setCloseButtonHtml();
 
-		const showPreviousCycles = user.isDeveloper() || user.hasRank(room, 'voice');
+		const showPreviousCycles = user.hasRank(room, 'voice');
 		this.gameLeaderboard = new GameLeaderboard(this, this.commandPrefix, leaderboardCommand, {
 			showPreviousCycles,
 			reRender: () => this.send(),

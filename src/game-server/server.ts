@@ -29,5 +29,5 @@ import * as middleware from './middleware';
     server.listen(8080);
 
     console.clear();
-    console.log("Game server initialized");
+    console.log("Game server initialized (open web/game-server.html in your browser!)");
 })().catch(e => console.log(e));

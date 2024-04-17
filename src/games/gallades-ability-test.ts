@@ -16,7 +16,7 @@ class GalladesAbilityTest extends QuestionAndAnswer {
 	hintPrefix: string = "Randomly generated abilities";
 	roundTime: number = 20 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

@@ -34,7 +34,7 @@ class Door extends Location {
 		this.number = number;
 	}
 
-	getColor() {
+	getColor(): IHexCodeData {
 		if (this.canMoveThrough) {
 			return Tools.getNamedHexCode(tileColors.unlockedDoor);
 		} else {
@@ -42,7 +42,7 @@ class Door extends Location {
 		}
 	}
 
-	getText() {
+	getText(): string {
 		return "" + this.number;
 	}
 }
@@ -57,7 +57,7 @@ class Switch extends Location {
 		this.number = door.number;
 	}
 
-	getText() {
+	getText(): string {
 		return "" + this.number;
 	}
 }
@@ -67,7 +67,7 @@ class CandyLocation extends Location {
 		super(true, tileColors.candy);
 	}
 
-	getText() {
+	getText(): string {
 		if (this.hasCandy) return "C";
 		return "";
 	}
@@ -724,7 +724,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return startingLocation;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.lastRowIndex = this.boardSize - 1;
 		this.lastColumnIndex = this.lastRowIndex;
 
@@ -737,7 +737,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 
 		const startingLocation = this.setupBoard(players);
 		if (!startingLocation) {
-			Tools.logMessage(this.name + " failed to generate a valid board (starting seed = " + this.prng.initialSeed + ")");
+			Tools.errorLog(this.name + " failed to generate a valid board (starting seed = " + this.prng.initialSeed.join(',') + ")");
 			this.errorEnd();
 			return;
 		}
@@ -749,7 +749,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 				", " + startingLocation[1] + ") for " + this.name + "!");
 		}
 
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	setCandyLocations(): void {
@@ -762,7 +762,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.remainingGhostMoves = 0;
 		this.mimikyuHaunt = false;
 		if (this.getRemainingPlayerCount() === 0) {
@@ -990,7 +990,7 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 
 		this.setCandyLocations();
-		this.nextRound();
+		void this.nextRound();
 	}
 
 	movePlayer(player: Player, target: string, direction: 'up' | 'down' | 'left' | 'right'): void {
@@ -1101,8 +1101,11 @@ const commands: GameCommandDefinitions<HauntersHauntedHouse> = {
 
 const tests: GameFileTests<HauntersHauntedHouse> = {
 	'should properly setup the board': {
-		test(game) {
-			const players = addPlayers(game, game.maxPlayers);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, game.maxPlayers);
 			assert(game.started);
 			if (game.timeout) clearTimeout(game.timeout);
 			assert(game.setupBoard(players));
@@ -1110,10 +1113,13 @@ const tests: GameFileTests<HauntersHauntedHouse> = {
 		},
 	},
 	'should properly move players and ghosts': {
-		test(game) {
-			const players = addPlayers(game, game.maxPlayers);
+		config: {
+			async: true,
+		},
+		async test(game) {
+			const players = await addPlayers(game, game.maxPlayers);
 			assert(game.started);
-			game.nextRound();
+			await game.nextRound();
 
 			const directions = ['up', 'down', 'left', 'right'];
 			for (let i = 0; i < 100; i++) {

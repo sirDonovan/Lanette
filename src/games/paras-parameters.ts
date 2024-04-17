@@ -32,8 +32,8 @@ export class ParasParameters extends QuestionAndAnswer {
 
 	noIncorrectAnswersMinigameAchievement = ParasParameters.achievements.dexsearchhero;
 
-	static loadData(): void {
-		Games.getWorkers().parameters.init();
+	static async loadData(): Promise<void> {
+		await Games.getWorkers().parameters.initializeThread();
 	}
 
 	getMinigameDescription(): string {
@@ -119,7 +119,7 @@ export class ParasParameters extends QuestionAndAnswer {
 			const pokemonIcons: string[] = [];
 			for (const name of result.pokemon) {
 				const pokemon = Dex.getExistingPokemon(name);
-				pokemonIcons.push(Dex.getPSPokemonIcon(pokemon) + pokemon.name);
+				pokemonIcons.push(Dex.getPokemonIcon(pokemon) + pokemon.name);
 			}
 			this.hint = "<div class='infobox'>" + pokemonIcons.join(", ") + "</div>";
 		}
@@ -138,7 +138,7 @@ export class ParasParameters extends QuestionAndAnswer {
 		const workers = Games.getWorkers();
 		const params: IParam[] = [];
 		const mod = 'gen' + this.options.gen;
-		const paramTypePools = workers.parameters.workerData!.pokemon.gens[mod].paramTypePools;
+		const paramTypePools = workers.parameters.getThreadData().pokemon.gens[mod].paramTypePools;
 		for (const part of parts) {
 			const id = Tools.toId(part);
 			let param: IParam | undefined;

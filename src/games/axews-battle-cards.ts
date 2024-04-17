@@ -203,7 +203,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
-				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				const typeKeys = game.shuffle(dex.getTypeKeys());
 				let usableType: string | undefined;
 				for (const typeKey of typeKeys) {
 					const typeName = dex.getExistingType(typeKey).name;
@@ -249,7 +249,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			},
 			getRandomTarget(game, player, cardsSubset) {
 				const dex = game.getDex();
-				const typeKeys = game.shuffle(dex.getData().typeKeys);
+				const typeKeys = game.shuffle(dex.getTypeKeys());
 				let usableTypes: string | undefined;
 				for (let i = 0; i < typeKeys.length; i++) {
 					const typeNameA = dex.getExistingType(typeKeys[i]).name;
@@ -408,11 +408,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	usableTypes: Dict<string> = {};
 	weaknessLimit: number = 5;
 
-	onSignups(): void {
-		super.onSignups();
+	async onSignups(): Promise<void> {
+		await super.onSignups();
 
 		const dex = this.getDex();
-		for (const key of dex.getData().typeKeys) {
+		for (const key of dex.getTypeKeys()) {
 			const type = dex.getExistingType(key);
 			this.usableTypes[type.id] = type.name;
 			this.usableTypes[type.id + 'type'] = type.name;
@@ -423,7 +423,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 		const index = this.playerOrder.indexOf(player);
 		if (index > -1) this.playerOrder.splice(index, 1);
 		if (player === this.currentPlayer && this.canPlay) {
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -442,7 +442,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	alterCard(dex: typeof Dex, card: IPokemonCard): IPokemonCard {
 		if (this.hackmonsTypes) {
 			const originalKey = this.getTypingKey(card.types);
-			const typeKeys = dex.getData().typeKeys;
+			const typeKeys = dex.getTypeKeys();
 
 			let newTypes: string[] = [];
 			let newKey = '';
@@ -459,7 +459,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			card.types = newTypes;
 		} else if (this.deltaTypes) {
 			if (card.types.length <= 2 && this.random(2)) {
-				const typeKeys = dex.getData().typeKeys;
+				const typeKeys = dex.getTypeKeys();
 				const dualType = card.types.length === 2;
 				let deltaType = dex.getExistingType(this.sampleOne(typeKeys)).name;
 				while (deltaType === card.types[0] || (dualType && deltaType === card.types[1])) {
@@ -484,9 +484,9 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 			let weaknesses: string;
 			if (this.inverseTypes) {
-				weaknesses = dex.getInverseWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getInverseWeaknesses(dex.getExistingPokemon(card.name)).join(",");
 			} else {
-				weaknesses = dex.getWeaknesses(Dex.getExistingPokemon(card.name)).join(",");
+				weaknesses = dex.getWeaknesses(dex.getExistingPokemon(card.name)).join(",");
 			}
 
 			if (weaknesses in weaknessCounts && weaknessCounts[weaknesses] >= this.weaknessLimit) continue;
@@ -547,7 +547,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 	}
 
 	hasNoWeaknesses(dex: typeof Dex, types: readonly string[]): boolean {
-		for (const key of dex.getData().typeKeys) {
+		for (const key of dex.getTypeKeys()) {
 			const type = dex.getExistingType(key).name;
 			if (this.inverseTypes) {
 				if (dex.getInverseEffectiveness(type, types) > 0) return false;
@@ -593,7 +593,11 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 
 	playActionCard(card: IMoveCard, player: Player, targets: string[], cards: ICard[]): boolean {
 		if (!card.action) throw new Error("playActionCard called with a regular card");
-		if (card.action.getTargetErrors(this, targets, player, cards)) return false;
+		const error = card.action.getTargetErrors(this, targets, player, cards);
+		if (error) {
+			this.say(error);
+			return false;
+		}
 
 		const id = card.id as ActionCardNames;
 		let firstTimeShiny = false;
@@ -621,7 +625,8 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			topCardTypes.push("Grass");
 			this.topCard.types = topCardTypes;
 		} else if (id === 'transform') {
-			const newTopCard = this.alterCard(this.getDex(), this.pokemonToCard(Dex.getExistingPokemon(targets[0])));
+			const dex = this.getDex();
+			const newTopCard = this.alterCard(dex, this.pokemonToCard(dex.getExistingPokemon(targets[0])));
 			if (this.rollForShinyPokemon()) {
 				newTopCard.shiny = true;
 				firstTimeShiny = true;
@@ -669,7 +674,7 @@ class AxewsBattleCards extends CardMatching<ActionCardsType> {
 			const drawnCards = this.drawCard(player, this.roundDrawAmount, drawCards);
 			const htmlPage = this.getHtmlPage(player);
 			htmlPage.renderHandHtml();
-			htmlPage.renderCardActionsHtml();
+			htmlPage.clearCardActionsHtml();
 			htmlPage.renderPlayedCardsHtml([card]);
 			htmlPage.renderDrawnCardsHtml(drawnCards);
 			htmlPage.send();
@@ -704,13 +709,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - soak': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const soak = game.actionCards.soak;
 			assert(soak);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(soak.getAutoPlayTarget(game, player));
 			assertStrictEqual(!soak.getTargetErrors(game, [], player), true);
@@ -725,13 +733,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - trickortreat': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const trickortreat = game.actionCards.trickortreat;
 			assert(trickortreat);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(trickortreat.getAutoPlayTarget(game, player));
 			assertStrictEqual(!trickortreat.getTargetErrors(game, [], player), true);
@@ -746,13 +757,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - forestscurse': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const forestscurse = game.actionCards.forestscurse;
 			assert(forestscurse);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Squirtle"));
 			assert(forestscurse.getAutoPlayTarget(game, player));
 			assertStrictEqual(!forestscurse.getTargetErrors(game, [], player), true);
@@ -767,13 +781,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - magicpowder': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const magicpowder = game.actionCards.magicpowder;
 			assert(magicpowder);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(magicpowder.getAutoPlayTarget(game, player));
 			assertStrictEqual(!magicpowder.getTargetErrors(game, [], player), true);
@@ -788,13 +805,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - batonpass': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const batonpass = game.actionCards.batonpass;
 			assert(batonpass);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(batonpass.getAutoPlayTarget(game, player, hand));
@@ -808,13 +828,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - allyswitch': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const allyswitch = game.actionCards.allyswitch;
 			assert(allyswitch);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			let hand = [game.pokemonToCard(Dex.getExistingPokemon("Squirtle"))];
 			assert(allyswitch.getAutoPlayTarget(game, player, hand));
@@ -828,13 +851,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const conversion = game.actionCards.conversion;
 			assert(conversion);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion.getAutoPlayTarget(game, player));
 			assertStrictEqual(!conversion.getTargetErrors(game, ["Grass"], player), true);
@@ -849,13 +875,16 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - conversion2': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
-			const conversion2 = game.actionCards['conversion2'];
+			const conversion2 = game.actionCards['conversion2']; // eslint-disable-line @typescript-eslint/dot-notation
 			assert(conversion2);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(conversion2.getAutoPlayTarget(game, player));
 			assertStrictEqual(!conversion2.getTargetErrors(game, ["Water", "Fire"], player), true);
@@ -866,14 +895,17 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - transform': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes || game.requiredGen) return;
 			game.createDeckPool();
 
 			const transform = game.actionCards.transform;
 			assert(transform);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(transform.getAutoPlayTarget(game, player));
 			assertStrictEqual(!transform.getTargetErrors(game, ["Squirtle"], player), true);
@@ -882,39 +914,48 @@ const tests: GameFileTests<AxewsBattleCards> = {
 		},
 	},
 	'action cards - protect': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const protect = game.actionCards.protect;
 			assert(protect);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(protect.getAutoPlayTarget(game, player));
 			assertStrictEqual(!protect.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - teeterdance': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const teeterdance = game.actionCards.teeterdance;
 			assert(teeterdance);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(teeterdance.getAutoPlayTarget(game, player));
 			assertStrictEqual(!teeterdance.getTargetErrors(game, [], player), true);
 		},
 	},
 	'action cards - topsyturvy': {
-		test(game): void {
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
 			const topsyturvy = game.actionCards.topsyturvy;
 			assert(topsyturvy);
 
-			const player = addPlayer(game, "Player 1");
+			const player = await addPlayer(game, "Player 1");
 			game.topCard = game.pokemonToCard(Dex.getExistingPokemon("Bulbasaur"));
 			assert(topsyturvy.getAutoPlayTarget(game, player));
 			assertStrictEqual(!topsyturvy.getTargetErrors(game, [], player), true);
@@ -954,12 +995,6 @@ export const game: IGameFile<AxewsBattleCards> = Games.copyTemplateProperties(ca
 			name: "Delta Species Axew's Battle Cards",
 			variantAliases: ["delta species", "delta"],
 			deltaTypes: true,
-		},
-		{
-			name: "Axew's Kanto Battle Cards",
-			variantAliases: ["kanto", "gen1"],
-			requiredGen: 1,
-			maxPlayers: 20,
 		},
 		{
 			name: "Axew's Johto Battle Cards",

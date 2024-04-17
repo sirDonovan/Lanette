@@ -163,7 +163,7 @@ export const commands: BaseCommandDefinitions = {
 
 			if (!repeatRoom.repeatedMessages) repeatRoom.repeatedMessages = {};
 			repeatRoom.repeatedMessages[messageId] = {
-				timer: setInterval(() => repeatRoom!.say(message), interval),
+				timer: setInterval(() => repeatRoom.say(message), interval),
 				message,
 				interval,
 				name: messageName,
@@ -206,7 +206,7 @@ export const commands: BaseCommandDefinitions = {
 					return this.say(pokemon.name + " does not have a" + (isBW ? " BW" : "") + " gif.");
 				}
 				pokemonList.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 			}
 
 			if (!gifsOrIcons.length) return this.say("You must specify at least 1 Pokemon.");
@@ -298,7 +298,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 
 				usedPokemon.push(pokemon);
-				gifsOrIcons.push(showIcon ? Dex.getPSPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
+				gifsOrIcons.push(showIcon ? Dex.getPokemonIcon(pokemon) + pokemon.name : Dex.getPokemonModel(pokemon, generation));
 				if (gifsOrIcons.length === amount) break;
 			}
 
@@ -531,7 +531,7 @@ export const commands: BaseCommandDefinitions = {
 		command(target, room, user) {
 			if (!this.isPm(room) && (!Users.self.hasRank(room, 'voice') || (!user.hasRank(room, 'voice') &&
 				!(room.userHostedGame && room.userHostedGame.isHost(user))))) return;
-			const typeKeys = Dex.getData().typeKeys.slice();
+			const typeKeys = Dex.getTypeKeys().slice();
 			const key = Tools.sampleOne(typeKeys);
 			const types: string[] = [Dex.getExistingType(key).name];
 			if (Tools.random(2)) {

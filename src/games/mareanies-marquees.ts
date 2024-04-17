@@ -17,7 +17,7 @@ class MareaniesMarquees extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 1500;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),
@@ -85,11 +85,11 @@ class MareaniesMarquees extends QuestionAndAnswer {
 				this.end();
 				return;
 			}
-			this.nextRound();
+			void this.nextRound();
 			return;
 		}
 
-		this.setTimeout(() => this.nextRound(), this.updateHintTime);
+		this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 	}
 
 	increaseDifficulty(): void {

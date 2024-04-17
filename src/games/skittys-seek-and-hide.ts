@@ -22,7 +22,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 	pokemonChoices = new Map<Player, string>();
 	startingLives: number = 3;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const parameters: Dict<IPokemon[]> = {};
 
 		for (const pokemon of Games.getPokemonList()) {
@@ -74,11 +74,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 		return true;
 	}
 
-	onStart(): void {
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canSelect = false;
 
 		const remainingPlayerCount = this.getRemainingPlayerCount();
@@ -176,7 +172,7 @@ class SkittysSeekAndHide extends ScriptedGame {
 		const text = "**" + Tools.joinList(mostSelected) + "** " + (mostSelected.length > 1 ? "were" : "was") +
 			" hiding the most players (" + Tools.joinList(damaged) + ")!";
 		this.on(text, () => {
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 		});
 		this.say(text);
 	}

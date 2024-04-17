@@ -17,24 +17,24 @@ jobs:
 
     strategy:
       matrix:
-        platform: [ubuntu-latest, windows-latest]
-        node-version: [18.x, 19.x]
+        platform: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [20.x, 21.x]
  
     runs-on: ${{ matrix.platform }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - name: Cache ESLint
       id: cache-eslint
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .eslintcache
-        key: ${{ matrix.node-version }}-eslint
+        key: ${{ matrix.platform }}-${{ matrix.node-version }}-eslint
     - run: npm ci
     - run: cp src/config-example.ts src/config.ts
     - run: npm run test

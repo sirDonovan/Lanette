@@ -5,6 +5,7 @@ import type { Room } from "./rooms";
 import type { GameDifficulty, IUserHostedFile, IUserHostedFormat } from "./types/games";
 import type { User } from "./users";
 
+const SIGNUPS_REFRESH_TIMER = 60 * 1000;
 const FIRST_ACTIVITY_WARNING = 5 * 60 * 1000;
 const SECOND_ACTIVITY_WARNING = 30 * 1000;
 const MIN_HOST_EXTENSION_MINUTES = 1;
@@ -15,11 +16,9 @@ const HOST_TIME_LIMIT = 25 * 60 * 1000;
 export class UserHostedGame extends Game {
 	endTime: number = 0;
 	extended: boolean = false;
-	gameTimer: NodeJS.Timer | null = null;
 	gameTimerEndTime: number = 0;
 	hostId: string = '';
 	hostName: string = '';
-	hostTimeout: NodeJS.Timer | null = null;
 	isUserHosted: boolean = true;
 	mascots: string[] = [];
 	noControlPanel: boolean = false;
@@ -37,6 +36,10 @@ export class UserHostedGame extends Game {
 
 	// set in onInitialize()
 	declare format: IUserHostedFormat;
+
+	gameTimer?: NodeJS.Timeout;
+	hostTimeout?: NodeJS.Timeout;
+	signupsRefreshTimeout?: NodeJS.Timeout;
 
 	declare readonly room: Room;
 
@@ -175,10 +178,10 @@ export class UserHostedGame extends Game {
 
 		const user = Users.get(this.subHostName || this.hostName);
 		if (user) {
-			this.room.pmHtml(user, "To assist with your game, try using the <b>Host Control Panel</b>! It allows you to manage " +
-				"attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
-				Client.getPmSelfButton(Config.commandCharacter + CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand +
-				" " + this.room.title, "Open panel"));
+			this.room.pmUhtml(user, "control-panel-button", "To assist with your game, try using the <b>Host Control Panel</b>! It " +
+				"allows you to manage attributes of your game, display trainers & Pokemon, and generate hints.<br /><br />" +
+				Client.getQuietPmButton(this.room, Config.commandCharacter +
+				CommandParser.getGameHtmlPages().gameHostControlPanel.baseCommand + " " + this.room.title, "Open panel"));
 		}
 	}
 
@@ -237,13 +240,6 @@ export class UserHostedGame extends Game {
 			this.joinNotices.add(user.id);
 		}
 
-		if (!this.signupsHtmlTimeout) {
-			this.signupsHtmlTimeout = setTimeout(() => {
-				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-				this.signupsHtmlTimeout = null;
-			}, this.getSignupsUpdateDelay());
-		}
-
 		if (this.playerCap && this.playerCount >= this.playerCap) this.start();
 
 		return player;
@@ -257,17 +253,6 @@ export class UserHostedGame extends Game {
 		if (!silent && !this.leaveNotices.has(id)) {
 			this.sendLeaveNotice(player);
 			this.leaveNotices.add(id);
-		}
-
-		if (this.options.freejoin) return;
-
-		if (!this.started) {
-			if (!this.signupsHtmlTimeout) {
-				this.signupsHtmlTimeout = setTimeout(() => {
-					this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
-					this.signupsHtmlTimeout = null;
-				}, this.getSignupsUpdateDelay());
-			}
 		}
 	}
 
@@ -323,7 +308,7 @@ export class UserHostedGame extends Game {
 		return Games.getUserHostedGameHighlight() + " " + this.id;
 	}
 
-	getSignupsHtml(): string {
+	getSignupsDescriptionHtml(): string {
 		return Games.getHostBoxHtml(this.room, this.hostName, this.name, this.format, this.getHighlightPhrase());
 	}
 
@@ -336,8 +321,15 @@ export class UserHostedGame extends Game {
 			this.customBox = database.gameHostBoxes[this.hostId];
 		}
 
-		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsHtml());
-		if (!this.options.freejoin) this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
+
+		if (!this.options.freejoin) {
+			this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			this.signupsUpdateInterval = setInterval(() => {
+				this.sayUhtmlChange(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+			}, 1000);
+		}
+
 		this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
@@ -351,14 +343,20 @@ export class UserHostedGame extends Game {
 		if (this.options.freejoin) {
 			this.started = true;
 			this.startTime = Date.now();
+		} else {
+			this.signupsRefreshTimeout = setTimeout(() => {
+				this.sayUhtml(this.signupsUhtmlName, this.getSignupsPlayersHtml());
+				this.sayUhtml(this.joinLeaveButtonUhtmlName, "<center>" + this.getJoinButtonHtml() + "</center>");
+			}, SIGNUPS_REFRESH_TIMER);
 		}
 	}
 
 	start(isAuth?: boolean): boolean {
 		if (this.started || (this.minPlayers && !isAuth && this.playerCount < this.minPlayers)) return false;
 
+		if (this.signupsUpdateInterval) clearInterval(this.signupsUpdateInterval);
 		if (this.startTimer) clearTimeout(this.startTimer);
-		if (this.signupsHtmlTimeout) clearTimeout(this.signupsHtmlTimeout);
+		if (this.signupsRefreshTimeout) clearTimeout(this.signupsRefreshTimeout);
 
 		this.started = true;
 		this.startTime = Date.now();
@@ -417,6 +415,7 @@ export class UserHostedGame extends Game {
 
 		Games.setLastGame(this.room, now);
 		Games.setLastUserHostedGame(this.room, now);
+		Games.setLastWinners(this.room, Array.from(this.winners.keys()).map(x => x.name));
 		database.lastUserHostedGameTime = now;
 
 		if (!database.lastUserHostedGameFormatTimes) database.lastUserHostedGameFormatTimes = {};
@@ -467,6 +466,13 @@ export class UserHostedGame extends Game {
 	}
 
 	forceEnd(user: User, reason?: string): void {
+		if (this.lastCustomGridsUhtml) {
+			for (const customGrid of this.lastCustomGridsUhtml) {
+				if (!customGrid) continue;
+				this.sayUhtmlChange(customGrid.uhtmlName, "<center>(removed " + customGrid.user + "'s custom grid)</center>");
+			}
+		}
+
 		Games.removeLastUserHostTime(this.room, this.hostId);
 		this.say(this.name + " " + this.activityType + " was forcibly ended!");
 		this.room.modnote(this.name + " was forcibly ended by " + user.name + (reason ? " (" + reason + ")" : ""));
@@ -486,14 +492,22 @@ export class UserHostedGame extends Game {
 
 		if (this.gameTimer) {
 			clearTimeout(this.gameTimer);
-			// @ts-expect-error
 			this.gameTimer = undefined;
 		}
 
 		if (this.hostTimeout) {
 			clearTimeout(this.hostTimeout);
-			// @ts-expect-error
 			this.hostTimeout = undefined;
+		}
+
+		if (this.signupsRefreshTimeout) {
+			clearTimeout(this.signupsRefreshTimeout);
+			this.signupsRefreshTimeout = undefined;
+		}
+
+		if (this.signupsUpdateInterval) {
+			clearInterval(this.signupsUpdateInterval);
+			this.signupsUpdateInterval = undefined;
 		}
 	}
 

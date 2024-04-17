@@ -16,14 +16,10 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 	onRemovePlayer(): void {
 		if (!this.started) return;
 		this.currentPlayer = null;
-		this.nextRound();
+		void this.nextRound();
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.currentPlayer) {
 			this.say("**" + this.currentPlayer.name + "** did not remove any blocks and has been eliminated from the game! The blocks " +
 				"will now reset.");
@@ -66,7 +62,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 
 	chooseNextPlayer(): void {
 		if (!this.getRemainingPlayerCount()) {
-			this.nextRound();
+			void this.nextRound();
 			return;
 		}
 
@@ -90,7 +86,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 			this.blocks + "** block" + (this.blocks > 1 ? "s" : "") + " remaining.";
 		this.on(text, () => {
 			this.currentPlayer = currentPlayer;
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.say(text);
 
@@ -108,7 +104,7 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 		this.say("**" + player.name + "** was forced to remove the last block from the pyramid and has been eliminated from the game!");
 		this.eliminatePlayer(player);
 		this.currentPlayer = null;
-		this.setTimeout(() => this.nextRound(), 5 * 1000);
+		this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
 	onEnd(): void {

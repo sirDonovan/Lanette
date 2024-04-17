@@ -21,7 +21,7 @@ class LandorusWar extends ScriptedGame {
 	roundSuspects = new Set<Player>();
 	suspectedPlayers = new Map<Player, number>();
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		data.moves = Games.getMovesList(x => {
 			if (x.id.startsWith('hiddenpower') || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
@@ -50,7 +50,7 @@ class LandorusWar extends ScriptedGame {
 		}
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.say("Now handing out Pokemon!");
 		const aliases = this.sampleMany(Dex.getData().trainerClasses, this.getRemainingPlayerCount());
 		const pokemonList = this.shuffle(data.pokemon);
@@ -86,10 +86,10 @@ class LandorusWar extends ScriptedGame {
 			usedPokemon.push(decoy.baseSpecies);
 		}
 
-		this.nextRound();
+		await this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();
@@ -113,7 +113,7 @@ class LandorusWar extends ScriptedGame {
 
 		const uhtmlName = this.uhtmlBaseName + '-pokemon';
 		this.onUhtml(uhtmlName, html, () => {
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtmlAuto(uhtmlName, html);
 	}
@@ -307,9 +307,12 @@ commands.summary.aliases = ['role'];
 
 const tests: GameFileTests<LandorusWar> = {
 	'it should properly assign aliases and create decoys': {
-		test(game): void {
-			addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			await addPlayers(game, 4);
+			await game.start();
 			assertStrictEqual(game.playerAliasesList.length, 4);
 			assertStrictEqual(game.playerPokemon.size, 4);
 			assertStrictEqual(game.decoyPokemon.length, 4);

@@ -44,7 +44,7 @@ export class Room {
 	serverBannedWordsRegex: RegExp | null = null;
 	serverHangman: boolean | null = null;
 	subRoom: Room | null = null;
-	timers: Dict<NodeJS.Timer> | null = null;
+	timers: Dict<NodeJS.Timeout> | null = null;
 	tournament: Tournament | null = null;
 	readonly uhtmlMessageListeners: Dict<Dict<MessageListener>> = {};
 	userHostedGame: UserHostedGame | null = null;
@@ -116,7 +116,7 @@ export class Room {
 		this.id = id;
 
 		this.setPublicRoom(Client.getPublicRooms().includes(id));
-		this.battle = id.startsWith(Tools.battleRoomPrefix);
+		this.battle = id.startsWith(Tools.battleRoomPrefix) || id.startsWith(Tools.bestOfRoomPrefix);
 		this.groupchat = id.startsWith(Tools.groupchatPrefix);
 
 		let publicId = id;
@@ -310,7 +310,7 @@ export class Room {
 		if (!(options && options.dontCheckFilter)) {
 			const filter = Client.checkFilters(message, this);
 			if (filter) {
-				Tools.logMessage("Message not sent in " + this.title + " due to " + filter + ": " + message);
+				Tools.warningLog("Message not sent in " + this.title + " due to " + filter + ": " + message);
 				return;
 			}
 		}
@@ -794,8 +794,8 @@ export class Room {
 		});
 	}
 
-	nameTournament(name: string): void {
-		this.say("/tour name " + name, {
+	nameTournament(name: string, officialTournament: boolean): void {
+		this.say("/tour name " + name + (officialTournament ? " (official)" : ""), {
 			filterSend: () => !!this.tournament,
 			dontCheckFilter: true,
 			dontPrepare: true,
@@ -988,7 +988,7 @@ export class Rooms {
 	createListeners: Dict<RoomCreateListener[]> = {};
 	private rooms: Dict<Room> = {};
 
-	private pruneRoomsInterval: NodeJS.Timer;
+	private pruneRoomsInterval: NodeJS.Timeout;
 
 	constructor() {
 		this.pruneRoomsInterval = setInterval(() => this.pruneRooms(), 15 * 60 * 1000);

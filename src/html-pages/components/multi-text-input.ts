@@ -6,6 +6,7 @@ import type { ITextAreaConfiguration } from "./text-input";
 export interface IMultiTextInputProps<OutputType = string[]> extends IComponentProps {
 	inputCount: number;
 	labels: string[];
+	name: string;
 	clearText?: string;
 	currentInputs?: string[];
 	delimiter?: string;
@@ -13,12 +14,11 @@ export interface IMultiTextInputProps<OutputType = string[]> extends IComponentP
 	submitText?: string;
 	textAreas?: boolean[];
 	textAreaConfigurations?: (ITextAreaConfiguration | null)[];
-	onClear: () => void;
-	onErrors: (errors: string[]) => void;
+	onClear?: () => void;
+	onErrors?: (errors: string[]) => void;
 	onSubmit: (output: OutputType) => void;
+	reRender: () => void;
 }
-
-const tagBaseName = 'textInput';
 
 export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiTextInputProps<OutputType>> {
 	componentId: string = 'text-input';
@@ -31,6 +31,7 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 
 	clearText: string;
 	submitText: string;
+	tagName: string;
 
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IMultiTextInputProps<OutputType>) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
@@ -39,6 +40,7 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 		this.clearText = props.clearText || "Clear";
 		this.delimiter = props.delimiter || "|";
 		this.submitText = props.submitText || "Submit";
+		this.tagName = Tools.toId(props.name);
 	}
 
 	parentClearInputs(): void {
@@ -54,7 +56,11 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 
 		this.currentInputs = [];
 
-		this.props.onClear();
+		if (this.props.onClear) {
+			this.props.onClear();
+		} else {
+			this.props.reRender();
+		}
 	}
 
 	submit(inputs: string[]): void {
@@ -64,7 +70,11 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 		this.onSubmit(inputs);
 
 		if (this.errors.length) {
-			this.props.onErrors(this.errors);
+			if (this.props.onErrors) {
+				this.props.onErrors(this.errors);
+			} else {
+				this.props.reRender();
+			}
 		} else {
 			this.props.onSubmit(this.currentOutput!);
 		}
@@ -99,7 +109,7 @@ export class MultiTextInput<OutputType = string[]> extends ComponentBase<IMultiT
 
 		const tagNames: string[] = [];
 		for (let i = 1; i <= this.props.inputCount; i++) {
-			tagNames.push(tagBaseName + "-" + i);
+			tagNames.push(this.tagName + "-" + i);
 		}
 
 		html += "<form data-submitsend='/msgroom " + this.htmlPage.room.id + ", /botmsg " + Users.self.name + ", " +

@@ -327,8 +327,8 @@ export abstract class BoardPropertyGame extends BoardGame {
 		return true;
 	}
 
-	onStart(): void {
-		super.onStart();
+	async onStart(): Promise<void> {
+		await super.onStart();
 
 		for (const player of this.playerOrder) {
 			this.playerCurrency.set(player, this.startingCurrency);
@@ -420,7 +420,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 				this.unlockAchievement(this.currentPlayer, this.doublesRollsAchievement);
 			}
 		} else {
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
@@ -455,7 +455,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 						this.currencyPluralName + " to escape and have been eliminated from the game!";
 					this.on(text, () => {
 						this.eliminatePlayer(player);
-						this.setTimeout(() => this.nextRound(), this.roundTime);
+						this.setTimeout(() => void this.nextRound(), this.roundTime);
 					});
 					this.say(text);
 				}
@@ -502,7 +502,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 				const text = "**" + player.name + "** rolled [ " + this.dice[0] + " ] [ " + this.dice[1] + " ] and failed to get out of " +
 					this.jailSpace.name + "!";
 				this.on(text, () => {
-					this.setTimeout(() => this.nextRound(), this.roundTime);
+					this.setTimeout(() => void this.nextRound(), this.roundTime);
 				});
 				this.say(text);
 				return false;
@@ -634,7 +634,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 			text += " **" + player.name + "** has been eliminated" + (eliminator ? " by **" + eliminator.name + "**" : "") + "!";
 			this.on(text, () => {
 				this.eliminatePlayer(player, undefined, eliminator);
-				this.setTimeout(() => this.nextRound(), this.roundTime);
+				this.setTimeout(() => void this.nextRound(), this.roundTime);
 			});
 		} else {
 			text += " They remain in the game.";
@@ -677,7 +677,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 					this.onMaxCurrency(owner!);
 				} else {
 					this.eliminatePlayer(player, undefined, owner);
-					this.setTimeout(() => this.nextRound(), this.roundTime);
+					this.setTimeout(() => void this.nextRound(), this.roundTime);
 				}
 			});
 		} else {

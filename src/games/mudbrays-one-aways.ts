@@ -1,8 +1,8 @@
 import type { IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
-const upperCaseLetters: string[] = Tools.letters.toUpperCase().split("");
-const lowerCaseLetters: string[] = Tools.letters.split("");
+const upperCaseLetters: readonly string[] = Tools.lettersArray.map(x => x.toUpperCase());
+const lowerCaseLetters: readonly string[] = Tools.lettersArray;
 
 function getNextAndPreviousLetters(letter: string): [string, string] | null {
 	let index = upperCaseLetters.indexOf(letter);
@@ -44,7 +44,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 
 	roundTime: number = 30 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -63,6 +63,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
+		/* eslint-disable @typescript-eslint/dot-notation */
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const oneAways = getOneAways(character);
@@ -136,6 +137,7 @@ class MudbraysOneAways extends QuestionAndAnswer {
 				categoryHints["Pokemon Moves"][oneAway].push(move.name);
 			}
 		}
+		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

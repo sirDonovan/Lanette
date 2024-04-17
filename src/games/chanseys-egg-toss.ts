@@ -54,10 +54,6 @@ class ChanseysEggToss extends ScriptedGame {
 		if (this.getRemainingPlayerCount() < 2) this.end();
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
 	giveEgg(player: Player): void {
 		const previousHolder = this.currentHolder;
 
@@ -85,10 +81,10 @@ class ChanseysEggToss extends ScriptedGame {
 			this.currentHolder = null;
 		}
 
-		this.setTimeout(() => this.nextRound(), 5000);
+		this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.spamTosses.clear();
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
@@ -184,5 +180,4 @@ export const game: IGameFile<ChanseysEggToss> = {
 	description: "Players try to get rid of the egg before it explodes!",
 	name: "Chansey's Egg Toss",
 	mascot: "Chansey",
-	scriptedOnly: true,
 };

@@ -18,11 +18,12 @@ const GENERATORS: Dict<number> = {
 
 export class Tournament extends Activity {
 	readonly activityType: string = 'tournament';
-	adjustCapTimer: NodeJS.Timer | null = null;
+	adjustCapTimer: NodeJS.Timeout | null = null;
 	readonly battleData = new Map<Room, IBattleGameData>();
 	readonly battleRooms: string[] = [];
 	readonly createTime: number = Date.now();
 	readonly currentBattles: ICurrentTournamentBattle[] = [];
+	endOfCycle: boolean = false;
 	finalBattle: boolean = false;
 	generator: number = 1;
 	readonly info: ITournamentUpdateJson & ITournamentEndJson = {
@@ -48,7 +49,7 @@ export class Tournament extends Activity {
 	playerLosses = new Map<Player, number>();
 	playerOpponents = new Map<Player, Player>();
 	runAutoDqTime: number = 0;
-	runAutoDqTimeout: NodeJS.Timer | null = null;
+	runAutoDqTimeout: NodeJS.Timeout | null = null;
 	official: boolean = false;
 	totalPlayers: number = 0;
 	updates: Partial<ITournamentUpdateJson> = {};
@@ -98,7 +99,7 @@ export class Tournament extends Activity {
 
 		const previousName = this.name;
 		this.name = Dex.getCustomFormatName(this.format);
-		if (this.name !== previousName) this.room.nameTournament(this.name);
+		if (this.name !== previousName) this.room.nameTournament(this.name, this.official);
 	}
 
 	formatAwardsPoints(): boolean {
@@ -257,6 +258,7 @@ export class Tournament extends Activity {
 	}
 
 	onEnd(): void {
+		if (this.runAutoDqTimeout) clearTimeout(this.runAutoDqTimeout);
 		if (!Config.allowTournaments || !Config.allowTournaments.includes(this.room.id)) return;
 
 		const now = Date.now();
@@ -367,6 +369,11 @@ export class Tournament extends Activity {
 
 		if (awardedPoints) {
 			Storage.tryExportDatabase(this.room.id);
+		}
+
+		if (this.endOfCycle) {
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "leaderboard", now);
+			CommandParser.parse(this.room, Users.self, Config.commandCharacter + "clearleaderboard", now);
 		}
 	}
 

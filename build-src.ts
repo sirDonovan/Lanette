@@ -14,18 +14,18 @@ interface IPackageJson {
     secretDependencies: Dict<string>;
 }
 
-function getPokemonShowdownFolder() {
+function getPokemonShowdownFolder(): string {
 	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
 }
 
-function getPokemonShowdownDistFolder() {
+function getPokemonShowdownDistFolder(): string {
 	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown', pokemonShowdownDistName);
 }
 
 const pokemonShowdownDistName = "dist";
 const removeFromPackageJson = [
 	// dependencies
-	"@types/pg", "@swc/core", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "ts-node",
+	"@types/pg", "@swc/core", "mysql2", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "source-map-support", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
 		"sql-template-strings", "sqlite", "sucrase",
@@ -36,6 +36,9 @@ const removeFromPackageJson = [
 		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
 		"typescript",
 ];
+const overrideVersions: Dict<string> = {
+	"esbuild": "0.20.2",
+};
 
 export const getCurrentPokemonShowdownSha = (): string | false => {
 	const revParseOutput = exec('git rev-parse master');
@@ -66,16 +69,32 @@ export const rewritePokemonShowdownPackageJson = (): void => {
 	const packageJson = JSON.parse(fs.readFileSync(packageJsonPath).toString().split("\n").join("")) as IPackageJson;
 
 	for (const dependency in packageJson.dependencies) {
-		if (removeFromPackageJson.includes(dependency)) delete packageJson.dependencies[dependency];
+		if (removeFromPackageJson.includes(dependency)) {
+			delete packageJson.dependencies[dependency];
+			continue;
+		}
+		if (dependency in overrideVersions) packageJson.dependencies[dependency] = overrideVersions[dependency];
 	}
 	for (const dependency in packageJson.devDependencies) {
-		if (removeFromPackageJson.includes(dependency)) delete packageJson.devDependencies[dependency];
+		if (removeFromPackageJson.includes(dependency)) {
+			delete packageJson.devDependencies[dependency];
+			continue;
+		}
+		if (dependency in overrideVersions) packageJson.devDependencies[dependency] = overrideVersions[dependency];
 	}
 	for (const dependency in packageJson.optionalDependencies) {
-		if (removeFromPackageJson.includes(dependency)) delete packageJson.optionalDependencies[dependency];
+		if (removeFromPackageJson.includes(dependency)) {
+			delete packageJson.optionalDependencies[dependency];
+			continue;
+		}
+		if (dependency in overrideVersions) packageJson.optionalDependencies[dependency] = overrideVersions[dependency];
 	}
 	for (const dependency in packageJson.secretDependencies) {
-		if (removeFromPackageJson.includes(dependency)) delete packageJson.secretDependencies[dependency];
+		if (removeFromPackageJson.includes(dependency)) {
+			delete packageJson.secretDependencies[dependency];
+			continue;
+		}
+		if (dependency in overrideVersions) packageJson.secretDependencies[dependency] = overrideVersions[dependency];
 	}
 
 	fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson));
@@ -141,7 +160,7 @@ export const buildSrc = async(options?: RunOptions): Promise<void> => {
 
 		if (needsClone) {
 			console.log("Cloning " + lanetteRemote + "...");
-			const cmd = exec('git clone ' + lanetteRemote);
+			const cmd = exec('git clone ' + lanetteRemote + ' --depth=1000');
 			if (cmd === false) {
 				throw new Error("git clone error");
 			}

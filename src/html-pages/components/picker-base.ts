@@ -12,6 +12,7 @@ export interface IPickerProps<PickType> extends IComponentProps {
 	onClear: (pickerIndex: number, dontRender: boolean | undefined) => void;
 	onPick: (pickerIndex: number, pick: PickType, dontRender: boolean | undefined) => void;
 	onUnPick?: (pickerIndex: number, pick: PickType, dontRender: boolean | undefined) => void;
+	reRender: () => void;
 }
 
 export abstract class PickerBase<PickType = string, PropsType extends IPickerProps<PickType> = IPickerProps<PickType>> extends

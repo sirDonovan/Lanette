@@ -220,10 +220,10 @@ class DarkraisLair extends MapGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.teams = this.generateTeams(this.teamCount);
 		this.positionPlayers();
-		this.nextRound();
+		await this.nextRound();
 	}
 
 	getPlayerControlsHtml(map: GameMap, floor: MapFloor, player: Player): string {
@@ -257,7 +257,7 @@ class DarkraisLair extends MapGame {
 		return html;
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		if (this.round > 1) {
 			for (const id in this.players) {
 				if (this.players[id].eliminated) continue;
@@ -319,7 +319,7 @@ class DarkraisLair extends MapGame {
 			if (this.round === 1) this.displayMapLegend();
 			if (!this.canMove) this.canMove = true;
 			this.updateRoundHtml();
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}
@@ -342,7 +342,7 @@ class DarkraisLair extends MapGame {
 		this.canMove = false;
 	}
 
-	onEnd() {
+	onEnd(): void {
 		if (!this.getRemainingPlayerCount()) {
 			this.say("All players were eliminated!");
 		} else {
@@ -350,6 +350,8 @@ class DarkraisLair extends MapGame {
 			if (winningTeam) {
 				this.say("**Team " + winningTeam.name + "** wins the game!");
 				for (const player of winningTeam.players) {
+					if (player.eliminated) continue;
+
 					this.winners.set(player, 1);
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 4);
@@ -361,6 +363,7 @@ class DarkraisLair extends MapGame {
 			} else {
 				for (const id in this.players) {
 					if (this.players[id].eliminated) continue;
+
 					const player = this.players[id];
 					let earnings = this.points.get(player) || 0;
 					earnings = Math.floor(earnings / 2);
@@ -505,9 +508,12 @@ const commands: GameCommandDefinitions<DarkraisLair> = {
 
 const tests: GameFileTests<DarkraisLair> = {
 	'should not allow movement outside of the map': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 			game.canMove = true;
 			const coordinates = [0, 0];
 			game.playerCoordinates.set(players[0], coordinates);
@@ -516,9 +522,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should allow one movement per round': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 			game.canMove = true;
 			game.playerCoordinates.set(players[0], [0, 0]);
 			players[0].useCommand('up');
@@ -527,9 +536,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Spike': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 
 			const map = game.getMap();
 			const floorIndex = game.getFloorIndex();
@@ -560,9 +572,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Row': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 
 			const map = game.getMap();
 			const floorIndex = game.getFloorIndex();
@@ -596,9 +611,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Column': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 
 			const map = game.getMap();
 			const floorIndex = game.getFloorIndex();
@@ -632,9 +650,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Sphere': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 
 			const map = game.getMap();
 			const floorIndex = game.getFloorIndex();
@@ -668,9 +689,12 @@ const tests: GameFileTests<DarkraisLair> = {
 		},
 	},
 	'should properly handle Shadow Pit': {
-		test(game) {
-			const players = addPlayers(game, 4);
-			game.start();
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 4);
+			await game.start();
 
 			const map = game.getMap();
 			const floorIndex = game.getFloorIndex();

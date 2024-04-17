@@ -30,12 +30,12 @@ export abstract class MapShuffleGame extends MapGame {
 		return true;
 	}
 
-	onStart(): void {
+	async onStart(): Promise<void> {
 		this.positionPlayers();
-		this.nextRound();
+		await this.nextRound();
 	}
 
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.offCommands(this.moveCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 
@@ -51,7 +51,7 @@ export abstract class MapShuffleGame extends MapGame {
 			});
 		}
 		this.roundActions.clear();
-		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => this.nextRound());
+		this.onCommands(this.moveCommands, {max: len, remainingPlayersMax: true}, () => void this.nextRound());
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));
 		const uhtmlName = this.uhtmlBaseName + '-round';
@@ -61,7 +61,7 @@ export abstract class MapShuffleGame extends MapGame {
 				this.displayMapLegend();
 			}
 			this.updateRoundHtml();
-			this.setTimeout(() => this.nextRound(), 30 * 1000);
+			this.setTimeout(() => void this.nextRound(), 30 * 1000);
 		});
 		this.sayUhtml(uhtmlName, html);
 	}

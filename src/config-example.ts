@@ -254,16 +254,6 @@ export let showTournamentTrainerCards: string[] = [];
 export let sharedTournamentTrainerCards: Dict<string> = {};
 
 /**
- * For each badge in the object, the link to the badge image
- */
-export let tournamentTrainerCardBadges: Dict<{name: string; source: string; width: number; height: number}> = {};
-
-/**
- * For each ribbon in the object, the link to the ribbon image
- */
-export let tournamentTrainerCardRibbons: Dict<{name: string; source: string; width: number; height: number}> = {};
-
-/**
  * For each room in the object, the ribbons that can be added to tournament trainer cards
  */
 export let enabledTournamentTrainerCardRibbons: Dict<string[]> = {};
@@ -491,6 +481,10 @@ export let githubApiCredentials: Dict<{token: string; username: string}> = {};
  * For each room in the object, the information for its game catalog gist
  */
 export let gameCatalogGists: Dict<{description: string; files: {scripted?: string, userHosted?: string}; id: string}> = {};
+
+export let onClientConnect: (() => void) | undefined = undefined;
+
+export let onReloadPrivate: (() => void) | undefined = undefined;
 
 export let onScriptedGameCreate: ((room: Room, format: IGameFormat, official?: boolean) => void) | undefined = undefined;
 

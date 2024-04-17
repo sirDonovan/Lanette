@@ -97,7 +97,6 @@ export interface IDataTable {
 	readonly gifData: Readonly<Dict<IGifData | undefined>>;
 	readonly gifDataBW: Readonly<Dict<IGifData | undefined>>;
 	readonly itemKeys: DataKeys;
-	readonly learnsetDataKeys: DataKeys;
 	readonly locations: Readonly<LocationData>;
 	readonly moveKeys: DataKeys;
 	readonly moveTagRules: Dict<string>;

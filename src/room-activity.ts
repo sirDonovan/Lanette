@@ -48,6 +48,8 @@ export class Player {
 	}
 
 	destroy(): void {
+		CommandParser.onDestroyPlayer(this);
+
 		Tools.unrefProperties(this, ["id", "name", "eliminated"]);
 	}
 
@@ -205,12 +207,12 @@ export abstract class Activity {
 	playerAvatars: Dict<string> = {};
 	roomCreateListeners: string[] = [];
 	showSignupsHtml: boolean = false;
-	signupsHtmlTimeout: NodeJS.Timer | null = null;
+	signupsHtmlTimeout: NodeJS.Timeout | null = null;
 	started: boolean = false;
 	startTime: number | null = null;
-	startTimer: NodeJS.Timer | null = null;
+	startTimer: NodeJS.Timeout | null = null;
 	subRoom: Room | null = null;
-	timeout: NodeJS.Timer | null = null;
+	timeout: NodeJS.Timeout | null = null;
 	uhtmlMessageListeners: Dict<IActivityHtmlListener[]> = {};
 
 	// set in initialize()
@@ -358,12 +360,12 @@ export abstract class Activity {
 		// @ts-expect-error
 		player.name = name;
 
-		const htmlPage = this.htmlPages.get(player);
-		if (htmlPage) htmlPage.onRenameUser(player, oldId);
-
 		if (player.id === id) return;
 		// @ts-expect-error
 		player.id = id;
+
+		const htmlPage = this.htmlPages.get(player);
+		if (htmlPage) htmlPage.onRenameUser(player, oldId);
 
 		delete this.players[oldId];
 		delete this.pastPlayers[oldId];
@@ -417,7 +419,11 @@ export abstract class Activity {
 
 	onUserLeaveRoom(room: Room, user: User): void {
 		if (user.id in this.players) {
-			this.players[user.id].offline = true;
+			const player = this.players[user.id];
+			const htmlPage = this.getHtmlPage ? this.getHtmlPage(player) : this.htmlPages.get(player);
+			if (htmlPage) htmlPage.onUserLeaveRoom();
+
+			player.offline = true;
 		}
 	}
 

@@ -30,7 +30,7 @@ class ZygardesOrders extends QuestionAndAnswer {
 	solvedLetters: string[] = [];
 	updateHintTime = 5 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS && x.length <= MAX_LETTERS),
@@ -117,11 +117,11 @@ class ZygardesOrders extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5 * 1000);
+				this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			});
 			this.say(text);
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 

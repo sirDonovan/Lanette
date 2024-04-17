@@ -14,15 +14,6 @@ class SameDuo extends SameBattleEliminationTournament {
 	htmlPageGameDescription = description;
 	battleFormatId = 'gen92v2doubles';
 	battleFormatType: GameType = 'doubles';
-	banlist: string[] = ['Calyrex-Ice', 'Calyrex-Shadow', 'Cottonee', 'Dialga', 'Eternatus', 'Giratina', 'Giratina-Origin', 'Groudon',
-		'Ho-Oh', 'Jirachi', 'Kyogre', 'Kyurem-White', 'Lugia', 'Lunala', 'Magearna', 'Marshadow', 'Melmetal', 'Mewtwo',
-		'Necrozma-Dawn-Wings', 'Necrozma-Dusk-Mane', 'Palkia', 'Rayquaza', 'Reshiram', 'Solgaleo', 'Tornadus-Base', 'Urshifu-Base',
-		'Urshifu-Rapid-Strike', 'Whimsicott', 'Xerneas', 'Yveltal', 'Zacian', 'Zacian-Crowned', 'Zamazenta', 'Zamazenta-Crowned', 'Zekrom'];
-
-	getGameCustomRules(): string[] {
-		return ['-Moody', '-Power Construct', '-Focus Sash', '-Ally Switch', '-Final Gambit', '-Perish Song', '-Swagger',
-			'Terastal Clause'];
-	}
 }
 
 export const game: IGameFile<SameDuo> = Games.copyTemplateProperties(sameBattleEliminationTournamentGame, {

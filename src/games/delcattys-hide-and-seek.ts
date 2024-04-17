@@ -26,7 +26,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 	charmer!: Player;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const parameters: Dict<IPokemon[]> = {};
 
 		for (const pokemon of Games.getPokemonList()) {
@@ -80,15 +80,11 @@ class DelcattysHideAndSeek extends ScriptedGame {
 	onRemovePlayer(player: Player): void {
 		if (player === this.charmer) {
 			this.offCommands(['select']);
-			this.nextRound();
+			void this.nextRound();
 		}
 	}
 
-	onStart(): void {
-		this.nextRound();
-	}
-
-	onNextRound(): void {
+	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		this.canSelect = false;
 
 		const remainingPlayerCount = this.getRemainingPlayerCount();
@@ -173,7 +169,7 @@ class DelcattysHideAndSeek extends ScriptedGame {
 					this.canCharm = false;
 					this.say("**" + this.charmer.name + "** did not charm a Pokemon and has been eliminated from the game!");
 					this.eliminatePlayer(this.charmer);
-					this.setTimeout(() => this.nextRound(), 5 * 1000);
+					this.setTimeout(() => void this.nextRound(), 5 * 1000);
 				}, roundTimeout);
 			}, CHARM_WARNING_TIMER);
 		});
@@ -245,7 +241,7 @@ const commands: GameCommandDefinitions<DelcattysHideAndSeek> = {
 					Tools.joinList(eliminatedPlayers) + " from the game!");
 			}
 
-			this.setTimeout(() => this.nextRound(), 5 * 1000);
+			this.setTimeout(() => void this.nextRound(), 5 * 1000);
 			return true;
 		},
 		chatOnly: true,
@@ -309,10 +305,13 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate players who are charmed': {
-		test(game): void {
-			const players = addPlayers(game, 2);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 2);
 			game.minPlayers = 2;
-			game.start();
+			await game.start();
 			assert(!game.canSelect);
 			assert(!game.canCharm);
 			const selector = game.charmer === players[0] ? players[1] : players[0];
@@ -327,10 +326,13 @@ const tests: GameFileTests<DelcattysHideAndSeek> = {
 		},
 	},
 	'should eliminate the charmer if they fail to charm any players': {
-		test(game): void {
-			const players = addPlayers(game, 2);
+		config: {
+			async: true,
+		},
+		async test(game): Promise<void> {
+			const players = await addPlayers(game, 2);
 			game.minPlayers = 2;
-			game.start();
+			await game.start();
 			const selector = game.charmer === players[0] ? players[1] : players[0];
 			game.canSelect = true;
 			runCommand('select', data.parameters[game.categories.join(", ")][0], Users.add(selector.name, selector.id), selector.name);

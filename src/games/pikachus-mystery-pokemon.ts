@@ -20,7 +20,7 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 5 * 1000;
 
-	static loadData(): void {
+	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 
@@ -31,29 +31,7 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 			pokemonHints.push("<b>Type" + (pokemon.types.length > 1 ? "s" : "") + "</b>: " + pokemon.types.join("/"));
 			pokemonHints.push("<b>Color</b>: " + pokemon.color);
 			pokemonHints.push("<b>Egg group" + (pokemon.eggGroups.length > 1 ? "s" : "") + "</b>: " + pokemon.eggGroups.join(", "));
-
-			let region;
-			if (pokemon.gen === 1) {
-				region = 'Kanto';
-			} else if (pokemon.gen === 2) {
-				region = 'Johto';
-			} else if (pokemon.gen === 3) {
-				region = 'Hoenn';
-			} else if (pokemon.gen === 4) {
-				region = 'Sinnoh';
-			} else if (pokemon.gen === 5) {
-				region = 'Unova';
-			} else if (pokemon.gen === 6) {
-				region = 'Kalos';
-			} else if (pokemon.gen === 7) {
-				region = 'Alola';
-			} else if (pokemon.gen === 8) {
-				region = 'Galar';
-			} else if (pokemon.gen === 9) {
-				region = 'Paldea';
-			}
-
-			if (region) pokemonHints.push("<b>Region</b>: " + region);
+			pokemonHints.push("<b>Generation</b>: " + pokemon.gen);
 
 			hints[pokemon.name] = pokemonHints;
 			hintKeys.push(pokemon.name);
@@ -102,12 +80,12 @@ class PikachusMysteryPokemon extends QuestionAndAnswer {
 					this.end();
 					return;
 				}
-				this.setTimeout(() => this.nextRound(), 5000);
+				this.setTimeout(() => void this.nextRound(), 5000);
 			});
 			this.say(text);
 			return;
 		} else {
-			this.setTimeout(() => this.nextRound(), this.updateHintTime);
+			this.setTimeout(() => void this.nextRound(), this.updateHintTime);
 		}
 	}
 
