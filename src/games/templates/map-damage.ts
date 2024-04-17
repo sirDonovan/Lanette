@@ -16,6 +16,7 @@ export abstract class MapDamageGame extends MapGame {
 	onAddPlayer(player: Player, lateJoin?: boolean): boolean {
 		if (lateJoin) {
 			this.positionPlayer(player);
+			this.sendPlayerControls(player);
 		}
 		return true;
 	}
