@@ -288,8 +288,11 @@ export class Websocket {
 				}
 
 				this.outgoingMessageMeasurements.unshift(measurement);
-				this.outgoingMessageMeasurementsInfo.unshift(measurement + " (" + this.lastOutgoingMessage.type + " in " +
-					(this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid) + ")");
+				this.outgoingMessageMeasurementsInfo.unshift(measurement + " (" + this.lastOutgoingMessage.type +
+					((this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid)
+						? (" in " + (this.lastOutgoingMessage.roomid || this.lastOutgoingMessage.userid))
+						: "")
+				+ ")");
 
 				this.lastMeasuredMessage = this.lastOutgoingMessage;
 				this.lastProcessingTimeCheck = responseTime;
