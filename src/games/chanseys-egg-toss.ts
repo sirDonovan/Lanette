@@ -44,7 +44,7 @@ class ChanseysEggToss extends ScriptedGame {
 	}
 
 	onRemovePlayer(player: Player): void {
-		if (this.getRemainingPlayerCount() < 2) {
+		if (this.started && this.getRemainingPlayerCount() < 2) {
 			this.say(player.name + " left the game!");
 			this.end();
 		}
