@@ -37,7 +37,7 @@ const removeFromPackageJson = [
 		"typescript",
 ];
 const overrideVersions: Dict<string> = {
-	"esbuild": "0.20.2",
+	"esbuild": "0.21.5",
 };
 
 export const getCurrentPokemonShowdownSha = (): string | false => {
