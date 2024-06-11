@@ -14,14 +14,6 @@ interface IPackageJson {
     secretDependencies: Dict<string>;
 }
 
-function getPokemonShowdownFolder(): string {
-	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
-}
-
-function getPokemonShowdownDistFolder(): string {
-	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown', pokemonShowdownDistName);
-}
-
 const pokemonShowdownDistName = "dist";
 const removeFromPackageJson = [
 	// dependencies
@@ -39,6 +31,14 @@ const removeFromPackageJson = [
 const overrideVersions: Dict<string> = {
 	"esbuild": "0.21.5",
 };
+
+function getPokemonShowdownFolder(): string {
+	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown');
+}
+
+function getPokemonShowdownDistFolder(): string {
+	return path.join(getInputFolders().root.inputPath, 'pokemon-showdown', pokemonShowdownDistName);
+}
 
 export const getCurrentPokemonShowdownSha = (): string | false => {
 	const revParseOutput = exec('git rev-parse master');

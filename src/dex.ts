@@ -340,7 +340,7 @@ export class Dex {
 			const dexPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "dex.js");
 			const teamValidatorPath = path.join(Tools.pokemonShowdownFolder, "dist", "sim", "team-validator.js");
 			const tagsPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "tags.js");
-			const setsJsonPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "random-sets.json");
+			const setsJsonPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "random-battles", "gen9", "sets.json");
 
 			// eslint-disable-next-line @typescript-eslint/no-var-requires
 			this.pokemonShowdownDexModule = require(dexPath) as IPokemonShowdownDexModule;
