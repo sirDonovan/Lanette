@@ -354,7 +354,12 @@ export class Dex {
 			this.pokemonShowdownTagsModule = require(tagsPath) as IPokemonShowdownTagsModule;
 			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
 
-			this.randomBattleSetData = JSON.parse(fs.readFileSync(setsJsonPath).toString()) as Dict<IRandomBattleSetData>;
+			try {
+				this.randomBattleSetData = JSON.parse(fs.readFileSync(setsJsonPath).toString()) as Dict<IRandomBattleSetData>;
+			} catch (e) {
+				Tools.logException(e as Error, "Error loading Random Battle sets");
+				this.randomBattleSetData = {};
+			}
 		} else {
 			this.pokemonShowdownDexModule = this.dexes.base.pokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.dexes.base.pokemonShowdownDex.mod(mod);
