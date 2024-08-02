@@ -489,7 +489,7 @@ export class Tools {
 			if (typeof backgroundColor === 'string') {
 				if (backgroundColor in this.hexCodes) {
 					if (this.hexCodes[backgroundColor]!.textColor) {
-						buttonStyle += "color: " + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor!,
+						buttonStyle += "color: " + this.getDynamicTextHexCode(this.hexCodes[backgroundColor]!.textColor,
 							this.hexCodes[backgroundColor]!.color) + ";";
 					} else {
 						buttonStyle += "color: #000000;";

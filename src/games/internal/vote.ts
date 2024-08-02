@@ -191,7 +191,7 @@ export class Vote extends ScriptedGame {
 			if (id in database.gameVoteBoxes) {
 				this.customBox = database.gameVoteBoxes[id];
 				if (database.gameVoteBoxes[id].pokemonAvatar) {
-					pokemonIcon = Dex.getPokemonIcon(Dex.getPokemon(database.gameVoteBoxes[id].pokemonAvatar!));
+					pokemonIcon = Dex.getPokemonIcon(Dex.getPokemon(database.gameVoteBoxes[id].pokemonAvatar));
 				}
 			}
 		}
@@ -538,7 +538,7 @@ export class Vote extends ScriptedGame {
 
 		for (const i in this.privateVotesHtmlTimeouts) {
 			if (this.privateVotesHtmlTimeouts[i]) {
-				clearTimeout(this.privateVotesHtmlTimeouts[i]!);
+				clearTimeout(this.privateVotesHtmlTimeouts[i]);
 				// @ts-expect-error
 				this.privateVotesHtmlTimeouts[i] = undefined;
 			}

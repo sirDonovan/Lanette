@@ -570,12 +570,12 @@ export class Games {
 				challengeSettings = Tools.deepClone(game.challengeSettings);
 				for (const gameChallenge of gameChallenges) {
 					if (!challengeSettings[gameChallenge]) continue;
-					if (challengeSettings[gameChallenge]!.options) {
-						challengeSettings[gameChallenge]!.options = challengeSettings[gameChallenge]!.options!.map(x => Tools.toId(x));
+					if (challengeSettings[gameChallenge].options) {
+						challengeSettings[gameChallenge].options = challengeSettings[gameChallenge].options.map(x => Tools.toId(x));
 					}
 
-					if (challengeSettings[gameChallenge]!.requiredOptions) {
-						challengeSettings[gameChallenge]!.requiredOptions = challengeSettings[gameChallenge]!.requiredOptions!
+					if (challengeSettings[gameChallenge].requiredOptions) {
+						challengeSettings[gameChallenge].requiredOptions = challengeSettings[gameChallenge].requiredOptions
 							.map(x => Tools.toId(x));
 					}
 				}

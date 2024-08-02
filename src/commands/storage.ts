@@ -989,7 +989,7 @@ export const commands: BaseCommandDefinitions = {
 			const users: string[] = [];
 			if (database.tournamentTrainerCards) {
 				for (const i in database.tournamentTrainerCards) {
-					if (database.tournamentTrainerCards[i].badges && database.tournamentTrainerCards[i].badges!.includes(id)) {
+					if (database.tournamentTrainerCards[i].badges && database.tournamentTrainerCards[i].badges.includes(id)) {
 						const badgeUser = Users.get(i);
 						users.push(badgeUser ? badgeUser.name : i);
 					}

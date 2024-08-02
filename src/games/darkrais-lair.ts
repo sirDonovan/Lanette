@@ -243,7 +243,7 @@ class DarkraisLair extends MapGame {
 			if (shadowTraps[key].uses) {
 				remainingUses = shadowTraps[key].uses;
 				if (key in usedShadowTraps) {
-					remainingUses! -= usedShadowTraps[key]!;
+					remainingUses -= usedShadowTraps[key]!;
 				}
 			}
 

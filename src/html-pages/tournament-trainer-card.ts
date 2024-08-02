@@ -549,7 +549,7 @@ export class TournamentTrainerCard extends HtmlPageBase {
 
 	submitAllPokemonInput(output: PokemonChoices): void {
 		const database = this.getDatabase();
-		database.tournamentTrainerCards![this.targetUserId!].pokemon = output.filter(x => x !== undefined).map(x => x!.pokemon);
+		database.tournamentTrainerCards![this.targetUserId!].pokemon = output.filter(x => x !== undefined).map(x => x.pokemon);
 
 		this.send();
 	}

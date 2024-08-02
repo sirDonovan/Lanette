@@ -207,7 +207,7 @@ export class Tournaments {
 				if (remainingTime < 0) continue;
 				if (remainingTime >= Number.MAX_SAFE_INTEGER) break outer;
 
-				this.officialTournaments[room]!.push({
+				this.officialTournaments[room].push({
 					format,
 					time: tournamentTime,
 					official: true,
@@ -220,7 +220,7 @@ export class Tournaments {
 			}
 		}
 
-		this.officialTournaments[room]!.sort((a, b) => a.time - b.time);
+		this.officialTournaments[room].sort((a, b) => a.time - b.time);
 	}
 
 	getFormat(formatId: string, room?: Room, roomid?: string): IFormat | undefined {

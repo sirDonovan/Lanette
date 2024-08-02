@@ -433,7 +433,7 @@ export class CommandParser {
 						throw new Error("Command '" + i + "' is defined in more than 1 location.");
 					}
 
-					if (commandFile.commands[i].description && commandFile.commands[i].description!.length) {
+					if (commandFile.commands[i].description && commandFile.commands[i].description.length) {
 						if (!(commandCategory in this.commandGuides)) this.commandGuides[commandCategory] = {};
 
 						this.commandGuides[commandCategory][i] = {

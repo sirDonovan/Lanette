@@ -144,7 +144,7 @@ export class BattleEliminationTeambuilder extends ComponentBase {
 		const teamChangesRound = round - 1;
 		if (!this.roundSlots[teamChangesRound]) return;
 
-		this.slots = this.roundSlots[teamChangesRound]!.slice();
+		this.slots = this.roundSlots[teamChangesRound].slice();
 
 		for (let i = round; i <= this.props.player.round!; i++) {
 			delete this.roundSlots[i];

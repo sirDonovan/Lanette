@@ -345,7 +345,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 	pickPokemonGeneration(index: number, generation: ModelGeneration, dontRender?: boolean): void {
 		if (this.currentPokemon[index]) {
-			this.selectPokemon(index, Object.assign(this.currentPokemon[index]!, {generation}), dontRender);
+			this.selectPokemon(index, Object.assign(this.currentPokemon[index], {generation}), dontRender);
 		} else {
 			if (!dontRender) this.props.reRender();
 		}
@@ -353,7 +353,7 @@ export abstract class HostDisplayBase extends ComponentBase<IHostDisplayProps> {
 
 	pickPokemonShininess(index: number, shininess: boolean, dontRender?: boolean): void {
 		if (this.currentPokemon[index]) {
-			this.selectPokemon(index, Object.assign(this.currentPokemon[index]!, {shiny: shininess}), dontRender);
+			this.selectPokemon(index, Object.assign(this.currentPokemon[index], {shiny: shininess}), dontRender);
 		} else {
 			if (!dontRender) this.props.reRender();
 		}

@@ -434,7 +434,7 @@ class GameHostBox extends HtmlPageBase {
 
 	storePokemon(): void {
 		const database = this.getDatabase();
-		database.gameHostBoxes![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
+		database.gameHostBoxes![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined);
 	}
 
 	pickBackgroundHueVariation(dontRender?: boolean): void {

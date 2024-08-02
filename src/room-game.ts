@@ -376,7 +376,7 @@ export abstract class Game extends Activity {
 
 	sayCustomGridUhtml(user: User, gridIndex: number, html: string): void {
 		if (this.lastCustomGridIndex === gridIndex && this.lastCustomGridsUhtml && this.lastCustomGridsUhtml[gridIndex] &&
-			this.lastCustomGridsUhtml[gridIndex]!.html === html) {
+			this.lastCustomGridsUhtml[gridIndex].html === html) {
 			return;
 		}
 

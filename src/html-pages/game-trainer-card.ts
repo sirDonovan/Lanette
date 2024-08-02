@@ -185,7 +185,7 @@ class GameTrainerCard extends HtmlPageBase {
 
 	storePokemon(): void {
 		const database = this.getDatabase();
-		database.gameTrainerCards![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined).map(x => x!.pokemon);
+		database.gameTrainerCards![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined).map(x => x.pokemon);
 	}
 
 	render(): string {

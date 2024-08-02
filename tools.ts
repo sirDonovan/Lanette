@@ -36,7 +36,7 @@ export function getInputFolders(): InputFolders {
 		};
 
 		if (folderName === 'web') {
-			inputFolders[folderName]!.tsConfig = path.join(inputFolders[folderName]!.inputPath, "tsconfig.json");
+			inputFolders[folderName].tsConfig = path.join(inputFolders[folderName].inputPath, "tsconfig.json");
 		}
 	}
 

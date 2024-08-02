@@ -482,7 +482,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 	storePokemon(): void {
 		const database = this.getDatabase();
-		database.gameHostDisplays![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
+		database.gameHostDisplays![this.userId].pokemon = this.currentPokemon.filter(x => x !== undefined);
 	}
 
 	clearTrainer(index: number, dontRender: boolean | undefined): void {
@@ -516,7 +516,7 @@ export class GameHostControlPanel extends HtmlPageBase {
 
 	storeTrainers(): void {
 		const database = this.getDatabase();
-		database.gameHostDisplays![this.userId].trainers = this.currentTrainers.filter(x => x !== undefined) as ITrainerPick[];
+		database.gameHostDisplays![this.userId].trainers = this.currentTrainers.filter(x => x !== undefined);
 	}
 
 	setGifOrIcon(gifOrIcon: GifIcon, currentPokemon: PokemonChoices, dontRender: boolean | undefined): void {
@@ -665,11 +665,11 @@ export class GameHostControlPanel extends HtmlPageBase {
 	}
 
 	getTrainers(): ITrainerPick[] {
-		return this.currentTrainers.filter(x => x !== undefined) as ITrainerPick[];
+		return this.currentTrainers.filter(x => x !== undefined);
 	}
 
 	getPokemon(): IPokemonPick[] {
-		return this.currentPokemon.filter(x => x !== undefined) as IPokemonPick[];
+		return this.currentPokemon.filter(x => x !== undefined);
 	}
 
 	getHostDisplay(): string {

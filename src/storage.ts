@@ -205,7 +205,7 @@ export class Storage {
 				hasLeaderboard = true;
 
 				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-				if (!database[type]!.entries) {
+				if (!database[type].entries) {
 					const oldLeaderboard = (database[type] as unknown) as Dict<ILeaderboardEntry>;
 					const sources: string[] = [];
 					for (const i in oldLeaderboard) {
@@ -346,8 +346,8 @@ export class Storage {
 				const clearAnnual = (month === 12 && day === 31) || (month === 1 && day === 1);
 				for (const leaderboardType of leaderboardTypes) {
 					if (!database[leaderboardType]) continue;
-					for (const i in database[leaderboardType]!.entries) {
-						const user = database[leaderboardType]!.entries[i];
+					for (const i in database[leaderboardType].entries) {
+						const user = database[leaderboardType].entries[i];
 						if (clearAnnual) {
 							user.annual = 0;
 						} else {
@@ -476,7 +476,7 @@ export class Storage {
 			};
 		}
 
-		const leaderboard = database[leaderboardType]!;
+		const leaderboard = database[leaderboardType];
 		if (!leaderboard.sources.includes(source)) leaderboard.sources.push(source);
 
 		if (!(id in leaderboard.entries)) {
@@ -529,15 +529,15 @@ export class Storage {
 	getPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {
 		const database = this.getDatabase(room);
 		const id = Tools.toId(name);
-		if (!database[leaderboardType] || !(id in database[leaderboardType]!.entries)) return 0;
-		return database[leaderboardType]!.entries[id].current;
+		if (!database[leaderboardType] || !(id in database[leaderboardType].entries)) return 0;
+		return database[leaderboardType].entries[id].current;
 	}
 
 	getAnnualPoints(room: Room, leaderboardType: LeaderboardType, name: string): number {
 		const database = this.getDatabase(room);
 		const id = Tools.toId(name);
-		if (!database[leaderboardType] || !(id in database[leaderboardType]!.entries)) return 0;
-		return database[leaderboardType]!.entries[id].annual + database[leaderboardType]!.entries[id].current;
+		if (!database[leaderboardType] || !(id in database[leaderboardType].entries)) return 0;
+		return database[leaderboardType].entries[id].annual + database[leaderboardType].entries[id].current;
 	}
 
 	sortPointsCache(users: string[], leaderboard: ILeaderboard, points: Dict<number>): ICachedLeaderboardEntry[] {
@@ -684,10 +684,10 @@ export class Storage {
 	updateLeaderboardCaches(roomid: string, database: IDatabase): void {
 		for (const type of this.allLeaderboardTypes) {
 			if (!database[type]) continue;
-			this.updateLeaderboardPointsCaches(roomid, database[type]!);
-			this.updateLeaderboardPointsBreakdownCaches(roomid, database[type]!);
-			for (const source of database[type]!.sources) {
-				this.updateLeaderboardSourcePointsCaches(roomid, database[type]!, source);
+			this.updateLeaderboardPointsCaches(roomid, database[type]);
+			this.updateLeaderboardPointsBreakdownCaches(roomid, database[type]);
+			for (const source of database[type].sources) {
+				this.updateLeaderboardSourcePointsCaches(roomid, database[type], source);
 			}
 		}
 	}
@@ -892,10 +892,10 @@ export class Storage {
 		let updatedLeaderboard = false;
 
 		for (const leaderboardType of this.allLeaderboardTypes) {
-			if (!database[leaderboardType] || !(sourceId in database[leaderboardType]!.entries)) continue;
+			if (!database[leaderboardType] || !(sourceId in database[leaderboardType].entries)) continue;
 			updatedLeaderboard = true;
 
-			const leaderboard = database[leaderboardType]!;
+			const leaderboard = database[leaderboardType];
 			if (!(destinationId in leaderboard.entries)) {
 				this.createLeaderboardEntry(leaderboard, destinationName, destinationId);
 			}

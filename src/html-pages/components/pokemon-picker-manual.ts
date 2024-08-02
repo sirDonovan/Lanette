@@ -278,7 +278,7 @@ export class PokemonPickerManual extends PokemonPickerBase {
 		this.pokemonTextInputs[this.generation].active = true;
 
 		if (this.letterViews[previousGeneration]) {
-			const previousLetter = this.letterViews[previousGeneration]!;
+			const previousLetter = this.letterViews[previousGeneration];
 			this.letterPaginations[previousGeneration][previousLetter].active = false;
 
 			if (previousLetter in this.letterPaginations[this.generation]) {
