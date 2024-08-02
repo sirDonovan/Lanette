@@ -29,7 +29,7 @@ const removeFromPackageJson = [
 		"typescript",
 ];
 const overrideVersions: Dict<string> = {
-	"esbuild": "0.21.5",
+	"esbuild": "0.23.0",
 };
 
 function getPokemonShowdownFolder(): string {
