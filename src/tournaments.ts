@@ -1271,7 +1271,6 @@ export class Tournaments {
 	}
 
 	displayTrainerCard(room: Room, name: string, htmlBefore?: string, htmlAfter?: string): void {
-		const id = Tools.toId(name);
 		const trainerCardRoom = this.getTrainerCardRoom(room);
 		if (trainerCardRoom) {
 			const sendTrainerCard = (username: string): void => {
@@ -1285,11 +1284,11 @@ export class Tournaments {
 
 			const database = Storage.getDatabase(trainerCardRoom);
 			const user = Users.get(name);
-			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(id in database.tournamentTrainerCards))) {
+			if (user && (!user.globalRank || !database.tournamentTrainerCards || !(user.id in database.tournamentTrainerCards))) {
 				const updateTrainerCard = (avatar?: string): void => {
 					Storage.createTournamentTrainerCard(database, user.name);
-					if (!database.tournamentTrainerCards![id].avatar && avatar) {
-						database.tournamentTrainerCards![id].avatar = avatar as TrainerSpriteId;
+					if (!database.tournamentTrainerCards![user.id].avatar && avatar) {
+						database.tournamentTrainerCards![user.id].avatar = avatar as TrainerSpriteId;
 					}
 
 					sendTrainerCard(user.name);
