@@ -521,6 +521,9 @@ const commands: GameCommandDefinitions<DittosWhoAmI> = {
 				formattedQuestions.push(trimmed.toLowerCase());
 
 				const result = this.checkGuess(trimmed, player);
+				// solo variant ends in checkGuess()
+				if (this.ended) return true;
+
 				if (typeof result === 'string') {
 					this.say(result);
 					return false;
