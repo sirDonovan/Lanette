@@ -846,7 +846,7 @@ export class ScriptedGame extends Game {
 					this.parentGame.onChildEnd(this.winners);
 				} catch (e) {
 					console.log(e);
-					Tools.logException(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.format.name + ")");
+					Tools.logException(e as NodeJS.ErrnoException, this.parentGame.name + " onChildEnd() (" + this.name + ")");
 				}
 			}
 		}
@@ -864,7 +864,7 @@ export class ScriptedGame extends Game {
 		this.destroyPlayers();
 
 		this.writeDebugLog();
-		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.format.nameWithOptions + " ended");
+		if (Config.scriptedGameDebugStats) Tools.appendFile(this.getDebugLogPath("stats"), "\n" + this.name + " ended");
 
 		if (!this.isPmActivity(this.room)) {
 			this.afterAddBits();
