@@ -1,12 +1,20 @@
 import type { Player } from "../room-activity";
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const MAX_LETTERS = 18;
 
+type AchievementNames = "untossable" | "captainuntossable";
+
 class AmbipomsTossups extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"untossable": {name: "Untossable", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainuntossable": {name: "Captain Untossable", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = AmbipomsTossups.achievements.untossable;
+	allAnswersTeamAchievement =  AmbipomsTossups.achievements.captainuntossable;
 	currentCategory: string = '';
 	hints: string[] = [];
 	hintUpdates: number = 0;

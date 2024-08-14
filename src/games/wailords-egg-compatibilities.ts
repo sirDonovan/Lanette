@@ -1,14 +1,23 @@
-import type { IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_MIDDLE_EGG_GROUPS = 1;
 
+type AchievementNames = "cupid" | "captaincupid";
+
 class WailordsEggCompatibilities extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"cupid": {name: "Cupid", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captaincupid": {name: "Captain Cupid", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static pokemonEggGroups: Dict<DeepImmutableArray<string>> = {};
 	static eggGroups: Dict<string[]> = {};
 	static eggGroupKeys: string[] = [];
 	static pokemonKeys: string[] = [];
 
+	allAnswersAchievement = WailordsEggCompatibilities.achievements.cupid;
+	allAnswersTeamAchievement = WailordsEggCompatibilities.achievements.captaincupid;
 	lastStartEggGroup: string = "";
 	lastEndEggGroup: string = "";
 	lastStartPokemon: string = "";

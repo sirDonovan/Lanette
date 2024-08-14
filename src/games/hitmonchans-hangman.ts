@@ -1,12 +1,21 @@
 import type { Player } from "../room-activity";
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const MIN_LETTERS = 3;
 
+type AchievementNames = "savedtheman" | "captainmansaver";
+
 class HitmonchansHangman extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"savedtheman": {name: "Saved the Man", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainmansaver": {name: "Captain Man Saver", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = HitmonchansHangman.achievements.savedtheman;
+	allAnswersTeamAchievement = HitmonchansHangman.achievements.captainmansaver;
 	allLetters: number = 0;
 	currentCategory: string = '';
 	guessedLetters: string[] = [];

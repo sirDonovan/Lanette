@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { ModelGeneration, IGifDirectionData } from "../types/dex";
-import type { IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const MIN_POKEMON = 3;
@@ -22,7 +22,17 @@ const data: {pokemon: string[], gifData: Dict<IGifDirectionData>} = {
 	gifData: {},
 };
 
+type AchievementNames = "deoxysspeed" | "deoxyscaptainspeed";
+
 class DeoxysDifferences extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"deoxysspeed": {name: "Deoxys Speed", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"deoxyscaptainspeed": {name: "Deoxys Captain Speed", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
+	
+	allAnswersAchievement = DeoxysDifferences.achievements.deoxysspeed;
+	allAnswersTeamAchievement = DeoxysDifferences.achievements.deoxyscaptainspeed;
 	answerCommands: string[] = [answerCommand];
 	cooldownBetweenRounds: number = 5 * 1000;
 	differenceCoordinates: [number, number] | null = null;

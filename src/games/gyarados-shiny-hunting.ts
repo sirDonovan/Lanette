@@ -1,6 +1,6 @@
 import type { Player } from "../room-activity";
 import type { ModelGeneration, IGifDirectionData } from "../types/dex";
-import type { IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { IPokemon } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
@@ -21,9 +21,19 @@ const SPRITE_GENERATION: ModelGeneration = 'bw';
 const ANSWER_COMMAND = 'hunt';
 const LETTERS = Tools.letters.toUpperCase().split("");
 
+type AchievementNames = "shinebrightlikeadiamond" | "captainshinebright";
+
 class GyaradosShinyHunting extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"shinebrightlikeadiamond": {name: "Shine Bright Like a Diamond", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainshinebright": {name: "Captain Shinebright", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static gifData: Dict<IGifDirectionData> = {};
 	static gifDataKeys: string[] = [];
+
+	allAnswersAchievement = GyaradosShinyHunting.achievements.shinebrightlikeadiamond;
+	allAnswersTeamAchievement = GyaradosShinyHunting.achievements.captainshinebright;
 
 	answerCommands: string[] = [ANSWER_COMMAND];
 	cooldownBetweenRounds: number = 5 * 1000;

@@ -1,8 +1,18 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
+type AchievementNames = "oneofakind" | "captainoneofakind";
+
 class SilvallysUniquePairs extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"oneofakind": {name: "One of a Kind", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainoneofakind": {name: "Captain One of a Kind", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
+
+	allAnswersAchievement = SilvallysUniquePairs.achievements.oneofakind;
+	allAnswersTeamAchievement = SilvallysUniquePairs.achievements.captainoneofakind;
 	roundTime: number = 5 * 60 * 1000;
 	hintPrefix: string = "Silvally wants a unique pair for";
 
