@@ -1,12 +1,21 @@
 import type { Player } from "../room-activity";
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
 const MIN_LETTERS = 3;
 
+type AchievementNames = "hunchback" | "captainhunchback";
+
 class HypnosHunches extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"hunchback": {name: "Hunchback", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainhunchback": {name: "Captain Hunchback", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = HypnosHunches.achievements.hunchback;
+	allAnswersTeamAchievement = HypnosHunches.achievements.captainhunchback;
 	currentCategory: string = '';
 	guessLimit: number = 10;
 	guessedLetters: string[] = [];

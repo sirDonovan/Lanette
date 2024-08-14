@@ -1,11 +1,20 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const LETTERS_TO_REVEAL = 4;
 
+type AchievementNames = "checkmarq" | "captaincheckmarq";
+
 class MareaniesMarquees extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"checkmarq": {name: "Check Marq", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captaincheckmarq": {name: "Captain Check Marq", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = MareaniesMarquees.achievements.checkmarq;
+	allAnswersTeamAchievement = MareaniesMarquees.achievements.captaincheckmarq;
 	currentCategory: string = '';
 	currentIndex: number = -1;
 	hintUpdates: number = 0;

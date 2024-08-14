@@ -1,4 +1,4 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const upperCaseLetters = Tools.letters.toUpperCase();
@@ -19,9 +19,18 @@ function getEncodedWord(word: string): string | null {
 	return encoded.join("-");
 }
 
+type AchievementNames = "codebreaker" | "captaincodebreaker";
+
 class ElgyemsNumberEncoder extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"codebreaker": {name: "Codebreaker", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captaincodebreaker": {name: "Captain Codebreaker", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = ElgyemsNumberEncoder.achievements.codebreaker;
+	allAnswersTeamAchievement = ElgyemsNumberEncoder.achievements.captaincodebreaker;
 	roundTime: number = 30 * 1000;
 
 	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await

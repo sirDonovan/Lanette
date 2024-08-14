@@ -1,5 +1,5 @@
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
-import type { IGameFile } from "../types/games";
+import type { IGameAchievement, IGameFile } from "../types/games";
 import type { IParam, IParametersThreadData } from './../workers/parameters';
 import type { Player } from '../room-activity';
 
@@ -14,7 +14,14 @@ const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, string[]>>> = {};
 
 const searchTypes: (keyof IParametersThreadData)[] = ['pokemon'];
 
+type AchievementNames = "bowledover";
+
 class MalamarsBowls extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"bowledover": {name: "Bowled Over", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+	};
+	
+	allAnswersAchievement = MalamarsBowls.achievements.bowledover;
 	bowlsRound: number = 0;
 	hintUpdates: number = 0;
 	multiRoundHints = true;

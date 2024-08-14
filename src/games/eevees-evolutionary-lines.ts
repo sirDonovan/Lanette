@@ -1,10 +1,20 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const HIDDEN_POKEMON = "______";
 
+type AchievementNames = "darwinner" | "captaindarwinner";
+
 class EeveesEvolutionaryLines extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"darwinner": {name: "Darwinner", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captaindarwinner": {name: "Captain Darwinner", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
+
+	allAnswersAchievement = EeveesEvolutionaryLines.achievements.darwinner;
+	allAnswersTeamAchievement =  EeveesEvolutionaryLines.achievements.captaindarwinner;
 
 	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
 		const hints: Dict<string[]> = {};

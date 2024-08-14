@@ -1,11 +1,20 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_NAMES = 2;
 
+type AchievementNames = "monstermash" | "captainmonstermash";
+
 class MagnetonsMashups extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"monstermash": {name: "Monster Mash", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainmonstermash": {name: "Captain Monster Mash", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = MagnetonsMashups. achievements.monstermash;
+	allAnswersTeamAchievement = MagnetonsMashups.achievements.captainmonstermash;
 	currentCategory: string = '';
 	roundTime: number = 30 * 1000;
 

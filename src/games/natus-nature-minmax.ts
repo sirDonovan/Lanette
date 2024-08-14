@@ -1,11 +1,20 @@
 import type { Player } from "../room-activity";
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import type { INature, StatIDExceptHP } from "../types/pokemon-showdown";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
+type AchievementNames = "naturescalling" | "captainnature";
+
 class NatusNatureMinMax extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"naturescalling": {name: "Nature's Calling", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainnature": {name: "Captain Nature", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = NatusNatureMinMax. achievements.naturescalling;
+	allAnswersTeamAchievement = NatusNatureMinMax.achievements.captainnature;
 	hintPrefix: string = "Randomly generated Pokemon";
 	oneGuessPerHint = true;
 	roundTime: number = 30 * 1000;

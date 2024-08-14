@@ -1,12 +1,22 @@
 import type { PRNGSeed } from "../lib/prng";
 import { PRNG } from "../lib/prng";
-import type { GameFileTests, IGameFile } from "../types/games";
+import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import type { PoolType } from './../workers/portmanteaus';
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_NUMBER_OF_PORTS = 2;
 
+type AchievementNames = "opportunist" | "captainopportunist";
+
 export class PoliwrathsPortmanteaus extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"opportunist": {name: "OP Portunist", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainopportunist": {name: "Captain OP Portunist", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
+
+	allAnswersAchievement = PoliwrathsPortmanteaus.achievements.opportunist;
+	allAnswersTeamAchievement = PoliwrathsPortmanteaus.achievements.captainopportunist;
 	answerParts: Dict<string[]> = {};
 	customPortCategories: string[] | null = null;
 	customPortDetails: string[] | null = null;

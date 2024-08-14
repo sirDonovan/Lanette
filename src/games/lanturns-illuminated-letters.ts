@@ -1,5 +1,5 @@
 import type { Player } from "../room-activity";
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import type { IHexCodeData } from "../types/tools";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
@@ -7,9 +7,18 @@ const BANNED_CHARACTERS: string[] = ['.', '-', '(', ')'];
 const LETTERS_TO_REVEAL = 3;
 const MINIMUM_LENGTH = LETTERS_TO_REVEAL * 2;
 
+type AchievementNames = "lightspeed" | "captainlightspeed";
+
 class LanturnsIlluminatedLetters extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"lightspeed": {name: "Lightspeed", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainlightspeed": {name: "Captain Lightspeed", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = LanturnsIlluminatedLetters.achievements.lightspeed;
+	allAnswersTeamAchievement = LanturnsIlluminatedLetters.achievements.captainlightspeed;
 	currentCategory: string = '';
 	currentIndicies: number[] = [];
 	hiddenColor: IHexCodeData = Tools.getNamedHexCode("Black");

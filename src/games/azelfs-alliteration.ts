@@ -1,9 +1,18 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from "./templates/question-and-answer";
 
+type AchievementNames = "adeptalliterator" | "adeptcaptainalliterator";
+
 class AzelfsAlliteration extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"adeptalliterator": {name: "Adept Alliterator", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"adeptcaptainalliterator": {name: "Adept Captain Alliterator", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = AzelfsAlliteration.achievements.adeptalliterator;
+	allAnswersTeamAchievement =  AzelfsAlliteration.achievements.adeptcaptainalliterator;
 	currentCategory: string = '';
 
 	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await

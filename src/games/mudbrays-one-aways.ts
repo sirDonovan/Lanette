@@ -1,4 +1,4 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const upperCaseLetters: readonly string[] = Tools.lettersArray.map(x => x.toUpperCase());
@@ -39,9 +39,18 @@ function getOneAways(word: string): string[] | null {
 	return [oneAways[0].join(""), oneAways[1].join("")];
 }
 
+type AchievementNames = "ciphersolver" | "captainciphersolver";
+
 class MudbraysOneAways extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"ciphersolver": {name: "Cipher Solver", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainciphersolver": {name: "Captain Cipher Solver", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = MudbraysOneAways.achievements.ciphersolver;
+	allAnswersTeamAchievement = MudbraysOneAways.achievements.captainciphersolver;
 	roundTime: number = 30 * 1000;
 
 	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await

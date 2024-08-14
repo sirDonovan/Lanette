@@ -1,9 +1,18 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
+type AchievementNames = "movesetmaster" | "captainmovesetmaster";
+
 class PorygonsMovesearchMatch extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"movesetmaster": {name: "Moveset Master", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainmovesetmaster": {name: "Captain Moveset Master", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = PorygonsMovesearchMatch. achievements.movesetmaster;
+	allAnswersTeamAchievement = PorygonsMovesearchMatch.achievements.captainmovesetmaster;
 	hintPrefix: string = "Randomly generated moveset";
 	roundTime: number = 20 * 1000;
 

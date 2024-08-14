@@ -1,5 +1,5 @@
 import { assertStrictEqual } from "../test/test-tools";
-import type { GameFileTests, IGameFile } from "../types/games";
+import type { GameFileTests, IGameAchievement, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 type Operation = 'add' | 'subtract' | 'multiply' | 'divide';
@@ -13,10 +13,19 @@ const OPERATION_SYMBOLS: KeyedDict<Operation, string> = {
 	'divide': '/',
 };
 
+type AchievementNames = "mathlete" | "captainmathlete";
+
 class GrumpigsPokemath extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"mathlete": {name: "Mathlete", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainmathlete": {name: "Captain Mathlete", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static pokemonByNumber: Dict<string[]> = {};
 	static highestPokedexNumber: number = 0;
 
+	allAnswersAchievement = GrumpigsPokemath.achievements.mathlete;
+	allAnswersTeamAchievement = GrumpigsPokemath.achievements.captainmathlete;
 	lastOperation: Operation = 'divide';
 	lastResult: number = 0;
 	roundTime = 30 * 1000;

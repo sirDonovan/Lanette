@@ -1,4 +1,4 @@
-import type { IGameCachedData, IGameFile } from "../types/games";
+import type { IGameAchievement, IGameCachedData, IGameFile } from "../types/games";
 import { game as questionAndAnswerGame, QuestionAndAnswer } from './templates/question-and-answer';
 
 const BASE_POINTS = 50;
@@ -15,10 +15,19 @@ function getAvailableLetters(id: string): string[] {
 	return availableLetters;
 }
 
+type AchievementNames = "roadblockremover" | "captainroadblockremover";
+
 class LugiasObstructiveLetters extends QuestionAndAnswer {
+	static achievements: KeyedDict<AchievementNames, IGameAchievement> = {
+		"roadblockremover": {name: "Roadblock Remover", type: 'all-answers', bits: 1000, description: "get every answer in one game"},
+		"captainroadblockremover": {name: "Captain Roadblock Remover", type: 'all-answers-team', bits: 1000, mode: 'collectiveteam', 
+			description: "get every answer for your team and win the game"},
+	};
 	static availableLetters: Dict<string[]> = {};
 	static cachedData: IGameCachedData = {};
 
+	allAnswersAchievement = LugiasObstructiveLetters.achievements.roadblockremover;
+	allAnswersTeamAchievement = LugiasObstructiveLetters.achievements.captainroadblockremover;
 	currentCategory: string = '';
 	loserPointsToBits: number = 2;
 	roundTime: number = 30 * 1000;
