@@ -595,7 +595,8 @@ export const commands: BaseCommandDefinitions = {
 
 			if (targetRoom.newUserHostedTournaments) {
 				for (const i in targetRoom.newUserHostedTournaments) {
-					if (user.id === targetRoom.newUserHostedTournaments[i].hostId) {
+					if (user.id === targetRoom.newUserHostedTournaments[i].hostId &&
+                        targetRoom.newUserHostedTournaments[i].startTime !== 0) {
 						return this.say("You are already on the waiting list for staff review.");
 					}
 				}
@@ -613,6 +614,11 @@ export const commands: BaseCommandDefinitions = {
 			const userHostedTournament: IUserHostedTournament = {
 				approvalStatus: '',
 				bracketUrl,
+                canWarn: {
+                    changesRequested: false,
+                    awaitingApproval: false,
+                    approvalRequested: false,
+                },
 				hostName: user.name,
 				hostId: user.id,
 				reviewer: '',
@@ -717,7 +723,10 @@ export const commands: BaseCommandDefinitions = {
 
 				this.say("You have approved " + targetRoom.approvedUserHostedTournaments[link].hostName + "'s tournament.");
 				const host = Users.get(targetRoom.approvedUserHostedTournaments[link].hostName);
-				if (host) host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
+				if (host) {
+                    host.say(user.name + " has approved your tournament! You may now advertise in " + targetRoom.title + ".");
+                    host.say("Please use this link: ``" + link + "``");
+                }
 			} else {
 				if (targetRoom.newUserHostedTournaments[link].approvalStatus === 'changes-requested') {
 					return this.say("Changes have already been requested for " +
