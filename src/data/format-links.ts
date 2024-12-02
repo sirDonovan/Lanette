@@ -21,7 +21,7 @@ export const formatLinks: Dict<IFormatDataLinks> = {
 		teams: 'https://www.smogon.com/forums/threads/3733565/',
 	},
 	'gen9nu': {
-		teams: 'https://www.smogon.com/forums/threads/3718115/',
+		teams: 'https://www.smogon.com/forums/threads/3739344/',
 	},
 	'gen9pu': {
 		teams: 'https://www.smogon.com/forums/threads/3719989/',
