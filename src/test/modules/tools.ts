@@ -81,23 +81,19 @@ describe("Tools", () => {
 		mapClone.set('letter', 'b');
 		assertStrictEqual(map.get('letter'), 'a');
 
-		const mapObject = new Map();
+		const mapObject = new Map<string, typeof object>();
 		mapObject.set('letter', object);
 		const mapObjectClone = Tools.deepClone(mapObject);
 		assert(mapObject !== mapObjectClone);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		mapObjectClone.get('letter').letter = 'b';
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		assertStrictEqual(mapObject.get('letter').letter, 'a');
+		mapObjectClone.get('letter')!.letter = 'b';
+		assertStrictEqual(mapObject.get('letter')!.letter, 'a');
 
-		const mapObjectArray = new Map();
+		const mapObjectArray = new Map<string, (typeof object)[]>();
 		mapObjectArray.set('letter', [object]);
 		const mapObjectArrayClone = Tools.deepClone(mapObjectArray);
 		assert(mapObjectArray !== mapObjectArrayClone);
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		mapObjectArrayClone.get('letter')[0].letter = 'b';
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		assertStrictEqual(mapObjectArray.get('letter')[0].letter, 'a');
+		mapObjectArrayClone.get('letter')![0].letter = 'b';
+		assertStrictEqual(mapObjectArray.get('letter')![0].letter, 'a');
 
 		const set = new Set<string>();
 		set.add('a');

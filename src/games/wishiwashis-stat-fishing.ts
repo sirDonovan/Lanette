@@ -27,7 +27,8 @@ class WishiwashisStatFishing extends ScriptedGame {
 	statNames: Dict<string> = {hp: 'HP', atk: 'Atk', def: 'Def', spa: 'SpA', spd: 'SpD', spe: 'Spe', bst: 'BST'};
 	stats: string[] = ['hp', 'atk', 'def', 'spa', 'spd', 'spe', 'bst'];
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (!pokemon.types.includes("Water") || !Dex.hasModelData(pokemon)) continue;
 
@@ -41,7 +42,8 @@ class WishiwashisStatFishing extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) {
 			this.setTimeout(() => void this.nextRound(), 10 * 1000);
 		}
@@ -121,7 +123,8 @@ class WishiwashisStatFishing extends ScriptedGame {
 		if (shinyPokemon) this.unlockAchievement(firstPlayer, WishiwashisStatFishing.achievements.sunkentreasure);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.roundReels.clear();
 		this.queue = [];
 		const roundHtml = this.getRoundHtml(players => this.getPlayerPoints(players));

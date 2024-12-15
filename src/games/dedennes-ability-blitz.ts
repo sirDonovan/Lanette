@@ -24,11 +24,13 @@ class DedennesAbilityBlitz extends ScriptedGame {
 	roundTime: number = 3 * 1000;
 	highestCatch: Player | null = null;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		data.abilities = Games.getAbilitiesList().map(x => x.name);
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
@@ -46,7 +48,8 @@ class DedennesAbilityBlitz extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canSelect = false;
 		if (this.round > 1) {
 			let highestPoints = 0;

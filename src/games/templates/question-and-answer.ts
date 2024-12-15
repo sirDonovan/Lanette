@@ -78,7 +78,8 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (!this.isMiniGame) {
 			if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5000);
 		}
@@ -327,6 +328,7 @@ export abstract class QuestionAndAnswer extends ScriptedGame {
 					if (!reachedCap) reachedCap = true;
 				}
 			});
+
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (reachedCap) {
 				this.end();

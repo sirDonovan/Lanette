@@ -44,7 +44,8 @@ class DragapultsDangerZone extends ScriptedGame {
 	teamRound: number = 0;
 	teams: Dict<PlayerTeam> | null = null;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		data.pokemon = Games.getPokemonList().map(x => x.name);
 	}
 
@@ -118,7 +119,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		if (this.playerCount >= 18) {
 			this.gridSize = this.teamBased ? 6 : 5;
 		} else if (this.playerCount >= 12) {
@@ -201,7 +203,8 @@ class DragapultsDangerZone extends ScriptedGame {
 		return this.teamBased ? this.teamRound : this.soloRound;
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
 			if (!this.currentPlayer.eliminated) {
 				this.addRevealedLocation(this.playerLocations.get(this.currentPlayer)!);

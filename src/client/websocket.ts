@@ -337,7 +337,6 @@ export class Websocket {
 		this.reloadInProgress = true;
 	}
 
-    /* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	onReload(previous: Websocket): void {
 		if (previous.challstrTimeout) clearTimeout(previous.challstrTimeout);
 		if (previous.serverPingTimeout) clearTimeout(previous.serverPingTimeout);
@@ -347,22 +346,28 @@ export class Websocket {
 		if (previous.lastOutgoingMessage) this.lastOutgoingMessage = Object.assign({}, previous.lastOutgoingMessage);
 		if (previous.sendTimeoutDuration) this.sendTimeoutDuration = previous.sendTimeoutDuration;
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.averageOutgoingMessageMeasurements) {
 			this.averageOutgoingMessageMeasurements = previous.averageOutgoingMessageMeasurements.slice();
 		}
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.outgoingMessageQueue) this.outgoingMessageQueue = previous.outgoingMessageQueue.slice();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.outgoingMessageMeasurements) this.outgoingMessageMeasurements = previous.outgoingMessageMeasurements.slice();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.outgoingMessageMeasurementsInfo) {
 			this.outgoingMessageMeasurementsInfo = previous.outgoingMessageMeasurementsInfo.slice();
 		}
 
 		if (previous.ws) {
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (previous.removeClientListeners) previous.removeClientListeners(true);
 
 			this.ws = previous.ws;
 			this.setClientListeners();
 			this.pingServer();
 
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (previous.incomingMessageQueue) {
 				for (const item of previous.incomingMessageQueue.slice()) {
 					if (!this.incomingMessageQueue.includes(item)) this.onMessage(item.event, item.timestamp);
@@ -395,7 +400,6 @@ export class Websocket {
 
 		Tools.unrefProperties(previous);
 	}
-	/* eslint-enable */
 
 	setPublicBotSendThrottle(): void {
 		this.setSendThrottle(PUBLIC_BOT_MESSAGE_THROTTLE);

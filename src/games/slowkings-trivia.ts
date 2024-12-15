@@ -15,7 +15,8 @@ class SlowkingsTrivia extends QuestionAndAnswer {
 	allAnswersTeamAchievement = SlowkingsTrivia.achievements.captainknowitall;
 	roundTime = 15 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHints: Dict<Dict<string[]>> = {
 			"Pokemon Abilities": {},

@@ -31,7 +31,7 @@ export interface IPortmanteausSearchOptions {
 	customPortTypes?: PoolType[] | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPortmanteausSearchMessage extends IPortmanteausSearchOptions {}
 
 export interface IPortmanteausResponse {

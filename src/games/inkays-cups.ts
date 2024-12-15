@@ -42,13 +42,15 @@ class InkaysCups extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin && !this.isMiniGame) {
 			this.setTimeout(() => void this.nextRound(), 5000);
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		const text = "The game will be played in Gen " + gameGen + " (use ``/nds``)!";
 		this.on(text, () => {
 			this.setTimeout(() => void this.nextRound(), 5000);
@@ -115,7 +117,8 @@ class InkaysCups extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canGrab = false;
 

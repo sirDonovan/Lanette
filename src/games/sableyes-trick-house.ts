@@ -55,7 +55,8 @@ class SableyesTrickHouse extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canSelect = false;
 		if (this.round > 1) {
 			if (this.canLateJoin) this.canLateJoin = false;

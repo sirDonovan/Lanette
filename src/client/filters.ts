@@ -11,7 +11,6 @@ const FILTERS_REGEX_E_RIGHT = /\u039d/g;
 const FILTERS_REGEX_FORMATTING = /__|\*\*|``|\[\[|\]\]/g;
 const FILTERS_REGEX_EVASION_REPLACEMENT = /[\s-_,.]+/g;
 
-/* eslint-disable max-len */
 // Substitution dictionary adapted from https://github.com/ThreeLetters/NoSwearingPlease/blob/master/index.js, licensed under MIT.
 const EVASION_DETECTION_SUBSTITUTIONS: Dict<string[]> = {
 	a: ["a", "4", "@", "á", "â", "ã", "à", "ᗩ", "A", "ⓐ", "Ⓐ", "α", "͏", "₳", "ä", "Ä", "Ꮧ", "λ", "Δ", "Ḁ", "Ꭺ", "ǟ", "̾", "ａ", "Ａ", "ᴀ", "ɐ", "🅐", "𝐚", "𝐀", "𝘢", "𝘈", "𝙖", "𝘼", "𝒶", "𝓪", "𝓐", "𝕒", "𝔸", "𝔞", "𝔄", "𝖆", "𝕬", "🄰", "🅰", "𝒜", "𝚊", "𝙰", "ꍏ", "а", "𝓪"],
@@ -49,7 +48,6 @@ const EVASION_DETECTION_SUBSTITUTIONS: Dict<string[]> = {
 	],
 	z: ["z", "ᘔ", "Z", "ⓩ", "Ⓩ", "Ⱬ", "ẓ", "Ẓ", "ፚ", "Ꮓ", "ʐ", "ｚ", "Ｚ", "ᴢ", "🅩", "𝐳", "𝐙", "𝘻", "𝘡", "𝙯", "𝙕", "𝓏", "𝔃", "𝓩", "𝕫", "𝕋", "𝔷", "𝔙", "𝖟", "𝖅", "🅉", "🆉", "𝒵", "ȥ", "𝚣", "𝚉", "☡", "z", "𝔃"],
 };
-/* eslint-enable */
 const EVASION_DETECTION_SUB_STRINGS: Dict<string> = {};
 
 for (const letter in EVASION_DETECTION_SUBSTITUTIONS) {

@@ -203,7 +203,8 @@ export abstract class BattleElimination extends ScriptedGame {
 						customRules.push(rule);
 						addedRules.push(rule);
 					}
-				} catch (e) {} // eslint-disable-line no-empty
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+				} catch (e) {}
 			}
 
 			if (addedRules.length) {
@@ -314,6 +315,7 @@ export abstract class BattleElimination extends ScriptedGame {
 		try {
 			this.setFormat();
 			this.generatePokedex();
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		} catch (e) {
 			this.say("Unable to generate enough valid Pokemon for the format " +
 				(battleFormat.customFormatName || battleFormat.name) + (customRules.length ? " with custom rules" : "") + ".");
@@ -352,7 +354,8 @@ export abstract class BattleElimination extends ScriptedGame {
 					if (ruleTable.has(Dex.validateRule("+" + ban) as string)) {
 						filteredBanlist.splice(filteredBanlist.indexOf(ban), 1);
 					}
-				} catch (e) {} // eslint-disable-line no-empty
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+				} catch (e) {}
 			}
 
 			this.roomPokedexBanlist = filteredBanlist;
@@ -1486,7 +1489,8 @@ export abstract class BattleElimination extends ScriptedGame {
 		this.pokedex = this.shuffle(pokedex);
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		this.generatePokedex();
 
 		this.htmlPageHeader = "<h2>" + this.room.title + "'s " + this.htmlPageGameName + "</h2><hr />";
@@ -1552,7 +1556,8 @@ export abstract class BattleElimination extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		if (this.advertisementInterval) clearInterval(this.advertisementInterval);
 
 		this.canRejoin = false; // disable rejoins to prevent remainingPlayers from being wrong
@@ -1839,8 +1844,8 @@ export abstract class BattleElimination extends ScriptedGame {
 		if (!battleData || battleData.slots.size < 2) return null;
 
 		const players = battleData.slots.keys();
-		const p1 = players.next().value as Player;
-		const p2 = players.next().value as Player;
+		const p1 = players.next().value!;
+		const p2 = players.next().value!;
 		if (this.playerOpponents.get(p1) !== p2 || this.playerOpponents.get(p2) !== p1) return null;
 
 		return [p1, p2];
@@ -1962,7 +1967,8 @@ export abstract class BattleElimination extends ScriptedGame {
 			loser.say(reason);
 			if (!playersAndReasons.has(loser)) playersAndReasons.set(loser, reason);
 
-			if (winnerIncorrectTeam) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (winnerIncorrectTeam) {
 				winner.say(reason);
 				if (!playersAndReasons.has(winner)) playersAndReasons.set(winner, reason);
 			}
@@ -2519,15 +2525,15 @@ const tests: GameFileTests<BattleElimination> = {
 			const root = game.treeRoot!;
 			assertStrictEqual(root.user, null);
 			assert(root.children);
-			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children.length, 2);
 			assertStrictEqual(root.children[0].user, null);
 			assertStrictEqual(root.children[1].user, null);
 			assert(root.children[0].children);
-			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].user!.name, "Mocha Player 1");
 			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
 			assert(root.children[1].children);
-			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
 			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
 			assert(!root.children[0].children[0].children);
@@ -2552,19 +2558,19 @@ const tests: GameFileTests<BattleElimination> = {
 			const root = game.treeRoot!;
 			assertStrictEqual(root.user, null);
 			assert(root.children);
-			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children.length, 2);
 			assertStrictEqual(root.children[0].user, null);
 			assertStrictEqual(root.children[1].user, null);
 			assert(root.children[0].children);
-			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].user, null);
 			assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
 			assert(root.children[1].children);
-			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
 			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
 			assert(root.children[0].children[0].children);
-			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
 			assert(!root.children[0].children[1].children);
@@ -2588,23 +2594,23 @@ const tests: GameFileTests<BattleElimination> = {
 			const root = game.treeRoot!;
 			assertStrictEqual(root.user, null);
 			assert(root.children);
-			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children.length, 2);
 			assertStrictEqual(root.children[0].user, null);
 			assertStrictEqual(root.children[1].user, null);
 			assert(root.children[0].children);
-			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].user, null);
 			assertStrictEqual(root.children[0].children[1].user, null);
 			assert(root.children[1].children);
-			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 2");
 			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
 			assert(root.children[0].children[0].children);
-			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
 			assert(root.children[0].children[1].children);
-			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children.length, 2);
 			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
 			assert(!root.children[1].children[0].children);
@@ -2627,27 +2633,27 @@ const tests: GameFileTests<BattleElimination> = {
 			const root = game.treeRoot!;
 			assertStrictEqual(root.user, null);
 			assert(root.children);
-			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children.length, 2);
 			assertStrictEqual(root.children[0].user, null);
 			assertStrictEqual(root.children[1].user, null);
 			assert(root.children[0].children);
-			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].user, null);
 			assertStrictEqual(root.children[0].children[1].user, null);
 			assert(root.children[1].children);
-			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].user, null);
 			assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
 			assert(root.children[0].children[0].children);
-			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
 			assert(root.children[0].children[1].children);
-			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children.length, 2);
 			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
 			assert(root.children[1].children[0].children);
-			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
 			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
 			assert(!root.children[1].children[1].children);
@@ -2669,31 +2675,31 @@ const tests: GameFileTests<BattleElimination> = {
 			const root = game.treeRoot!;
 			assertStrictEqual(root.user, null);
 			assert(root.children);
-			assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children.length, 2);
 			assertStrictEqual(root.children[0].user, null);
 			assertStrictEqual(root.children[1].user, null);
 			assert(root.children[0].children);
-			assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].user, null);
 			assertStrictEqual(root.children[0].children[1].user, null);
 			assert(root.children[1].children);
-			assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].user, null);
 			assertStrictEqual(root.children[1].children[1].user, null);
 			assert(root.children[0].children[0].children);
-			assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[0].children.length, 2);
 			assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 			assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 5");
 			assert(root.children[0].children[1].children);
-			assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[0].children[1].children.length, 2);
 			assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 			assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 6");
 			assert(root.children[1].children[0].children);
-			assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[0].children.length, 2);
 			assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 2");
 			assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 7");
 			assert(root.children[1].children[1].children);
-			assert(root.children[1].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			assertStrictEqual(root.children[1].children[1].children.length, 2);
 			assertStrictEqual(root.children[1].children[1].children[0].user!.name, "Mocha Player 4");
 			assertStrictEqual(root.children[1].children[1].children[1].user!.name, "Mocha Player 8");
 		},

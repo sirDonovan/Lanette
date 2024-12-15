@@ -31,7 +31,8 @@ export abstract class MapCurrencyGame extends MapGame {
 		await this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.offCommands(this.moveCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		if (this.round > 1 && (this.round - 1) % 5 === 0) this.eliminatePlayers();

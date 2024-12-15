@@ -101,9 +101,7 @@ const ALPHA_NUMERIC = LETTERS + "0123456789";
 // __dirname will be [..]/build/src
 const rootFolder = path.resolve(__dirname, '..', '..');
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
 let timeout = setTimeout(() => {}, 1000);
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const TimeoutConstructor = timeout.constructor;
 clearTimeout(timeout);
 // @ts-expect-error
@@ -160,12 +158,15 @@ export class Tools {
 	private currentSafeFileWrites: Dict<string> = {};
 	private safeWriteFileQueue: Dict<IWriteQueueItem<void, Error>[]> = {};
 
-	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	onReload(previous: Tools): void {
 		if (previous.lastGithubApiCall) this.lastGithubApiCall = previous.lastGithubApiCall;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.currentAppendFiles) Object.assign(this.currentAppendFiles, previous.currentAppendFiles);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.appendFileQueue) Object.assign(this.appendFileQueue, previous.appendFileQueue);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.currentSafeFileWrites) Object.assign(this.currentSafeFileWrites, previous.currentSafeFileWrites);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.safeWriteFileQueue) Object.assign(this.safeWriteFileQueue, previous.safeWriteFileQueue);
 
 		this.unrefProperties(previous.eggGroupHexCodes);
@@ -176,7 +177,6 @@ export class Tools {
 		this.unrefProperties(previous.typeHexCodes);
 		this.unrefProperties(previous);
 	}
-	/* eslint-enable */
 
 	parseIncomingMessage<T = IClientMessageTypes>(incomingMessage: string): IParsedIncomingMessage<T> {
 		let message: string;
@@ -783,7 +783,8 @@ export class Tools {
 			const properties: string[] = [];
 			for (const i in input) {
 				// @ts-expect-error
-				properties.push(i + ": " + this.toString(input[i])); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				properties.push(i + ": " + this.toString(input[i]));
 			}
 			return "{" + properties.join(", ") + "}";
 		}
@@ -1002,7 +1003,7 @@ export class Tools {
 			return clone as DeepMutable<T>;
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-assignment
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument
 		const clone = Object.create(Object.getPrototypeOf(obj));
 		const keys = Object.getOwnPropertyNames(obj) as (keyof T)[];
 		for (const key of keys) {
@@ -1022,7 +1023,8 @@ export class Tools {
 			try {
 				// @ts-expect-error
 				objectInstance[key as keyof T] = undefined;
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 		}
 	}
 
@@ -1060,9 +1062,11 @@ export class Tools {
 			}
 
 			// @ts-expect-error
-			const cacheKeys = Object.keys(Module.Module._cache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			const cacheKeys = Object.keys(Module.Module._cache);
 			// @ts-expect-error
-			const pathCacheKeys = Object.keys(Module.Module._pathCache); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			const pathCacheKeys = Object.keys(Module.Module._pathCache);
 
 			for (const cachedModule of cachedModules) {
 				delete require.cache[cachedModule.filename];
@@ -1070,14 +1074,16 @@ export class Tools {
 				for (const cacheKey of cacheKeys) {
 					if (cacheKey.includes(cachedModule.filename)) {
 						// @ts-expect-error
-						delete Module.Module._cache[cacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						delete Module.Module._cache[cacheKey];
 					}
 				}
 
 				for (const pathCacheKey of pathCacheKeys) {
 					if (pathCacheKey.includes(cachedModule.filename)) {
 						// @ts-expect-error
-						delete Module.Module._pathCache[pathCacheKey]; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+						delete Module.Module._pathCache[pathCacheKey];
 					}
 				}
 
@@ -1401,8 +1407,7 @@ export class Tools {
 			const modulesList = ["dex", "games", "commandparser", "tournaments"];
 
 			if (!__reloadInProgress) {
-				// eslint-disable-next-line @typescript-eslint/no-floating-promises
-				__reloadModules("", modulesList, true).then(error => {
+				void __reloadModules("", modulesList, true).then(error => {
 					if (error) {
 						if (error.startsWith("You must wait for ")) {
 							setTimeout(() => this.updatePokemonShowdown(fetchClientData, (attempt || 1) + 1),

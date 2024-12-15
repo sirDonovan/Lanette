@@ -13,7 +13,8 @@ class BeheeyemsMassEffect extends QuestionAndAnswer {
 	hintPrefix: string = "Randomly generated effectiveness";
 	roundTime: number = 20 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const types: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			const typing = pokemon.types.slice().sort().join('/');

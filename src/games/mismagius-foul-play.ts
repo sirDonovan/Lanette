@@ -38,7 +38,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 	previousParams: string[] = [];
 	roundGuesses = new Map<Player, boolean>();
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const pokemonList = Games.getPokemonList({filter: x => x.baseSpecies === x.name});
 		for (const pokemon of pokemonList) {
 			const possibleMoves = Dex.getAllPossibleMoves(pokemon);
@@ -88,7 +89,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.say("Now requesting Pokemon!");
 		for (const i in this.players) {
 			this.players[i].say("Please select a Pokemon to play as with ``.select``!");
@@ -144,7 +146,8 @@ class MismagiusFoulPlay extends ScriptedGame {
 		void this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (!this.getRemainingPlayerCount(this.criminals) || !this.getRemainingPlayerCount(this.detectives)) return this.end();
 		let pokemonList: string[] = [];
 		this.chosenPokemon.forEach((species, player) => {

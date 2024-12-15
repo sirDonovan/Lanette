@@ -31,7 +31,8 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 
 	allAnswersAchievement = FeraligatrsLostLetters.achievements.alphabetsweep;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const inverseCategories = this.cachedData.categories.slice();
 		inverseCategories.splice(inverseCategories.indexOf("Characters"), 1);
@@ -57,64 +58,63 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 		const inverseCategoryHintKeys = Tools.deepClone(categoryHintKeys);
 		const inverseCategoryHints = Tools.deepClone(categoryHints);
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const lostLetters = getLostLetters(character);
 			if (lostLetters) {
-				if (!(lostLetters in categoryHints["Characters"])) {
-					categoryHintKeys["Characters"].push(lostLetters);
-					categoryHints["Characters"][lostLetters] = [];
+				if (!(lostLetters in categoryHints.Characters)) {
+					categoryHintKeys.Characters.push(lostLetters);
+					categoryHints.Characters[lostLetters] = [];
 				}
-				categoryHints["Characters"][lostLetters].push(character);
+				categoryHints.Characters[lostLetters].push(character);
 			}
 
 			const inverseLostLetters = getLostLetters(character, true);
 			if (inverseLostLetters) {
-				if (!(inverseLostLetters in inverseCategoryHints["Characters"])) {
-					inverseCategoryHintKeys["Characters"].push(inverseLostLetters);
-					inverseCategoryHints["Characters"][inverseLostLetters] = [];
+				if (!(inverseLostLetters in inverseCategoryHints.Characters)) {
+					inverseCategoryHintKeys.Characters.push(inverseLostLetters);
+					inverseCategoryHints.Characters[inverseLostLetters] = [];
 				}
-				inverseCategoryHints["Characters"][inverseLostLetters].push(character);
+				inverseCategoryHints.Characters[inverseLostLetters].push(character);
 			}
 		}
 
 		for (const location of Dex.getLocations()) {
 			const lostLetters = getLostLetters(location);
 			if (lostLetters) {
-				if (!(lostLetters in categoryHints["Locations"])) {
-					categoryHintKeys["Locations"].push(lostLetters);
-					categoryHints["Locations"][lostLetters] = [];
+				if (!(lostLetters in categoryHints.Locations)) {
+					categoryHintKeys.Locations.push(lostLetters);
+					categoryHints.Locations[lostLetters] = [];
 				}
-				categoryHints["Locations"][lostLetters].push(location);
+				categoryHints.Locations[lostLetters].push(location);
 			}
 
 			const inverseLostLetters = getLostLetters(location, true);
 			if (inverseLostLetters) {
-				if (!(inverseLostLetters in inverseCategoryHints["Locations"])) {
-					inverseCategoryHintKeys["Locations"].push(inverseLostLetters);
-					inverseCategoryHints["Locations"][inverseLostLetters] = [];
+				if (!(inverseLostLetters in inverseCategoryHints.Locations)) {
+					inverseCategoryHintKeys.Locations.push(inverseLostLetters);
+					inverseCategoryHints.Locations[inverseLostLetters] = [];
 				}
-				inverseCategoryHints["Locations"][inverseLostLetters].push(location);
+				inverseCategoryHints.Locations[inverseLostLetters].push(location);
 			}
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			const lostLetters = getLostLetters(pokemon.name);
 			if (lostLetters) {
-				if (!(lostLetters in categoryHints["Pokemon"])) {
-					categoryHintKeys["Pokemon"].push(lostLetters);
-					categoryHints["Pokemon"][lostLetters] = [];
+				if (!(lostLetters in categoryHints.Pokemon)) {
+					categoryHintKeys.Pokemon.push(lostLetters);
+					categoryHints.Pokemon[lostLetters] = [];
 				}
-				categoryHints["Pokemon"][lostLetters].push(pokemon.name);
+				categoryHints.Pokemon[lostLetters].push(pokemon.name);
 			}
 
 			const inverseLostLetters = getLostLetters(pokemon.name, true);
 			if (inverseLostLetters) {
-				if (!(inverseLostLetters in inverseCategoryHints["Pokemon"])) {
-					inverseCategoryHintKeys["Pokemon"].push(inverseLostLetters);
-					inverseCategoryHints["Pokemon"][inverseLostLetters] = [];
+				if (!(inverseLostLetters in inverseCategoryHints.Pokemon)) {
+					inverseCategoryHintKeys.Pokemon.push(inverseLostLetters);
+					inverseCategoryHints.Pokemon[inverseLostLetters] = [];
 				}
-				inverseCategoryHints["Pokemon"][inverseLostLetters].push(pokemon.name);
+				inverseCategoryHints.Pokemon[inverseLostLetters].push(pokemon.name);
 			}
 		}
 
@@ -177,7 +177,6 @@ class FeraligatrsLostLetters extends QuestionAndAnswer {
 				inverseCategoryHints["Pokemon Moves"][inverseLostLetters].push(move.name);
 			}
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

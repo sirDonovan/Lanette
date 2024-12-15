@@ -21,7 +21,8 @@ class LandorusWar extends ScriptedGame {
 	roundSuspects = new Set<Player>();
 	suspectedPlayers = new Map<Player, number>();
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		data.moves = Games.getMovesList(x => {
 			if (x.id.startsWith('hiddenpower') || (!x.basePower && !x.basePowerCallback)) return false;
 			return true;
@@ -89,7 +90,8 @@ class LandorusWar extends ScriptedGame {
 		await this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) return this.end();
 		this.roundMoves.clear();

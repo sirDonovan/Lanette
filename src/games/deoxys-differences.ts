@@ -34,7 +34,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 	roundRowsPerGrid: number = 0;
 	roundTime: number = 30 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const maxPokemonWidth = Tools.getMaxTableCellWidth(MAX_TABLE_WIDTH, BORDER_SPACING, MIN_POKEMON);
 		const maxPokemonHeight = Tools.getMaxTableCellHeight(MAX_TABLE_HEIGHT, BORDER_SPACING, MIN_POKEMON, true);
 
@@ -219,7 +220,8 @@ class DeoxysDifferences extends QuestionAndAnswer {
 		return gridHtml;
 	}
 
-	async beforeNextRound(newAnswer: boolean): Promise<boolean> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async beforeNextRound(newAnswer: boolean): Promise<boolean> {
 		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}

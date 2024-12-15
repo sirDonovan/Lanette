@@ -16,7 +16,7 @@ import * as middleware from './middleware';
         const filepath = path.join(Tools.srcBuildFolder, 'game-server/middleware.js');
         Tools.uncacheTree(filepath);
 
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         (require(filepath) as typeof middleware).initializeGameServer();
     };
 
@@ -24,7 +24,8 @@ import * as middleware from './middleware';
 
     const server = http.createServer((req, res) => {
         // @ts-expect-error
-        global._gameServerListener(req, res); // eslint-disable-line @typescript-eslint/no-unsafe-call
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        global._gameServerListener(req, res);
     });
     server.listen(8080);
 

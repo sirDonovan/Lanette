@@ -189,7 +189,7 @@ export interface IGameFile<T extends ScriptedGame = ScriptedGame> extends IGameF
 	readonly additionalDescription?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IGameTemplateFile<T extends ScriptedGame = ScriptedGame> extends IGameFileProperties<T> {}
 
 export interface IGameFileComputed<T extends ScriptedGame = ScriptedGame> {
@@ -254,7 +254,8 @@ export interface IGameVariantProperties {
 }
 
 interface IUserHostedGameClass<T extends UserHostedGame = UserHostedGame> {
-	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T; // eslint-disable-line @typescript-eslint/prefer-function-type
+	// eslint-disable-next-line @typescript-eslint/prefer-function-type
+	new(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed): T;
 }
 
 export interface IUserHostedFile<T extends UserHostedGame = UserHostedGame> {

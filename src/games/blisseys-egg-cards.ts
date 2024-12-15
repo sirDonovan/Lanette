@@ -373,7 +373,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 	usesEggGroups = true;
 	usesTypings = false;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const eggGroupsData = Dex.getData().eggGroups;
 		for (const i in eggGroupsData) {
 			let bannedEggGroup = false;
@@ -497,7 +498,8 @@ class BlisseysEggCards extends CardMatching<ActionCardsType> {
 			}
 
 			this.setTopCard(playableCard, player);
-		} else if (id === 'destinyknot') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'destinyknot') {
 			const prevos: IPokemon[] = [];
 			const cardA = Dex.getExistingPokemon(targets[0]);
 			cards.splice(this.getCardIndex(cardA.name, cards), 1);

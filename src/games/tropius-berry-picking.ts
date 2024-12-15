@@ -114,7 +114,8 @@ class TropiusBerryPicking extends ScriptedGame {
 	roundLimit: number = 20;
 	roundTime: number = 10 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const types: string[] = [];
 		for (const key of Dex.getTypeKeys()) {
 			types.push(Dex.getExistingType(key).name);
@@ -124,11 +125,13 @@ class TropiusBerryPicking extends ScriptedGame {
 			!move.id.startsWith('hiddenpower')).map(x => x.name);
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canEat = false;
 
 		const answers: string[] = [];
@@ -171,7 +174,8 @@ class TropiusBerryPicking extends ScriptedGame {
 					}
 					lastPlayer = player;
 				});
-				if (lastPlayer && this.getRemainingPlayerCount() > 1) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+				// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+				if (lastPlayer && this.getRemainingPlayerCount() > 1) {
 					this.eliminatePlayer(lastPlayer, "You were the last player to eat a berry!");
 				}
 			}

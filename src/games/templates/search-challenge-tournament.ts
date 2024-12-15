@@ -20,7 +20,8 @@ export abstract class SearchChallengeTournament extends SearchChallenge {
 
 	targetPokemon?: number;
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		this.sayUhtml(this.uhtmlBaseName + "-description", this.getSignupsDescriptionHtml());
 
 		Tournaments.createListeners[this.room.id] = {

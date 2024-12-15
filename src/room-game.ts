@@ -1,4 +1,3 @@
-import type { PRNGSeed } from "./lib/prng";
 import type { Player } from "./room-activity";
 import { Activity, PlayerTeam } from "./room-activity";
 import type { Room } from "./rooms";
@@ -64,10 +63,6 @@ export abstract class Game extends Activity {
 	readonly points?: Map<Player, number>;
 	signupsUpdateInterval?: NodeJS.Timeout;
 	startingPoints?: number;
-
-	constructor(room: Room | User, pmRoom?: Room, initialSeed?: PRNGSeed) {
-		super(room, pmRoom, initialSeed);
-	}
 
 	abstract getMascotIcons(): string;
 	abstract getMascotAndNameHtml(additionalText?: string): string;

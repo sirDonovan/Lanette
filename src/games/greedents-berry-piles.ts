@@ -72,7 +72,8 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return berryPiles;
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.say("If you grab more than " + this.maxBerryTotal + " berries, the Greedent will notice!");
 		this.nextSubGame();
 	}
@@ -203,7 +204,8 @@ class GreedentsBerryPiles extends ScriptedGame {
 		return this.subGameRound;
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canGrab = false;
 		this.offCommands(ACTION_COMMANDS);
 

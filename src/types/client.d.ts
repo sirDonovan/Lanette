@@ -3,9 +3,8 @@ import type { User } from "../users";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
-export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: readonly string[], now: number) =>
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	true | void;
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: readonly string[], now: number) => true | void;
 
 export interface IMessageParserFile {
 	/**Return `true` to prevent a message from being parsed by other parsers and Client */

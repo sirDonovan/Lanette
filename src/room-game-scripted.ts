@@ -220,7 +220,8 @@ export class ScriptedGame extends Game {
 
 				this.botChallengeSpeeds = [speed - 300, speed - 200, speed - 100, speed, speed + 100, speed + 200, speed + 300];
 			}
-		} else if (challenge === 'onevsone') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (challenge === 'onevsone') {
 			const challengeSettings = this.format.challengeSettings!.onevsone!;
 			if (challengeSettings.points) this.options.points = challengeSettings.points;
 			if (challengeSettings.options && challengeSettings.options.includes('speed') && this.roundTime && options.speed) {
@@ -511,6 +512,7 @@ export class ScriptedGame extends Game {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	async start(tournamentStart?: boolean): Promise<boolean> {
 		if (this.started || (this.minPlayers && this.playerCount < this.minPlayers) ||
 			(this.usesTournamentStart && !tournamentStart)) return false;
@@ -828,7 +830,8 @@ export class ScriptedGame extends Game {
 			// @ts-expect-error
 			if (this.room.searchChallenge === this) {
 				// @ts-expect-error
-				this.room.searchChallenge = undefined; // eslint-disable-line @typescript-eslint/no-unsafe-member-access
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+				this.room.searchChallenge = undefined;
 			}
 		}
 

@@ -15,7 +15,8 @@ class GreninjasTypings extends QuestionAndAnswer {
 	allAnswersTeamAchievement = GreninjasTypings.achievements.captainproteaneye;
 	hintPrefix: string = "Randomly generated typing";
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 		const inverseHints: Dict<string[]> = {};

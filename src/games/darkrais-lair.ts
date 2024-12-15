@@ -257,7 +257,8 @@ class DarkraisLair extends MapGame {
 		return html;
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.round > 1) {
 			for (const id in this.players) {
 				if (this.players[id].eliminated) continue;

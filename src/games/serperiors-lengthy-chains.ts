@@ -26,7 +26,8 @@ class SerperiorLengthyChains extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundTime = 15 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const move of Games.getMovesList()) {
 			const moveParameters: string[] = [move.category, "Generation " + move.gen, move.pp + " Power Points", move.type + " Type"];
 			if (move.accuracy === true) {
@@ -87,11 +88,13 @@ class SerperiorLengthyChains extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		this.setTimeout(() => void this.nextRound(), 10 * 1000);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canChain = false;
 		if (this.round > 1) {
 			if (!this.bestPlayer) {

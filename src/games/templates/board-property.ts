@@ -310,7 +310,7 @@ export abstract class BoardPropertyGame extends BoardGame {
 		}
 	}
 
-	onAddPlayer(player: Player, lateJoin?: boolean | undefined): boolean | undefined {
+	onAddPlayer(player: Player, lateJoin?: boolean): boolean | undefined {
 		if (lateJoin) {
 			if (!this.lettersList.length) return false;
 
@@ -724,7 +724,8 @@ export abstract class BoardPropertyGame extends BoardGame {
 				const player = this.players[i];
 				if (this.playerCurrency.get(player)! < highestCurrency) player.eliminated = true;
 			}
-		} else if (this.winCondition === 'property') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (this.winCondition === 'property') {
 			let mostProperties = 0;
 			this.properties.forEach((properties) => {
 				if (properties.length > mostProperties) {

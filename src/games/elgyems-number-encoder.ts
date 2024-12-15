@@ -24,7 +24,8 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 
 	roundTime: number = 30 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -43,37 +44,36 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const encodedWord = getEncodedWord(character);
 			if (!encodedWord) continue;
-			if (!(encodedWord in categoryHints["Characters"])) {
-				categoryHints["Characters"][encodedWord] = [];
-				categoryHintKeys["Characters"].push(encodedWord);
+			if (!(encodedWord in categoryHints.Characters)) {
+				categoryHints.Characters[encodedWord] = [];
+				categoryHintKeys.Characters.push(encodedWord);
 			}
-			categoryHints["Characters"][encodedWord].push(character);
+			categoryHints.Characters[encodedWord].push(character);
 		}
 
 		const locations = Dex.getLocations();
 		for (const location of locations) {
 			const encodedWord = getEncodedWord(location);
 			if (!encodedWord) continue;
-			if (!(encodedWord in categoryHints["Locations"])) {
-				categoryHints["Locations"][encodedWord] = [];
-				categoryHintKeys["Locations"].push(encodedWord);
+			if (!(encodedWord in categoryHints.Locations)) {
+				categoryHints.Locations[encodedWord] = [];
+				categoryHintKeys.Locations.push(encodedWord);
 			}
-			categoryHints["Locations"][encodedWord].push(location);
+			categoryHints.Locations[encodedWord].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			const encodedWord = getEncodedWord(pokemon.name);
 			if (!encodedWord) continue;
-			if (!(encodedWord in categoryHints["Pokemon"])) {
-				categoryHints["Pokemon"][encodedWord] = [];
-				categoryHintKeys["Pokemon"].push(encodedWord);
+			if (!(encodedWord in categoryHints.Pokemon)) {
+				categoryHints.Pokemon[encodedWord] = [];
+				categoryHintKeys.Pokemon.push(encodedWord);
 			}
-			categoryHints["Pokemon"][encodedWord].push(pokemon.name);
+			categoryHints.Pokemon[encodedWord].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
@@ -105,7 +105,6 @@ class ElgyemsNumberEncoder extends QuestionAndAnswer {
 			}
 			categoryHints["Pokemon Moves"][encodedWord].push(move.name);
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

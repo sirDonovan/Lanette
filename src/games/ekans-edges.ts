@@ -17,7 +17,8 @@ class EkansEdges extends QuestionAndAnswer {
 
 	allAnswersAchievement = EkansEdges.achievements.livingontheedge;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -36,35 +37,34 @@ class EkansEdges extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const edge = getEdge(character);
 			if (!edge) continue;
-			if (!(edge in categoryHints["Characters"])) {
-				categoryHintKeys["Characters"].push(edge);
-				categoryHints["Characters"][edge] = [];
+			if (!(edge in categoryHints.Characters)) {
+				categoryHintKeys.Characters.push(edge);
+				categoryHints.Characters[edge] = [];
 			}
-			categoryHints["Characters"][edge].push(character);
+			categoryHints.Characters[edge].push(character);
 		}
 
 		for (const location of Dex.getLocations()) {
 			const edge = getEdge(location);
 			if (!edge) continue;
-			if (!(edge in categoryHints["Locations"])) {
-				categoryHintKeys["Locations"].push(edge);
-				categoryHints["Locations"][edge] = [];
+			if (!(edge in categoryHints.Locations)) {
+				categoryHintKeys.Locations.push(edge);
+				categoryHints.Locations[edge] = [];
 			}
-			categoryHints["Locations"][edge].push(location);
+			categoryHints.Locations[edge].push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			const edge = getEdge(pokemon.name);
 			if (!edge) continue;
-			if (!(edge in categoryHints["Pokemon"])) {
-				categoryHintKeys["Pokemon"].push(edge);
-				categoryHints["Pokemon"][edge] = [];
+			if (!(edge in categoryHints.Pokemon)) {
+				categoryHintKeys.Pokemon.push(edge);
+				categoryHints.Pokemon[edge] = [];
 			}
-			categoryHints["Pokemon"][edge].push(pokemon.name);
+			categoryHints.Pokemon[edge].push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {
@@ -96,7 +96,6 @@ class EkansEdges extends QuestionAndAnswer {
 			}
 			categoryHints["Pokemon Moves"][edge].push(move.name);
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

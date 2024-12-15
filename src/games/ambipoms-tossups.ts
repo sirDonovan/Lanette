@@ -22,7 +22,8 @@ class AmbipomsTossups extends QuestionAndAnswer {
 	tossupsRound: number = 0;
 	updateHintTime: number = 5 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Locations": Dex.getLocations().filter(x => x.length <= MAX_LETTERS),

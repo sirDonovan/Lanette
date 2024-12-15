@@ -150,7 +150,8 @@ export class PlayerTeam {
 		if (this.players.includes(player)) return false;
 
 		// @ts-expect-error
-		this.players.push(player); // eslint-disable-line @typescript-eslint/no-unsafe-call
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		this.players.push(player);
 		player.team = this;
 		return true;
 	}
@@ -160,7 +161,8 @@ export class PlayerTeam {
 		if (index === -1) return false;
 
 		// @ts-expect-error
-		this.players.splice(index, 1); // eslint-disable-line @typescript-eslint/no-unsafe-call
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+		this.players.splice(index, 1);
 		delete player.team;
 		return true;
 	}
@@ -356,7 +358,8 @@ export abstract class Activity {
 			pastPlayer = true;
 		}
 
-		const player = this.players[oldId] || this.pastPlayers[oldId]; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		const player = this.players[oldId] || this.pastPlayers[oldId];
 		// @ts-expect-error
 		player.name = name;
 

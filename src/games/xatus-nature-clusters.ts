@@ -14,7 +14,8 @@ class XatusNatureClusters extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
     allowMisType = true;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 

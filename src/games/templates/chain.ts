@@ -41,7 +41,8 @@ export abstract class Chain extends ScriptedGame {
 		return [end];
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		const pool: Dict<Link> = {};
 		const keys: string[] = [];
 		if (this.linksType === 'move') {

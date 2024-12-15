@@ -9,7 +9,8 @@ class MagnetonsMashups extends QuestionAndAnswer {
 	currentCategory: string = '';
 	roundTime: number = 30 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Pokemon": Games.getPokemonList().map(x => x.name),

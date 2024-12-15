@@ -446,7 +446,8 @@ class CustomFormatManager extends HtmlPageBase {
 			unbanElements = this.pokemonToUnban.slice().sort().map(x => {
 				return {html: this.renderAddCustomRuleButton('+pokemon:' + x, x)};
 			});
-		} else if (this.currentBansUnbansView === 'tiers') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (this.currentBansUnbansView === 'tiers') {
 			banElements = this.tiersToBan.slice().sort().map(x => {
 				return {html: this.renderAddCustomRuleButton('-pokemontag:' + x, x)};
 			});
@@ -577,7 +578,8 @@ class CustomFormatManager extends HtmlPageBase {
 			try {
 				const validated = Dex.validateRule(rule);
 				if (typeof validated === 'string') validatedCustomRules.push(validated);
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 		}
 
 		if (validatedCustomRules.length) {

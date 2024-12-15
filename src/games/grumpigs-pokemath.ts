@@ -23,7 +23,8 @@ class GrumpigsPokemath extends QuestionAndAnswer {
 
 	roundOperands?: number;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (!(pokemon.num in this.pokemonByNumber)) this.pokemonByNumber[pokemon.num] = [];
 			this.pokemonByNumber[pokemon.num].push(pokemon.name);

@@ -134,7 +134,8 @@ export class Vote extends ScriptedGame {
 		return Games.getScriptedGameVoteHighlight();
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		this.signupsUhtmlName = this.uhtmlBaseName + '-signups';
 		this.currentVotesUhtmlName = this.uhtmlBaseName + '-current-votes';
 		this.finalVotesUhtmlName = this.uhtmlBaseName + '-final-votes';

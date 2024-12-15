@@ -1,8 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions, @typescript-eslint/consistent-indexed-object-style
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style, @typescript-eslint/consistent-type-definitions
 type Dict<T> = {[k: string]: T};
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type KeyedDict<T extends string | number | symbol, U> = {[K in T]: U };
 
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type PartialKeyedDict<T extends string | number | symbol, U> = {[K in T]?: U };
 
 type FilterByType<T, U> = { [P in keyof T as T[P] extends U ? P : never]: T[P] };
@@ -18,7 +20,7 @@ type BrandedValue<A> = A extends Branded<BrandOf<A>, infer R> ? R : never;
 
 // Credit to @nieltg for the original Immutable and DeepImmutable* types - https://github.com/microsoft/TypeScript/issues/13923#issuecomment-402901005
 
-/* eslint-disable @typescript-eslint/ban-types, @typescript-eslint/array-type, @typescript-eslint/naming-convention, @typescript-eslint/no-empty-interface*/
+/* eslint-disable @typescript-eslint/no-empty-object-type, @typescript-eslint/no-unsafe-function-type, @typescript-eslint/array-type*/
 type PrimitiveTypes = undefined | null | boolean | string | number | Function;
 
 type Immutable<T> =

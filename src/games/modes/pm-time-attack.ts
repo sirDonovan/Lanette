@@ -87,7 +87,7 @@ const tests: GameFileTests<PMTimeAttackThis> = {
 			assert(game.answers.length);
 			game.canGuess = true;
 			runCommand(attributes.commands![0], game.answers[0], game.room, "Player 1");
-			const player = game.players['player1']; // eslint-disable-line @typescript-eslint/dot-notation
+			const player = game.players.player1;
 			assert(player);
 			assert(game.answers.length);
 			assertStrictEqual(game.correctPlayers.length, 1);

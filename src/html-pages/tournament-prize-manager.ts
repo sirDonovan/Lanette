@@ -83,7 +83,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 
 		this.updatedBadgeInput = new TrainerCardPrize(this, this.commandPrefix, updateBadgeCommand, {
 			updating: true,
-			onUpdateName: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			onUpdateName: () => {},
 			onUpdateSource: (output) => this.updateBadgeSource(output),
 			onUpdateWidth: (output) => this.updateBadgeWidth(output),
 			onUpdateHeight: (output) => this.updateBadgeHeight(output),
@@ -100,7 +100,7 @@ class TournamentPrizeManager extends HtmlPageBase {
 
 		this.updatedRibbonInput = new TrainerCardPrize(this, this.commandPrefix, updateRibbonCommand, {
 			updating: true,
-			onUpdateName: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+			onUpdateName: () => {},
 			onUpdateSource: (output) => this.updateRibbonSource(output),
 			onUpdateWidth: (output) => this.updateRibbonWidth(output),
 			onUpdateHeight: (output) => this.updateRibbonHeight(output),
@@ -461,7 +461,8 @@ class TournamentPrizeManager extends HtmlPageBase {
 			} else {
 				html += this.getQuietPmButton(this.commandPrefix + ", " + startAddBadgeCommand, "Add new badge");
 			}
-		} else if (this.currentPicker === 'ribbons') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (this.currentPicker === 'ribbons') {
 			html += "<b>Ribbons</b>:";
 			html += "<br /><br />";
 

@@ -24,7 +24,8 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 	roundTime: number = 30 * 1000;
 	winnerPointsToBits: number = 10;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -39,21 +40,21 @@ class LugiasObstructiveLetters extends QuestionAndAnswer {
 			if (character.length < MIN_LETTERS) continue;
 
 			this.availableLetters[character] = getAvailableLetters(Tools.toId(character));
-			categoryHintKeys["Characters"].push(character); // eslint-disable-line @typescript-eslint/dot-notation
+			categoryHintKeys.Characters.push(character);
 		}
 
 		for (const location of Dex.getLocations()) {
 			if (location.length < MIN_LETTERS) continue;
 
 			this.availableLetters[location] = getAvailableLetters(Tools.toId(location));
-			categoryHintKeys["Locations"].push(location); // eslint-disable-line @typescript-eslint/dot-notation
+			categoryHintKeys.Locations.push(location);
 		}
 
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.name.length < MIN_LETTERS) continue;
 
 			this.availableLetters[pokemon.name] = getAvailableLetters(pokemon.id);
-			categoryHintKeys["Pokemon"].push(pokemon.name); // eslint-disable-line @typescript-eslint/dot-notation
+			categoryHintKeys.Pokemon.push(pokemon.name);
 		}
 
 		for (const ability of Games.getAbilitiesList()) {

@@ -22,7 +22,8 @@ class SkittysSeekAndHide extends ScriptedGame {
 	pokemonChoices = new Map<Player, string>();
 	startingLives: number = 3;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const parameters: Dict<IPokemon[]> = {};
 
 		for (const pokemon of Games.getPokemonList()) {
@@ -74,7 +75,8 @@ class SkittysSeekAndHide extends ScriptedGame {
 		return true;
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canSelect = false;
 
 		const remainingPlayerCount = this.getRemainingPlayerCount();

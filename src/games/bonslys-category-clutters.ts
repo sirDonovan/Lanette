@@ -12,7 +12,8 @@ class BonslysCategoryClutters extends QuestionAndAnswer {
 	allAnswersAchievement = BonslysCategoryClutters.achievements.genusgenius;
 	hintPrefix: string = "Bonsly imitated";
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.hintAnswers = {};
 		const hintKeys: string[] = [];
 

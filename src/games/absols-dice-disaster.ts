@@ -20,7 +20,8 @@ class AbsolsDiceDisaster extends ScriptedGame {
 	roundDiceRoll: number = 0;
 	roundTimer: number = 20 * 1000;
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		const text = "Each round, you will have " + Tools.toDurationString(this.roundTimer) + " to bid numbers between " + this.minBid +
 			" and " + senseRolls.fortune + " based on Absol's senses!";
 		this.on(text, () => {
@@ -29,7 +30,8 @@ class AbsolsDiceDisaster extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.getRemainingPlayerCount() <= 1) {
 			this.end();
 			return;

@@ -6,7 +6,8 @@ class AzelfsAlliteration extends QuestionAndAnswer {
 
 	currentCategory: string = '';
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const categories: string[] = [];
 		const categoryHints: Dict<Dict<string[]>> = {};
 		const categoryHintKeys: Dict<string[]> = {};

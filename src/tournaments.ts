@@ -1318,11 +1318,13 @@ export class Tournaments {
 		return false;
 	}
 
-	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Tournaments): void {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.createListeners) Object.assign(this.createListeners, previous.createListeners);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.nextOfficialTournaments) Object.assign(this.nextOfficialTournaments, previous.nextOfficialTournaments);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.tournamentTimers) {
 			for (const i in previous.tournamentTimers) {
 				clearTimeout(previous.tournamentTimers[i]);
@@ -1332,6 +1334,7 @@ export class Tournaments {
 
 		this.loadSchedules();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.userHostedTournamentNotificationTimeouts) {
 			for (const i in previous.userHostedTournamentNotificationTimeouts) {
 				clearTimeout(previous.userHostedTournamentNotificationTimeouts[i]);
@@ -1350,6 +1353,7 @@ export class Tournaments {
 			}
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.tournamentTimerData) {
 			for (const i in previous.tournamentTimerData) {
 				const room = Rooms.get(i);
@@ -1366,7 +1370,6 @@ export class Tournaments {
 
 		Tools.unrefProperties(previous);
 	}
-	/* eslint-enable */
 }
 
 export const instantiate = (): void => {

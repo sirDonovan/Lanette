@@ -25,7 +25,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 	roundTravels = new Set<Player>();
 	winnerPointsToBits: number = 25;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const locations = Dex.getData().locations;
 		for (const region of Dex.getRegions()) {
 			const types = Object.keys(locations[region]) as LocationType[];
@@ -46,7 +47,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) this.setTimeout(() => void this.nextRound(), 5 * 1000);
 	}
 
@@ -58,7 +60,8 @@ class PoipolesRegionalPortals extends ScriptedGame {
 		await this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canTravel = false;
 
 		if (this.roundLocations.length && !this.roundTravels.size) {
@@ -78,6 +81,7 @@ class PoipolesRegionalPortals extends ScriptedGame {
 				if (!reachedCap) reachedCap = true;
 			}
 		});
+
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (reachedCap) {
 			this.end();

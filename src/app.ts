@@ -1,6 +1,6 @@
 import path = require('path');
 
-// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore - generated after first run
 import * as config from './config';
 import * as ConfigLoader from './config-loader';
@@ -31,7 +31,7 @@ const storagePath = './' + moduleFilenames.storage;
 const toolsPath = './' + moduleFilenames.tools;
 const tournamentsPath = './' + moduleFilenames.tournaments;
 
-/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
 let client = require(clientPath) as typeof import('./client/client');
 let commandParser = require(commandParserPath) as typeof import('./command-parser');
 let dex = require(dexPath) as typeof import('./dex');
@@ -198,7 +198,8 @@ export async function reloadModules(username: string, targets: string[], formats
 
 				tools = require(modulePath) as typeof import('./tools');
 				tools.instantiate();
-			} else if (moduleId === 'tournaments') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			} else if (moduleId === 'tournaments') {
 				global.Tools.unrefProperties(tournaments);
 
 				tournaments = require(modulePath) as typeof import('./tournaments');
@@ -227,4 +228,4 @@ export async function reloadModules(username: string, targets: string[], formats
 	});
 }
 
-/* eslint-enable @typescript-eslint/no-var-requires */
+/* eslint-enable @typescript-eslint/no-require-imports */

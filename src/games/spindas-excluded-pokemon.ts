@@ -49,7 +49,8 @@ class SpindasExcludedPokemon extends ScriptedGame {
 	// set before the first round
 	category!: IPokemonCategory;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const includedMoves: string[] = [];
 		for (const move of Games.getMovesList()) {
 			if (move.id.startsWith('hiddenpower')) continue;
@@ -121,7 +122,8 @@ class SpindasExcludedPokemon extends ScriptedGame {
 		return true;
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		const text = "Each round, either try to exclude a Pokemon with ``" + Config.commandCharacter + "exclude [Pokemon]`` or guess " +
 			"the parameter with ``" + Config.commandCharacter + "g [parameter]``!";
 

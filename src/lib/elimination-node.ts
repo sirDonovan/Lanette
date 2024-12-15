@@ -72,8 +72,7 @@ export class EliminationNode<T> {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	find<U>(callback: (node: EliminationNode<T>) => (U | void)): U | undefined {
+	find<U>(callback: (node: EliminationNode<T>) => (U)): U | undefined {
 		const queue: EliminationNode<T>[] = [this];
 		let node = queue.shift();
 		while (node) {

@@ -26,7 +26,8 @@ class DelcattysHideAndSeek extends ScriptedGame {
 
 	charmer!: Player;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const parameters: Dict<IPokemon[]> = {};
 
 		for (const pokemon of Games.getPokemonList()) {
@@ -84,7 +85,8 @@ class DelcattysHideAndSeek extends ScriptedGame {
 		}
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canSelect = false;
 
 		const remainingPlayerCount = this.getRemainingPlayerCount();
