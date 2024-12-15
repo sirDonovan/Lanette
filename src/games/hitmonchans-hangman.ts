@@ -21,7 +21,8 @@ class HitmonchansHangman extends QuestionAndAnswer {
 	solvedLetters: string[] = [];
 	updateHintTime = 3000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Characters": Dex.getCharacters().filter(x => x.length >= MIN_LETTERS),

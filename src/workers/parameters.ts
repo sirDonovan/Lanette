@@ -59,7 +59,7 @@ export interface IParametersSearchOptions {
 	readonly filter?: string[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IParametersSearchMessage extends IParametersSearchOptions {}
 
 export interface IParametersIntersectOptions {
@@ -69,7 +69,7 @@ export interface IParametersIntersectOptions {
 	readonly searchType: ParametersSearchType;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IParametersIntersectMessage extends IParametersIntersectOptions {}
 
 export class ParametersWorker extends WorkerBase<IParametersWorkerData, ParametersId, IParametersResponse> {

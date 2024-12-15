@@ -22,7 +22,8 @@ class NinjasksCorners extends ScriptedGame {
 	roundTime: number = 4 * 1000;
 	roundTravels = new Map<Player, string>();
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) {
 			this.maxRound = 0;
 			this.setTimeout(() => void this.nextRound(), 5000);
@@ -55,7 +56,8 @@ class NinjasksCorners extends ScriptedGame {
 		void this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canTravel = false;
 
 		let color = this.sampleOne(colors);

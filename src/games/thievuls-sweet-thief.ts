@@ -50,7 +50,8 @@ class ThievulsSweetThief extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		const remainingPlayerCount = this.getRemainingPlayerCount();
 		if (remainingPlayerCount < 2) {
 			return this.end();

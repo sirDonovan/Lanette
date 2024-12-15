@@ -19,7 +19,8 @@ class CrustlesCrumblingBlocks extends ScriptedGame {
 		void this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
 			this.say("**" + this.currentPlayer.name + "** did not remove any blocks and has been eliminated from the game! The blocks " +
 				"will now reset.");

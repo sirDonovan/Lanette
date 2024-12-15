@@ -94,6 +94,11 @@ export let bannedWords: string[] | null = null;
 export let avatar = '';
 
 /**
+ * The status to set after logging in
+ */
+export let status = '';
+
+/**
  * The character used to denote commands in chat messages
  */
 export let commandCharacter = '.';

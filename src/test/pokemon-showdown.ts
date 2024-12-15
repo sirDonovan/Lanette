@@ -578,11 +578,9 @@ describe("pokemon-showdown", () => {
 		assert(normalType);
 		assertStrictEqual(normalType.id, 'normal');
 		assertStrictEqual(normalType.name, "Normal");
-		/* eslint-disable @typescript-eslint/dot-notation */
-		assertStrictEqual(normalType.damageTaken['Normal'], 0);
-		assertStrictEqual(normalType.damageTaken['Fighting'], 1);
-		assertStrictEqual(normalType.damageTaken['Ghost'], 3);
-		/* eslint-enable */
+		assertStrictEqual(normalType.damageTaken.Normal, 0);
+		assertStrictEqual(normalType.damageTaken.Fighting, 1);
+		assertStrictEqual(normalType.damageTaken.Ghost, 3);
 
 		const allPossibleMoves = Dex.getAllPossibleMoves(Dex.getExistingPokemon("Charizard"));
 		assert(allPossibleMoves);

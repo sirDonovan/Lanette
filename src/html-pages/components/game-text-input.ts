@@ -13,6 +13,7 @@ export class GameTextInput extends TextInput {
 
 	declare props: IGameTextInputProps;
 
+	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: IGameTextInputProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}

@@ -26,10 +26,10 @@ const removeFromPackageJson = [
 	// devDependencies
 	"@types/better-sqlite3", "@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/pg", "@types/sockjs",
 		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
-		"typescript",
+		"typescript", "typescript-eslint",
 ];
 const overrideVersions: Dict<string> = {
-	"esbuild": "0.23.0",
+	"esbuild": "0.24.0",
 };
 
 function getPokemonShowdownFolder(): string {

@@ -13,7 +13,8 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 
 	allAnswersAchievement = PiplupsLetterPlacements.achievements.swiftplacing;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHints: Dict<Dict<string[]>> = {
@@ -33,7 +34,6 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 			"Pokemon Moves": [],
 		};
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			const id = Tools.toId(character);
 			if (id.length < MIN_LETTERS) continue;
@@ -44,13 +44,13 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				if (!b || !c) break;
 
 				const key = id[i] + b + c;
-				if (!(key in categoryHints["Characters"])) {
-					categoryHints["Characters"][key] = [];
-					categoryHintKeys["Characters"].push(key);
+				if (!(key in categoryHints.Characters)) {
+					categoryHints.Characters[key] = [];
+					categoryHintKeys.Characters.push(key);
 				}
 
-				if (!categoryHints["Characters"][key].includes(character)) {
-					categoryHints["Characters"][key].push(character);
+				if (!categoryHints.Characters[key].includes(character)) {
+					categoryHints.Characters[key].push(character);
 				}
 			}
 		}
@@ -65,13 +65,13 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				if (!b || !c) break;
 
 				const key = id[i] + b + c;
-				if (!(key in categoryHints["Locations"])) {
-					categoryHints["Locations"][key] = [];
-					categoryHintKeys["Locations"].push(key);
+				if (!(key in categoryHints.Locations)) {
+					categoryHints.Locations[key] = [];
+					categoryHintKeys.Locations.push(key);
 				}
 
-				if (!categoryHints["Locations"][key].includes(location)) {
-					categoryHints["Locations"][key].push(location);
+				if (!categoryHints.Locations[key].includes(location)) {
+					categoryHints.Locations[key].push(location);
 				}
 			}
 		}
@@ -85,13 +85,13 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				if (!b || !c) break;
 
 				const key = pokemon.id[i] + b + c;
-				if (!(key in categoryHints["Pokemon"])) {
-					categoryHints["Pokemon"][key] = [];
-					categoryHintKeys["Pokemon"].push(key);
+				if (!(key in categoryHints.Pokemon)) {
+					categoryHints.Pokemon[key] = [];
+					categoryHintKeys.Pokemon.push(key);
 				}
 
-				if (!categoryHints["Pokemon"][key].includes(pokemon.name)) {
-					categoryHints["Pokemon"][key].push(pokemon.name);
+				if (!categoryHints.Pokemon[key].includes(pokemon.name)) {
+					categoryHints.Pokemon[key].push(pokemon.name);
 				}
 			}
 		}
@@ -155,7 +155,6 @@ class PiplupsLetterPlacements extends QuestionAndAnswer {
 				}
 			}
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;

@@ -84,7 +84,8 @@ class ChanseysEggToss extends ScriptedGame {
 		this.setTimeout(() => void this.nextRound(), 5000);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.spamTosses.clear();
 
 		const html = this.getRoundHtml(players => this.getPlayerNames(players));

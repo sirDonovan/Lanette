@@ -44,7 +44,8 @@ class MudbraysOneAways extends QuestionAndAnswer {
 
 	roundTime: number = 30 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		const categoryHintKeys: Dict<string[]> = {
 			"Characters": [],
@@ -63,17 +64,16 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			"Pokemon Moves": {},
 		};
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		const characters = Dex.getCharacters();
 		for (const character of characters) {
 			const oneAways = getOneAways(character);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in categoryHints["Characters"])) {
-					categoryHints["Characters"][oneAway] = [];
-					categoryHintKeys["Characters"].push(oneAway);
+				if (!(oneAway in categoryHints.Characters)) {
+					categoryHints.Characters[oneAway] = [];
+					categoryHintKeys.Characters.push(oneAway);
 				}
-				categoryHints["Characters"][oneAway].push(character);
+				categoryHints.Characters[oneAway].push(character);
 			}
 		}
 
@@ -82,11 +82,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(location);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in categoryHints["Locations"])) {
-					categoryHints["Locations"][oneAway] = [];
-					categoryHintKeys["Locations"].push(oneAway);
+				if (!(oneAway in categoryHints.Locations)) {
+					categoryHints.Locations[oneAway] = [];
+					categoryHintKeys.Locations.push(oneAway);
 				}
-				categoryHints["Locations"][oneAway].push(location);
+				categoryHints.Locations[oneAway].push(location);
 			}
 		}
 
@@ -94,11 +94,11 @@ class MudbraysOneAways extends QuestionAndAnswer {
 			const oneAways = getOneAways(pokemon.name);
 			if (!oneAways) continue;
 			for (const oneAway of oneAways) {
-				if (!(oneAway in categoryHints["Pokemon"])) {
-					categoryHints["Pokemon"][oneAway] = [];
-					categoryHintKeys["Pokemon"].push(oneAway);
+				if (!(oneAway in categoryHints.Pokemon)) {
+					categoryHints.Pokemon[oneAway] = [];
+					categoryHintKeys.Pokemon.push(oneAway);
 				}
-				categoryHints["Pokemon"][oneAway].push(pokemon.name);
+				categoryHints.Pokemon[oneAway].push(pokemon.name);
 			}
 		}
 
@@ -137,7 +137,6 @@ class MudbraysOneAways extends QuestionAndAnswer {
 				categoryHints["Pokemon Moves"][oneAway].push(move.name);
 			}
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintKeys = categoryHintKeys;
 		this.cachedData.categoryHintAnswers = categoryHints;

@@ -26,7 +26,8 @@ class MachopsMatchups extends ScriptedGame {
 	// set once the game starts
 	currentPokemon!: IPokemon;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || banlist.includes(pokemon.id) || !Dex.hasModelData(pokemon) || pokemon.types.length < 2 ||
 				pokemon.types.includes('Steel') || pokemon.types.includes('Normal')) continue;
@@ -64,7 +65,8 @@ class MachopsMatchups extends ScriptedGame {
 		return true;
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.sharedType) {
 			this.say("All assigned Pokemon will be part-" + this.sharedType + "!");
 			const availablePokemon = data.pokemonByType[this.sharedType].length;
@@ -98,7 +100,8 @@ class MachopsMatchups extends ScriptedGame {
 			"</b><br />" + pokemon.types.map(x => Dex.getTypeHtml(Dex.getExistingType(x))).join("&nbsp;/&nbsp;") + "</center>";
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canAttack = false;
 		if (this.winners.size) {
 			this.end();

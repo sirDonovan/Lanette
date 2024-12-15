@@ -26,12 +26,12 @@ class LanturnsIlluminatedLetters extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 3000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHintKeys: Dict<string[]> = {};
-		// eslint-disable-next-line @typescript-eslint/dot-notation
-		categoryHintKeys["Pokemon"] = Games.getPokemonList().map(x => x.name).filter(x => {
+		categoryHintKeys.Pokemon = Games.getPokemonList().map(x => x.name).filter(x => {
 			if (x.length < MINIMUM_LENGTH) return false;
 			for (const character of BANNED_CHARACTERS) {
 				if (x.includes(character)) return false;

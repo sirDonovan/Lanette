@@ -198,7 +198,8 @@ export abstract class CardMatching<ActionCardsType extends object = Dict<IAction
 		}
 
 		// may be set in tests
-		if (!this.topCard) { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (!this.topCard) {
 			for (let i = 0; i < this.deck.length; i++) {
 				if (this.deck[i].action) continue;
 				this.topCard = this.deck[i] as IPokemonCard;

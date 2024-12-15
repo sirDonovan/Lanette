@@ -12,7 +12,8 @@ class KirliasTracingShow extends QuestionAndAnswer {
 	allAnswersAchievement = KirliasTracingShow.achievements.thegreatestshowman;
 	hintPrefix: string = "Kirlia traced";
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const hints: Dict<string[]> = {};
 		const hintKeys: string[] = [];
 
@@ -20,7 +21,8 @@ class KirliasTracingShow extends QuestionAndAnswer {
 			const abilities: string[] = [];
 			for (const ability in pokemon.abilities) {
 				// @ts-expect-error
-				abilities.push(pokemon.abilities[ability]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				abilities.push(pokemon.abilities[ability]);
 			}
 			hints[pokemon.name] = abilities;
 			hintKeys.push(pokemon.name);

@@ -104,7 +104,7 @@ export abstract class WorkerBase<WorkerData, MessageId, ThreadResponse, WorkerNa
 
 				worker.on('exit', code => {
 					if (code !== 0 && code !== 1) {
-						console.log(new Error(`Worker stopped with exit code ${code}`));
+						console.log(new Error("Worker stopped with exit code " + code));
 					}
 				});
 

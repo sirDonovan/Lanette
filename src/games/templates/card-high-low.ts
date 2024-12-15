@@ -48,7 +48,8 @@ export abstract class CardHighLow extends CardGame {
 		this.deck = this.shuffle(this.deckPool.map(x => Tools.deepClone(x)));
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (!this.format.inputOptions.points) this.options.points = 5;
 	}
 
@@ -154,7 +155,8 @@ export abstract class CardHighLow extends CardGame {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		const remainingPlayers = this.getRemainingPlayerCount();
 		if (!remainingPlayers) {
 			this.end();

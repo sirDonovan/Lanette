@@ -473,7 +473,7 @@ export class Games {
 	loadFormats(): void {
 		const userHostedPath = path.join(Tools.srcBuildFolder, "room-game-user-hosted.js");
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const userHostedModule = require(userHostedPath) as typeof import('./room-game-user-hosted');
 
 		// @ts-expect-error
@@ -484,7 +484,7 @@ export class Games {
 
 		const internalGameKeys = Object.keys(internalGamePaths) as InternalGame[];
 		for (const key of internalGameKeys) {
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 			const file = require(internalGamePaths[key]);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			this.formatModules.push(file);
@@ -514,7 +514,7 @@ export class Games {
 		for (const fileName of modeFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const modePath = path.join(modesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 			const file = require(modePath);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			this.formatModules.push(file);
@@ -553,7 +553,7 @@ export class Games {
 		for (const fileName of gameFiles) {
 			if (!fileName.endsWith('.js')) continue;
 			const gamePath = path.join(gamesDirectory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+			// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
 			const file = require(gamePath);
 			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
 			this.formatModules.push(file);
@@ -918,10 +918,9 @@ export class Games {
 			}
 			if (formatData.variants) {
 				let matchingVariant: IGameVariant | undefined;
-				// eslint-disable-next-line @typescript-eslint/prefer-for-of
-				for (let i = 0; i < formatData.variants.length; i++) {
-					if (formatData.variants[i].variantAliases.includes(targetId)) {
-						matchingVariant = formatData.variants[i];
+				for (const variant of formatData.variants) {
+					if (variant.variantAliases.includes(targetId)) {
+						matchingVariant = variant;
 						break;
 					}
 				}
@@ -1538,7 +1537,8 @@ export class Games {
 					Config.commandCharacter + (gameTarget ? "createtournamentgame " + gameTarget : "createrandomtournamentgame"), now);
 			} else if (type === 'scripted' || !database.userHostedGameQueue || !database.userHostedGameQueue.length) {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "startskippedcooldownvote", now);
-			} else if (type === 'userhosted') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			} else if (type === 'userhosted') {
 				CommandParser.parse(room, Users.self, Config.commandCharacter + "nexthost", now);
 			}
 		}, timer);
@@ -2519,8 +2519,8 @@ export class Games {
 			Config.gameCatalogGists[room.id].id, Config.gameCatalogGists[room.id].description, files);
 	}
 
-	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Games): void {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.scheduledGameTimers) {
 			for (const i in previous.scheduledGameTimers) {
 				clearTimeout(previous.scheduledGameTimers[i]);
@@ -2529,6 +2529,7 @@ export class Games {
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.autoCreateTimers) {
 			for (const i in previous.autoCreateTimers) {
 				clearTimeout(previous.autoCreateTimers[i]);
@@ -2547,6 +2548,7 @@ export class Games {
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.gameCooldownMessageTimers) {
 			for (const i in previous.gameCooldownMessageTimers) {
 				clearTimeout(previous.gameCooldownMessageTimers[i]);
@@ -2565,22 +2567,33 @@ export class Games {
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastCatalogUpdates) Object.assign(this.lastCatalogUpdates, previous.lastCatalogUpdates);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastGames) Object.assign(this.lastGames, previous.lastGames);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastMinigames) Object.assign(this.lastMinigames, previous.lastMinigames);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastChallengeTimes) Object.assign(this.lastChallengeTimes, previous.lastChallengeTimes);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastScriptedGames) Object.assign(this.lastScriptedGames, previous.lastScriptedGames);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastUserHostedGames) Object.assign(this.lastUserHostedGames, previous.lastUserHostedGames);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastUserHostTimes) Object.assign(this.lastUserHostTimes, previous.lastUserHostTimes);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastUserHostFormatTimes) Object.assign(this.lastUserHostFormatTimes, previous.lastUserHostFormatTimes);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.skippedScriptedCooldowns) Object.assign(this.skippedScriptedCooldowns, previous.skippedScriptedCooldowns);
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.lastWinners) {
 			for (const i in previous.lastWinners) {
 				this.lastWinners[i] = previous.lastWinners[i].slice();
 			}
 		}
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.nextVoteBans) {
 			for (const i in previous.nextVoteBans) {
 				this.nextVoteBans[i] = previous.nextVoteBans[i].slice();
@@ -2616,6 +2629,7 @@ export class Games {
 			}
 		});
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.scheduledGameTimerData) {
 			for (const i in previous.scheduledGameTimerData) {
 				const room = Rooms.get(i);
@@ -2636,7 +2650,6 @@ export class Games {
 			}
 		}
 	}
-	/* eslint-enable */
 
 	private loadFileAchievements(file: DeepImmutable<IGameFile>): void {
 		if (!file.class.achievements) return;

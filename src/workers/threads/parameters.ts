@@ -21,14 +21,15 @@ const data: IParametersThreadData = {
 
 const paramTypeDexesKeys: Dict<Dict<KeyedDict<ParamType, readonly string[]>>> = {};
 const searchTypes: (keyof typeof data)[] = ['pokemon'];
-const effectivenessCache: Dict<Dict<number>> = Object.create(null); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
-const immunityCache: Dict<Dict<boolean>> = Object.create(null); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const effectivenessCache: Dict<Dict<number>> = Object.create(null);
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const immunityCache: Dict<Dict<boolean>> = Object.create(null);
 
 let loadedData = false;
 function loadData(): void {
 	if (loadedData) return;
 
-	/* eslint-disable @typescript-eslint/dot-notation */
 	const currentGen = workerData.currentGen;
 	for (let gen = 1; gen <= currentGen; gen++) {
 		const mod = 'gen' + gen;
@@ -157,11 +158,11 @@ function loadData(): void {
 			if (workerData.pseudoLCPokemon[gen].includes(pokemon.id)) {
 				if (!('lc' in tiers)) {
 					const tierParam = {type: 'tier' as ParamType, param: 'LC'};
-					tiers['lc'] = tierParam;
-					tiers['lctier'] = tierParam;
+					tiers.lc = tierParam;
+					tiers.lctier = tierParam;
 				}
-				if (!('LC' in tierDex)) tierDex['LC'] = [];
-				tierDex['LC'].push(pokemon.name);
+				if (!('LC' in tierDex)) tierDex.LC = [];
+				tierDex.LC.push(pokemon.name);
 			}
 
 			if (!(pokemon.gen in gens)) {
@@ -197,7 +198,7 @@ function loadData(): void {
 			}
 		}
 
-		tiers['ubers'] = tiers['uber'];
+		tiers.ubers = tiers.uber;
 
 		const movesList = workerData.moveLists[gen];
 		for (const move of movesList) {
@@ -255,7 +256,6 @@ function loadData(): void {
 			otherFormes,
 		};
 	}
-	/* eslint-enable */
 
 	for (const searchType of searchTypes) {
 		paramTypeDexesKeys[searchType] = {};
@@ -416,7 +416,8 @@ function search(options: IParametersSearchOptions, prng: PRNG): IParametersRespo
 	let maxAttempts = 0;
 	let possibleParamsLen = 0;
 	let paramCombinationsLen = 0;
-	const searchingPokemon = options.searchType === 'pokemon'; // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	const searchingPokemon = options.searchType === 'pokemon';
 	let validParams = false;
 
 	while (!validParams) {
@@ -543,7 +544,8 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);
 			prng.destroy();
-		} else if (id === 'intersect') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'intersect') {
 			const options = JSON.parse(message) as IParametersIntersectMessage;
 			response = {params: options.params, pokemon: intersect(options)};
 		}

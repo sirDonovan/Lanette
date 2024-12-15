@@ -39,7 +39,8 @@ class BounsweetsBountifulBuffet extends ScriptedGame {
 	points = new Map<Player, number>();
 	selectedMeals = new Map<Player, number>();
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.offCommands(['select']);
 		this.canSelect = false;
 

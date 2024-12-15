@@ -32,7 +32,8 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 		this.pokemonList = this.shuffle(data.pokedex);
 	}
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const movesByPokemon: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme) continue;
@@ -80,7 +81,8 @@ class TrevenantsTrickOrTreat extends ScriptedGame {
 		return this.pokemonList.shift()!;
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		this.options.points = 1000;
 		this.say("Use ``" + Config.commandCharacter + "trick [move]`` in PMs to guess moves only one Pokemon in the grid can learn.");
 		this.setTimeout(() => this.generateNewDisplay(), 10 * 1000);

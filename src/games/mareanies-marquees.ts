@@ -17,7 +17,8 @@ class MareaniesMarquees extends QuestionAndAnswer {
 	roundTime = 0;
 	updateHintTime = 1500;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 		this.cachedData.categoryHintKeys = {
 			"Pokemon": Games.getPokemonList().map(x => x.name).filter(x => x.length > LETTERS_TO_REVEAL),

@@ -17,7 +17,8 @@ class KyuremsSplits extends QuestionAndAnswer {
 
 	allAnswersAchievement = KyuremsSplits.achievements.splittersplatter;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		this.cachedData.categories = ["Characters", "Locations", "Pokemon", "Pokemon Abilities", "Pokemon Items", "Pokemon Moves"];
 
 		const categoryHints: Dict<Dict<string[]>> = {
@@ -37,18 +38,17 @@ class KyuremsSplits extends QuestionAndAnswer {
 			"Pokemon Moves": [],
 		};
 
-		/* eslint-disable @typescript-eslint/dot-notation */
 		for (const character of Dex.getCharacters()) {
 			if (character.length < MIN_LETTERS) continue;
 
 			const permutations = getLetterPermutations(Tools.toId(character));
 			for (const permutation of permutations) {
 				const key = permutation.join("");
-				if (!(key in categoryHints["Characters"])) {
-					categoryHints["Characters"][key] = [];
-					categoryHintKeys["Characters"].push(key);
+				if (!(key in categoryHints.Characters)) {
+					categoryHints.Characters[key] = [];
+					categoryHintKeys.Characters.push(key);
 				}
-				if (!categoryHints["Characters"][key].includes(character)) categoryHints["Characters"][key].push(character);
+				if (!categoryHints.Characters[key].includes(character)) categoryHints.Characters[key].push(character);
 			}
 		}
 
@@ -58,11 +58,11 @@ class KyuremsSplits extends QuestionAndAnswer {
 			const permutations = getLetterPermutations(Tools.toId(location));
 			for (const permutation of permutations) {
 				const key = permutation.join("");
-				if (!(key in categoryHints["Locations"])) {
-					categoryHints["Locations"][key] = [];
-					categoryHintKeys["Locations"].push(key);
+				if (!(key in categoryHints.Locations)) {
+					categoryHints.Locations[key] = [];
+					categoryHintKeys.Locations.push(key);
 				}
-				if (!categoryHints["Locations"][key].includes(location)) categoryHints["Locations"][key].push(location);
+				if (!categoryHints.Locations[key].includes(location)) categoryHints.Locations[key].push(location);
 			}
 		}
 
@@ -72,11 +72,11 @@ class KyuremsSplits extends QuestionAndAnswer {
 			const permutations = getLetterPermutations(pokemon.id);
 			for (const permutation of permutations) {
 				const key = permutation.join("");
-				if (!(key in categoryHints["Pokemon"])) {
-					categoryHints["Pokemon"][key] = [];
-					categoryHintKeys["Pokemon"].push(key);
+				if (!(key in categoryHints.Pokemon)) {
+					categoryHints.Pokemon[key] = [];
+					categoryHintKeys.Pokemon.push(key);
 				}
-				if (!categoryHints["Pokemon"][key].includes(pokemon.name)) categoryHints["Pokemon"][key].push(pokemon.name);
+				if (!categoryHints.Pokemon[key].includes(pokemon.name)) categoryHints.Pokemon[key].push(pokemon.name);
 			}
 		}
 
@@ -123,7 +123,6 @@ class KyuremsSplits extends QuestionAndAnswer {
 				if (!categoryHints["Pokemon Moves"][key].includes(move.name)) categoryHints["Pokemon Moves"][key].push(move.name);
 			}
 		}
-		/* eslint-enable */
 
 		this.cachedData.categoryHintAnswers = categoryHints;
 		this.cachedData.categoryHintKeys = categoryHintKeys;

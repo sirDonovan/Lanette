@@ -15,7 +15,8 @@ class AbrasAbilitySwitch extends QuestionAndAnswer {
 	allAnswersTeamAchievement = AbrasAbilitySwitch.achievements.captainskillswapper;
 	hintPrefix: string = "Abra wants the ability";
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const abilities: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			for (const i in pokemon.abilities) {

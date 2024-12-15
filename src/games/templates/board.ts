@@ -113,7 +113,8 @@ export abstract class BoardGame extends ScriptedGame {
 		player.say("You will play as **" + playerLetter + "** for " + this.name + "!");
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.playerOrder = this.shufflePlayers();
 		for (const player of this.playerOrder) {
 			this.placePlayerOnStart(player);

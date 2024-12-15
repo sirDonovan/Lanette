@@ -5,7 +5,6 @@ import type {
 	IUniquePairsResponse, IUniquePairsThreadData, IUniquePairsWorkerData, UniquePairsId
 } from '../unique-pairs';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 const workerData = worker_threads.workerData as IUniquePairsWorkerData;
 const data: IUniquePairsThreadData = {

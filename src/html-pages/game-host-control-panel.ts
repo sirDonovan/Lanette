@@ -746,13 +746,17 @@ export class GameHostControlPanel extends HtmlPageBase {
 			const game = this.room.userHostedGame!;
 
 			html += game.getMascotAndNameHtml();
-			html += "<br />";
-			html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now());
-			html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+			if (game.endTime) {
+				html += "<br />";
+				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now());
+				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
+			}
+
 			if (game.gameTimerEndTime) {
 				html += "<br /><br /><b>Game timer:</b> " + Tools.toDurationString(game.gameTimerEndTime - Date.now()) + " remaining";
 				html += "&nbsp;" + this.getQuietPmButton(this.commandPrefix + ", " + refreshCommand, "Refresh");
 			}
+
 			html += "<hr />";
 
 			const remainingPlayerCount = game.getRemainingPlayerCount();

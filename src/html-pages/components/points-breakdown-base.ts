@@ -1,16 +1,10 @@
 import type { ICachedPointsBreakdown, IPointBreakdown } from "../../types/storage";
 import { LeaderboardBase } from "./leaderboard-base";
-import type { ILeaderboardProps } from "./leaderboard-base";
 import type { IPageElement } from "./pagination";
-import type { HtmlPageBase } from "../html-page-base";
 
 export abstract class PointsBreakdownBase extends LeaderboardBase {
 	cachedPointBreakdowns: ICachedPointsBreakdown[] = [];
 	rowsPerPage: number = 10;
-
-	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ILeaderboardProps) {
-		super(htmlPage, parentCommandPrefix, componentCommand, props);
-	}
 
 	abstract renderPointBreakdowns(breakdown: Dict<IPointBreakdown>, maxPercentageLength: number): string;
 

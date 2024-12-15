@@ -12,6 +12,7 @@ export class NumberTextInput extends TextInput {
 
 	declare props: INumberTextInputProps;
 
+	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: INumberTextInputProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}

@@ -101,7 +101,8 @@ export abstract class CardGame<ActionCardsType extends object = Dict<IActionCard
 	abstract onNextRound(): Promise<void>;
 	abstract onStart(): Promise<void>;
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.requiredGen) {
 			if (this.requiredGen === 1) {
 				this.gifGeneration = 'rb';

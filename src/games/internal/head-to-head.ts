@@ -78,7 +78,8 @@ export class HeadToHead extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		if (!this.leftPlayer || !this.rightPlayer) throw new Error("start() called without left and right players");
 
 		const text = this.leftPlayer.name + " and " + this.rightPlayer.name + " are going head to head in a game of " +

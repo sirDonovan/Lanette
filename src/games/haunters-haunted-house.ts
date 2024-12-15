@@ -724,7 +724,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 		return startingLocation;
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.lastRowIndex = this.boardSize - 1;
 		this.lastColumnIndex = this.lastRowIndex;
 
@@ -762,7 +763,8 @@ class HauntersHauntedHouse extends ScriptedGame {
 		}
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.remainingGhostMoves = 0;
 		this.mimikyuHaunt = false;
 		if (this.getRemainingPlayerCount() === 0) {

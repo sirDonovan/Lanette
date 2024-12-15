@@ -3,9 +3,8 @@ import type { User } from "../users";
 import type { RoomType } from "./rooms";
 import type { ITournamentEndJson, ITournamentUpdateJson } from "./tournaments";
 
-export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: readonly string[], now: number) =>
-	// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	true | void;
+// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
+export type IMessageParserFunction = (room: Room, messageType: keyof IClientMessageTypes, messageParts: readonly string[], now: number) => true | void;
 
 export interface IMessageParserFile {
 	/**Return `true` to prevent a message from being parsed by other parsers and Client */
@@ -28,7 +27,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' | 'tournament-autodq' |
 	'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' | 'tournament-forcetimer' |
 	'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' | 'query-userdetails' |
-	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat';
+	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat' | 'status';
 
 export interface IOutgoingMessageAttributes {
 	/**Return `false` to prevent a message from being sent */

@@ -40,8 +40,8 @@ export abstract class SearchChallenge extends ScriptedGame {
 		if (!battleData || battleData.slots.size < 2) return null;
 
 		const players = battleData.slots.keys();
-		const p1 = players.next().value as Player;
-		const p2 = players.next().value as Player;
+		const p1 = players.next().value!;
+		const p2 = players.next().value!;
 
 		return [p1, p2];
 	}

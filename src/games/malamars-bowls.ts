@@ -181,9 +181,9 @@ class MalamarsBowls extends QuestionAndAnswer {
 				if (param && !params.includes(param)) params.push(param);
 			}
 
-			const paramNames = params.map(x => this.getParamName(x)).sort();
-			if (Tools.compareArrays(this.roundParameterNames, paramNames)) {
-				return params.join(" & ");
+			const paramNames = params.map(x => this.getParamName(x));
+			if (Tools.compareArrays(this.roundParameterNames, paramNames.sort())) {
+				return paramNames.join(" & ");
 			}
 		}
 

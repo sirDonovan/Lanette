@@ -28,12 +28,14 @@ class ShedinjasWonderTrials extends ScriptedGame {
 	roundTime = 5 * 1000;
 	usedMoves: string[] = [];
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		data.moves = Games.getMovesList(x => !x.id.startsWith('hiddenpower') && x.category !== 'Status' && !x.isMax).map(x => x.id);
 		data.pokedex = Games.getPokemonList({filter: x => x.baseSpecies === x.name}).map(x => x.name);
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) {
 			this.setTimeout(() => void this.nextRound(), 10 * 1000);
 		}
@@ -63,7 +65,8 @@ class ShedinjasWonderTrials extends ScriptedGame {
 		this.say(summonText);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canUseMove = false;
 		if (this.round > 1) {
 			let highestPoints = 0;

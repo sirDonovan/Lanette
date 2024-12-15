@@ -23,7 +23,8 @@ class ChatotsMusicalChairs extends ScriptedGame {
 		void this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.roundChairs = 0;
 
 		const len = this.getRemainingPlayerCount();

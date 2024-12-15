@@ -59,7 +59,8 @@ class ChandeluresCandles extends ScriptedGame {
 		this.say(text);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.roundTarget = null;
 		const len = this.getRemainingPlayerCount();
 		if (len <= 1) {

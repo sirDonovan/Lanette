@@ -5,7 +5,8 @@ import type { BaseCommandDefinitions } from "../types/command-parser";
 
 export const commands: BaseCommandDefinitions = {
 	eval: {
-		command(target, room, user) { // eslint-disable-line @typescript-eslint/no-unused-vars
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		command(target, room, user) {
 			try {
 				let result = eval(target) as unknown;
 				if (result === null) {

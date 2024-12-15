@@ -6,7 +6,6 @@ import { assert, assertStrictEqual, createTestRoom } from "../test-tools";
 
 /* eslint-env mocha */
 
-// eslint-disable-next-line max-len
 const tournamentEndJson = '{"results":[["<Player 1>"]],"format":"gen8randombattle","generator":"Single Elimination","bracketData":{"type":"tree","rootNode":{"children":[{"children":[{"team":"<Player 2>"},{"team":"<Player 1>"}],"state":"finished","team":"<Player 1>","result":"loss","score":[0,1]},{"children":[{"team":"<Player 3>"},{"team":"<Player 4>"}],"state":"finished","team":"<Player 4>","result":"loss","score":[0,1]}],"state":"finished","team":"<Player 1>","result":"win","score":[1,0]}}}';
 
 describe("Tournaments", () => {
@@ -34,7 +33,11 @@ describe("Tournaments", () => {
 		const date = new Date();
 
 		let month = date.getMonth() + 1;
-		if (month === 12) month = 0;
+		if (month === 12) {
+			month = 0;
+			date.setFullYear(date.getFullYear() + 1);
+		}
+
 		date.setMonth(month);
 
 		const scheduleMonth = month + 1;
@@ -249,7 +252,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly update based on bracket data - 4 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -275,7 +277,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly update based on bracket data - 5 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"team":"Mocha Player 3"}],"state":"unavailable"},{"children":[{"team":"Mocha Player 4"},{"team":"Mocha Player 5"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -301,7 +302,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly update based on bracket data - 6 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -327,7 +327,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly update based on bracket data - 7 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"},{"team":"Mocha Player 7"}],"state":"unavailable"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -353,7 +352,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly update based on bracket data - 8 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"},{"children":[{"team":"Mocha Player 7"},{"team":"Mocha Player 8"}],"state":"available"}],"state":"unavailable"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -379,7 +377,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly convert a bracket to EliminationNode - 4 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -394,15 +391,15 @@ describe("Tournaments", () => {
 		const root = Tournaments.bracketToEliminationNode(bracketData.rootNode!, players);
 		assertStrictEqual(root.user, null);
 		assert(root.children);
-		assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children.length, 2);
 		assertStrictEqual(root.children[0].user, null);
 		assertStrictEqual(root.children[1].user, null);
 		assert(root.children[0].children);
-		assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].user!.name, "Mocha Player 1");
 		assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 2");
 		assert(root.children[1].children);
-		assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 3");
 		assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 4");
 		assert(!root.children[0].children[0].children);
@@ -415,7 +412,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly convert a bracket to EliminationNode - 5 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"team":"Mocha Player 3"}],"state":"unavailable"},{"children":[{"team":"Mocha Player 4"},{"team":"Mocha Player 5"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -430,19 +426,19 @@ describe("Tournaments", () => {
 		const root = Tournaments.bracketToEliminationNode(bracketData.rootNode!, players);
 		assertStrictEqual(root.user, null);
 		assert(root.children);
-		assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children.length, 2);
 		assertStrictEqual(root.children[0].user, null);
 		assertStrictEqual(root.children[1].user, null);
 		assert(root.children[0].children);
-		assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].user, null);
 		assertStrictEqual(root.children[0].children[1].user!.name, "Mocha Player 3");
 		assert(root.children[1].children);
-		assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 4");
 		assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 5");
 		assert(root.children[0].children[0].children);
-		assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 		assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 2");
 		assert(!root.children[0].children[1].children);
@@ -454,7 +450,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly convert a bracket to EliminationNode - 6 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -469,23 +464,23 @@ describe("Tournaments", () => {
 		const root = Tournaments.bracketToEliminationNode(bracketData.rootNode!, players);
 		assertStrictEqual(root.user, null);
 		assert(root.children);
-		assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children.length, 2);
 		assertStrictEqual(root.children[0].user, null);
 		assertStrictEqual(root.children[1].user, null);
 		assert(root.children[0].children);
-		assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].user, null);
 		assertStrictEqual(root.children[0].children[1].user, null);
 		assert(root.children[1].children);
-		assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].user!.name, "Mocha Player 5");
 		assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 6");
 		assert(root.children[0].children[0].children);
-		assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 		assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 2");
 		assert(root.children[0].children[1].children);
-		assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[1].children.length, 2);
 		assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 		assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 4");
 		assert(!root.children[1].children[0].children);
@@ -496,7 +491,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly convert a bracket to EliminationNode - 7 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"},{"team":"Mocha Player 7"}],"state":"unavailable"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -511,27 +505,27 @@ describe("Tournaments", () => {
 		const root = Tournaments.bracketToEliminationNode(bracketData.rootNode!, players);
 		assertStrictEqual(root.user, null);
 		assert(root.children);
-		assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children.length, 2);
 		assertStrictEqual(root.children[0].user, null);
 		assertStrictEqual(root.children[1].user, null);
 		assert(root.children[0].children);
-		assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].user, null);
 		assertStrictEqual(root.children[0].children[1].user, null);
 		assert(root.children[1].children);
-		assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].user, null);
 		assertStrictEqual(root.children[1].children[1].user!.name, "Mocha Player 7");
 		assert(root.children[0].children[0].children);
-		assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 		assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 2");
 		assert(root.children[0].children[1].children);
-		assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[1].children.length, 2);
 		assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 		assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 4");
 		assert(root.children[1].children[0].children);
-		assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children[0].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 5");
 		assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 6");
 		assert(!root.children[1].children[1].children);
@@ -541,7 +535,6 @@ describe("Tournaments", () => {
 	});
 
 	it('should properly convert a bracket to EliminationNode - 8 players', () => {
-		// eslint-disable-next-line max-len
 		const bracketData = JSON.parse('{"type":"tree","rootNode":{"children":[{"children":[{"children":[{"team":"Mocha Player 1"},{"team":"Mocha Player 2"}],"state":"available"},{"children":[{"team":"Mocha Player 3"},{"team":"Mocha Player 4"}],"state":"available"}],"state":"unavailable"},{"children":[{"children":[{"team":"Mocha Player 5"},{"team":"Mocha Player 6"}],"state":"available"},{"children":[{"team":"Mocha Player 7"},{"team":"Mocha Player 8"}],"state":"available"}],"state":"unavailable"}],"state":"unavailable"}}') as IClientTournamentData;
 
 		const room = createTestRoom();
@@ -556,31 +549,31 @@ describe("Tournaments", () => {
 		const root = Tournaments.bracketToEliminationNode(bracketData.rootNode!, players);
 		assertStrictEqual(root.user, null);
 		assert(root.children);
-		assert(root.children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children.length, 2);
 		assertStrictEqual(root.children[0].user, null);
 		assertStrictEqual(root.children[1].user, null);
 		assert(root.children[0].children);
-		assert(root.children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].user, null);
 		assertStrictEqual(root.children[0].children[1].user, null);
 		assert(root.children[1].children);
-		assert(root.children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].user, null);
 		assertStrictEqual(root.children[1].children[1].user, null);
 		assert(root.children[0].children[0].children);
-		assert(root.children[0].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[0].children.length, 2);
 		assertStrictEqual(root.children[0].children[0].children[0].user!.name, "Mocha Player 1");
 		assertStrictEqual(root.children[0].children[0].children[1].user!.name, "Mocha Player 2");
 		assert(root.children[0].children[1].children);
-		assert(root.children[0].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[0].children[1].children.length, 2);
 		assertStrictEqual(root.children[0].children[1].children[0].user!.name, "Mocha Player 3");
 		assertStrictEqual(root.children[0].children[1].children[1].user!.name, "Mocha Player 4");
 		assert(root.children[1].children[0].children);
-		assert(root.children[1].children[0].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children[0].children.length, 2);
 		assertStrictEqual(root.children[1].children[0].children[0].user!.name, "Mocha Player 5");
 		assertStrictEqual(root.children[1].children[0].children[1].user!.name, "Mocha Player 6");
 		assert(root.children[1].children[1].children);
-		assert(root.children[1].children[1].children.length === 2); // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		assertStrictEqual(root.children[1].children[1].children.length, 2);
 		assertStrictEqual(root.children[1].children[1].children[0].user!.name, "Mocha Player 7");
 		assertStrictEqual(root.children[1].children[1].children[1].user!.name, "Mocha Player 8");
 

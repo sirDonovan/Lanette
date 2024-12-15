@@ -1262,7 +1262,7 @@ export const commands: BaseCommandDefinitions = {
 				let html = game.getMascotAndNameHtml();
 				html += "<br />";
 				if (gameRoom.userHostedGame.subHostName) html += "<b>Sub-host</b>: " + gameRoom.userHostedGame.subHostName + "<br />";
-				html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
+				if (game.endTime) html += "<b>Remaining time</b>: " + Tools.toDurationString(game.endTime - Date.now()) + "<br />";
 				if (game.started) {
 					if (game.startTime) html += "<b>Duration</b>: " + Tools.toDurationString(Date.now() - game.startTime) + "<br />";
 					html += "<b>Players</b>: " + game.getRemainingPlayerCount();

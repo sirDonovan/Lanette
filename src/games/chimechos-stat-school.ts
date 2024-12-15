@@ -10,7 +10,8 @@ class ChimechosStatSchool extends QuestionAndAnswer {
 	readonly roundGuesses = new Map<Player, boolean>();
     allowMisType = true;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const statSpreads: Dict<string[]> = {};
 		for (const pokemon of Games.getPokemonList()) {
 			const statSpread = Object.values(pokemon.baseStats).join(" / ");

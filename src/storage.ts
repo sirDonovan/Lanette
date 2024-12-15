@@ -191,7 +191,8 @@ export class Storage {
 			if (database.previousCycles) {
 				if (!(id in this.archiveDatabases)) this.archiveDatabases[id] = {};
 				// @ts-expect-error
-				this.archiveDatabases[id].previousCycles = Tools.deepClone(database.previousCycles); // eslint-disable-line @typescript-eslint/no-unsafe-assignment
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+				this.archiveDatabases[id].previousCycles = Tools.deepClone(database.previousCycles);
 				// @ts-expect-error
 				delete database.previousCycles;
 

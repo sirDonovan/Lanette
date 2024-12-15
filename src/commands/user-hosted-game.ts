@@ -1,4 +1,4 @@
-import type { Player, PlayerTeam } from "../room-activity";
+import type { Player } from "../room-activity";
 import type { ScriptedGame } from "../room-game-scripted";
 import type { UserHostedGame } from "../room-game-user-hosted";
 import type { Room } from "../rooms";
@@ -312,6 +312,24 @@ export const commands: BaseCommandDefinitions = {
 		chatOnly: true,
 		description: ["extends the current user-hosted game"],
 	},
+	eventhost: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver') || !room.userHostedGame) return;
+			let format = room.userHostedGame.format;
+			if (target) {
+				const newFormat = Games.getUserHostedFormat(target);
+				if (Array.isArray(newFormat)) return this.sayError(newFormat);
+				format = newFormat;
+			}
+
+			this.say("Restarting " + (format.nameWithOptions || format.name) + " as an event!");
+			room.userHostedGame.eventHost = true;
+			room.userHostedGame.restart(format);
+		},
+		chatOnly: true,
+		syntax: ["{game}"],
+		description: ["restarts the current user-hosted game as an event, optionally switching to a different game"],
+	},
 	subhost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;
@@ -536,7 +554,8 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			const status = Tools.toId(targets[0]) as UserHostStatus;
-			if (status === 'unapproved' || status === 'novice' || status === 'approved') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (status === 'unapproved' || status === 'novice' || status === 'approved') {
 				const list: string[] = [];
 				const database = Storage.getDatabase(gameRoom);
 				if (database.userHostStatuses) {
@@ -1488,8 +1507,7 @@ export const commands: BaseCommandDefinitions = {
 				const usersByPoints: Dict<Player[]> = {};
 				if (room.userHostedGame.teams) {
 					for (const i in room.userHostedGame.teams) {
-						// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-						const team = room.userHostedGame.teams[i] as PlayerTeam;
+						const team = room.userHostedGame.teams[i];
 						if (!team.points) continue;
 						if (!(team.points in usersByPoints)) usersByPoints[team.points] = [];
 						usersByPoints[team.points] = usersByPoints[team.points].concat(team.players.filter(x => !x.eliminated));

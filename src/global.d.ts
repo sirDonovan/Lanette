@@ -1,4 +1,4 @@
-/* eslint-disable no-var, @typescript-eslint/naming-convention */
+/* eslint-disable no-var */
 declare var BaseCommands: import('./types/command-parser').BaseLoadedCommands;
 declare var Client: import('./client/client').Client;
 declare var CommandParser: import('./command-parser').CommandParser;
@@ -22,6 +22,7 @@ declare var _runOptions: import('./types/root').RunOptions | undefined;
 
 // avoid esbuild type error
 declare namespace WebAssembly {
-    interface Module {} // eslint-disable-line @typescript-eslint/no-empty-interface
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+    interface Module {}
 }
 /* eslint-enable */

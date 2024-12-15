@@ -71,14 +71,14 @@ const requestListener = (req: http.IncomingMessage, res: http.ServerResponse): v
             // @ts-expect-error
             Client.websocket.ws = null;
 
-            // eslint-disable-next-line @typescript-eslint/no-floating-promises
-            reloadModules("dev", endpoint === 'reloadGameServer' ? ['tools'] : endpoint === 'reload' ? body.input.split(',') :
+            void reloadModules("dev", endpoint === 'reloadGameServer' ? ['tools'] : endpoint === 'reload' ? body.input.split(',') :
                 allModulesToReload).then(error => {
                 if (error) {
                     res.end(stringifyResponse({error}));
                 } else {
                     // @ts-expect-error
-                    global._reloadGameServer(); // eslint-disable-line @typescript-eslint/no-unsafe-call
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                    global._reloadGameServer();
 
                     console.clear();
                     console.log("Successfully reloaded");

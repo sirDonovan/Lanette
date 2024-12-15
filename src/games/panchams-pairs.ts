@@ -39,13 +39,15 @@ class PanchamPairs extends ScriptedGame {
 	points = new Map<Player, number>();
 	roundTime: number = 15 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
-			dataKeys['Pokemon'].push(pokemon.name); // eslint-disable-line @typescript-eslint/dot-notation
+			dataKeys.Pokemon.push(pokemon.name);
 			const abilities: string[] = [];
 			for (const i in pokemon.abilities) {
 				// @ts-expect-error
-				abilities.push(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+				// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+				abilities.push(pokemon.abilities[i]);
 			}
 			data.pokemon[pokemon.name] = {
 				type: pokemon.types,
@@ -77,7 +79,8 @@ class PanchamPairs extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin && !this.isMiniGame) {
 			this.setTimeout(() => void this.nextRound(), 5000);
 		}
@@ -163,7 +166,8 @@ class PanchamPairs extends ScriptedGame {
 		return this.getAnswers("");
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canPair = false;
 
 		const eliminated: Player[] = [];
@@ -286,7 +290,8 @@ class PanchamPairs extends ScriptedGame {
 		// @ts-expect-error
 		for (const thing of usedData[nameA][paramName]) {
 			// @ts-expect-error
-			if ((usedData[nameB][paramName] as string[]).includes(thing)) { // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			if ((usedData[nameB][paramName] as string[]).includes(thing)) {
 				return [nameA, nameB];
 			}
 		}

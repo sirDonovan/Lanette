@@ -170,7 +170,8 @@ class MagikarpsWaterWheel extends ScriptedGame {
 		this.sendPlayerActions(player, this.getCustomBoxDiv("<center>" + this.getActionButtonsHtml(player) + "</center>", player));
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.offCommands(this.actionCommands);
 		if (this.canLateJoin && this.round > 1) this.canLateJoin = false;
 		this.canSwim = false;

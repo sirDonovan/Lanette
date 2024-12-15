@@ -61,7 +61,8 @@ class TapusTerrains extends ScriptedGame {
 	terrainDisplayTime: number = 5 * 1000;
 	terrainRound: number = 0;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (!Dex.hasModelData(pokemon)) continue;
 
@@ -76,7 +77,8 @@ class TapusTerrains extends ScriptedGame {
 		}
 	}
 
-	async onSignups(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onSignups(): Promise<void> {
 		if (this.options.freejoin) {
 			this.roundTime = 3 * 1000;
 			this.terrainDisplayTime = 3 * 1000;
@@ -88,7 +90,8 @@ class TapusTerrains extends ScriptedGame {
 		return this.terrainRound;
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.canJump = false;
 		if (this.round > 1 && this.targetPokemon && this.currentTerrain) {
 			if (!data.pokemon[this.currentTerrain].includes(this.targetPokemon)) {

@@ -13,6 +13,7 @@ module.exports = (async() => {
 	await initializeSrc();
 
 	const localScriptPath = path.join(getInputFolders().src.buildPath, "local-scripts", options.script + ".js");
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	require(localScriptPath);
 })().catch((error) => {
 	console.error(error);

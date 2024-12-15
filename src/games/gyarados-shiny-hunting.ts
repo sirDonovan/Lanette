@@ -36,7 +36,8 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 	roundRows: number = 0;
 	shinyCoordinates: [number, number][] | null = null;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.gen > 5) continue;
 			const gifData = Dex.getModelData(pokemon, SPRITE_GENERATION);
@@ -160,7 +161,8 @@ class GyaradosShinyHunting extends QuestionAndAnswer {
 		return gridHtml;
 	}
 
-	async beforeNextRound(newAnswer: boolean): Promise<boolean> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async beforeNextRound(newAnswer: boolean): Promise<boolean> {
 		if (newAnswer) {
 			this.sayUhtml(this.uhtmlBaseName + '-round-html', this.getRoundHtml(() => this.getPlayerPoints()));
 		}

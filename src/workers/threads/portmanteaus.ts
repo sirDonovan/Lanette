@@ -7,7 +7,6 @@ import type {
 	IPortmanteausResponse, IPortmanteausSearchMessage, IPortmanteausThreadData, IPortmanteausWorkerData, PoolType, PortmanteausId
 } from '../portmanteaus';
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 const Tools = new tools.Tools();
 const workerData = worker_threads.workerData as IPortmanteausWorkerData;
 const data: IPortmanteausThreadData = {
@@ -36,7 +35,6 @@ function loadData(): void {
 		}
 	}
 
-	/* eslint-disable @typescript-eslint/dot-notation */
 	/*
 	data.pool['Item']['type']['Berry'] = [];
 	data.pool['Item']['type']['Plate'] = [];
@@ -56,8 +54,8 @@ function loadData(): void {
 	*/
 
 	for (const move of workerData.movesList) {
-		if (!(move.type in data.pool['Move']['type'])) data.pool['Move']['type'][move.type] = [];
-		data.pool['Move']['type'][move.type].push(move.name);
+		if (!(move.type in data.pool.Move.type)) data.pool.Move.type[move.type] = [];
+		data.pool.Move.type[move.type].push(move.name);
 	}
 
 	const disallowedFormes: string[] = ["Gmax", "Rapid-Strike-Gmax", "Low-Key-Gmax", "Eternamax"];
@@ -65,32 +63,31 @@ function loadData(): void {
 		if (pokemon.forme && disallowedFormes.includes(pokemon.forme)) continue;
 
 		if (!workerData.excludedTiers.includes(pokemon.tier)) {
-			if (!(pokemon.tier in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier'][pokemon.tier] = [];
-			data.pool['Pokemon']['tier'][pokemon.tier].push(pokemon.name);
+			if (!(pokemon.tier in data.pool.Pokemon.tier)) data.pool.Pokemon.tier[pokemon.tier] = [];
+			data.pool.Pokemon.tier[pokemon.tier].push(pokemon.name);
 		}
 
 		if (workerData.pseudoLCPokemon.includes(pokemon.id)) {
-			if (!('LC' in data.pool['Pokemon']['tier'])) data.pool['Pokemon']['tier']['LC'] = [];
-			data.pool['Pokemon']['tier']['LC'].push(pokemon.name);
+			if (!('LC' in data.pool.Pokemon.tier)) data.pool.Pokemon.tier.LC = [];
+			data.pool.Pokemon.tier.LC.push(pokemon.name);
 		}
 
-		if (!(pokemon.color in data.pool['Pokemon']['color'])) data.pool['Pokemon']['color'][pokemon.color] = [];
-		data.pool['Pokemon']['color'][pokemon.color].push(pokemon.name);
+		if (!(pokemon.color in data.pool.Pokemon.color)) data.pool.Pokemon.color[pokemon.color] = [];
+		data.pool.Pokemon.color[pokemon.color].push(pokemon.name);
 
-		if (!(pokemon.gen in data.pool['Pokemon']['gen'])) data.pool['Pokemon']['gen'][pokemon.gen] = [];
-		data.pool['Pokemon']['gen'][pokemon.gen].push(pokemon.name);
+		if (!(pokemon.gen in data.pool.Pokemon.gen)) data.pool.Pokemon.gen[pokemon.gen] = [];
+		data.pool.Pokemon.gen[pokemon.gen].push(pokemon.name);
 
 		for (const type of pokemon.types) {
-			if (!(type in data.pool['Pokemon']['type'])) data.pool['Pokemon']['type'][type] = [];
-			data.pool['Pokemon']['type'][type].push(pokemon.name);
+			if (!(type in data.pool.Pokemon.type)) data.pool.Pokemon.type[type] = [];
+			data.pool.Pokemon.type[type].push(pokemon.name);
 		}
 
 		for (const eggGroup of pokemon.eggGroups) {
-			if (!(eggGroup in data.pool['Pokemon']['egggroup'])) data.pool['Pokemon']['egggroup'][eggGroup] = [];
-			data.pool['Pokemon']['egggroup'][eggGroup].push(pokemon.name);
+			if (!(eggGroup in data.pool.Pokemon.egggroup)) data.pool.Pokemon.egggroup[eggGroup] = [];
+			data.pool.Pokemon.egggroup[eggGroup].push(pokemon.name);
 		}
 	}
-	/* eslint-enable */
 
 	loadedData = true;
 }
@@ -233,7 +230,8 @@ worker_threads.parentPort!.on('message', (incomingMessage: string) => {
 			Tools.unrefProperties(global.Tools);
 			// @ts-expect-error
 			response = {data};
-		} else if (id === 'search') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (id === 'search') {
 			const options = JSON.parse(message) as IPortmanteausSearchMessage;
 			const prng = new PRNG(options.prngSeed);
 			response = search(options, prng);

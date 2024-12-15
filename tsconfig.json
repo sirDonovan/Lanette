@@ -6,6 +6,7 @@
 		"noEmit": true,
 		"module": "commonjs",
 		"moduleResolution": "node",
+		"skipLibCheck": true,
 		"typeRoots": [
 		    "node_modules/@types"
 		],

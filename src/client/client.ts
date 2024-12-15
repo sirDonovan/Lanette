@@ -50,6 +50,7 @@ const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
+const STATUS_COMMAND = "/text Your status has been set to: ";
 const ROLL_COMMAND_HELP = "/text /dice ";
 
 const DATA_COMMANDS: string[] = [
@@ -496,6 +497,14 @@ export class Client {
 						measure: true,
 					});
 				}
+
+				if (Config.status) {
+					this.send({
+						message: '|/status ' + Config.status,
+						type: 'status',
+						measure: true,
+					});
+				}
 			}
 			break;
 		}
@@ -550,7 +559,8 @@ export class Client {
 
 					Rooms.updatePublicRooms();
 				}
-			} else if (messageArguments.type === 'userdetails') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			} else if (messageArguments.type === 'userdetails') {
 				if (messageArguments.response && messageArguments.response !== 'null') {
 					const response = JSON.parse(messageArguments.response) as IUserDetailsResponse;
 					if (lastOutgoingMessage && lastOutgoingMessage.type === 'query-userdetails' &&
@@ -1062,6 +1072,13 @@ export class Client {
 					return;
 				}
 
+				if (messageArguments.message.startsWith(STATUS_COMMAND)) {
+					if (lastOutgoingMessage && lastOutgoingMessage.type === 'status') {
+						this.websocket.clearLastOutgoingMessage(now);
+					}
+					return;
+				}
+
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
@@ -1348,6 +1365,11 @@ export class Client {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'closehtmlpage' &&
 					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === Tools.toId(recipient) &&
 					Tools.toId(lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith("Your status has been set to: ")) {
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'status' &&
+					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {
@@ -2120,7 +2142,7 @@ export class Client {
 		for (const fileName of messageParserFiles) {
 			if (!fileName.endsWith('.js') || fileName === 'example.js') continue;
 			const filePath = path.join(directory, fileName);
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const messageParser = require(filePath) as IMessageParserFile;
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (!messageParser.parseMessage) throw new Error("No parseMessage function exported from " + filePath);
@@ -2134,16 +2156,20 @@ export class Client {
 		this.websocket.beforeReload();
 	}
 
-	/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 	private onReload(previous: Client): void {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.botGreetingCooldowns) Object.assign(this.botGreetingCooldowns, previous.botGreetingCooldowns);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.groupSymbols) Object.assign(this.groupSymbols, previous.groupSymbols);
 		if (previous.loggedIn) this.loggedIn = previous.loggedIn;
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.publicChatRooms) this.publicChatRooms = previous.publicChatRooms.slice();
 
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		if (previous.serverGroupsResponse) {
 			this.serverGroupsResponse = previous.serverGroupsResponse.slice();
 			this.parseServerGroups();
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		} else if (previous.serverGroups) {
 			Object.assign(this.serverGroups, previous.serverGroups);
 		}
@@ -2158,7 +2184,6 @@ export class Client {
 
 		Tools.unrefProperties(previous);
 	}
-	/* eslint-enable */
 
 	private parseChatMessage(room: Room, user: User, message: string, now: number): void {
 		CommandParser.parse(room, user, message, now);

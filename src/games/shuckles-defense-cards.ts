@@ -757,7 +757,7 @@ const tests: GameFileTests<ShucklesDefenseCards> = {
 		async test(game): Promise<void> {
 			if (game.deltaTypes || game.hackmonsTypes) return;
 
-			const conversion2 = game.actionCards['conversion2']; // eslint-disable-line @typescript-eslint/dot-notation
+			const conversion2 = game.actionCards.conversion2;
 			assert(conversion2);
 
 			const player = await addPlayer(game, "Player 1");

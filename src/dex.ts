@@ -342,15 +342,15 @@ export class Dex {
 			const tagsPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "tags.js");
 			const setsJsonPath = path.join(Tools.pokemonShowdownFolder, "dist", "data", "random-battles", "gen9", "sets.json");
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			this.pokemonShowdownDexModule = require(dexPath) as IPokemonShowdownDexModule;
 			this.pokemonShowdownDex = this.pokemonShowdownDexModule.Dex;
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			this.pokemonShowdownValidatorModule = require(teamValidatorPath) as IPokemonShowdownValidatorModule;
 			this.pokemonShowdownValidator = this.pokemonShowdownValidatorModule.TeamValidator;
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			this.pokemonShowdownTagsModule = require(tagsPath) as IPokemonShowdownTagsModule;
 			this.pokemonShowdownTags = this.pokemonShowdownTagsModule.Tags;
 
@@ -995,7 +995,8 @@ export class Dex {
 		const usableAbilities = this.getUsableAbilities(format);
 		for (const i in pokemon.abilities) {
 			// @ts-expect-error
-			const ability = this.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			const ability = this.getAbility(pokemon.abilities[i]);
 			if (ability && usableAbilities.includes(ability.name)) return ability.name;
 		}
 	}
@@ -1914,7 +1915,8 @@ export class Dex {
 					let usableAbility = false;
 					for (const i in pokemon.abilities) {
 						// @ts-expect-error
-						const ability = formatDex.getAbility(pokemon.abilities[i]); // eslint-disable-line @typescript-eslint/no-unsafe-argument
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+						const ability = formatDex.getAbility(pokemon.abilities[i]);
 						if (ability && usableAbilities.includes(ability.name)) {
 							usableAbility = true;
 							break;
@@ -2856,9 +2858,9 @@ export class Dex {
 			Tools.uncacheTree(gifDataBWPath);
 		}
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
 		const gifData = require(gifDataPath).BattlePokemonSprites as Dict<IGifData | undefined>;
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
 		const gifDataBW = require(gifDataBWPath).BattlePokemonSpritesBW as Dict<IGifData | undefined>;
 
 		// @ts-expect-error
@@ -2909,10 +2911,10 @@ export class Dex {
 		const alternateIconNumbersPath = path.join(this.clientDataDirectory, 'alternate-icon-numbers.js');
 		const trainerSpritesPath = path.join(this.clientDataDirectory, 'trainer-sprites.js');
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-member-access
+		// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
 		const alternateIconNumbers = require(alternateIconNumbersPath).alternateIconNumbers as IAlternateIconNumbers;
 
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		// eslint-disable-next-line @typescript-eslint/no-require-imports
 		const trainerSpriteList = require(trainerSpritesPath) as string[];
 		trainerSpriteList.sort();
 
@@ -3064,7 +3066,8 @@ export class Dex {
 						moveTagRules[Tools.toId(tag)] = this.pokemonShowdownTags[tag].name;
 					}
 				}
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 		}
 
 		const data: IDataTable = {

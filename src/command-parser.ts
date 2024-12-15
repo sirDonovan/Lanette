@@ -373,7 +373,8 @@ export class CommandParser {
 			return Users.self.name + " is preparing to update. Please try again soon!";
 		} else if (error[0] === 'invalidHttpsLink') {
 			return "You must specify a valid HTTPS link.";
-		} else if (error[0] === 'noPmGameRoom') { // eslint-disable-line @typescript-eslint/no-unnecessary-condition
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		} else if (error[0] === 'noPmGameRoom') {
 			return "You must be in a room that has enabled scripted games and where " + Users.self.name + " has Bot rank (*).";
 		}
 
@@ -422,7 +423,7 @@ export class CommandParser {
 
 			const commandFilePath = path.join(directory, fileName);
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const commandFile = require(commandFilePath) as ICommandFile;
 			this.commandModules.push(commandFile);
 
@@ -466,7 +467,7 @@ export class CommandParser {
 			if (!fileName.endsWith('.js') || fileName === 'html-page-base.js') continue;
 			const htmlPagePath = path.join(directory, fileName);
 
-			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			// eslint-disable-next-line @typescript-eslint/no-require-imports
 			const htmlPage = require(htmlPagePath) as IHtmlPageFile;
 			if (htmlPage.pageId in this.htmlPages) throw new Error("Html page id '" + htmlPage.pageId + "' is used for more than 1 page.");
 

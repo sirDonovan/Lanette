@@ -32,7 +32,8 @@ class JigglypuffsDodgeball extends ScriptedGame {
 		await this.nextRound();
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		this.throwTime = false;
 		if (this.round > 1) {
 			this.shields.clear();

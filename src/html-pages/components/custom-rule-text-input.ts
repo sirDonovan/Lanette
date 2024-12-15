@@ -11,6 +11,7 @@ export class CustomRuleTextInput extends TextInput {
 
 	declare props: ICustomRuleTextInputProps;
 
+	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
 	constructor(htmlPage: HtmlPageBase, parentCommandPrefix: string, componentCommand: string, props: ICustomRuleTextInputProps) {
 		super(htmlPage, parentCommandPrefix, componentCommand, props);
 	}

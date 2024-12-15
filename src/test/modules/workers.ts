@@ -5,7 +5,6 @@ import { assert, assertStrictEqual } from './../test-tools';
 const allParamTypes: ParamType[] = ['move', 'tier', 'color', 'type', 'resistance', 'weakness', 'egggroup', 'ability', 'gen'];
 
 /* eslint-env mocha */
-/* eslint-disable @typescript-eslint/dot-notation */
 
 describe("Parameters Worker", () => {
 	// TODO: update to gen 9
@@ -45,7 +44,7 @@ describe("Parameters Worker", () => {
 
 		// parameters with the same name
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
-			{params: [paramTypePools.gen['gen1'], paramTypePools.move.psychic, paramTypePools.type.psychictype]}));
+			{params: [paramTypePools.gen.gen1, paramTypePools.move.psychic, paramTypePools.type.psychictype]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "abra,alakazam,drowzee,exeggcute,exeggutor,hypno,jynx,kadabra,mew,mewtwo," +
 			"mrmime,slowbro,slowpoke,starmie");
@@ -69,7 +68,7 @@ describe("Parameters Worker", () => {
 
 		// mega
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
-			{params: [paramTypePools.gen['gen6'], paramTypePools.resistance.resistsice, paramTypePools.move.destinybond]}));
+			{params: [paramTypePools.gen.gen6, paramTypePools.resistance.resistsice, paramTypePools.move.destinybond]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aegislash,doublade,honedge,houndoommega,sharpedomega");
 
@@ -95,13 +94,13 @@ describe("Parameters Worker", () => {
 
 		// gmax with no tier
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
-			{params: [paramTypePools.gen['gen8'], paramTypePools.color.blue, paramTypePools.move.surf, paramTypePools.type.ice]}));
+			{params: [paramTypePools.gen.gen8, paramTypePools.color.blue, paramTypePools.move.surf, paramTypePools.type.ice]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "arctovish,arctozolt,avalugghisui,eiscue");
 
 		// regional formes
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
-			{params: [paramTypePools.egggroup['field'], paramTypePools.type.normal]}));
+			{params: [paramTypePools.egggroup.field, paramTypePools.type.normal]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "aipom,ambipom,bewear,bibarel,bidoof,bouffalant,buneary,bunnelby," +
 			"cinccino,deerling,delcatty,diggersby,dubwool,dunsparce,eevee,exploud,farfetchd,furfrou,furret,girafarig,glameow," +
@@ -111,7 +110,7 @@ describe("Parameters Worker", () => {
 			"ursaring,vigoroth,watchog,whismur,wooloo,wyrdeer,yungoos,zangoose,zigzagoon,zigzagoongalar,zoroarkhisui,zoruahisui");
 
 		intersection = workers.parameters.intersect(Object.assign(baseOptions,
-			{params: [paramTypePools.egggroup['field'], paramTypePools.type.electric]}));
+			{params: [paramTypePools.egggroup.field, paramTypePools.type.electric]}));
 		assert(intersection);
 		assertStrictEqual(intersection.pokemon.join(","), "ampharos,blitzle,boltund,dedenne,electrike,emolga,flaaffy,jolteon,luxio," +
 			"luxray,manectric,mareep,morpeko,pachirisu,pikachu,raichu,raichualola,shinx,togedemaru,yamper,zebstrika");
@@ -177,7 +176,7 @@ describe("Portmanteaus Worker", () => {
 		const worker = Games.getWorkers().portmanteaus;
 		await worker.initializeThread();
 		const data = worker.getThreadData();
-		const tiers = Object.keys(data.pool['Pokemon']['tier']);
+		const tiers = Object.keys(data.pool.Pokemon.tier);
 		assert(tiers.length);
 		for (const tier of tiers) {
 			assert(!tier.startsWith('('));
@@ -223,4 +222,3 @@ describe("Portmanteaus Worker", () => {
 		assert(!result.answers.includes('teddiursandacondagmax'));
 	});
 });
-/* eslint-enable */

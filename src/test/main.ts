@@ -13,7 +13,6 @@ const pokemonShowdownTestFile = 'pokemon-showdown.js';
 const nonTrivialGameLoadTime = 200;
 
 export async function initializeTests(inputOptions: RunOptions): Promise<void> {
-	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	const noOp = (): void => {};
 	const methodsToNoOp = ['appendFile', 'chmod', 'rename', 'rmdir', 'symlink', 'unlink', 'watchFile', 'writeFile'];
 	for (const method of methodsToNoOp) {

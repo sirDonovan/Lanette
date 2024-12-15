@@ -15,7 +15,8 @@ class WailordsEggCompatibilities extends QuestionAndAnswer {
 	lastEndPokemon: string = "";
 	roundTime = 30 * 1000;
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		for (const pokemon of Games.getPokemonList()) {
 			if (pokemon.forme || pokemon.eggGroups[0] === 'Ditto' || pokemon.eggGroups[0] === 'Undiscovered') continue;
 

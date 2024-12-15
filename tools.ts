@@ -90,7 +90,7 @@ export async function initializeSrc(options?: RunOptions): Promise<void> {
 
 	const appPath = path.join(getInputFolders().src.buildPath, 'app');
 
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	(require(appPath) as typeof import("./src/app")).instantiate();
 }
 
@@ -110,7 +110,8 @@ export function deleteFolderRecursive(folder: string): void {
 	try {
 		fs.accessSync(folder);
 		exists = true;
-	} catch (e) {} // eslint-disable-line no-empty
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+	} catch (e) {}
 
 	if (exists) {
 		const files = fs.readdirSync(folder);
@@ -136,7 +137,8 @@ export function listFilesRecursive(folder: string): string[] {
 	try {
 		fs.accessSync(folder);
 		exists = true;
-	} catch (e) {} // eslint-disable-line no-empty
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+	} catch (e) {}
 
 	if (exists) {
 		const files = fs.readdirSync(folder);
@@ -255,8 +257,10 @@ export function transpile(): void {
 		if (folderName === 'Lanette-private') {
 			try {
 				const postBuildPath = path.join(inputFolder.buildPath, 'post-build.js');
+				// eslint-disable-next-line @typescript-eslint/no-require-imports
 				require(postBuildPath);
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 		}
 	}
 
@@ -264,11 +268,13 @@ export function transpile(): void {
 		if (!currentOutputFilepaths.includes(filepath)) {
 			try {
 				fs.unlinkSync(filepath);
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 
 			try {
 				fs.unlinkSync(filepath + ".map");
-			} catch (e) {} // eslint-disable-line no-empty
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty
+			} catch (e) {}
 
 			global._outputFilepaths!.splice(global._outputFilepaths!.indexOf(filepath), 1);
 		}

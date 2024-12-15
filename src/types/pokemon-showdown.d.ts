@@ -13,10 +13,13 @@ export type ValidatedRule = string | [type: 'complexTeamBan' | 'complexBan', rul
 type GenderName = 'M' | 'F' | 'N' | '';
 type StatIDExceptHP = 'atk' | 'def' | 'spa' | 'spd' | 'spe';
 type StatID = 'hp' | StatIDExceptHP;
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type StatsExceptHPTable = {[stat in StatIDExceptHP]: number};
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type StatsTable = {[stat in StatID]: number};
 type SparseStatsTable = Partial<StatsTable>;
 type BoostID = StatIDExceptHP | 'accuracy' | 'evasion';
+// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
 type BoostsTable = {[boost in BoostID]: number };
 type SparseBoostsTable = Partial<BoostsTable>;
 type Nonstandard = 'Past' | 'Future' | 'Unobtainable' | 'CAP' | 'LGPE' | 'Custom' | 'Gigantamax';
@@ -188,10 +191,10 @@ interface IAbilityDefinition extends IBasicEffect {
 	readonly condition?: Partial<IConditionData>;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IAbilityCopy extends DeepMutable<IAbilityDefinition> {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IAbility extends DeepImmutable<IAbilityCopy> {}
 
 interface IFlingData {
@@ -280,10 +283,10 @@ interface IItemDefinition extends IBasicEffect {
 	readonly boosts?: SparseBoostsTable | false;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IItemCopy extends DeepMutable<IItemDefinition> {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IItem extends DeepImmutable<IItemCopy> {}
 
 interface IHitEffect {
@@ -408,7 +411,8 @@ export interface IMoveDefinition extends IBasicEffect {
 	 * Whether or not this move ignores type immunities. Defaults to
 	 * true for Status moves and false for Physical/Special moves.
 	 */
-	readonly ignoreImmunity: Dict<any> | boolean; // eslint-disable-line @typescript-eslint/no-explicit-any
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	readonly ignoreImmunity: Dict<any> | boolean;
 	/** Base move PP. */
 	readonly pp: number;
 	/** Whether or not this move can receive PP boosts. */
@@ -464,10 +468,10 @@ export interface IMoveDefinition extends IBasicEffect {
 	basePowerCallback?: (this: any, pokemon: any, target: any, move: any) => number | false | null;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IMoveCopy extends DeepMutable<IMoveDefinition> {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IMove extends DeepImmutable<IMoveCopy> {}
 
 interface ISpeciesAbility {
@@ -684,10 +688,10 @@ interface IPokemonDefinition extends IBasicEffect, ISpeciesFormatsData {
 	readonly essentialMove?: string;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPokemonCopy extends DeepMutable<IPokemonDefinition> {}
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IPokemon extends DeepImmutable<IPokemonCopy> {}
 
 interface IEventInfo {
@@ -730,7 +734,7 @@ export interface INatureCopy extends IBasicEffect {
 	minus?: StatIDExceptHP;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface INature extends DeepImmutable<INatureCopy> {}
 
 export type FormatEffectType = 'Format' | 'Ruleset' | 'Rule' | 'ValidatorRule';
@@ -827,7 +831,6 @@ export interface IFormatDefinition extends IBasicEffect {
 	readonly column?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface RuleTable {
 	complexBans: ComplexBan[];
 	complexTeamBans: ComplexTeamBan[];
@@ -853,7 +856,8 @@ export interface RuleTable {
 	isBannedSpecies: (species: IPokemon) => boolean;
 	isRestricted: (thing: string) => boolean;
 	isRestrictedSpecies: (species: IPokemon) => boolean;
-	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null; // eslint-disable-line @typescript-eslint/consistent-indexed-object-style
+	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+	check: (thing: string, setHas?: {[id: string]: true} | null) => string | null;
 	getReason: (key: string) => string | null;
 	getTagRules: () => string[];
 	getComplexBanIndex: (complexBans: ComplexBan[], rule: string) => number;
@@ -912,7 +916,8 @@ interface ITypeData {
 	  * Type chart, attackingTypeName:result, effectid:result
 	  * result is: 0 = normal, 1 = weakness, 2 = resistance, 3 = immunity
 	  */
-	readonly damageTaken: {[attackingTypeNameOrEffectid: string]: number}; // eslint-disable-line @typescript-eslint/consistent-indexed-object-style
+	// eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+	readonly damageTaken: {[attackingTypeNameOrEffectid: string]: number};
 	/** The IVs to get this Type Hidden Power (in gen 3 and later) */
 	readonly HPivs: SparseStatsTable;
 	/** The DVs to get this Type Hidden Power (in gen 2). */

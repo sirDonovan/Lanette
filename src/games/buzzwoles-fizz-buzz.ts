@@ -23,7 +23,8 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 	roundCategories: {'firstMultiple': string; 'secondMultiple': string} = {firstMultiple: '', secondMultiple: ''};
 	expectedMultiples: {'firstMultiple': string[]; 'secondMultiple': string[]} = {firstMultiple: [], secondMultiple: []};
 
-	static async loadData(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	static async loadData(): Promise<void> {
 		const prefix = "Pokemon that is ";
 		const suffix = " type";
 
@@ -61,7 +62,8 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.playerOrder = this.shufflePlayers();
 		this.resetCount();
 	}
@@ -110,7 +112,8 @@ class BuzzwolesFizzBuzz extends ScriptedGame {
 		this.sayUhtml(uhtmlName, html);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.currentPlayer) {
 			this.currentPlayer.eliminated = true;
 			this.currentPlayer = null;

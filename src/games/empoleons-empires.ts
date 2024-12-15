@@ -32,7 +32,8 @@ class EmpoleonsEmpires extends ScriptedGame {
 		}
 	}
 
-	async onStart(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onStart(): Promise<void> {
 		this.say("Now requesting aliases!");
 		for (const i in this.players) {
 			if (!this.playerAliases.has(this.players[i])) {
@@ -48,7 +49,8 @@ class EmpoleonsEmpires extends ScriptedGame {
 		}, 60 * 1000);
 	}
 
-	async onNextRound(): Promise<void> { // eslint-disable-line @typescript-eslint/require-await
+	// eslint-disable-next-line @typescript-eslint/require-await
+	async onNextRound(): Promise<void> {
 		if (this.getRemainingPlayerCount() <= 1) return this.end();
 		const aliases: string[] = [];
 		for (const i in this.players) {
