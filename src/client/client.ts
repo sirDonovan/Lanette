@@ -50,6 +50,7 @@ const STAFF_BLOCKING_PMS_MESSAGE = "is too busy to answer private messages right
 const BLOCK_CHALLENGES_COMMAND = "/text You are now blocking all incoming challenge requests.";
 const ALREADY_BLOCKING_CHALLENGES_COMMAND = "/error You are already blocking challenges!";
 const AVATAR_COMMAND = "/text Avatar changed to:";
+const STATUS_COMMAND = "/text Your status has been set to: ";
 const ROLL_COMMAND_HELP = "/text /dice ";
 
 const DATA_COMMANDS: string[] = [
@@ -493,6 +494,14 @@ export class Client {
 					this.send({
 						message: '|/avatar ' + Config.avatar,
 						type: 'avatar',
+						measure: true,
+					});
+				}
+
+				if (Config.status) {
+					this.send({
+						message: '|/status ' + Config.status,
+						type: 'status',
 						measure: true,
 					});
 				}
@@ -1063,6 +1072,13 @@ export class Client {
 					return;
 				}
 
+				if (messageArguments.message.startsWith(STATUS_COMMAND)) {
+					if (lastOutgoingMessage && lastOutgoingMessage.type === 'status') {
+						this.websocket.clearLastOutgoingMessage(now);
+					}
+					return;
+				}
+
 				const recipientId = Tools.toId(messageArguments.recipientUsername);
 				if (messageArguments.message.startsWith(USER_NOT_FOUND_MESSAGE) ||
 					messageArguments.message.startsWith(USER_BLOCKING_PMS_MESSAGE) ||
@@ -1349,6 +1365,11 @@ export class Client {
 				if (lastOutgoingMessage && lastOutgoingMessage.type === 'closehtmlpage' &&
 					lastOutgoingMessage.roomid === room.id && lastOutgoingMessage.userid === Tools.toId(recipient) &&
 					Tools.toId(lastOutgoingMessage.pageId) === Tools.toId(pageId)) {
+					this.websocket.clearLastOutgoingMessage(now);
+				}
+			} else if (messageArguments.message.startsWith("Your status has been set to: ")) {
+				if (lastOutgoingMessage && lastOutgoingMessage.type === 'status' &&
+					lastOutgoingMessage.roomid === room.id) {
 					this.websocket.clearLastOutgoingMessage(now);
 				}
 			} else if (messageArguments.message.startsWith(CHAT_ERROR_MESSAGE)) {

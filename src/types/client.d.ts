@@ -27,7 +27,7 @@ export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uht
 	'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' | 'tournament-autodq' |
 	'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' | 'tournament-forcetimer' |
 	'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' | 'query-userdetails' |
-	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat';
+	'query-rooms' | 'query-roominfo' | 'blockchallenges' | 'trn' | 'avatar' | 'allowpmlog' | 'create-groupchat' | 'status';
 
 export interface IOutgoingMessageAttributes {
 	/**Return `false` to prevent a message from being sent */
