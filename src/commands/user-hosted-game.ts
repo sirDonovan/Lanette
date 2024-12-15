@@ -312,6 +312,24 @@ export const commands: BaseCommandDefinitions = {
 		chatOnly: true,
 		description: ["extends the current user-hosted game"],
 	},
+	eventhost: {
+		command(target, room, user) {
+			if (this.isPm(room) || !user.hasRank(room, 'driver') || !room.userHostedGame) return;
+			let format = room.userHostedGame.format;
+			if (target) {
+				const newFormat = Games.getUserHostedFormat(target);
+				if (Array.isArray(newFormat)) return this.sayError(newFormat);
+				format = newFormat;
+			}
+
+			this.say("Restarting " + (format.nameWithOptions || format.name) + " as an event!");
+			room.userHostedGame.eventHost = true;
+			room.userHostedGame.restart(format);
+		},
+		chatOnly: true,
+		syntax: ["{game}"],
+		description: ["restarts the current user-hosted game as an event, optionally switching to a different game"],
+	},
 	subhost: {
 		command(target, room, user) {
 			if (this.isPm(room) || !user.hasRank(room, 'voice') || !room.userHostedGame) return;

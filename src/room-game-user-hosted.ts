@@ -17,6 +17,7 @@ export class UserHostedGame extends Game {
 	endTime: number = 0;
 	extended: boolean = false;
 	gameTimerEndTime: number = 0;
+	eventHost: boolean = false;
 	hostId: string = '';
 	hostName: string = '';
 	isUserHosted: boolean = true;
@@ -81,6 +82,7 @@ export class UserHostedGame extends Game {
 	}
 
 	extend(target: string, user: User): string | undefined {
+		if (this.eventHost) return "Event games do not require extensions.";
 		if (this.extended) return "The game cannot be extended more than once.";
 
 		const now = Date.now();
@@ -294,7 +296,7 @@ export class UserHostedGame extends Game {
 		this.setUhtmlBaseName();
 
 		this.options = {};
-		this.endTime = Date.now() + HOST_TIME_LIMIT;
+		this.endTime = this.eventHost ? 0 : Date.now() + HOST_TIME_LIMIT;
 		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
 			this.options.freejoin = 1;
@@ -334,11 +336,13 @@ export class UserHostedGame extends Game {
 
 		this.room.notifyRank("all", this.room.title + " user-hosted game", this.name, this.hostId + " " + this.getHighlightPhrase());
 
-		this.hostTimeout = setTimeout(() => {
-			this.say((this.subHostName || this.hostName) + " there are " + Tools.toDurationString(FIRST_ACTIVITY_WARNING) + " remaining " +
-				"in the game!");
-			this.setSecondActivityTimer();
-		}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
+		if (!this.eventHost) {
+			this.hostTimeout = setTimeout(() => {
+				this.say((this.subHostName || this.hostName) + " there are " + Tools.toDurationString(FIRST_ACTIVITY_WARNING) + " remaining " +
+					"in the game!");
+				this.setSecondActivityTimer();
+			}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
+		}
 
 		if (this.options.freejoin) {
 			this.started = true;
