@@ -11,7 +11,6 @@ const SECOND_ACTIVITY_WARNING = 30 * 1000;
 const MIN_HOST_EXTENSION_MINUTES = 1;
 const MAX_HOST_EXTENSION_MINUTES = 2;
 const FORCE_END_CREATE_TIMER = 60 * 1000;
-const HOST_TIME_LIMIT = 25 * 60 * 1000;
 
 export class UserHostedGame extends Game {
 	endTime: number = 0;
@@ -296,7 +295,7 @@ export class UserHostedGame extends Game {
 		this.setUhtmlBaseName();
 
 		this.options = {};
-		this.endTime = this.eventHost ? 0 : Date.now() + HOST_TIME_LIMIT;
+		this.endTime = this.eventHost ? 0 : Date.now() + Games.hostTimeLimit;
 		if (this.format.link) this.format.description += "<br /><br /><b><a href='" + this.format.link + "'>More info</a></b>";
 		if (this.format.freejoin) {
 			this.options.freejoin = 1;
@@ -341,7 +340,7 @@ export class UserHostedGame extends Game {
 				this.say((this.subHostName || this.hostName) + " there are " + Tools.toDurationString(FIRST_ACTIVITY_WARNING) + " remaining " +
 					"in the game!");
 				this.setSecondActivityTimer();
-			}, HOST_TIME_LIMIT - FIRST_ACTIVITY_WARNING);
+			}, Games.hostTimeLimit - FIRST_ACTIVITY_WARNING);
 		}
 
 		if (this.options.freejoin) {

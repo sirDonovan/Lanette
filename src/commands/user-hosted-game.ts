@@ -677,7 +677,7 @@ export const commands: BaseCommandDefinitions = {
 				const isSeconds = secondsArguments.includes(Tools.toId(targets[0]));
 				let minimumTime: number;
 				let maximumTime: number;
-				const remainingMinutes = Math.floor((gameRoom.userHostedGame.endTime - now) / 60 / 1000);
+				const remainingMinutes = gameRoom.userHostedGame.endTime ? Math.floor((gameRoom.userHostedGame.endTime - now) / 60 / 1000) : Games.hostTimeLimit / 60 / 1000;
 				if (isSeconds && targets.length === 3) {
 					minimumTime = parseInt(targets[1]);
 					maximumTime = parseInt(targets[2]);
@@ -743,7 +743,7 @@ export const commands: BaseCommandDefinitions = {
 				}
 			}
 
-			if (now + time > gameRoom.userHostedGame.endTime) {
+			if (gameRoom.userHostedGame.endTime && now + time > gameRoom.userHostedGame.endTime) {
 				return this.say("There are only " + Tools.toDurationString(gameRoom.userHostedGame.endTime - now) + " left in the game!");
 			}
 

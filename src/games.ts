@@ -47,6 +47,7 @@ interface ICreateGameOptions {
 	initialSeed?: PRNGSeed;
 }
 
+const HOST_TIME_LIMIT = 25 * 60 * 1000;
 const SKIP_SCRIPTED_COOLDOWN_DURATION = 5 * 60 * 1000;
 const SKIPPED_SCRIPTED_COOLDOW_TIMER = 10 * 1000;
 const DEFAULT_CATEGORY_COOLDOWN = 3;
@@ -122,6 +123,7 @@ const gameChallenges: GameChallenge[] = ['botchallenge', 'onevsone'];
 
 export class Games {
 	readonly delayedOfficialGameTime: number = 15 * 1000;
+	readonly hostTimeLimit: number = HOST_TIME_LIMIT;
 
 	private readonly achievements: Achievements = {};
 	private readonly aliases: Dict<string> = {};
