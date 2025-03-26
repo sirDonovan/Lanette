@@ -78,6 +78,11 @@ export interface IClientTournamentData {
 export interface IUserHostedTournament {
 	approvalStatus: 'changes-requested' | 'approved' | '';
 	bracketUrl: string;
+    canWarn: {
+        changesRequested: boolean;
+        awaitingApproval: boolean;
+        approvalRequested: boolean;
+    }
 	hostId: string;
 	hostName: string;
 	reviewer: string;

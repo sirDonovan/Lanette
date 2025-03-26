@@ -964,6 +964,11 @@ export class Client {
 							const demoted = messageArguments.message.substr(6).split(" was demoted to Room regular user by")[0];
 							if (Tools.toId(demoted) === lastOutgoingMessage.deauthedUserid) this.websocket.clearLastOutgoingMessage(now);
 						}
+                    } else if (lastOutgoingMessage.type === 'hidetext') {
+                        if (messageArguments.message.endsWith(' messages were cleared from ' + room.title +
+                            'by' + Users.self.name + '.' + (lastOutgoingMessage.hideReason ? ' (' +
+                            lastOutgoingMessage.hideReason + ')' : '')))
+                            this.websocket.clearLastOutgoingMessage(now);
 					} else if (lastOutgoingMessage.type === 'warn') {
 						if (messageArguments.message.endsWith(' was warned by ' + Users.self.name + ". (" +
 							lastOutgoingMessage.warnReason + ")")) {
@@ -2231,6 +2236,7 @@ export class Client {
 						if (room.approvedUserHostedTournaments[i].urls.includes(link)) {
 							if (!authOrTHC && room.approvedUserHostedTournaments[i].hostId !== user.id) {
 								room.warn(user, "Please do not post links to other hosts' tournaments");
+                                room.hidetext(user.id, true, 1, "");
 							}
 							break outer;
 						}
@@ -2262,6 +2268,11 @@ export class Client {
 							room.approvedUserHostedTournaments[link] = {
 								approvalStatus: 'approved',
 								bracketUrl: bracketUrl ? link : "",
+                                canWarn: {
+                                    changesRequested: false,
+                                    awaitingApproval: false,
+                                    approvalRequested: false,
+                                },
 								hostName: user.name,
 								hostId: user.id,
 								reviewer: user.id,
@@ -2276,21 +2287,61 @@ export class Client {
 						if (room.newUserHostedTournaments[i].urls.includes(link)) {
 							if (room.newUserHostedTournaments[i].hostId !== user.id) {
 								room.warn(user, "Please do not post links to other hosts' tournaments");
+                                room.hidetext(user.id, true, 1, "");
 							} else if (room.newUserHostedTournaments[i].approvalStatus === 'changes-requested') {
 								let name = room.newUserHostedTournaments[i].reviewer;
 								const reviewer = Users.get(name);
 								if (reviewer) name = reviewer.name;
-								room.warn(user, name + " has requested changes for your tournament and you " +
-									"must wait for them to be approved");
-							} else {
-								room.warn(user, "You must wait for a staff member to approve your tournament");
+								if (room.newUserHostedTournaments[i].canWarn.changesRequested) {
+                                    room.warn(user, name + " has requested changes for your tournament and you " +
+                                        "must wait for them to be approved");
+                                    room.hidetext(user.id, true, 1, "");
+                                } else {
+                                    room.hidetext(user.id, true, 1, name + " has requested changes " +
+                                        "for your tournament and you must wait for them to be approved");
+                                    room.newUserHostedTournaments[i].canWarn.changesRequested = true;
+                                }
+							} else if (room.newUserHostedTournaments[link].canWarn.approvalRequested) {
+                                room.warn(user, "Your tournament must be approved by a staff member");
+                                room.hidetext(user.id, true, 1, "");
+                                user.say("Your tournament must be approved by a staff member");
+                                user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id +
+                                    ', __bracket link__, __signup link__`` to get your' +
+                                    'tournament approved (insert your actual links).');
+                            } else {
+                                if (room.newUserHostedTournaments[i].canWarn.awaitingApproval) {
+                                    room.warn(user, "You must wait for a staff member to approve your tournament");
+                                    room.hidetext(user.id, true, 1, "");
+                                } else {
+                                    room.hidetext(user.id, true, 1, "You must wait for a staff member to approve your tournament");
+                                    room.newUserHostedTournaments[i].canWarn.awaitingApproval = true;
+                                }
 							}
 							break outer;
 						}
 					}
-					room.warn(user, "Your tournament must be approved by a staff member");
-					user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, ' +
-						'__signup link__`` to get your tournament approved (insert your actual links).');
+                    if (!room.newUserHostedTournaments) room.newUserHostedTournaments = {};
+
+                    const bracketUrl = Tools.isChallongeBracketUrl(link);
+                    room.newUserHostedTournaments[link] = {
+                       approvalStatus: '',
+						bracketUrl: bracketUrl ? link : "",
+                        canWarn: {
+                            changesRequested: false,
+                            awaitingApproval: false,
+                            approvalRequested: true,
+                        },
+						hostName: user.name,
+						hostId: user.id,
+						reviewer: user.id,
+						signupUrl: bracketUrl ? "" : link,
+						startTime: 0,
+						urls: [link],
+                    };
+                    room.hidetext(user.id, true, 1, "Your tournament must be approved by a staff member");
+                    user.say("Your tournament must be approved by a staff member");
+                    user.say('Use the command ``' + Config.commandCharacter + 'gettourapproval ' + room.id + ', __bracket link__, ' +
+					'__signup link__`` to get your tournament approved (insert your actual links).');
 					break;
 				}
 			}

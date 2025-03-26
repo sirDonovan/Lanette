@@ -22,8 +22,8 @@ export interface IParsedIncomingMessage<T = IClientMessageTypes> {
 
 export type IOutgoingMessageTypes = 'command' | 'chat' | 'chat-html' | 'chat-uhtml' | 'chat-uhtml-change' | 'private-html' |
 	'private-uhtml' | 'private-uhtml-change' | 'pm' | 'pm-html' | 'pm-uhtml' | 'pm-uhtml-change' | 'code' | 'join-room' | 'leave-room' |
-	'modchat' | 'filters-view' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' | 'hangman-start' | 'hangman-end' | 'htmlpage' |
-	'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank' | 'modnote' |
+	'modchat' | 'filters-view' | 'banword-list' | 'room-voice' | 'room-deauth' | 'warn' | 'hidetext' | 'hangman-start' | 'hangman-end' |
+    'htmlpage' | 'htmlpageselector' | 'closehtmlpage' | 'highlight-htmlpage' | 'announce' | 'notifyrank' | 'notifyoffrank' | 'modnote' |
 	'tournament-create' | 'tournament-start' | 'tournament-end' | 'tournament-name' | 'tournament-autostart' | 'tournament-autodq' |
 	'tournament-runautodq' | 'tournament-cap' | 'tournament-rules' | 'tournament-forcepublic' | 'tournament-forcetimer' |
 	'tournament-scouting' | 'tournament-modjoin' | 'tournament-disqualify' | 'notifyuser' | 'notifyoffuser' | 'query-userdetails' |
@@ -36,6 +36,7 @@ export interface IOutgoingMessageAttributes {
 	deauthedUserid?: string;
 	disqualifiedUserid?: string;
 	format?: string;
+    hideReason?: string;
 	html?: string;
 	measure?: boolean;
 	modchatLevel?: string;
