@@ -15,21 +15,23 @@ interface IPackageJson {
 }
 
 const pokemonShowdownDistName = "dist";
+
+// required to build: esbuild, ts-chacha20
 const removeFromPackageJson = [
 	// dependencies
 	"@types/pg", "@swc/core", "mysql2", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "source-map-support", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
-		"sql-template-strings", "sqlite", "sucrase",
+		"sql-template-strings", "sqlite", "sqlite3", "sucrase",
 	// secretDependencies
 	"node-oom-heapdump",
 	// devDependencies
-	"@types/better-sqlite3", "@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/pg", "@types/sockjs",
-		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "husky", "mocha", "smogon",
+	"@stylistic/eslint-plugin", "@types/better-sqlite3", "@types/cloud-env", "@types/node", "@types/node-static", "@types/nodemailer", "@types/pg", "@types/sockjs", "@types/sodium-native",
+		"@typescript-eslint/eslint-plugin", "@typescript-eslint/parser", "eslint", "eslint-plugin-import", "globals", "husky", "mocha", "smogon",
 		"typescript", "typescript-eslint",
 ];
 const overrideVersions: Dict<string> = {
-	"esbuild": "0.24.0",
+	"esbuild": "0.25.0",
 };
 
 function getPokemonShowdownFolder(): string {
