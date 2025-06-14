@@ -56,6 +56,7 @@ for (const letter in EVASION_DETECTION_SUBSTITUTIONS) {
 
 function constructEvasionRegex(str: string): RegExp {
 	const buf = "\\b" +
+		// eslint-disable-next-line @typescript-eslint/no-misused-spread
 		[...str].map(letter => (EVASION_DETECTION_SUB_STRINGS[letter] || letter) + '+').join('\\.?') +
 		"\\b";
 	return new RegExp(buf, 'iu');

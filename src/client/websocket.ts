@@ -457,7 +457,6 @@ export class Websocket {
 								"User-Agent": "ws",
 							},
 							skipUTF8Validation: true,
-							// @ts-expect-error
 							allowSynchronousEvents: true,
 						};
 
