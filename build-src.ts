@@ -19,10 +19,10 @@ const pokemonShowdownDistName = "dist";
 // required to build: esbuild, ts-chacha20
 const removeFromPackageJson = [
 	// dependencies
-	"@types/pg", "@swc/core", "mysql2", "preact", "preact-render-to-string", "probe-image-size", "sockjs", "source-map-support", "ts-node",
+	"@types/pg", "@swc/core", "mysql2", "preact", "preact-render-to-string", "sockjs", "source-map-support", "ts-node",
 	// optionalDependencies
 	"better-sqlite3", "brain.js", "cloud-env", "githubhook", "node-static", "nodemailer", "permessage-deflate", "pg",
-		"sql-template-strings", "sqlite", "sqlite3", "sucrase",
+		"probe-image-size", "sql-template-strings", "sqlite", "sqlite3", "sucrase",
 	// secretDependencies
 	"node-oom-heapdump",
 	// devDependencies
