@@ -140,7 +140,7 @@ export const commands: BaseCommandDefinitions = {
 			}
 
 			if (action !== 'add' || targets.length < 4) {
-				return this.say("Usage: ``" + Config.commandCharacter + "" + cmd + " add, [name], [interval in minutes], message``.");
+				return this.say("Usage: ``" + Config.commandCharacter + cmd + " add, [name], [interval in minutes], message``.");
 			}
 
 			const messageName = targets[1].trim();

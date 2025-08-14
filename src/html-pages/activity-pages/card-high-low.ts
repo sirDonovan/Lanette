@@ -62,7 +62,7 @@ export class CardHighLowPage extends CardMatchingPage {
 			if (bolded) {
 				cardHtml += '<b>' + card.name + '</b>';
 			} else {
-				cardHtml += card.name + '';
+				cardHtml += card.name;
 			}
 
 			if (this.activity.currentCategory) {
