@@ -499,7 +499,7 @@ export let onScriptedGameWin: ((room: Room, format: IGameFormat, players: Dict<P
 export let onUserHostedGameWin: ((room: Room, format: IUserHostedFormat, players: Dict<Player>, winners: Map<Player, number>,
 	points: Map<Player, number> | undefined) => void) | undefined = undefined;
 
-export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string) => void) | undefined = undefined;
+export let onUserHostedGameHost: ((room: Room, format: IUserHostedFormat, hostName: string, duration: number) => void) | undefined = undefined;
 
 export let getDynamicTextHexCode: ((color: TextColorHex, background?: HexCode) => TextColorHex) | undefined = undefined;
 

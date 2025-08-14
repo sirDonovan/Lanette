@@ -453,7 +453,10 @@ export class UserHostedGame extends Game {
 				hostBits /= 2;
 			}
 
-			if (Config.onUserHostedGameHost) Config.onUserHostedGameHost(this.room, this.format, hostName);
+			if (Config.onUserHostedGameHost) {
+				const duration = this.startTime ? now - this.startTime : 0;
+				Config.onUserHostedGameHost(this.room, this.format, hostName, duration);
+			}
 
 			Storage.addPoints(this.room, Storage.gameLeaderboard, hostName, hostBits, 'userhosted');
 			const user = Users.get(hostName);
